@@ -28,4 +28,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm db:start
+      - run: pnpm db:reset
       - run: pnpm db:test

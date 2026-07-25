@@ -26,5 +26,10 @@
     "prettier": "^3.9.6",
     "supabase": "2.109.1",
     "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "expo-modules-jsi@57.0.4": "patches/expo-modules-jsi@57.0.4.patch"
+    }
   }
 }

@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(70);
+select plan(77);
 
 select has_schema('app', 'the non-exposed application schema exists');
 select domain_type_is(
@@ -33,12 +33,39 @@ select domain_type_is('app'::name, 'quota_adjustment_value', 'numeric', 'quota a
 select domain_type_is('app'::name, 'plus_minus_value', 'numeric', 'plus-minus uses exact numeric storage');
 select domain_type_is('app'::name, 'golf_score_value', 'numeric', 'golf scores use exact whole-number storage');
 
+select has_table('app', 'fixture_dataset', 'the synthetic fixture manifest exists');
+select col_type_is('app', 'fixture_dataset', 'id', 'app.entity_id', 'fixture identifiers use the entity ID domain');
+select col_type_is(
+  'app',
+  'fixture_dataset',
+  'created_at',
+  'app.utc_instant',
+  'fixture instants use the UTC instant domain'
+);
+select has_pk('app', 'fixture_dataset', 'fixture records have a primary key');
+select results_eq(
+  $$ select fixture_key from app.fixture_dataset order by fixture_key $$,
+  $$ values ('foundation-boundaries'::text), ('foundation-primary'::text) $$,
+  'the deterministic synthetic dataset is loaded by the seed'
+);
+select is(
+  (select count(distinct id) from app.fixture_dataset),
+  2::bigint,
+  'synthetic fixture identifiers are unique'
+);
+select throws_ok(
+  $$ update app.fixture_dataset set id = pg_catalog.gen_random_uuid() where fixture_key = 'foundation-primary' $$,
+  '22000',
+  null,
+  'persisted synthetic fixture identifiers are immutable'
+);
+
 select lives_ok(
   $$ select 100.00::app.quota_value $$,
   'quota accepts its exact upper boundary'
 );
 select lives_ok($$ select 0.00::app.quota_value $$, 'quota accepts its lower boundary');
-select throws_ok($$ select -0.01::app.quota_value $$, '23514', null, 'quota rejects values below its lower boundary');
+select throws_ok($$ select (-0.01)::app.quota_value $$, '23514', null, 'quota rejects values below its lower boundary');
 select throws_ok(
   $$ select 100.001::app.quota_value $$,
   '23514',
@@ -58,49 +85,49 @@ select throws_ok(
   'quota rejects non-finite numeric values'
 );
 
-select lives_ok($$ select -10.0::app.handicap_value $$, 'handicap accepts its lower boundary');
+select lives_ok($$ select (-10.0)::app.handicap_value $$, 'handicap accepts its lower boundary');
 select lives_ok($$ select 54.0::app.handicap_value $$, 'handicap accepts its upper boundary');
-select throws_ok($$ select -10.1::app.handicap_value $$, '23514', null, 'handicap rejects values below its lower boundary');
+select throws_ok($$ select (-10.1)::app.handicap_value $$, '23514', null, 'handicap rejects values below its lower boundary');
 select throws_ok($$ select 54.1::app.handicap_value $$, '23514', null, 'handicap rejects values above its upper boundary');
 select throws_ok($$ select 10.01::app.handicap_value $$, '23514', null, 'handicap rejects excess precision');
 select lives_ok($$ select 0.00::app.golf_points_value $$, 'golf points accept their lower boundary');
 select lives_ok($$ select 100.00::app.golf_points_value $$, 'golf points accept their upper boundary');
-select throws_ok($$ select -0.01::app.golf_points_value $$, '23514', null, 'golf points reject values below their lower boundary');
+select throws_ok($$ select (-0.01)::app.golf_points_value $$, '23514', null, 'golf points reject values below their lower boundary');
 select throws_ok($$ select 100.01::app.golf_points_value $$, '23514', null, 'golf points reject values above their upper boundary');
 select throws_ok($$ select 1.001::app.golf_points_value $$, '23514', null, 'golf points reject excess precision');
-select lives_ok($$ select -1000.00::app.manual_merit_value $$, 'manual merit accepts its lower boundary');
+select lives_ok($$ select (-1000.00)::app.manual_merit_value $$, 'manual merit accepts its lower boundary');
 select lives_ok($$ select 1000.00::app.manual_merit_value $$, 'manual merit accepts its upper boundary');
-select throws_ok($$ select -1000.01::app.manual_merit_value $$, '23514', null, 'manual merit rejects values below its lower boundary');
+select throws_ok($$ select (-1000.01)::app.manual_merit_value $$, '23514', null, 'manual merit rejects values below its lower boundary');
 select throws_ok($$ select 1000.01::app.manual_merit_value $$, '23514', null, 'manual merit rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.manual_merit_value $$, '23514', null, 'manual merit rejects excess precision');
 select lives_ok($$ select 0.00::app.generated_merit_value $$, 'generated merit accepts its lower boundary');
 select lives_ok($$ select 1000.00::app.generated_merit_value $$, 'generated merit accepts its upper boundary');
-select throws_ok($$ select -0.01::app.generated_merit_value $$, '23514', null, 'generated merit rejects values below its lower boundary');
+select throws_ok($$ select (-0.01)::app.generated_merit_value $$, '23514', null, 'generated merit rejects values below its lower boundary');
 select throws_ok($$ select 1000.01::app.generated_merit_value $$, '23514', null, 'generated merit rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.generated_merit_value $$, '23514', null, 'generated merit rejects excess precision');
 select lives_ok($$ select 0.00::app.participation_merit_value $$, 'participation merit accepts its lower boundary');
 select lives_ok($$ select 100.00::app.participation_merit_value $$, 'participation merit accepts its upper boundary');
-select throws_ok($$ select -0.01::app.participation_merit_value $$, '23514', null, 'participation merit rejects values below its lower boundary');
+select throws_ok($$ select (-0.01)::app.participation_merit_value $$, '23514', null, 'participation merit rejects values below its lower boundary');
 select throws_ok($$ select 100.01::app.participation_merit_value $$, '23514', null, 'participation merit rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.participation_merit_value $$, '23514', null, 'participation merit rejects excess precision');
 select lives_ok($$ select 0.00::app.placement_merit_value $$, 'placement merit accepts its lower boundary');
 select lives_ok($$ select 500.00::app.placement_merit_value $$, 'placement merit accepts its upper boundary');
-select throws_ok($$ select -0.01::app.placement_merit_value $$, '23514', null, 'placement merit rejects values below its lower boundary');
+select throws_ok($$ select (-0.01)::app.placement_merit_value $$, '23514', null, 'placement merit rejects values below its lower boundary');
 select throws_ok($$ select 500.01::app.placement_merit_value $$, '23514', null, 'placement merit rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.placement_merit_value $$, '23514', null, 'placement merit rejects excess precision');
-select lives_ok($$ select -20.00::app.quota_adjustment_value $$, 'quota adjustment accepts its lower boundary');
+select lives_ok($$ select (-20.00)::app.quota_adjustment_value $$, 'quota adjustment accepts its lower boundary');
 select lives_ok($$ select 20.00::app.quota_adjustment_value $$, 'quota adjustment accepts its upper boundary');
-select throws_ok($$ select -20.01::app.quota_adjustment_value $$, '23514', null, 'quota adjustment rejects values below its lower boundary');
+select throws_ok($$ select (-20.01)::app.quota_adjustment_value $$, '23514', null, 'quota adjustment rejects values below its lower boundary');
 select throws_ok($$ select 20.01::app.quota_adjustment_value $$, '23514', null, 'quota adjustment rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.quota_adjustment_value $$, '23514', null, 'quota adjustment rejects excess precision');
-select lives_ok($$ select -100.00::app.plus_minus_value $$, 'plus-minus accepts its lower boundary');
+select lives_ok($$ select (-100.00)::app.plus_minus_value $$, 'plus-minus accepts its lower boundary');
 select lives_ok($$ select 100.00::app.plus_minus_value $$, 'plus-minus accepts its upper boundary');
-select throws_ok($$ select -100.01::app.plus_minus_value $$, '23514', null, 'plus-minus rejects values below its lower boundary');
+select throws_ok($$ select (-100.01)::app.plus_minus_value $$, '23514', null, 'plus-minus rejects values below its lower boundary');
 select throws_ok($$ select 100.01::app.plus_minus_value $$, '23514', null, 'plus-minus rejects values above its upper boundary');
 select throws_ok($$ select 1.001::app.plus_minus_value $$, '23514', null, 'plus-minus rejects excess precision');
 select lives_ok($$ select 0::app.golf_score_value $$, 'golf score accepts its lower boundary');
 select lives_ok($$ select 300::app.golf_score_value $$, 'golf score accepts its upper boundary');
-select throws_ok($$ select -1::app.golf_score_value $$, '23514', null, 'golf score rejects values below its lower boundary');
+select throws_ok($$ select (-1)::app.golf_score_value $$, '23514', null, 'golf score rejects values below its lower boundary');
 select throws_ok($$ select 301::app.golf_score_value $$, '23514', null, 'golf score rejects values above its upper boundary');
 select throws_ok($$ select 1.5::app.golf_score_value $$, '23514', null, 'golf score rejects fractional strokes');
 select is(
