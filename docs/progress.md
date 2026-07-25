@@ -29,7 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                       |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| July 25, 2026 | Foundation database contracts           | Complete | Clean PostgreSQL 16 migration smoke and representative numeric checks pass; 70 pgTAP assertions define full domain, ID, idempotency, and server-time coverage  |
+| July 25, 2026 | Foundation database contracts           | Complete | Commit `b26fd21`; clean PostgreSQL 16 migration smoke and representative numeric checks pass; 70 pgTAP assertions define full contract coverage                |
 | July 25, 2026 | Web development startup                 | Complete | Agent-browser loads `http://localhost:3000`, finds meaningful content and interactive elements, and reports no error overlay or captured console errors        |
 | July 25, 2026 | Fail-fast runtime configuration         | Complete | Eight focused tests pass; web startup exits nonzero with a named missing variable; mobile root import rejects missing or copied-placeholder public config      |
 | July 25, 2026 | Local Supabase Docker runtime bootstrap | Blocked  | Docker 28.5.1 is running and the host reaches Docker Hub; `supabase start` and a direct small `docker pull` both stall through Docker Desktop's internal proxy |
