@@ -7,28 +7,29 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Request-bound server identity context and shared mutation pipeline
+- **Active slice:** Web authentication states and protected portal shell
 - **Status:** In progress
-- **Next action:** Bind verified Supabase sessions to the server-only group bootstrap, establish the shared error/correlation pipeline, and prove a caller cannot create access for another identity.
+- **Next action:** Implement safe sign-in/recovery states and a server-authorized portal shell, then wire the verified group-bootstrap action into the administrator first-run flow.
 - **Blockers:** None.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                               |
-| -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass             |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commit `59f76fb`; identity/group bootstrap, RLS boundaries, append-only audit, and 93 focused pgTAP assertions pass |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                            |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                            |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                            |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                            |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                            |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                            |
+| Phase                                                                            | Status      | Evidence or next step                                                                                            |
+| -------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass          |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits `59f76fb`, `8831e83`; DB boundary and verified-session bootstrap pass 170 pgTAP and 27 Vitest assertions |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                         |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                         |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                         |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                         |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                         |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                         |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                         |
 | ------------- | --------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 25, 2026 | Verified-session bootstrap boundary     | Complete | Commit `8831e83`; exact-pinned Supabase SSR client, actor-bound server action, safe errors/correlation, live Auth/RPC and browser proxy checks pass              |
 | July 25, 2026 | Identity and group database contract    | Complete | Commit `59f76fb`; PostgreSQL reset and 170 total pgTAP assertions pass atomic bootstrap/rollback, tenant isolation, revocation, audit, and last-admin invariants |
 | July 25, 2026 | Phase 00 exit gate                      | Complete | Commit `cf76835`; clean committed tree passes frozen install, full checks/builds, Supabase start/reset/seed, and all 77 pgTAP assertions; reviews are clean      |
 | July 25, 2026 | Cross-target local runtime verification | Complete | Full Supabase stack starts; agent-browser is clean; native iOS and Android builds install, launch, render the Home/Explore UI, and show no crash-level errors    |
