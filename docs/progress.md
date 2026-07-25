@@ -7,28 +7,30 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 00 — Foundation
-- **Active slice:** Initial database conventions, synthetic seed, and exact numeric tests
-- **Status:** Not started
-- **Next action:** Create the first Supabase migration with exact numeric/time/idempotency conventions, add synthetic fixtures, and prove half-away-from-zero behavior.
-- **Blockers:** Local Supabase Docker runtime verification remains blocked by Docker Desktop image pulls that stall through the daemon's configured internal proxy.
+- **Active slice:** Local Supabase pgTAP and cross-target runtime verification
+- **Status:** Blocked
+- **Next action:** Restore Docker image pulls, then run `pnpm db:start`, `pnpm db:reset`, `pnpm db:test`, and the web/iOS/Android startup flows against that runtime.
+- **Blockers:** Blocked: Run local Supabase reset/pgTAP and verify web, iOS, and Android against local Docker. Need: Docker Desktop to successfully pull the pinned Supabase images through its configured internal proxy.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                  |
-| -------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | In progress | Workspace checks pass; local Supabase startup is blocked by stalled Docker image pulls |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Not started | Begins after Phase 00 exit criteria pass                                               |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                               |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                               |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                               |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                               |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                               |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                               |
+| Phase                                                                            | Status      | Evidence or next step                                                                                        |
+| -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Blocked     | App checks and web browser smoke pass; Supabase pgTAP and cross-target Docker verification await image pulls |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Not started | Begins after Phase 00 exit criteria pass                                                                     |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                     |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                     |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                     |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                     |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                     |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                     |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                       |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 25, 2026 | Foundation database contracts           | Complete | Clean PostgreSQL 16 migration smoke and representative numeric checks pass; 70 pgTAP assertions define full domain, ID, idempotency, and server-time coverage  |
+| July 25, 2026 | Web development startup                 | Complete | Agent-browser loads `http://localhost:3000`, finds meaningful content and interactive elements, and reports no error overlay or captured console errors        |
 | July 25, 2026 | Fail-fast runtime configuration         | Complete | Eight focused tests pass; web startup exits nonzero with a named missing variable; mobile root import rejects missing or copied-placeholder public config      |
 | July 25, 2026 | Local Supabase Docker runtime bootstrap | Blocked  | Docker 28.5.1 is running and the host reaches Docker Hub; `supabase start` and a direct small `docker pull` both stall through Docker Desktop's internal proxy |
 | July 25, 2026 | Initial repository and app workspace    | Complete | `pnpm check` and `pnpm install --frozen-lockfile --offline` pass; Next.js production build and Expo iOS, Android, and web exports pass                         |

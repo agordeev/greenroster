@@ -12,7 +12,7 @@ importers:
         specifier: ^3.9.6
         version: 3.9.6
       supabase:
-        specifier: ^2.109.1
+        specifier: 2.109.1
         version: 2.109.1
       vitest:
         specifier: ^4.1.10

@@ -13,6 +13,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:status": "supabase status",
+    "db:test": "supabase test db --local",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "pnpm -r --if-present lint",
@@ -23,7 +24,7 @@
   },
   "devDependencies": {
     "prettier": "^3.9.6",
-    "supabase": "^2.109.1",
+    "supabase": "2.109.1",
     "vitest": "^4.1.10"
   }
 }

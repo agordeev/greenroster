@@ -26,14 +26,16 @@ The local Supabase status output provides the local API URL and publishable key 
 
 ## Shared commands
 
-| Command          | Purpose                                                            |
-| ---------------- | ------------------------------------------------------------------ |
-| `pnpm format`    | Check repository formatting                                        |
-| `pnpm lint`      | Lint all applications                                              |
-| `pnpm typecheck` | Type-check all applications                                        |
-| `pnpm test`      | Run focused tests in every package that defines them               |
-| `pnpm build`     | Produce the web build and Expo bundles                             |
-| `pnpm check`     | Run the same full check sequence used by CI                        |
-| `pnpm db:reset`  | Rebuild the local database from migrations and synthetic seed data |
+| Command          | Purpose                                                              |
+| ---------------- | -------------------------------------------------------------------- |
+| `pnpm format`    | Check repository formatting                                          |
+| `pnpm lint`      | Lint all applications                                                |
+| `pnpm typecheck` | Type-check all applications                                          |
+| `pnpm test`      | Run focused tests in every package that defines them                 |
+| `pnpm build`     | Produce the web build and Expo bundles                               |
+| `pnpm check`     | Run formatting, linting, type checks, unit tests, and app builds     |
+| `pnpm db:start`  | Start the local Supabase Docker stack and apply migrations           |
+| `pnpm db:reset`  | Rebuild the local database and apply the phase-appropriate seed file |
+| `pnpm db:test`   | Run the pgTAP database contract suite against local Supabase         |
 
 Product requirements live in [`docs/master-spec.md`](./docs/master-spec.md). Delivery status and verification evidence live in [`docs/progress.md`](./docs/progress.md).

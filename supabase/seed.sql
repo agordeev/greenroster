@@ -1,0 +1,3 @@
+-- Phase 00 intentionally has no business entities to seed. Later phase fixtures
+-- extend this deterministic file using synthetic identities and tenant data only.
+-- Hosted credentials and user data must never be referenced here.
