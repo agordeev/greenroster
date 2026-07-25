@@ -7,9 +7,9 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 00 — Foundation
-- **Active slice:** Fail-fast runtime configuration
+- **Active slice:** Initial database conventions, synthetic seed, and exact numeric tests
 - **Status:** Not started
-- **Next action:** Add startup-imported configuration validation and focused tests for both applications.
+- **Next action:** Create the first Supabase migration with exact numeric/time/idempotency conventions, add synthetic fixtures, and prove half-away-from-zero behavior.
 - **Blockers:** Local Supabase Docker runtime verification remains blocked by Docker Desktop image pulls that stall through the daemon's configured internal proxy.
 
 ## Phase status
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                       |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 25, 2026 | Fail-fast runtime configuration         | Complete | Eight focused tests pass; web startup exits nonzero with a named missing variable; mobile root import rejects missing or copied-placeholder public config      |
 | July 25, 2026 | Local Supabase Docker runtime bootstrap | Blocked  | Docker 28.5.1 is running and the host reaches Docker Hub; `supabase start` and a direct small `docker pull` both stall through Docker Desktop's internal proxy |
 | July 25, 2026 | Initial repository and app workspace    | Complete | `pnpm check` and `pnpm install --frozen-lockfile --offline` pass; Next.js production build and Expo iOS, Android, and web exports pass                         |
 | July 25, 2026 | Environment architecture                | Complete | Master spec, tech stack, and phase docs now define one application environment and local Docker runtime                                                        |

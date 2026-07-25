@@ -17,12 +17,13 @@
     "format:write": "prettier --write .",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "test": "vitest run",
     "build": "pnpm -r --if-present build",
     "check": "pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "prettier": "^3.9.6",
-    "supabase": "^2.109.1"
+    "supabase": "^2.109.1",
+    "vitest": "^4.1.10"
   }
 }

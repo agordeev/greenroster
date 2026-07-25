@@ -17,8 +17,8 @@ GreenRoster has one application environment backed by one hosted Supabase projec
 ## Clean-checkout setup
 
 1. Install JavaScript dependencies with `pnpm install --frozen-lockfile`.
-2. Copy `apps/web/.env.example` to `apps/web/.env.local` and `apps/mobile/.env.example` to `apps/mobile/.env.local`.
-3. Start Docker, then run `pnpm db:start`.
+2. Start Docker, then run `pnpm db:start`.
+3. Copy `apps/web/.env.example` to `apps/web/.env.local` and `apps/mobile/.env.example` to `apps/mobile/.env.local`. Replace every `replace-with-...` value with the local publishable and secret keys printed by `pnpm db:status`; startup rejects copied placeholders.
 4. Run `pnpm dev:web` for the web app and `pnpm dev:mobile` for Expo.
 5. From the Expo terminal, press `i` for iOS Simulator or `a` for an Android emulator.
 
