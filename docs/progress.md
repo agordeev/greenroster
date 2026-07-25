@@ -6,29 +6,30 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 ## Current focus
 
-- **Phase:** 00 — Foundation
-- **Active slice:** Phase 00 exit review and commit
+- **Phase:** 01 — Identity and group isolation
+- **Active slice:** Identity schema and atomic group creation contract
 - **Status:** In progress
-- **Next action:** Incorporate the final independent reviews, commit the green foundation runtime slice, and begin Phase 01.
+- **Next action:** Map the authoritative identity/group invariants, then implement the smallest migration and integration-test slice for one identity, one membership, and atomic administrator group creation.
 - **Blockers:** None.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                 |
-| -------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | In progress | Exit review and commit remain; all automated, database, Docker, browser, iOS, and Android checks pass |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Not started | Begins after Phase 00 exit criteria pass                                                              |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                              |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                              |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                              |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                              |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                              |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                              |
+| Phase                                                                            | Status      | Evidence or next step                                                                                   |
+| -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Identity/group invariant mapping and atomic administrator group-creation contract are the active slice  |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                       |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 25, 2026 | Phase 00 exit gate                      | Complete | Commit `cf76835`; clean committed tree passes frozen install, full checks/builds, Supabase start/reset/seed, and all 77 pgTAP assertions; reviews are clean    |
 | July 25, 2026 | Cross-target local runtime verification | Complete | Full Supabase stack starts; agent-browser is clean; native iOS and Android builds install, launch, render the Home/Explore UI, and show no crash-level errors  |
 | July 25, 2026 | Local Supabase verification             | Complete | PostgreSQL 17 reset applies migrations and the deterministic synthetic seed; all 77 pgTAP assertions pass; schema lint reports no errors                       |
 | July 25, 2026 | Foundation database contracts           | Complete | Commit `b26fd21`; exact numeric, UTC, immutable-ID, idempotency, and fixture contracts are covered by PostgreSQL 17 migrations and 77 pgTAP assertions         |
