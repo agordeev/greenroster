@@ -32,6 +32,8 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.crop.circle" md="person" />
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="auth/callback" hidden />
     </NativeTabs>
   );
 }
