@@ -7,9 +7,9 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 02 — Member onboarding
-- **Active slice:** Member initial quota and seed-history projection
+- **Active slice:** Member create and private profile/contact foundation
 - **Status:** In progress
-- **Next action:** Add the administrator member quota bootstrap flow: initial quota/use flag, up to 20 ordered seed totals, exact projected effect, atomic audit, and tenant/role/idempotency coverage.
+- **Next action:** Add membership-owned profile/contact persistence and the authorized member-create boundary with required permanent-member names, private contact defaults, tenant isolation, idempotency, and audit coverage.
 - **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. These external inputs do not block the current Phase 02 quota slice.
 
 ## Phase status
@@ -18,7 +18,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 | -------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                                                          |
 | [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `a9247a3`; all local code/security gates pass, while installed public links and approved legal versions require the external inputs listed above |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits `99b2eb4` and `ba84948` complete the administrator quota settings action/editor; member quota bootstrap is next                                          |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits through `ebb3c15` complete quota settings and the audited member initial-quota/ordered-seed boundary; member create/profile/contact is next              |
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                                                         |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                                                         |
 | [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                                                         |
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                                  |
 | ------------- | --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Member quota and seed-history boundary  | Complete | Commit `ebb3c15`; clean PG17 reset, 484 pgTAP, 155 unit tests/full builds, exact A/B/C projection provenance, tenant/admin/idempotency/audit checks, and clean review                    |
 | July 26, 2026 | Administrator quota settings editor     | Complete | Commits `99b2eb4`/`ba84948`; verified A/C saves and reload, gap blocking, matched-band preview, dirty-loss/a11y guards, 139 tests/full builds, and clean review                           |
 | July 26, 2026 | Quota rules and settings foundation     | Complete | Commit `6a808c3`; ordered tenant RLS/RPC migration, exact A/B/C engine, 435 pgTAP/124 unit tests, advisors/lint/full builds/browser smoke, and clean review                               |
 | July 26, 2026 | GitHub and Vercel deployment bootstrap  | Blocked  | Published clean `main` to `agordeev/greenroster`; created `andrey-gordeevs-projects/greenroster`; Vercel Git connection is denied until its GitHub application receives repository access |
