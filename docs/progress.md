@@ -7,28 +7,29 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Native password reset and recovery registry
+- **Active slice:** App and universal link routing
 - **Status:** In progress
-- **Next action:** Register native recovery sessions server-side, add single-use/expired password replacement, and finish the sign-in show-password affordance.
+- **Next action:** Register and verify the application-link and universal-link routes, including cold-launch and signed-in destination behavior.
 - **Blockers:** None.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                                          |
-| -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                        |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `badbb6c`; mobile secure Auth, signed-out boundary, sign-in, recovery request, and local sign-out are verified |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                                       |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                       |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                       |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                       |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                                       |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                                       |
+| Phase                                                                            | Status      | Evidence or next step                                                                                                |
+| -------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass              |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `37a7b52`; native recovery is server-proven, opaque-handle scoped, audited, single-use, and verified |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                             |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                             |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                             |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                             |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                             |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                             |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                   |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Native password recovery and audit      | Complete | Commit `37a7b52`; 262 pgTAP/79 unit tests, lint/typecheck/full builds, live email reset/replay/isolation proof, iOS UI, and focused security review pass                   |
 | July 26, 2026 | Mobile sign-in and recovery request     | Complete | Commit `badbb6c`; standalone Auth boundary, safe sign-in/recovery/sign-out, 62 tests/full builds, frozen install, 390px browser flow, iOS 18 cold launch, and clean review |
 | July 26, 2026 | Mobile secure Auth session foundation   | Complete | Commit `b4400c4`; PKCE, encrypted chunked persistence, durable recovery gating, exact callback, 50 tests/full builds, iOS cold launch, Mailpit redirect, and review pass   |
 | July 26, 2026 | Mobile member destination shell         | Complete | Commit `cf49ff8`; four honest destinations pass responsive browser semantics, iOS build/run visual verification, all-platform Expo export, full checks, and review         |
