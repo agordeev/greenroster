@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { usePathname } from "expo-router";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,6 +8,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useMobileAuth } from "@/components/mobile-auth-provider";
+import { hasArrivedAtMobilePendingDestination } from "@/lib/auth/mobile-pending-destination";
 
 export function MemberDestinationScreen({
   emptyBody,
@@ -25,6 +29,14 @@ export function MemberDestinationScreen({
   title: string;
 }>) {
   const theme = useTheme();
+  const pathname = usePathname();
+  const { clearPendingDestination, pendingDestination } = useMobileAuth();
+
+  useEffect(() => {
+    if (hasArrivedAtMobilePendingDestination(pendingDestination, pathname)) {
+      void clearPendingDestination();
+    }
+  }, [clearPendingDestination, pathname, pendingDestination]);
 
   return (
     <ThemedView style={styles.screen}>

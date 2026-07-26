@@ -1,5 +1,5 @@
 import { Redirect, usePathname, useSegments } from "expo-router";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,7 +16,6 @@ export function MobileAuthBoundary({
   const pathname = usePathname();
   const theme = useTheme();
   const {
-    clearPendingDestination,
     pendingDestination,
     pendingDestinationReady,
     recoveryRequired,
@@ -27,22 +26,6 @@ export function MobileAuthBoundary({
   const isRecoveryRoute =
     isAuthRoute &&
     (segments[1] === "callback" || segments[1] === "reset-password");
-
-  useEffect(() => {
-    if (
-      status === "signed-in" &&
-      !recoveryRequired &&
-      pendingDestination === pathname
-    ) {
-      void clearPendingDestination();
-    }
-  }, [
-    clearPendingDestination,
-    pathname,
-    pendingDestination,
-    recoveryRequired,
-    status,
-  ]);
 
   if (status === "checking" || !pendingDestinationReady) {
     return (

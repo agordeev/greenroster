@@ -26,7 +26,7 @@ export function MobileAuthScreen({
   mode,
 }: Readonly<{ initialMessage?: string; mode: "recovery" | "sign-in" }>) {
   const router = useRouter();
-  const { consumePendingDestination } = useMobileAuth();
+  const { resumePendingDestination } = useMobileAuth();
   const theme = useTheme();
   const passwordInput = useRef<TextInput>(null);
   const [email, setEmail] = useState("");
@@ -52,7 +52,7 @@ export function MobileAuthScreen({
     setResult(nextResult);
     setPending(false);
     if (isSignIn && nextResult.status === "success") {
-      router.replace(await consumePendingDestination());
+      router.replace(await resumePendingDestination());
     }
   };
 

@@ -16,10 +16,8 @@ import {
   parseMobileAuthCallback,
   type MobileAuthCallback,
 } from "@/lib/auth/mobile-auth-callback";
-import {
-  resolveMobileLinkDestination,
-  type MobileLinkDestination,
-} from "@/lib/auth/mobile-link-destination";
+import type { MobileLinkDestination } from "@/lib/auth/mobile-link-destination";
+import { resumeMobilePendingDestination } from "@/lib/auth/mobile-pending-destination";
 import {
   initialMobileAuthState,
   mobileAuthStateForEvent,
@@ -37,7 +35,7 @@ import { mobileRuntimeEnv } from "@/lib/runtime-env";
 
 type MobileAuthContextValue = MobileAuthState & {
   clearPendingDestination(): Promise<void>;
-  consumePendingDestination(): Promise<MobileLinkDestination>;
+  resumePendingDestination(): Promise<MobileLinkDestination>;
   pendingDestination: MobileLinkDestination | null;
   pendingDestinationReady: boolean;
   retrySession(): Promise<void>;
@@ -92,15 +90,12 @@ export function MobileAuthProvider({
     setPendingDestination(null);
   }, []);
 
-  const consumePendingDestination = useCallback(async () => {
-    const storedLink = await pendingLinkStorage.take();
-    const storedDestination = storedLink
-      ? resolveMobileLinkDestination(storedLink, mobileRuntimeEnv.appUrl)
-      : null;
-    const destination =
-      pendingDestination ?? storedDestination?.href ?? "/profile";
-    setPendingDestination(null);
-    return destination;
+  const resumePendingDestination = useCallback(async () => {
+    return resumeMobilePendingDestination(
+      pendingDestination,
+      pendingLinkStorage,
+      mobileRuntimeEnv.appUrl,
+    );
   }, [pendingDestination]);
 
   const exchangeRecoveryCallback = useCallback(
@@ -387,14 +382,14 @@ export function MobileAuthProvider({
     () => ({
       ...state,
       clearPendingDestination,
-      consumePendingDestination,
+      resumePendingDestination,
       pendingDestination,
       pendingDestinationReady,
       retrySession,
     }),
     [
       clearPendingDestination,
-      consumePendingDestination,
+      resumePendingDestination,
       pendingDestination,
       pendingDestinationReady,
       retrySession,
