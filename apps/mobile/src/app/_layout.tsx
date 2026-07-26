@@ -1,11 +1,11 @@
 import "@/lib/runtime-env";
 
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import AppTabs from "@/components/app-tabs";
+import { MobileAuthBoundary } from "@/components/mobile-auth-boundary";
 import { MobileAuthProvider } from "@/components/mobile-auth-provider";
 
 SplashScreen.preventAutoHideAsync();
@@ -16,7 +16,9 @@ export default function TabLayout() {
     <MobileAuthProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <AnimatedSplashOverlay />
-        <AppTabs />
+        <MobileAuthBoundary>
+          <Stack screenOptions={{ headerShown: false }} />
+        </MobileAuthBoundary>
       </ThemeProvider>
     </MobileAuthProvider>
   );

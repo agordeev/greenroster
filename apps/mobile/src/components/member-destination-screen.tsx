@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -13,7 +14,9 @@ export function MemberDestinationScreen({
   facts,
   introduction,
   title,
+  children,
 }: Readonly<{
+  children?: ReactNode;
   emptyBody: string;
   emptyTitle: string;
   eyebrow: string;
@@ -77,6 +80,8 @@ export function MemberDestinationScreen({
                 {emptyBody}
               </ThemedText>
             </ThemedView>
+
+            {children}
 
             <View style={[styles.factList, { borderColor: theme.separator }]}>
               {facts.map(([label, value]) => (

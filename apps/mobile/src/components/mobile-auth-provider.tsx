@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -20,7 +21,11 @@ import {
 import { mobileSupabase } from "@/lib/auth/mobile-supabase";
 import { recoveryRequirementStorage } from "@/lib/auth/secure-session-storage";
 
-const MobileAuthContext = createContext<MobileAuthState | null>(null);
+type MobileAuthContextValue = MobileAuthState & {
+  retrySession(): Promise<void>;
+};
+
+const MobileAuthContext = createContext<MobileAuthContextValue | null>(null);
 
 export function MobileAuthProvider({
   children,
@@ -29,6 +34,32 @@ export function MobileAuthProvider({
   const handledCallback = useRef<string | null>(null);
   const authEventQueue = useRef<Promise<void>>(Promise.resolve());
   const [state, setState] = useState<MobileAuthState>(initialMobileAuthState);
+
+  const retrySession = useCallback(async () => {
+    setState((current) => ({ ...current, status: "checking" }));
+    authEventQueue.current = authEventQueue.current.then(async () => {
+      try {
+        const [{ data, error }, recoveryRequired] = await Promise.all([
+          mobileSupabase.auth.getSession(),
+          recoveryRequirementStorage.isRequired(),
+        ]);
+
+        if (error) {
+          setState({ recoveryRequired: false, session: null, status: "error" });
+          return;
+        }
+
+        if (!data.session && recoveryRequired) {
+          await recoveryRequirementStorage.clear();
+        }
+
+        setState(restoredMobileAuthState(data.session, recoveryRequired));
+      } catch {
+        setState({ recoveryRequired: false, session: null, status: "error" });
+      }
+    });
+    await authEventQueue.current;
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -154,7 +185,10 @@ export function MobileAuthProvider({
     };
   }, [callbackUrl]);
 
-  const value = useMemo(() => state, [state]);
+  const value = useMemo(
+    () => ({ ...state, retrySession }),
+    [retrySession, state],
+  );
 
   return (
     <MobileAuthContext.Provider value={value}>
