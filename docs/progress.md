@@ -7,9 +7,9 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Durable password-recovery audit finalization
-- **Status:** In progress
-- **Next action:** Remove the residual post-password-change audit-loss window with a durable database reconciliation record and prove retries cannot lose or duplicate the required recovery audit event.
+- **Active slice:** External Phase 01 completion inputs
+- **Status:** Blocked
+- **Next action:** Obtain the canonical public link/signing values and approved legal documents, publish the association files, reinstall both mobile builds, and verify installed link/authentication/recovery resumption plus recorded production legal versions before starting Phase 02.
 - **Blockers:** Blocked: Installed universal/app-link verification. Need: canonical public HTTPS application origin, Apple app identifier prefix, Android release signing SHA-256 fingerprint, and authority to publish and test the association files. Blocked: Production legal acceptance configuration. Need: approved Terms of Use and Privacy Policy contents plus canonical version identifiers.
 
 ## Phase status
@@ -17,7 +17,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 | Phase                                                                            | Status      | Evidence or next step                                                                                              |
 | -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
 | [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass            |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `7777bef`; tenant mutation/subscription isolation and real browser-to-audit correlation are proven |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `a9247a3`; all local code/security gates pass, while installed public links and approved legal versions require the external inputs listed above |
 | [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                           |
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                           |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                           |
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                          |
 | ------------- | --------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Atomic password-recovery finalization   | Complete | Commit `a9247a3`; exact claim command and Auth hash change consume/audit atomically; 395 pgTAP/111 unit tests, clean schema lint, full builds, two live GoTrue paths, and review pass |
 | July 26, 2026 | Tenant isolation and correlation proof  | Complete | Commit `7777bef`; role/state RPC denials and zero Realtime publication pass 347 pgTAP; real local Auth/browser action correlation resolves to exactly one audit row; review clean |
 | July 26, 2026 | Audited administrator role transfer     | Complete | Commit `c4c0e00`; server-derived tenant/role, group-version check, atomic audit, direct-write and RPC retry concurrency pass 338 pgTAP, 110 tests, full web gates, and review     |
 | July 26, 2026 | Mobile first-run profile and legal gate | Complete | Commit `13d6bc6`; clean reset/302 pgTAP, 102 unit tests, schema lint, frozen install, lint/typecheck, web/all-platform builds, browser flow, and independent review pass          |
