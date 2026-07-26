@@ -7,28 +7,29 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 02 — Member onboarding
-- **Active slice:** Invitation and notification outbox foundation
+- **Active slice:** Resend delivery worker and provider feedback
 - **Status:** In progress
-- **Next action:** Add single-use membership invitations plus the transactional e-mail outbox/delivery/suppression foundation, then wire the separate confirmable invite action with fail-fast Resend configuration.
-- **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. These external inputs do not block the current Phase 02 quota slice.
+- **Next action:** Add the idempotent Resend invitation worker with claim/retry state transitions, accessible HTML/plain-text templates, and authenticated bounce/complaint webhook suppression, then verify provider-independent failure and replay paths.
+- **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. These external inputs do not block the current Phase 02 notification-provider foundation.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                                                                            |
-| -------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                                                          |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `a9247a3`; all local code/security gates pass, while installed public links and approved legal versions require the external inputs listed above |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits through `061f42f` complete quota settings, member quota bootstrap, and membership-owned pending profile/private-contact creation; invitations are next   |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                                                         |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                                                         |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                                                         |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                                                                         |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                                                                         |
+| Phase                                                                            | Status      | Evidence or next step                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                                                                                                  |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `a9247a3`; all local code/security gates pass, while installed public links and approved legal versions require the external inputs listed above                                         |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits through `7822a3d` add quota/member foundations plus atomic single-use invitation issuance, durable outbox/delivery/suppression records, and startup config validation; provider delivery is next |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                                                                                                 |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                                                                                                 |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                                                                                                 |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                                                                                                                 |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                                                                                                                 |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                                  |
 | ------------- | --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Invitation and e-mail outbox foundation | Complete | Commit `7822a3d`; clean PG17 reset, 595 pgTAP, schema lint, 192 unit tests/full builds, startup config validation, token secrecy/idempotency/tenant checks, and clean review              |
 | July 26, 2026 | Pending member profile/contact creation | Complete | Commit `061f42f`; clean PG17 reset, 545 pgTAP, 173 unit tests/full builds, private defaults, actor-derived tenant, normalization/idempotency/audit checks, and clean review               |
 | July 26, 2026 | Member quota and seed-history boundary  | Complete | Commit `ebb3c15`; clean PG17 reset, 484 pgTAP, 155 unit tests/full builds, exact A/B/C projection provenance, tenant/admin/idempotency/audit checks, and clean review                     |
 | July 26, 2026 | Administrator quota settings editor     | Complete | Commits `99b2eb4`/`ba84948`; verified A/C saves and reload, gap blocking, matched-band preview, dirty-loss/a11y guards, 139 tests/full builds, and clean review                           |
