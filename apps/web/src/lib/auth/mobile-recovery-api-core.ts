@@ -273,6 +273,13 @@ export async function resolveMobileRecoveryStatusWithDependencies(
   if (resolved.handle.state === "consumed") {
     return response(id, 200, { ok: true, state: "complete" });
   }
+  if (resolved.handle.state === "expired" && resolved.handle.claimId) {
+    await dependencies.release(
+      resolved.handle.sessionId,
+      resolved.handle.userId,
+      resolved.handle.claimId,
+    );
+  }
   return resolved.handle.state === "active" ||
     resolved.handle.state === "claimed"
     ? response(id, 200, { ok: true, state: "active" })
@@ -302,6 +309,13 @@ export async function resetMobileRecoveryPasswordWithDependencies(
     });
   }
   if (recovery.state !== "active" && recovery.state !== "claimed") {
+    if (recovery.claimId) {
+      await dependencies.release(
+        recovery.sessionId,
+        recovery.userId,
+        recovery.claimId,
+      );
+    }
     return failure(operationCorrelationId, "expired", 409);
   }
 
@@ -336,26 +350,28 @@ export async function resetMobileRecoveryPasswordWithDependencies(
     return failure(operationCorrelationId, "unavailable", 503);
   }
 
-  const consumed = await dependencies.consume(
+  // Supabase Auth can report success only after the database password-change
+  // trigger atomically consumes and audits the claimed recovery. This call is
+  // an idempotent confirmation and may safely lose its response.
+  const confirmed = await dependencies.consume(
     recovery.sessionId,
     recovery.userId,
     claimId,
     recovery.operationId,
   );
-  if (consumed) {
-    return response(operationCorrelationId, 200, {
-      ok: true,
-      state: "complete",
-    });
+  if (!confirmed) {
+    const reconciled = await resolveRequestHandle(request, dependencies);
+    if (
+      reconciled.kind !== "resolved" ||
+      reconciled.handle.state !== "consumed" ||
+      reconciled.handle.claimId !== claimId ||
+      reconciled.handle.operationId !== recovery.operationId
+    ) {
+      return failure(operationCorrelationId, "unavailable", 503);
+    }
   }
-
-  const reconciled = await dependencies.resolveHandle(
-    dependencies.hash(recoveryHandle(request.headers.get("authorization"))!),
-  );
-  return reconciled.ok && reconciled.handle?.state === "consumed"
-    ? response(operationCorrelationId, 200, {
-        ok: true,
-        state: "complete",
-      })
-    : failure(operationCorrelationId, "unavailable", 503);
+  return response(operationCorrelationId, 200, {
+    ok: true,
+    state: "complete",
+  });
 }

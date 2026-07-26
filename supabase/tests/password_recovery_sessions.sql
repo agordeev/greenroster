@@ -167,6 +167,17 @@ do $$ begin
 end $$;
 reset role;
 
+update public.password_recovery_sessions
+set reset_operation_id = case session_id
+  when '20000000-0000-4000-8000-000000000101' then '40000000-0000-4000-8000-000000000101'::uuid
+  when '20000000-0000-4000-8000-000000000102' then '40000000-0000-4000-8000-000000000103'::uuid
+  else reset_operation_id
+end
+where session_id in (
+  '20000000-0000-4000-8000-000000000101',
+  '20000000-0000-4000-8000-000000000102'
+);
+
 select is((select count(*) from public.password_recovery_sessions), 3::bigint, 'trusted registration creates one row per Auth session');
 
 select pg_sleep(0.01);
@@ -234,11 +245,9 @@ end $$;
 reset role;
 select is((select claim_id from public.password_recovery_sessions where session_id = '20000000-0000-4000-8000-000000000101'), '30000000-0000-4000-8000-000000000101'::uuid, 'a concurrent claimant cannot replace the winning claim');
 
-set local role service_role;
-do $$ begin
-  perform public.consume_password_recovery_session('20000000-0000-4000-8000-000000000101', '10000000-0000-4000-8000-000000000101', '30000000-0000-4000-8000-000000000101', clock_timestamp(), '40000000-0000-4000-8000-000000000101');
-end $$;
-reset role;
+update auth.users
+set encrypted_password = 'recovered-hash-a'
+where id = '10000000-0000-4000-8000-000000000101';
 select ok((select consumed_at is not null from public.password_recovery_sessions where session_id = '20000000-0000-4000-8000-000000000101'), 'only the winning claim consumes the recovery session');
 select is(
   (select action from public.audit_events where correlation_id = '40000000-0000-4000-8000-000000000101'),
@@ -308,6 +317,11 @@ set local role service_role;
 do $$ begin
   perform public.claim_password_recovery_session('20000000-0000-4000-8000-000000000102', '10000000-0000-4000-8000-000000000102', '30000000-0000-4000-8000-000000000104', clock_timestamp());
 end $$;
+reset role;
+update auth.users
+set encrypted_password = 'recovered-hash-b'
+where id = '10000000-0000-4000-8000-000000000102';
+set local role service_role;
 select is(
   public.consume_password_recovery_session('20000000-0000-4000-8000-000000000102', '10000000-0000-4000-8000-000000000102', '30000000-0000-4000-8000-000000000104', clock_timestamp(), '40000000-0000-4000-8000-000000000103'),
   true,

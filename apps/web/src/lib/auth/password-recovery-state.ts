@@ -18,6 +18,6 @@ export function passwordRecoveryStateFromRow(
   const parsed = recoveryRowSchema.safeParse(row);
   if (!parsed.success) return "unavailable";
   if (parsed.data.consumed_at) return "consumed";
-  if (parsed.data.claim_id) return "claimed";
-  return new Date(parsed.data.expires_at) > now ? "active" : "expired";
+  if (new Date(parsed.data.expires_at) <= now) return "expired";
+  return parsed.data.claim_id ? "claimed" : "active";
 }

@@ -16,7 +16,10 @@ import {
   parseMobileAuthCallback,
   type MobileAuthCallback,
 } from "@/lib/auth/mobile-auth-callback";
-import type { MobileLinkDestination } from "@/lib/auth/mobile-link-destination";
+import {
+  resolveMobileLinkDestination,
+  type MobileLinkDestination,
+} from "@/lib/auth/mobile-link-destination";
 import { resumeMobilePendingDestination } from "@/lib/auth/mobile-pending-destination";
 import {
   initialMobileAuthState,

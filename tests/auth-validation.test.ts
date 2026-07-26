@@ -109,6 +109,16 @@ describe("authentication input contracts", () => {
         now,
       ),
     ).toBe("claimed");
+    expect(
+      passwordRecoveryStateFromRow(
+        {
+          claim_id: "30000000-0000-4000-8000-000000000001",
+          consumed_at: null,
+          expires_at: "2026-07-26T01:59:59+00:00",
+        },
+        now,
+      ),
+    ).toBe("expired");
     expect(passwordRecoveryStateFromRow(null, now)).toBe("none");
   });
 });

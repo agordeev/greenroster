@@ -232,6 +232,13 @@ export async function updatePasswordAction(
     recoveryOperation.state !== "active" &&
     recoveryOperation.state !== "claimed"
   ) {
+    if (recoveryOperation.claimId) {
+      await releasePasswordRecoveryClaim(
+        claims.session_id,
+        userData.user.id,
+        recoveryOperation.claimId,
+      );
+    }
     return {
       status: "error",
       message: "This recovery link is expired or has already been used.",
@@ -286,26 +293,41 @@ export async function updatePasswordAction(
       message:
         error.status === 429
           ? "Too many attempts. Wait a moment and try again."
-          : isAuthRetryableFetchError(error)
+          : isAuthRetryableFetchError(error) ||
+              (typeof error.status === "number" && error.status >= 500)
             ? "The recovery service could not be reached. Check your connection and try again."
             : "This recovery link is expired or has already been used.",
     };
   }
 
-  const consumed = await consumePasswordRecoverySession(
+  // A successful Supabase Auth password update means the database trigger has
+  // already consumed the claimed recovery and committed its audit atomically.
+  // This RPC is an idempotent confirmation/reconciliation call only.
+  const confirmed = await consumePasswordRecoverySession(
     claims.session_id,
     userData.user.id,
     claimId,
     recoveryOperation.operationId,
   );
-  await supabase.auth.signOut({ scope: "local" });
-  if (!consumed) {
-    return {
-      status: "error",
-      message:
-        "Your password changed, but recovery finalization could not be confirmed. Return to sign in with the new password; support can trace this attempt.",
-    };
+  if (!confirmed) {
+    const reconciled = await resolvePasswordRecoveryOperation(
+      claims.session_id,
+      userData.user.id,
+    );
+    if (
+      !reconciled.ok ||
+      reconciled.operation?.state !== "consumed" ||
+      reconciled.operation.claimId !== claimId ||
+      reconciled.operation.operationId !== recoveryOperation.operationId
+    ) {
+      return {
+        status: "error",
+        message:
+          "The password changed, but recovery confirmation is still pending. Try again.",
+      };
+    }
   }
+  await supabase.auth.signOut({ scope: "local" });
   return {
     status: "success",
     message: "Password updated. Return to sign in with your new password.",

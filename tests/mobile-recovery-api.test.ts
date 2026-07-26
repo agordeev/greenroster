@@ -304,7 +304,11 @@ describe("mobile recovery reset API", () => {
   it("rejects expired registry state", async () => {
     const dependencies = createDependencies({
       resolveHandle: vi.fn().mockResolvedValue({
-        handle: { ...resolvedHandle, state: "expired" },
+        handle: {
+          ...resolvedHandle,
+          claimId: "30000000-0000-4000-8000-000000000101",
+          state: "expired",
+        },
         ok: true,
       }),
     });
@@ -317,6 +321,11 @@ describe("mobile recovery reset API", () => {
     );
     expect(response.status).toBe(409);
     expect(dependencies.claim).not.toHaveBeenCalled();
+    expect(dependencies.release).toHaveBeenCalledWith(
+      verifiedSession.sessionId,
+      verifiedSession.userId,
+      "30000000-0000-4000-8000-000000000101",
+    );
   });
 
   it("releases the exact claim when Auth rejects the update", async () => {
@@ -366,7 +375,38 @@ describe("mobile recovery reset API", () => {
     expect(JSON.stringify(body)).not.toContain(verifiedSession.accessToken);
   });
 
-  it("does not report completion when registry consumption fails", async () => {
+  it("reports Auth-confirmed completion when idempotent confirmation loses its response", async () => {
+    const dependencies = createDependencies({
+      consume: vi.fn().mockResolvedValue(false),
+      resolveHandle: vi
+        .fn()
+        .mockResolvedValueOnce({ handle: resolvedHandle, ok: true })
+        .mockResolvedValueOnce({
+          handle: {
+            ...resolvedHandle,
+            claimId: "30000000-0000-4000-8000-000000000101",
+            state: "consumed",
+          },
+          ok: true,
+        }),
+    });
+    const response = await resetMobileRecoveryPasswordWithDependencies(
+      request("reset", {
+        confirmPassword: "new-password-123",
+        password: "new-password-123",
+      }),
+      dependencies,
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true,
+      state: "complete",
+    });
+    expect(dependencies.resolveHandle).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails closed when Auth success has no consumed recovery to reconcile", async () => {
     const dependencies = createDependencies({
       consume: vi.fn().mockResolvedValue(false),
     });
