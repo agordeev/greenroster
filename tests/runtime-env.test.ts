@@ -15,6 +15,8 @@ describe("web runtime configuration", () => {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
     SUPABASE_SECRET_KEY: "secret-key",
+    INVITATION_TOKEN_SECRET: "correct horse battery staple invitation secret",
+    INVITATION_TTL_HOURS: "48",
   };
 
   it("returns validated configuration", () => {
@@ -24,7 +26,50 @@ describe("web runtime configuration", () => {
       supabaseUrl: "http://127.0.0.1:54321",
       supabasePublishableKey: "publishable-key",
       supabaseSecretKey: "secret-key",
+      invitationTokenSecret: "correct horse battery staple invitation secret",
+      invitationTtlHours: 48,
+      invitationTtlMilliseconds: 48 * 60 * 60 * 1000,
     });
+  });
+
+  it("requires invitation configuration at startup", async () => {
+    vi.stubEnv("APP_URL", validEnvironment.APP_URL);
+    vi.stubEnv("SUPPORT_EMAIL", validEnvironment.SUPPORT_EMAIL);
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      validEnvironment.NEXT_PUBLIC_SUPABASE_URL,
+    );
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      validEnvironment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    );
+    vi.stubEnv("SUPABASE_SECRET_KEY", validEnvironment.SUPABASE_SECRET_KEY);
+    vi.stubEnv("INVITATION_TOKEN_SECRET", "");
+    vi.stubEnv("INVITATION_TTL_HOURS", validEnvironment.INVITATION_TTL_HOURS);
+
+    await expect(
+      import("../apps/web/src/lib/runtime-env"),
+    ).rejects.toThrowError(
+      "Missing required environment variable: INVITATION_TOKEN_SECRET",
+    );
+  });
+
+  it("rejects weak invitation secrets and invalid TTL values", () => {
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        INVITATION_TOKEN_SECRET: "too-short",
+      }),
+    ).toThrowError("INVITATION_TOKEN_SECRET must contain at least 32 bytes");
+
+    for (const ttl of ["0", "-1", "1.5", "many"]) {
+      expect(() =>
+        validateWebRuntimeEnv({
+          ...validEnvironment,
+          INVITATION_TTL_HOURS: ttl,
+        }),
+      ).toThrowError("INVITATION_TTL_HOURS must be a positive integer");
+    }
   });
 
   it("names a missing required variable without exposing another value", () => {

@@ -9,6 +9,8 @@ import { runAdministratorRoleTransferMutation } from "@/lib/memberships/administ
 import { executeCreatePendingMemberProfile } from "@/lib/memberships/pending-member-profile-data";
 import { executeMemberQuotaBootstrap } from "@/lib/memberships/member-quota-bootstrap-data";
 import { executeAdministratorRoleTransfer } from "@/lib/memberships/administrator-role-transfer-data";
+import { runIssueInvitationMutation } from "@/lib/invitations/issue-invitation";
+import { executeIssueInvitation } from "@/lib/invitations/issue-invitation-data";
 
 export async function transferAdministratorRoleAction(input: unknown) {
   const requestHeaders = await headers();
@@ -44,6 +46,19 @@ export async function createPendingMemberProfileAction(input: unknown) {
     requestHeaders.get("x-correlation-id"),
     {
       executeCreate: executeCreatePendingMemberProfile,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function issueMembershipInvitationAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runIssueInvitationMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeIssue: executeIssueInvitation,
       verifySession: verifyMutationSession,
     },
   );

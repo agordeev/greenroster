@@ -57,7 +57,52 @@ function requiredEmail(environment: Environment, name: string): string {
   return value;
 }
 
+function requiredSecret(
+  environment: Environment,
+  name: string,
+  minimumBytes: number,
+): string {
+  const value = requiredValue(environment, name);
+
+  if (Buffer.byteLength(value, "utf8") < minimumBytes) {
+    throw new Error(`${name} must contain at least ${minimumBytes} bytes`);
+  }
+
+  return value;
+}
+
+function requiredPositiveInteger(
+  environment: Environment,
+  name: string,
+): number {
+  const value = requiredValue(environment, name);
+
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+
+  const number = Number(value);
+
+  if (!Number.isSafeInteger(number) || number < 1) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+
+  return number;
+}
+
 export function validateWebRuntimeEnv(environment: Environment) {
+  const invitationTtlHours = requiredPositiveInteger(
+    environment,
+    "INVITATION_TTL_HOURS",
+  );
+  const maximumInvitationTtlHours = Math.floor(
+    Number.MAX_SAFE_INTEGER / (60 * 60 * 1000),
+  );
+
+  if (invitationTtlHours > maximumInvitationTtlHours) {
+    throw new Error("INVITATION_TTL_HOURS must be a positive integer");
+  }
+
   return Object.freeze({
     appUrl: requiredOrigin(environment, "APP_URL"),
     supportEmail: requiredEmail(environment, "SUPPORT_EMAIL"),
@@ -67,5 +112,12 @@ export function validateWebRuntimeEnv(environment: Environment) {
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     ),
     supabaseSecretKey: requiredValue(environment, "SUPABASE_SECRET_KEY"),
+    invitationTokenSecret: requiredSecret(
+      environment,
+      "INVITATION_TOKEN_SECRET",
+      32,
+    ),
+    invitationTtlHours,
+    invitationTtlMilliseconds: invitationTtlHours * 60 * 60 * 1000,
   });
 }

@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Session } from "@supabase/supabase-js";
 
-vi.mock("server-only", () => ({}));
-
 import {
   exchangeMobileRecoveryCodeWithDependencies,
   requestMobileRecoveryWithDependencies,
