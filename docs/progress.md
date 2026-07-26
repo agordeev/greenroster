@@ -7,46 +7,47 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Mobile sign-in and recovery actions
+- **Active slice:** Native password reset and recovery registry
 - **Status:** In progress
-- **Next action:** Add rate-limited, non-enumerating mobile sign-in and recovery UI on the verified secure session/callback foundation.
+- **Next action:** Register native recovery sessions server-side, add single-use/expired password replacement, and finish the sign-in show-password affordance.
 - **Blockers:** None.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                            |
-| -------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass          |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `b4400c4`; web identity/onboarding plus the mobile shell and secure Auth foundation are verified |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                         |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                         |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                         |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                         |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                         |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                         |
+| Phase                                                                            | Status      | Evidence or next step                                                                                                          |
+| -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                        |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `badbb6c`; mobile secure Auth, signed-out boundary, sign-in, recovery request, and local sign-out are verified |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                                       |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                       |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                       |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                       |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                                       |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                                       |
 
 ## Recent activity
 
-| Date          | Work                                    | Result   | Evidence                                                                                                                                                                 |
-| ------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| July 26, 2026 | Mobile secure Auth session foundation   | Complete | Commit `b4400c4`; PKCE, encrypted chunked persistence, durable recovery gating, exact callback, 50 tests/full builds, iOS cold launch, Mailpit redirect, and review pass |
-| July 26, 2026 | Mobile member destination shell         | Complete | Commit `cf49ff8`; four honest destinations pass responsive browser semantics, iOS build/run visual verification, all-platform Expo export, full checks, and review       |
-| July 26, 2026 | Authoritative onboarding checklist      | Complete | Commit `9a7d71d`; clean PG17 reset and 217 pgTAP; 39 unit tests/full builds; live stored membership changes checklist from 1/4 to 2/4                                    |
-| July 26, 2026 | Authorized responsive portal shell      | Complete | Commit `4e11113`; admin/member/first-run states, support/legal routes, 1280/768 layouts, 600-character group wrap, full checks and 36 tests pass                         |
-| July 26, 2026 | Safe protected-route return locations   | Complete | Commit `250a542`; allowlisted parameter-free portal path survives sign-in; tampered external/query paths fall back safely; focused tests and browser flow pass           |
-| July 26, 2026 | Web Auth, recovery, and admin first run | Complete | Commit `2c641ae`; clean PG17 reset and 204 pgTAP; full `pnpm check`; browser verifies recovery-only sessions, replacement sign-in, and first-run access                  |
-| July 25, 2026 | Verified-session bootstrap boundary     | Complete | Commit `8831e83`; exact-pinned Supabase SSR client, actor-bound server action, safe errors/correlation, live Auth/RPC and browser proxy checks pass                      |
-| July 25, 2026 | Identity and group database contract    | Complete | Commit `59f76fb`; PostgreSQL reset and 170 total pgTAP assertions pass atomic bootstrap/rollback, tenant isolation, revocation, audit, and last-admin invariants         |
-| July 25, 2026 | Phase 00 exit gate                      | Complete | Commit `cf76835`; clean committed tree passes frozen install, full checks/builds, Supabase start/reset/seed, and all 77 pgTAP assertions; reviews are clean              |
-| July 25, 2026 | Cross-target local runtime verification | Complete | Full Supabase stack starts; agent-browser is clean; native iOS and Android builds install, launch, render the Home/Explore UI, and show no crash-level errors            |
-| July 25, 2026 | Local Supabase verification             | Complete | PostgreSQL 17 reset applies migrations and the deterministic synthetic seed; all 77 pgTAP assertions pass; schema lint reports no errors                                 |
-| July 25, 2026 | Foundation database contracts           | Complete | Commit `b26fd21`; exact numeric, UTC, immutable-ID, idempotency, and fixture contracts are covered by PostgreSQL 17 migrations and 77 pgTAP assertions                   |
-| July 25, 2026 | Web development startup                 | Complete | Agent-browser loads `http://localhost:3000`, finds meaningful content and interactive elements, and reports no error overlay or captured console errors                  |
-| July 25, 2026 | Fail-fast runtime configuration         | Complete | Eight focused tests pass; web startup exits nonzero with a named missing variable; mobile root import rejects missing or copied-placeholder public config                |
-| July 25, 2026 | Local Supabase Docker runtime bootstrap | Blocked  | Docker 28.5.1 is running and the host reaches Docker Hub; `supabase start` and a direct small `docker pull` both stall through Docker Desktop's internal proxy           |
-| July 25, 2026 | Initial repository and app workspace    | Complete | `pnpm check` and `pnpm install --frozen-lockfile --offline` pass; Next.js production build and Expo iOS, Android, and web exports pass                                   |
-| July 25, 2026 | Environment architecture                | Complete | Master spec, tech stack, and phase docs now define one application environment and local Docker runtime                                                                  |
-| July 25, 2026 | Delivery planning                       | Complete | Eight phase documents and this ledger created under `docs/`                                                                                                              |
+| Date          | Work                                    | Result   | Evidence                                                                                                                                                                   |
+| ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Mobile sign-in and recovery request     | Complete | Commit `badbb6c`; standalone Auth boundary, safe sign-in/recovery/sign-out, 62 tests/full builds, frozen install, 390px browser flow, iOS 18 cold launch, and clean review |
+| July 26, 2026 | Mobile secure Auth session foundation   | Complete | Commit `b4400c4`; PKCE, encrypted chunked persistence, durable recovery gating, exact callback, 50 tests/full builds, iOS cold launch, Mailpit redirect, and review pass   |
+| July 26, 2026 | Mobile member destination shell         | Complete | Commit `cf49ff8`; four honest destinations pass responsive browser semantics, iOS build/run visual verification, all-platform Expo export, full checks, and review         |
+| July 26, 2026 | Authoritative onboarding checklist      | Complete | Commit `9a7d71d`; clean PG17 reset and 217 pgTAP; 39 unit tests/full builds; live stored membership changes checklist from 1/4 to 2/4                                      |
+| July 26, 2026 | Authorized responsive portal shell      | Complete | Commit `4e11113`; admin/member/first-run states, support/legal routes, 1280/768 layouts, 600-character group wrap, full checks and 36 tests pass                           |
+| July 26, 2026 | Safe protected-route return locations   | Complete | Commit `250a542`; allowlisted parameter-free portal path survives sign-in; tampered external/query paths fall back safely; focused tests and browser flow pass             |
+| July 26, 2026 | Web Auth, recovery, and admin first run | Complete | Commit `2c641ae`; clean PG17 reset and 204 pgTAP; full `pnpm check`; browser verifies recovery-only sessions, replacement sign-in, and first-run access                    |
+| July 25, 2026 | Verified-session bootstrap boundary     | Complete | Commit `8831e83`; exact-pinned Supabase SSR client, actor-bound server action, safe errors/correlation, live Auth/RPC and browser proxy checks pass                        |
+| July 25, 2026 | Identity and group database contract    | Complete | Commit `59f76fb`; PostgreSQL reset and 170 total pgTAP assertions pass atomic bootstrap/rollback, tenant isolation, revocation, audit, and last-admin invariants           |
+| July 25, 2026 | Phase 00 exit gate                      | Complete | Commit `cf76835`; clean committed tree passes frozen install, full checks/builds, Supabase start/reset/seed, and all 77 pgTAP assertions; reviews are clean                |
+| July 25, 2026 | Cross-target local runtime verification | Complete | Full Supabase stack starts; agent-browser is clean; native iOS and Android builds install, launch, render the Home/Explore UI, and show no crash-level errors              |
+| July 25, 2026 | Local Supabase verification             | Complete | PostgreSQL 17 reset applies migrations and the deterministic synthetic seed; all 77 pgTAP assertions pass; schema lint reports no errors                                   |
+| July 25, 2026 | Foundation database contracts           | Complete | Commit `b26fd21`; exact numeric, UTC, immutable-ID, idempotency, and fixture contracts are covered by PostgreSQL 17 migrations and 77 pgTAP assertions                     |
+| July 25, 2026 | Web development startup                 | Complete | Agent-browser loads `http://localhost:3000`, finds meaningful content and interactive elements, and reports no error overlay or captured console errors                    |
+| July 25, 2026 | Fail-fast runtime configuration         | Complete | Eight focused tests pass; web startup exits nonzero with a named missing variable; mobile root import rejects missing or copied-placeholder public config                  |
+| July 25, 2026 | Local Supabase Docker runtime bootstrap | Blocked  | Docker 28.5.1 is running and the host reaches Docker Hub; `supabase start` and a direct small `docker pull` both stall through Docker Desktop's internal proxy             |
+| July 25, 2026 | Initial repository and app workspace    | Complete | `pnpm check` and `pnpm install --frozen-lockfile --offline` pass; Next.js production build and Expo iOS, Android, and web exports pass                                     |
+| July 25, 2026 | Environment architecture                | Complete | Master spec, tech stack, and phase docs now define one application environment and local Docker runtime                                                                    |
+| July 25, 2026 | Delivery planning                       | Complete | Eight phase documents and this ledger created under `docs/`                                                                                                                |
 
 ## Agent update rules
 
