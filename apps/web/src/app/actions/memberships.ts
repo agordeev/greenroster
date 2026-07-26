@@ -11,6 +11,16 @@ import { executeMemberQuotaBootstrap } from "@/lib/memberships/member-quota-boot
 import { executeAdministratorRoleTransfer } from "@/lib/memberships/administrator-role-transfer-data";
 import { runIssueInvitationMutation } from "@/lib/invitations/issue-invitation";
 import { executeIssueInvitation } from "@/lib/invitations/issue-invitation-data";
+import {
+  executeCorrectInvitationAddress,
+  executeRegenerateInvitation,
+  executeRevokeInvitation,
+} from "@/lib/invitations/invitation-lifecycle-data";
+import {
+  runCorrectInvitationMutation,
+  runRegenerateInvitationMutation,
+  runRevokeInvitationMutation,
+} from "@/lib/invitations/invitation-lifecycle";
 
 export async function transferAdministratorRoleAction(input: unknown) {
   const requestHeaders = await headers();
@@ -59,6 +69,45 @@ export async function issueMembershipInvitationAction(input: unknown) {
     requestHeaders.get("x-correlation-id"),
     {
       executeIssue: executeIssueInvitation,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function regenerateMembershipInvitationAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runRegenerateInvitationMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeRegenerate: executeRegenerateInvitation,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function correctMembershipInvitationAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runCorrectInvitationMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeCorrect: executeCorrectInvitationAddress,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function revokeMembershipInvitationAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runRevokeInvitationMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeRevoke: executeRevokeInvitation,
       verifySession: verifyMutationSession,
     },
   );

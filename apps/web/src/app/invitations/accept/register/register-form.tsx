@@ -1,0 +1,93 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState, useState } from "react";
+
+import {
+  initialInvitationActionState,
+  registerInvitationAction,
+} from "@/app/actions/invitations";
+
+export function InvitationRegisterForm() {
+  const [state, formAction, pending] = useActionState(
+    registerInvitationAction,
+    initialInvitationActionState,
+  );
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <form action={formAction} className="auth-form" noValidate>
+      <div className="field-group">
+        <label htmlFor="email">Account e-mail</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          aria-describedby="registration-email-help"
+          required
+        />
+        <p id="registration-email-help" className="field-help">
+          Use the invited address or another account address you control. The
+          invitation attaches to the verified account that accepts it.
+        </p>
+      </div>
+
+      <div className="field-group">
+        <div className="label-row">
+          <label htmlFor="password">Password</label>
+          <button
+            className="text-button"
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+            aria-controls="password confirmPassword"
+            aria-pressed={showPassword}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+        <input
+          id="password"
+          name="password"
+          type={showPassword ? "text" : "password"}
+          autoComplete="new-password"
+          aria-describedby="registration-password-help"
+          required
+        />
+        <p id="registration-password-help" className="field-help">
+          Use a passphrase of at least 12 characters.
+        </p>
+      </div>
+
+      <div className="field-group">
+        <label htmlFor="confirmPassword">Confirm password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type={showPassword ? "text" : "password"}
+          autoComplete="new-password"
+          required
+        />
+      </div>
+
+      <p className="form-message" aria-live="polite" data-status={state.status}>
+        {state.message}
+      </p>
+
+      {state.status === "success" ? (
+        <Link className="primary-button button-link" href="/invitations/accept">
+          Continue to invitation
+        </Link>
+      ) : (
+        <button className="primary-button" type="submit" disabled={pending}>
+          {pending ? "Creating account…" : "Create account"}
+        </button>
+      )}
+
+      <Link className="secondary-link" href="/invitations/accept">
+        Return to invitation
+      </Link>
+    </form>
+  );
+}

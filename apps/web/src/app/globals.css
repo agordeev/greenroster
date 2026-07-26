@@ -200,12 +200,33 @@ input {
   border-color: var(--bentgrass);
   color: var(--bentgrass);
 }
+.danger-button {
+  min-height: 2.75rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--flag);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--flag);
+  cursor: pointer;
+  font-weight: 700;
+}
+.danger-button:hover:not(:disabled) {
+  background: var(--flag);
+  color: var(--ledger);
+}
+.danger-button:disabled,
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
 .primary-button:hover:not(:disabled) {
   background: var(--bentgrass-hover);
 }
 .primary-button:focus-visible,
 .secondary-link:focus-visible,
-.text-button:focus-visible {
+.text-button:focus-visible,
+.secondary-button:focus-visible,
+.danger-button:focus-visible {
   outline: 3px solid rgba(65, 122, 84, 0.3);
   outline-offset: 3px;
 }
@@ -238,6 +259,62 @@ input {
 .recovery-status {
   max-width: 30rem;
   margin-top: 1.5rem;
+}
+.invitation-shell {
+  place-content: center;
+  padding: 2rem;
+}
+.invitation-shell .auth-ledger {
+  min-height: auto;
+  width: min(100%, 52rem);
+  border: 1px solid var(--rule);
+}
+.invitation-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 2.25rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+.invitation-summary div {
+  min-width: 0;
+}
+.invitation-summary dt {
+  color: var(--quiet);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.invitation-summary dd {
+  margin: 0.3rem 0 0;
+  color: var(--graphite);
+  font-family: var(--font-ledger);
+  overflow-wrap: anywhere;
+}
+.invitation-legal-note {
+  max-width: 42rem;
+  margin-top: 1.5rem;
+}
+.invitation-legal-note a {
+  color: var(--bentgrass);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+.invitation-recovery-actions {
+  margin-top: 2rem;
+}
+.invitation-action-form {
+  margin-top: 2rem;
+}
+.invitation-action-success {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.invitation-action-success .primary-button {
+  margin-top: 0.25rem;
 }
 .auth-context {
   display: flex;
@@ -754,10 +831,112 @@ input {
   color: var(--flag);
   font-size: 0.8125rem;
 }
+.invitation-management {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+.invitation-management-empty {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  background: var(--inset);
+}
+.invitation-management-empty h2 {
+  margin: 0;
+  font-family: var(--font-ledger);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.invitation-management-empty p {
+  margin-bottom: 0;
+  color: var(--pencil);
+}
+.invitation-card {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  background: var(--inset);
+}
+.invitation-card-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.invitation-card-heading h2 {
+  margin: 0.375rem 0 0;
+  font-family: var(--font-ledger);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.invitation-status {
+  color: var(--bentgrass);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: right;
+  text-transform: uppercase;
+}
+.invitation-card .invitation-summary {
+  margin: 0;
+  padding-top: 1rem;
+}
+.invitation-card .invitation-summary dt {
+  color: var(--quiet);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.invitation-card .invitation-summary dd {
+  margin: 0.375rem 0 0;
+  color: var(--pencil);
+  overflow-wrap: anywhere;
+}
+.invitation-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.invitation-actions form {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule-soft);
+}
+.invitation-actions h3 {
+  margin: 0;
+  font-family: var(--font-ledger);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.invitation-confirmation {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  color: var(--pencil);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.invitation-confirmation input {
+  margin-top: 0.15rem;
+}
+.invitation-card .form-message {
+  display: grid;
+  gap: 0.5rem;
+}
+.invitation-card .form-message a {
+  color: var(--bentgrass);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
 @media (max-width: 720px) {
   .quota-methods,
   .quota-policy-row,
-  .band-row {
+  .band-row,
+  .invitation-actions {
     grid-template-columns: 1fr;
   }
   .quota-methods > label {
@@ -886,6 +1065,12 @@ input {
   .auth-ledger,
   .auth-context {
     padding: 1.5rem;
+  }
+  .invitation-shell .auth-ledger {
+    width: 100%;
+  }
+  .invitation-summary {
+    grid-template-columns: 1fr;
   }
   .auth-context dl {
     grid-template-columns: 1fr;

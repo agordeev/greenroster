@@ -19,6 +19,7 @@ export function PortalShell({
   role,
   roleStatus,
   timeZone,
+  currentSection = "home",
 }: Readonly<{
   children: ReactNode;
   email: string;
@@ -26,6 +27,7 @@ export function PortalShell({
   role?: PortalRole;
   roleStatus?: string;
   timeZone: string;
+  currentSection?: "home" | "invitations";
 }>) {
   const visibleRole = role
     ? roleLabel[role]
@@ -54,8 +56,17 @@ export function PortalShell({
         </div>
 
         <nav className="portal-nav" aria-label="Portal">
-          <Link href="/portal" aria-current="page">
+          <Link
+            href="/portal"
+            aria-current={currentSection === "home" ? "page" : undefined}
+          >
             Home
+          </Link>
+          <Link
+            href="/portal/invitations"
+            aria-current={currentSection === "invitations" ? "page" : undefined}
+          >
+            Invitations
           </Link>
           <Link href="/help">Help</Link>
         </nav>

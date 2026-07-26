@@ -37,7 +37,7 @@ describe("invitation token contract", () => {
     const parsed = new URL(url);
 
     expect(parsed.origin).toBe("https://greenroster.example");
-    expect(parsed.pathname).toBe("/invitations/accept");
+    expect(parsed.pathname).toBe("/invitations/accept/start");
     expect(parsed.searchParams.get("invitationId")).toBe(invitationId);
     expect(parsed.searchParams.get("token")).toBe("a+/token?");
     expect(parsed.pathname).not.toContain("a+/token?");

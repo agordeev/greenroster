@@ -76,6 +76,18 @@ describe("authentication input contracts", () => {
     );
   });
 
+  it("allows only exact parameter-free invitation and member destinations", () => {
+    expect(resolveSafeReturnPath("/invitations/accept")).toBe(
+      "/invitations/accept",
+    );
+    expect(resolveSafeReturnPath("/member/first-run")).toBe(
+      "/member/first-run",
+    );
+    expect(resolveSafeReturnPath("/member/home")).toBe("/member/home");
+    expect(resolveSafeReturnPath("/member/home?admin=true")).toBe("/portal");
+    expect(resolveSafeReturnPath("/member/home/extra")).toBe("/portal");
+  });
+
   it("keeps a valid group-bootstrap operation across a reload", () => {
     const prior = "30000000-0000-4000-8000-000000000001";
     const generated = "30000000-0000-4000-8000-000000000002";

@@ -3,7 +3,7 @@ import "server-only";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 
 export const INVITATION_TOKEN_KEY_VERSION = 1 as const;
-export const INVITATION_ACCEPTANCE_PATH = "/invitations/accept" as const;
+export const INVITATION_ACCEPTANCE_PATH = "/invitations/accept/start" as const;
 
 export type InvitationToken = Readonly<{
   invitationId: string;
