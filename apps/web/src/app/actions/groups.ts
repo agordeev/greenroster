@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { runGroupBootstrapMutation } from "@/lib/groups/bootstrap-group";
 import { executeGroupBootstrap } from "@/lib/groups/bootstrap-group-data";
+import { runQuotaSettingsMutation } from "@/lib/groups/quota-settings";
+import { executeConfigureQuotaSettings } from "@/lib/groups/quota-settings-data";
 
 export async function bootstrapGroupAction(input: unknown) {
   const requestHeaders = await headers();
@@ -15,6 +17,19 @@ export async function bootstrapGroupAction(input: unknown) {
     {
       verifySession: verifyMutationSession,
       executeBootstrap: executeGroupBootstrap,
+    },
+  );
+}
+
+export async function configureQuotaSettingsAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runQuotaSettingsMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeConfigure: executeConfigureQuotaSettings,
+      verifySession: verifyMutationSession,
     },
   );
 }
