@@ -10,6 +10,7 @@ afterEach(() => {
 
 describe("web runtime configuration", () => {
   const validEnvironment = {
+    APP_URL: "http://127.0.0.1:3000",
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
     SUPABASE_SECRET_KEY: "secret-key",
@@ -17,6 +18,7 @@ describe("web runtime configuration", () => {
 
   it("returns validated configuration", () => {
     expect(validateWebRuntimeEnv(validEnvironment)).toEqual({
+      appUrl: "http://127.0.0.1:3000",
       supabaseUrl: "http://127.0.0.1:54321",
       supabasePublishableKey: "publishable-key",
       supabaseSecretKey: "secret-key",
@@ -43,6 +45,24 @@ describe("web runtime configuration", () => {
     ).toThrowError(
       "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTP or HTTPS URL",
     );
+  });
+
+  it("rejects a non-HTTP application URL", () => {
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        APP_URL: "file:///tmp/app",
+      }),
+    ).toThrowError("APP_URL must be a valid HTTP or HTTPS URL");
+  });
+
+  it("requires the application URL to be an origin", () => {
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        APP_URL: "https://example.com/greenroster?preview=true",
+      }),
+    ).toThrowError("APP_URL must be an HTTP or HTTPS origin");
   });
 
   it("rejects a copied secret-key placeholder", () => {

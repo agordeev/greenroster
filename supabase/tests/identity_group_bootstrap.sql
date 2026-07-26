@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(93);
+select plan(99);
 
 select has_type('public', 'membership_role', 'membership roles have a database enum');
 select has_type('public', 'membership_status', 'membership states have a database enum');
@@ -106,6 +106,30 @@ select ok(
 select ok(
   pg_catalog.has_function_privilege('authenticated', 'public.resolve_identity_context()', 'execute'),
   'authenticated users can resolve only their own active identity context'
+);
+select ok(
+  pg_catalog.has_column_privilege('service_role', 'public.memberships', 'id', 'select'),
+  'the trusted server role can read membership identity for affiliation checks'
+);
+select ok(
+  pg_catalog.has_column_privilege('service_role', 'public.memberships', 'user_id', 'select'),
+  'the trusted server role can filter membership affiliation by Auth identity'
+);
+select ok(
+  not pg_catalog.has_table_privilege('service_role', 'public.memberships', 'select'),
+  'the trusted server role does not receive broad membership read access'
+);
+select ok(
+  pg_catalog.has_column_privilege('service_role', 'public.user_profiles', 'user_id', 'select'),
+  'the trusted server role can filter profiles by Auth identity'
+);
+select ok(
+  pg_catalog.has_column_privilege('service_role', 'public.user_profiles', 'disabled_at', 'select'),
+  'the trusted server role can read disabled state for affiliation checks'
+);
+select ok(
+  not pg_catalog.has_table_privilege('service_role', 'public.user_profiles', 'select'),
+  'the trusted server role does not receive broad profile read access'
 );
 
 insert into auth.users (

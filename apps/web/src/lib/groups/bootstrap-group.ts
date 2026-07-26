@@ -12,7 +12,7 @@ import {
 const groupBootstrapInputSchema = z
   .object({
     groupName: z.string().trim().min(1),
-    groupTimeZone: z.string().refine(isSupportedTimeZone),
+    groupTimeZone: z.string().trim().refine(isSupportedTimeZone),
     operationId: z.uuid(),
   })
   .strict();

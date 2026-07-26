@@ -24,11 +24,14 @@ type SupabaseRpcError = Readonly<{
 }>;
 
 function mapBootstrapError(error: SupabaseRpcError): MutationError {
+  if (error.message === "identity_already_attached") {
+    return new MutationError("forbidden", { cause: error });
+  }
+
   if (
     error.code === "23505" ||
     error.code === "23514" ||
-    error.code === "23502" ||
-    error.message === "identity_already_attached"
+    error.code === "23502"
   ) {
     return new MutationError("validation", { cause: error });
   }

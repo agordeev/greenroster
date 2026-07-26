@@ -14,7 +14,7 @@ const session = {
 
 const input = {
   groupName: "  Green Hills  ",
-  groupTimeZone: "America/New_York",
+  groupTimeZone: "  America/New_York  ",
   operationId: "30000000-0000-4000-8000-000000000001",
 };
 

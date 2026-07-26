@@ -28,7 +28,12 @@ export async function proxy(request: NextRequest) {
 
   // Supabase SSR uses this verified Auth request to refresh or clear cookies.
   // Authorization remains in the DAL beside each protected read or mutation.
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Public routes must remain available during a transient Auth outage.
+    // Protected reads verify the session again in their server-side DAL.
+  }
 
   return response;
 }

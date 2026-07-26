@@ -30,8 +30,26 @@ function requiredHttpUrl(environment: Environment, name: string): string {
   return value;
 }
 
+function requiredOrigin(environment: Environment, name: string): string {
+  const value = requiredHttpUrl(environment, name);
+  const url = new URL(value);
+
+  if (
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(`${name} must be an HTTP or HTTPS origin`);
+  }
+
+  return url.origin;
+}
+
 export function validateWebRuntimeEnv(environment: Environment) {
   return Object.freeze({
+    appUrl: requiredOrigin(environment, "APP_URL"),
     supabaseUrl: requiredHttpUrl(environment, "NEXT_PUBLIC_SUPABASE_URL"),
     supabasePublishableKey: requiredValue(
       environment,
