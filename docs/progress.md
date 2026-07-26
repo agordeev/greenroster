@@ -7,17 +7,17 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Installed app and universal-link verification
-- **Status:** Blocked
-- **Next action:** Publish the generated association documents with real signing identifiers, then prove an installed HTTPS link resumes `/rounds` after authentication and recovery on iOS and Android.
-- **Blockers:** Blocked: Installed universal/app-link verification. Need: canonical public HTTPS application origin, Apple app identifier prefix, Android release signing SHA-256 fingerprint, and authority to publish and test the association files.
+- **Active slice:** Audited administrator role transfer and last-administrator serialization
+- **Status:** In progress
+- **Next action:** Implement one server-authorized role-transfer mutation with confirmation, reason, idempotency, atomic audit, and concurrent last-administrator protection, then prove it with pgTAP and application tests.
+- **Blockers:** Blocked: Installed universal/app-link verification. Need: canonical public HTTPS application origin, Apple app identifier prefix, Android release signing SHA-256 fingerprint, and authority to publish and test the association files. Blocked: Production legal acceptance configuration. Need: approved Terms of Use and Privacy Policy contents plus canonical version identifiers.
 
 ## Phase status
 
 | Phase                                                                            | Status      | Evidence or next step                                                                                                           |
 | -------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                         |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `031494d`; safe link resume/config is verified locally, but installed HTTPS association needs deployment inputs |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits through `13d6bc6`; mobile first-run is server-authoritative and verified; role-transfer and remaining exit gaps are next       |
 | [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                                        |
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                        |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                        |
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                   |
 | ------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Mobile first-run profile and legal gate | Complete | Commit `13d6bc6`; clean reset/302 pgTAP, 102 unit tests, schema lint, frozen install, lint/typecheck, web/all-platform builds, browser flow, and independent review pass   |
 | July 26, 2026 | Mobile link destination preservation    | Complete | Commit `031494d`; strict allowlist and consume-once resume, 92 tests/full builds/frozen install, generated associations, iOS cold link, browser, and review pass           |
 | July 26, 2026 | Native password recovery and audit      | Complete | Commit `37a7b52`; 262 pgTAP/79 unit tests, lint/typecheck/full builds, live email reset/replay/isolation proof, iOS UI, and focused security review pass                   |
 | July 26, 2026 | Mobile sign-in and recovery request     | Complete | Commit `badbb6c`; standalone Auth boundary, safe sign-in/recovery/sign-out, 62 tests/full builds, frozen install, 390px browser flow, iOS 18 cold launch, and clean review |
