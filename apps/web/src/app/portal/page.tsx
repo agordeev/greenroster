@@ -13,6 +13,10 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { GroupBootstrapForm } from "./group-bootstrap-form";
 import { OnboardingChecklist } from "./onboarding-checklist";
 import { PortalShell } from "./portal-shell";
+import {
+  QuotaSettingsForm,
+  type QuotaSettingsFormValue,
+} from "./quota-settings-form";
 
 const contextSchema = z
   .array(
@@ -33,6 +37,23 @@ const onboardingSchema = z
     }),
   )
   .max(1);
+
+const quotaSettingsSchema = z.object({
+  method: z.enum(["moving_average", "best_10_of_20", "previous_plus_minus"]),
+  moving_average_history_length: z.number().int().min(4).max(20).nullable(),
+  precision: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  version: z.number().int().positive(),
+});
+
+const quotaBandsSchema = z.array(
+  z.object({
+    adjustment: z.union([z.string(), z.number()]),
+    lower_bound: z.union([z.string(), z.number()]),
+    lower_inclusive: z.boolean(),
+    upper_bound: z.union([z.string(), z.number()]),
+    upper_inclusive: z.boolean(),
+  }),
+);
 
 export default async function PortalPage() {
   const supabase = await createServerComponentSupabaseClient();
@@ -261,6 +282,55 @@ export default async function PortalPage() {
     onboarding.additional_membership_count,
   );
 
+  let quotaSettings: QuotaSettingsFormValue | null = null;
+  let quotaSettingsUnavailable = false;
+
+  if (context.role === "administrator") {
+    const [settingsResult, bandsResult] = await Promise.all([
+      supabase
+        .from("group_quota_settings")
+        .select("method,moving_average_history_length,precision,version")
+        .eq("group_id", context.group_id)
+        .maybeSingle(),
+      supabase
+        .from("quota_adjustment_bands")
+        .select(
+          "lower_bound,lower_inclusive,upper_bound,upper_inclusive,adjustment",
+        )
+        .eq("group_id", context.group_id)
+        .order("position"),
+    ]);
+    const parsedSettings = quotaSettingsSchema
+      .nullable()
+      .safeParse(settingsResult.data);
+    const parsedBands = quotaBandsSchema.safeParse(bandsResult.data);
+
+    quotaSettingsUnavailable = Boolean(
+      settingsResult.error ||
+      bandsResult.error ||
+      !parsedSettings.success ||
+      !parsedBands.success,
+    );
+
+    if (!quotaSettingsUnavailable && parsedSettings.data) {
+      quotaSettings = {
+        bands: parsedBands.success
+          ? parsedBands.data.map((band) => ({
+              adjustment: String(band.adjustment),
+              lowerBound: String(band.lower_bound),
+              lowerInclusive: band.lower_inclusive,
+              upperBound: String(band.upper_bound),
+              upperInclusive: band.upper_inclusive,
+            }))
+          : [],
+        historyLength: parsedSettings.data.moving_average_history_length,
+        method: parsedSettings.data.method,
+        precision: parsedSettings.data.precision,
+        version: parsedSettings.data.version,
+      };
+    }
+  }
+
   return (
     <PortalShell
       email={userData.user.email ?? "Signed-in account"}
@@ -277,6 +347,38 @@ export default async function PortalPage() {
           area is enabled.
         </p>
         <OnboardingChecklist items={checklist} />
+        {context.role === "administrator" ? (
+          <section
+            className="quota-settings"
+            aria-labelledby="quota-settings-title"
+          >
+            <div className="quota-settings-heading">
+              <p className="ledger-kicker">Quota policy</p>
+              <h2 id="quota-settings-title">Set the calculation rules</h2>
+              <p>
+                Changes apply prospectively. Published rounds keep their own
+                snapshotted policy.
+              </p>
+            </div>
+            {quotaSettingsUnavailable ? (
+              <div className="quota-settings-error">
+                <p className="form-message" data-status="error">
+                  Quota settings could not be loaded. Refresh before making a
+                  change.
+                </p>
+                <Link className="secondary-link" href="/portal">
+                  Reload quota settings
+                </Link>
+              </div>
+            ) : (
+              <QuotaSettingsForm
+                key={quotaSettings?.version ?? 0}
+                identityKey={context.group_id}
+                initialValue={quotaSettings}
+              />
+            )}
+          </section>
+        ) : null}
       </section>
     </PortalShell>
   );
