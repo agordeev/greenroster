@@ -18,6 +18,12 @@ jobs:
       SUPABASE_SECRET_KEY: sb_secret_ci_only
       INVITATION_TOKEN_SECRET: ci-only-synthetic-invitation-token-secret
       INVITATION_TTL_HOURS: 48
+      RESEND_API_KEY: re_ci_only_synthetic
+      RESEND_FROM_EMAIL: notifications@greenroster.test
+      RESEND_WEBHOOK_SECRET: whsec_ci_only_synthetic
+      NOTIFICATION_JOB_SECRET: ci-only-synthetic-notification-job-secret
+      NOTIFICATION_EMAIL_MAX_ATTEMPTS: 3
+      NOTIFICATION_EMAIL_RETRY_SECONDS: 300
       EXPO_PUBLIC_APP_URL: http://127.0.0.1:3000
       EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only

@@ -1,0 +1,71 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+
+import {
+  runInvitationEmailWorker,
+  type InvitationEmailWorkerResult,
+} from "../../../../../lib/notifications/invitation-email-worker";
+
+export type NotificationDrainRouteDependencies = Readonly<{
+  getJobSecret: () => string | Promise<string>;
+  runOne: () => Promise<InvitationEmailWorkerResult>;
+}>;
+
+const defaultDependencies: NotificationDrainRouteDependencies = {
+  getJobSecret: async () => {
+    const { webRuntimeEnv } = await import("../../../../../lib/runtime-env");
+    return webRuntimeEnv.notificationJobSecret;
+  },
+  runOne: () => runInvitationEmailWorker(),
+};
+
+function bearerMatches(
+  authorization: string | null,
+  expectedSecret: string,
+): boolean {
+  const token = authorization?.match(/^Bearer ([^\s]+)$/)?.[1];
+  if (!token || !expectedSecret) return false;
+
+  const actualDigest = createHash("sha256").update(token, "utf8").digest();
+  const expectedDigest = createHash("sha256")
+    .update(expectedSecret, "utf8")
+    .digest();
+  return timingSafeEqual(actualDigest, expectedDigest);
+}
+
+function response(status: number, body: Readonly<Record<string, unknown>>) {
+  return Response.json(body, {
+    headers: { "Cache-Control": "no-store" },
+    status,
+  });
+}
+
+export async function handleNotificationDrainRequest(
+  request: Request,
+  overrides?: Partial<NotificationDrainRouteDependencies>,
+): Promise<Response> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  let expectedSecret: string;
+  try {
+    expectedSecret = await dependencies.getJobSecret();
+  } catch {
+    return response(503, { ok: false, status: "unavailable" });
+  }
+
+  if (!bearerMatches(request.headers.get("authorization"), expectedSecret)) {
+    return response(401, { ok: false, status: "unauthorized" });
+  }
+
+  try {
+    const result = await dependencies.runOne();
+    if (result.kind === "unavailable") {
+      return response(503, { ok: false, status: "unavailable" });
+    }
+    return response(200, { ok: true, status: result.kind });
+  } catch {
+    return response(503, { ok: false, status: "unavailable" });
+  }
+}
+
+export async function POST(request: Request): Promise<Response> {
+  return handleNotificationDrainRequest(request);
+}

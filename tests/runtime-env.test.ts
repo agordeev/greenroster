@@ -17,6 +17,12 @@ describe("web runtime configuration", () => {
     SUPABASE_SECRET_KEY: "secret-key",
     INVITATION_TOKEN_SECRET: "correct horse battery staple invitation secret",
     INVITATION_TTL_HOURS: "48",
+    RESEND_API_KEY: "re_test_synthetic",
+    RESEND_FROM_EMAIL: "notifications@greenroster.test",
+    RESEND_WEBHOOK_SECRET: "whsec_test_synthetic",
+    NOTIFICATION_JOB_SECRET: "test-only-notification-job-secret-value",
+    NOTIFICATION_EMAIL_MAX_ATTEMPTS: "3",
+    NOTIFICATION_EMAIL_RETRY_SECONDS: "300",
   };
 
   it("returns validated configuration", () => {
@@ -29,28 +35,63 @@ describe("web runtime configuration", () => {
       invitationTokenSecret: "correct horse battery staple invitation secret",
       invitationTtlHours: 48,
       invitationTtlMilliseconds: 48 * 60 * 60 * 1000,
+      resendApiKey: "re_test_synthetic",
+      resendFromEmail: "notifications@greenroster.test",
+      resendWebhookSecret: "whsec_test_synthetic",
+      notificationJobSecret: "test-only-notification-job-secret-value",
+      notificationEmailMaxAttempts: 3,
+      notificationEmailRetrySeconds: 300,
     });
   });
 
   it("requires invitation configuration at startup", async () => {
-    vi.stubEnv("APP_URL", validEnvironment.APP_URL);
-    vi.stubEnv("SUPPORT_EMAIL", validEnvironment.SUPPORT_EMAIL);
-    vi.stubEnv(
-      "NEXT_PUBLIC_SUPABASE_URL",
-      validEnvironment.NEXT_PUBLIC_SUPABASE_URL,
-    );
-    vi.stubEnv(
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-      validEnvironment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    );
-    vi.stubEnv("SUPABASE_SECRET_KEY", validEnvironment.SUPABASE_SECRET_KEY);
+    for (const [name, value] of Object.entries(validEnvironment)) {
+      vi.stubEnv(name, value);
+    }
     vi.stubEnv("INVITATION_TOKEN_SECRET", "");
-    vi.stubEnv("INVITATION_TTL_HOURS", validEnvironment.INVITATION_TTL_HOURS);
 
     await expect(
       import("../apps/web/src/lib/runtime-env"),
     ).rejects.toThrowError(
       "Missing required environment variable: INVITATION_TOKEN_SECRET",
+    );
+  });
+
+  it("requires provider credentials at startup", async () => {
+    for (const [name, value] of Object.entries(validEnvironment)) {
+      vi.stubEnv(name, value);
+    }
+    vi.stubEnv("RESEND_API_KEY", "");
+
+    await expect(
+      import("../apps/web/src/lib/runtime-env"),
+    ).rejects.toThrowError(
+      "Missing required environment variable: RESEND_API_KEY",
+    );
+  });
+
+  it("rejects malformed provider and notification worker configuration", () => {
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        RESEND_WEBHOOK_SECRET: "not-a-webhook-secret",
+      }),
+    ).toThrowError("RESEND_WEBHOOK_SECRET must be a valid whsec_ secret");
+
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        NOTIFICATION_JOB_SECRET: "too-short",
+      }),
+    ).toThrowError("NOTIFICATION_JOB_SECRET must contain at least 32 bytes");
+
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        NOTIFICATION_EMAIL_MAX_ATTEMPTS: "0",
+      }),
+    ).toThrowError(
+      "NOTIFICATION_EMAIL_MAX_ATTEMPTS must be a positive integer",
     );
   });
 

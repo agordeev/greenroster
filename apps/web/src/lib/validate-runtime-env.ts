@@ -90,6 +90,20 @@ function requiredPositiveInteger(
   return number;
 }
 
+function requiredPrefixedSecret(
+  environment: Environment,
+  name: string,
+  prefix: string,
+): string {
+  const value = requiredValue(environment, name);
+
+  if (!value.startsWith(prefix) || Buffer.byteLength(value, "utf8") < 16) {
+    throw new Error(`${name} must be a valid ${prefix} secret`);
+  }
+
+  return value;
+}
+
 export function validateWebRuntimeEnv(environment: Environment) {
   const invitationTtlHours = requiredPositiveInteger(
     environment,
@@ -102,6 +116,15 @@ export function validateWebRuntimeEnv(environment: Environment) {
   if (invitationTtlHours > maximumInvitationTtlHours) {
     throw new Error("INVITATION_TTL_HOURS must be a positive integer");
   }
+
+  const notificationEmailMaxAttempts = requiredPositiveInteger(
+    environment,
+    "NOTIFICATION_EMAIL_MAX_ATTEMPTS",
+  );
+  const notificationEmailRetrySeconds = requiredPositiveInteger(
+    environment,
+    "NOTIFICATION_EMAIL_RETRY_SECONDS",
+  );
 
   return Object.freeze({
     appUrl: requiredOrigin(environment, "APP_URL"),
@@ -119,5 +142,19 @@ export function validateWebRuntimeEnv(environment: Environment) {
     ),
     invitationTtlHours,
     invitationTtlMilliseconds: invitationTtlHours * 60 * 60 * 1000,
+    resendApiKey: requiredPrefixedSecret(environment, "RESEND_API_KEY", "re_"),
+    resendFromEmail: requiredEmail(environment, "RESEND_FROM_EMAIL"),
+    resendWebhookSecret: requiredPrefixedSecret(
+      environment,
+      "RESEND_WEBHOOK_SECRET",
+      "whsec_",
+    ),
+    notificationJobSecret: requiredSecret(
+      environment,
+      "NOTIFICATION_JOB_SECRET",
+      32,
+    ),
+    notificationEmailMaxAttempts,
+    notificationEmailRetrySeconds,
   });
 }
