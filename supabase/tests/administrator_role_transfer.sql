@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(28);
+select plan(31);
 
 select ok(
   not has_function_privilege(
@@ -117,6 +117,48 @@ select throws_ok(
   'P0002',
   'replacement_unavailable',
   'an inactive replacement cannot receive administrator access'
+);
+select throws_ok(
+  $$
+    select * from public.transfer_group_administrator(
+      '13000000-0000-4000-8000-000000000002',
+      '63000000-0000-4000-8000-000000000005',
+      1, true, 'Member role attempt',
+      '23000000-0000-4000-8000-000000000040',
+      '33000000-0000-4000-8000-000000000040'
+    )
+  $$,
+  'P0003',
+  'actor_not_authorized',
+  'a member cannot transfer administrator access'
+);
+select throws_ok(
+  $$
+    select * from public.transfer_group_administrator(
+      '13000000-0000-4000-8000-000000000005',
+      '63000000-0000-4000-8000-000000000002',
+      1, true, 'Coordinator role attempt',
+      '23000000-0000-4000-8000-000000000041',
+      '33000000-0000-4000-8000-000000000041'
+    )
+  $$,
+  'P0003',
+  'actor_not_authorized',
+  'a coordinator cannot transfer administrator access'
+);
+select throws_ok(
+  $$
+    select * from public.transfer_group_administrator(
+      '13000000-0000-4000-8000-000000000004',
+      '63000000-0000-4000-8000-000000000002',
+      1, true, 'Inactive role attempt',
+      '23000000-0000-4000-8000-000000000042',
+      '33000000-0000-4000-8000-000000000042'
+    )
+  $$,
+  'P0003',
+  'actor_not_authorized',
+  'an inactive membership cannot transfer administrator access'
 );
 select throws_ok(
   $$
