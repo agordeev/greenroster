@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useMobileAuth } from "@/components/mobile-auth-provider";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -25,6 +26,7 @@ export function MobileAuthScreen({
   mode,
 }: Readonly<{ initialMessage?: string; mode: "recovery" | "sign-in" }>) {
   const router = useRouter();
+  const { consumePendingDestination } = useMobileAuth();
   const theme = useTheme();
   const passwordInput = useRef<TextInput>(null);
   const [email, setEmail] = useState("");
@@ -50,7 +52,7 @@ export function MobileAuthScreen({
     setResult(nextResult);
     setPending(false);
     if (isSignIn && nextResult.status === "success") {
-      router.replace("/profile");
+      router.replace(await consumePendingDestination());
     }
   };
 

@@ -17,6 +17,24 @@ const memoryDriver = {
 export const secureSessionStorage = createChunkedSessionStorage(memoryDriver);
 
 const recoveryRequirementKey = "greenroster.auth.recovery-required";
+const pendingLinkKey = "greenroster.auth.pending-link";
+
+export const pendingLinkStorage = {
+  clear() {
+    return memoryDriver.removeItem(pendingLinkKey);
+  },
+  get() {
+    return memoryDriver.getItem(pendingLinkKey);
+  },
+  set(url: string) {
+    return memoryDriver.setItem(pendingLinkKey, url);
+  },
+  async take() {
+    const url = await memoryDriver.getItem(pendingLinkKey);
+    await memoryDriver.removeItem(pendingLinkKey);
+    return url;
+  },
+};
 
 export const recoveryRequirementStorage = {
   async clear() {

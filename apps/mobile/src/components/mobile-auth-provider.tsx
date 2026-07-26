@@ -17,6 +17,10 @@ import {
   type MobileAuthCallback,
 } from "@/lib/auth/mobile-auth-callback";
 import {
+  resolveMobileLinkDestination,
+  type MobileLinkDestination,
+} from "@/lib/auth/mobile-link-destination";
+import {
   initialMobileAuthState,
   mobileAuthStateForEvent,
   restoredMobileAuthState,
@@ -25,11 +29,17 @@ import {
 import { mobileSupabase } from "@/lib/auth/mobile-supabase";
 import { mobileRecoveryApi } from "@/lib/auth/mobile-recovery-api";
 import {
+  pendingLinkStorage,
   recoveryHandleStorage,
   recoveryRequirementStorage,
 } from "@/lib/auth/secure-session-storage";
+import { mobileRuntimeEnv } from "@/lib/runtime-env";
 
 type MobileAuthContextValue = MobileAuthState & {
+  clearPendingDestination(): Promise<void>;
+  consumePendingDestination(): Promise<MobileLinkDestination>;
+  pendingDestination: MobileLinkDestination | null;
+  pendingDestinationReady: boolean;
   retrySession(): Promise<void>;
 };
 
@@ -62,7 +72,6 @@ async function restoreMobileAuthState(
 export function MobileAuthProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  const callbackUrl = Linking.useURL();
   const handledCallback = useRef<string | null>(null);
   const pendingRecoveryCallback = useRef<Extract<
     MobileAuthCallback,
@@ -70,6 +79,29 @@ export function MobileAuthProvider({
   > | null>(null);
   const authEventQueue = useRef<Promise<void>>(Promise.resolve());
   const [state, setState] = useState<MobileAuthState>(initialMobileAuthState);
+  const [pendingDestination, setPendingDestination] =
+    useState<MobileLinkDestination | null>(null);
+  const [pendingDestinationReady, setPendingDestinationReady] = useState(false);
+  const [incomingLink, setIncomingLink] = useState<{
+    eventId: number;
+    url: string;
+  } | null>(null);
+
+  const clearPendingDestination = useCallback(async () => {
+    await pendingLinkStorage.clear();
+    setPendingDestination(null);
+  }, []);
+
+  const consumePendingDestination = useCallback(async () => {
+    const storedLink = await pendingLinkStorage.take();
+    const storedDestination = storedLink
+      ? resolveMobileLinkDestination(storedLink, mobileRuntimeEnv.appUrl)
+      : null;
+    const destination =
+      pendingDestination ?? storedDestination?.href ?? "/profile";
+    setPendingDestination(null);
+    return destination;
+  }, [pendingDestination]);
 
   const exchangeRecoveryCallback = useCallback(
     async (
@@ -227,6 +259,27 @@ export function MobileAuthProvider({
   }, []);
 
   useEffect(() => {
+    let active = true;
+
+    void pendingLinkStorage
+      .get()
+      .then(async (pendingLink) => {
+        const destination = pendingLink
+          ? resolveMobileLinkDestination(pendingLink, mobileRuntimeEnv.appUrl)
+          : null;
+        if (pendingLink && !destination) await pendingLinkStorage.clear();
+        if (active) setPendingDestination(destination?.href ?? null);
+      })
+      .finally(() => {
+        if (active) setPendingDestinationReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (
       Platform.OS === "web" ||
       state.status === "checking" ||
@@ -253,13 +306,60 @@ export function MobileAuthProvider({
   }, [state.recoveryRequired, state.status]);
 
   useEffect(() => {
+    let active = true;
+    let receivedEvent = false;
+
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      receivedEvent = true;
+      setIncomingLink((current) => ({
+        eventId: (current?.eventId ?? 0) + 1,
+        url,
+      }));
+    });
+
+    void Linking.getInitialURL()
+      .then((url) => {
+        if (active && !receivedEvent && url) {
+          setIncomingLink({ eventId: 0, url });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setState({ recoveryRequired: false, session: null, status: "error" });
+        }
+      });
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const callbackUrl = incomingLink?.url;
     if (!callbackUrl || handledCallback.current === callbackUrl) return;
 
     let active = true;
 
     const callback = parseMobileAuthCallback(callbackUrl);
 
-    if (callback.kind === "ignored") return;
+    if (callback.kind === "ignored") {
+      const destination = resolveMobileLinkDestination(
+        callbackUrl,
+        mobileRuntimeEnv.appUrl,
+      );
+      if (!destination) return;
+
+      void pendingLinkStorage.set(callbackUrl).then(() => {
+        if (active) {
+          setPendingDestination(destination.href);
+          setPendingDestinationReady(true);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }
 
     handledCallback.current = callbackUrl;
 
@@ -281,11 +381,25 @@ export function MobileAuthProvider({
     return () => {
       active = false;
     };
-  }, [callbackUrl, exchangeRecoveryCallback]);
+  }, [exchangeRecoveryCallback, incomingLink]);
 
   const value = useMemo(
-    () => ({ ...state, retrySession }),
-    [retrySession, state],
+    () => ({
+      ...state,
+      clearPendingDestination,
+      consumePendingDestination,
+      pendingDestination,
+      pendingDestinationReady,
+      retrySession,
+    }),
+    [
+      clearPendingDestination,
+      consumePendingDestination,
+      pendingDestination,
+      pendingDestinationReady,
+      retrySession,
+      state,
+    ],
   );
 
   return (

@@ -7,9 +7,11 @@ export default function RecoverPasswordScreen() {
   const { status: recoveryStatus } = useLocalSearchParams<{
     status?: string;
   }>();
-  const { status } = useMobileAuth();
+  const { pendingDestination, status } = useMobileAuth();
 
-  if (status === "signed-in") return <Redirect href="/profile" />;
+  if (status === "signed-in") {
+    return <Redirect href={pendingDestination ?? "/profile"} />;
+  }
 
   return (
     <MobileAuthScreen

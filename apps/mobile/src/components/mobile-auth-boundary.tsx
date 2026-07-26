@@ -1,5 +1,5 @@
-import { Redirect, useSegments } from "expo-router";
-import type { ReactNode } from "react";
+import { Redirect, usePathname, useSegments } from "expo-router";
+import { useEffect, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -13,14 +13,38 @@ export function MobileAuthBoundary({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const segments = useSegments();
+  const pathname = usePathname();
   const theme = useTheme();
-  const { recoveryRequired, retrySession, status } = useMobileAuth();
+  const {
+    clearPendingDestination,
+    pendingDestination,
+    pendingDestinationReady,
+    recoveryRequired,
+    retrySession,
+    status,
+  } = useMobileAuth();
   const isAuthRoute = segments[0] === "auth";
   const isRecoveryRoute =
     isAuthRoute &&
     (segments[1] === "callback" || segments[1] === "reset-password");
 
-  if (status === "checking") {
+  useEffect(() => {
+    if (
+      status === "signed-in" &&
+      !recoveryRequired &&
+      pendingDestination === pathname
+    ) {
+      void clearPendingDestination();
+    }
+  }, [
+    clearPendingDestination,
+    pathname,
+    pendingDestination,
+    recoveryRequired,
+    status,
+  ]);
+
+  if (status === "checking" || !pendingDestinationReady) {
     return (
       <SessionStatusScreen
         indicator={<ActivityIndicator color={theme.accent} />}
@@ -56,6 +80,15 @@ export function MobileAuthBoundary({
 
   if (status === "signed-in" && recoveryRequired && !isRecoveryRoute) {
     return <Redirect href="/auth/reset-password" />;
+  }
+
+  if (
+    status === "signed-in" &&
+    !recoveryRequired &&
+    pendingDestination &&
+    pendingDestination !== pathname
+  ) {
+    return <Redirect href={pendingDestination} />;
   }
 
   if (status === "signed-out" && !isAuthRoute) {

@@ -4,13 +4,13 @@ import { MemberDestinationScreen } from "@/components/member-destination-screen"
 import { useMobileAuth } from "@/components/mobile-auth-provider";
 
 export default function AuthCallbackScreen() {
-  const { status } = useMobileAuth();
+  const { pendingDestination, status } = useMobileAuth();
 
   if (status === "signed-out") {
     return <Redirect href="/auth/recover?status=expired" />;
   }
   if (status !== "checking") {
-    return <Redirect href="/profile" />;
+    return <Redirect href={pendingDestination ?? "/profile"} />;
   }
 
   return (
@@ -23,7 +23,7 @@ export default function AuthCallbackScreen() {
       facts={[
         ["Callback", "Processing"],
         ["Group", "Not loaded"],
-        ["Destination", "Profile"],
+        ["Destination", pendingDestination ?? "Profile"],
       ]}
     />
   );

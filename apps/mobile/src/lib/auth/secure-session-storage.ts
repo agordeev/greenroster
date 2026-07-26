@@ -23,6 +23,24 @@ export const secureSessionStorage =
 
 const recoveryRequirementKey = "greenroster.auth.recovery-required";
 const recoveryHandleKey = "greenroster.auth.recovery-handle";
+const pendingLinkKey = "greenroster.auth.pending-link";
+
+export const pendingLinkStorage = {
+  clear() {
+    return secureStoreDriver.removeItem(pendingLinkKey);
+  },
+  get() {
+    return secureStoreDriver.getItem(pendingLinkKey);
+  },
+  set(url: string) {
+    return secureStoreDriver.setItem(pendingLinkKey, url);
+  },
+  async take() {
+    const url = await secureStoreDriver.getItem(pendingLinkKey);
+    await secureStoreDriver.removeItem(pendingLinkKey);
+    return url;
+  },
+};
 
 export const recoveryHandleStorage = {
   clear() {
