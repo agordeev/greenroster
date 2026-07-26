@@ -7,6 +7,7 @@ export type OnboardingChecklistItem = Readonly<{
 
 export function buildOnboardingChecklist(
   groupProfileComplete: boolean,
+  quotaRulesConfigured: boolean,
   additionalMembershipCount: number,
 ): readonly OnboardingChecklistItem[] {
   return [
@@ -20,9 +21,11 @@ export function buildOnboardingChecklist(
     },
     {
       key: "rules",
-      label: "Select quota and game rules",
-      status: "not-configured",
-      detail: "No authoritative quota and game-rule configuration exists yet.",
+      label: "Select quota rules",
+      status: quotaRulesConfigured ? "complete" : "not-configured",
+      detail: quotaRulesConfigured
+        ? "The authoritative quota calculation policy is configured."
+        : "No authoritative quota calculation policy exists yet.",
     },
     {
       key: "members",

@@ -29,6 +29,7 @@ const onboardingSchema = z
     z.object({
       additional_membership_count: z.number().int().nonnegative(),
       group_profile_complete: z.boolean(),
+      quota_rules_configured: z.boolean(),
     }),
   )
   .max(1);
@@ -256,6 +257,7 @@ export default async function PortalPage() {
 
   const checklist = buildOnboardingChecklist(
     onboarding.group_profile_complete,
+    onboarding.quota_rules_configured,
     onboarding.additional_membership_count,
   );
 
