@@ -7,10 +7,10 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 ## Current focus
 
 - **Phase:** 02 — Member onboarding
-- **Active slice:** Resend delivery worker and provider feedback
+- **Active slice:** Invitation correction, resend, revoke, and acceptance
 - **Status:** In progress
-- **Next action:** Add the idempotent Resend invitation worker with claim/retry state transitions, accessible HTML/plain-text templates, and authenticated bounce/complaint webhook suppression, then verify provider-independent failure and replay paths.
-- **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. These external inputs do not block the current Phase 02 notification-provider foundation.
+- **Next action:** Implement server-authoritative pending-address correction, invitation regeneration/revocation, and single-use acceptance for new and existing verified identities, including different-account-email acceptance and duplicate-membership refusal.
+- **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. Real Resend sending also requires a production API key, verified sending domain, and registered webhook; these external inputs do not block provider-independent Phase 02 lifecycle implementation and verification.
 
 ## Phase status
 
@@ -18,7 +18,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 | -------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                                                                                                  |
 | [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | Blocked     | Commits through `a9247a3`; all local code/security gates pass, while installed public links and approved legal versions require the external inputs listed above                                         |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits through `7822a3d` add quota/member foundations plus atomic single-use invitation issuance, durable outbox/delivery/suppression records, and startup config validation; provider delivery is next |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | In progress | Commits through `6f4bdeb` add quota/member foundations, atomic invitation issuance, and idempotent Resend delivery/feedback with durable retry, failure, and suppression state; invitation lifecycle is next |
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                                                                                                 |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                                                                                                 |
 | [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                                                                                                 |
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                                  |
 | ------------- | --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Resend invitation delivery and feedback | Complete | Commit `6f4bdeb`; clean PG17 reset, 655 pgTAP, schema lint, 206 unit tests/full builds, frozen offline install, retry/replay/suppression checks, and clean independent review             |
 | July 26, 2026 | Invitation and e-mail outbox foundation | Complete | Commit `7822a3d`; clean PG17 reset, 595 pgTAP, schema lint, 192 unit tests/full builds, startup config validation, token secrecy/idempotency/tenant checks, and clean review              |
 | July 26, 2026 | Pending member profile/contact creation | Complete | Commit `061f42f`; clean PG17 reset, 545 pgTAP, 173 unit tests/full builds, private defaults, actor-derived tenant, normalization/idempotency/audit checks, and clean review               |
 | July 26, 2026 | Member quota and seed-history boundary  | Complete | Commit `ebb3c15`; clean PG17 reset, 484 pgTAP, 155 unit tests/full builds, exact A/B/C projection provenance, tenant/admin/idempotency/audit checks, and clean review                     |
