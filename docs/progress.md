@@ -1,34 +1,35 @@
 # GreenRoster implementation progress
 
-Last updated: July 25, 2026
+Last updated: July 26, 2026
 
 This is the live implementation ledger. [`master-spec.md`](./master-spec.md) defines the product, and [`phases/README.md`](./phases/README.md) defines the delivery order.
 
 ## Current focus
 
 - **Phase:** 01 — Identity and group isolation
-- **Active slice:** Web authentication states and protected portal shell
+- **Active slice:** Authorized portal shell, legal/support navigation, and stored onboarding checklist
 - **Status:** In progress
-- **Next action:** Implement safe sign-in/recovery states and a server-authorized portal shell, then wire the verified group-bootstrap action into the administrator first-run flow.
+- **Next action:** Complete the role-aware portal shell and safe return-location behavior, then derive the administrator onboarding checklist from stored group state.
 - **Blockers:** None.
 
 ## Phase status
 
-| Phase                                                                            | Status      | Evidence or next step                                                                                            |
-| -------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass          |
-| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits `59f76fb`, `8831e83`; DB boundary and verified-session bootstrap pass 170 pgTAP and 27 Vitest assertions |
-| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                         |
-| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                         |
-| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                         |
-| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                         |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                         |
-| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                         |
+| Phase                                                                            | Status      | Evidence or next step                                                                                                             |
+| -------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [00 — Foundation](./phases/00-foundation.md)                                     | Complete    | Commit `cf76835`; clean CI sequence, PG17 reset/77 pgTAP, browser, iOS, and Android runtime checks pass                           |
+| [01 — Identity and group isolation](./phases/01-identity-and-group-isolation.md) | In progress | Commits `59f76fb`, `8831e83`, `2c641ae`; secure web Auth, recovery, and first-run slice passes 204 pgTAP and 34 Vitest assertions |
+| [02 — Member onboarding](./phases/02-member-onboarding.md)                       | Not started | Begins after Phase 01 exit criteria pass                                                                                          |
+| [03 — Round setup and publication](./phases/03-round-setup-and-publication.md)   | Not started | Begins after Phase 02 exit criteria pass                                                                                          |
+| [04 — RSVP and guests](./phases/04-rsvp-and-guests.md)                           | Not started | Begins after Phase 03 exit criteria pass                                                                                          |
+| [05 — Live round](./phases/05-live-round.md)                                     | Not started | Begins after Phase 04 exit criteria pass                                                                                          |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md)         | Not started | Begins after Phase 05 exit criteria pass                                                                                          |
+| [07 — Release hardening](./phases/07-release-hardening.md)                       | Not started | Begins after Phase 06 exit criteria pass                                                                                          |
 
 ## Recent activity
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                         |
 | ------------- | --------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 26, 2026 | Web Auth, recovery, and admin first run | Complete | Commit `2c641ae`; clean PG17 reset and 204 pgTAP; full `pnpm check`; browser verifies recovery-only sessions, replacement sign-in, and first-run access          |
 | July 25, 2026 | Verified-session bootstrap boundary     | Complete | Commit `8831e83`; exact-pinned Supabase SSR client, actor-bound server action, safe errors/correlation, live Auth/RPC and browser proxy checks pass              |
 | July 25, 2026 | Identity and group database contract    | Complete | Commit `59f76fb`; PostgreSQL reset and 170 total pgTAP assertions pass atomic bootstrap/rollback, tenant isolation, revocation, audit, and last-admin invariants |
 | July 25, 2026 | Phase 00 exit gate                      | Complete | Commit `cf76835`; clean committed tree passes frozen install, full checks/builds, Supabase start/reset/seed, and all 77 pgTAP assertions; reviews are clean      |
