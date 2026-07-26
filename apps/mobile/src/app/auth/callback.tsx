@@ -6,6 +6,9 @@ import { useMobileAuth } from "@/components/mobile-auth-provider";
 export default function AuthCallbackScreen() {
   const { status } = useMobileAuth();
 
+  if (status === "signed-out") {
+    return <Redirect href="/auth/recover?status=expired" />;
+  }
   if (status !== "checking") {
     return <Redirect href="/profile" />;
   }

@@ -1,7 +1,10 @@
+import { z } from "zod";
+
 export const MOBILE_AUTH_CALLBACK_URL = "greenroster://auth/callback";
+const recoveryStateSchema = z.uuid();
 
 export type MobileAuthCallback =
-  | Readonly<{ kind: "code"; code: string }>
+  | Readonly<{ kind: "code"; code: string; recoveryState: string }>
   | Readonly<{ kind: "error" }>
   | Readonly<{ kind: "ignored" }>;
 
@@ -27,6 +30,11 @@ export function parseMobileAuthCallback(url: string): MobileAuthCallback {
   }
 
   const code = parsed.searchParams.get("code")?.trim();
+  const recoveryState = recoveryStateSchema.safeParse(
+    parsed.searchParams.get("recovery_state"),
+  );
 
-  return code ? { kind: "code", code } : { kind: "error" };
+  return code && recoveryState.success
+    ? { kind: "code", code, recoveryState: recoveryState.data }
+    : { kind: "error" };
 }

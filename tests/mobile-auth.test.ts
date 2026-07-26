@@ -14,10 +14,13 @@ import type { Session } from "@supabase/supabase-js";
 describe("mobile authentication callback", () => {
   it("accepts only the exact application callback with a code", () => {
     expect(
-      parseMobileAuthCallback(`${MOBILE_AUTH_CALLBACK_URL}?code=pkce-code`),
+      parseMobileAuthCallback(
+        `${MOBILE_AUTH_CALLBACK_URL}?code=pkce-code&recovery_state=40000000-0000-4000-8000-000000000101`,
+      ),
     ).toEqual({
       kind: "code",
       code: "pkce-code",
+      recoveryState: "40000000-0000-4000-8000-000000000101",
     });
   });
 

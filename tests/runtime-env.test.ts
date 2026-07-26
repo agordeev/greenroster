@@ -90,12 +90,14 @@ describe("web runtime configuration", () => {
 
 describe("mobile runtime configuration", () => {
   const validEnvironment = {
+    EXPO_PUBLIC_APP_URL: "https://app.example.com",
     EXPO_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
     EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
   };
 
   it("returns validated public configuration", () => {
     expect(validateMobileRuntimeEnv(validEnvironment)).toEqual({
+      appUrl: "https://app.example.com",
       supabaseUrl: "https://example.supabase.co",
       supabasePublishableKey: "publishable-key",
     });
@@ -112,9 +114,19 @@ describe("mobile runtime configuration", () => {
     );
   });
 
+  it("requires the mobile application URL to be an origin", () => {
+    expect(() =>
+      validateMobileRuntimeEnv({
+        ...validEnvironment,
+        EXPO_PUBLIC_APP_URL: "https://app.example.com/mobile?preview=true",
+      }),
+    ).toThrowError("EXPO_PUBLIC_APP_URL must be an HTTP or HTTPS origin");
+  });
+
   it("fails when the app root imports missing runtime configuration", async () => {
     vi.stubEnv("EXPO_PUBLIC_SUPABASE_URL", "");
     vi.stubEnv("EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
+    vi.stubEnv("EXPO_PUBLIC_APP_URL", "http://127.0.0.1:3000");
 
     await expect(
       import("../apps/mobile/src/lib/runtime-env"),

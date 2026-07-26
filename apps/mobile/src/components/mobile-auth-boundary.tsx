@@ -14,8 +14,11 @@ export function MobileAuthBoundary({
 }: Readonly<{ children: ReactNode }>) {
   const segments = useSegments();
   const theme = useTheme();
-  const { retrySession, status } = useMobileAuth();
+  const { recoveryRequired, retrySession, status } = useMobileAuth();
   const isAuthRoute = segments[0] === "auth";
+  const isRecoveryRoute =
+    isAuthRoute &&
+    (segments[1] === "callback" || segments[1] === "reset-password");
 
   if (status === "checking") {
     return (
@@ -49,6 +52,10 @@ export function MobileAuthBoundary({
         }
       />
     );
+  }
+
+  if (status === "signed-in" && recoveryRequired && !isRecoveryRoute) {
+    return <Redirect href="/auth/reset-password" />;
   }
 
   if (status === "signed-out" && !isAuthRoute) {

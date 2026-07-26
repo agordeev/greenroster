@@ -14,7 +14,7 @@ import {
   claimPasswordRecoverySession,
   consumePasswordRecoverySession,
   releasePasswordRecoveryClaim,
-  resolvePasswordRecoveryState,
+  resolvePasswordRecoveryOperation,
 } from "@/lib/auth/password-recovery-registry";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
@@ -200,37 +200,60 @@ export async function updatePasswordAction(
     };
   }
 
-  const recoveryState = await resolvePasswordRecoveryState(
+  const recoveryResolution = await resolvePasswordRecoveryOperation(
     claims.session_id,
     userData.user.id,
   );
 
-  if (recoveryState === "unavailable") {
+  if (!recoveryResolution.ok) {
     return {
       status: "error",
       message: "The recovery service could not be reached. Try again.",
     };
   }
 
-  if (recoveryState !== "active") {
+  const recoveryOperation = recoveryResolution.operation;
+  if (!recoveryOperation) {
     return {
       status: "error",
       message: "This recovery link is expired or has already been used.",
     };
   }
 
-  const recoveryClaim = await claimPasswordRecoverySession(
-    claims.session_id,
-    userData.user.id,
-  );
-  if (!recoveryClaim.ok) {
+  if (recoveryOperation.state === "consumed") {
+    await supabase.auth.signOut({ scope: "local" });
+    return {
+      status: "success",
+      message: "Password updated. Return to sign in with your new password.",
+    };
+  }
+
+  if (
+    recoveryOperation.state !== "active" &&
+    recoveryOperation.state !== "claimed"
+  ) {
     return {
       status: "error",
-      message:
-        recoveryClaim.reason === "unavailable"
-          ? "The recovery service could not be reached. Try again."
-          : "This recovery link is expired or has already been used.",
+      message: "This recovery link is expired or has already been used.",
     };
+  }
+
+  let claimId = recoveryOperation.claimId;
+  if (!claimId) {
+    const recoveryClaim = await claimPasswordRecoverySession(
+      claims.session_id,
+      userData.user.id,
+    );
+    if (!recoveryClaim.ok) {
+      return {
+        status: "error",
+        message:
+          recoveryClaim.reason === "unavailable"
+            ? "The recovery service could not be reached. Try again."
+            : "This recovery link is expired or has already been used.",
+      };
+    }
+    claimId = recoveryClaim.claimId;
   }
 
   let error: Awaited<ReturnType<typeof supabase.auth.updateUser>>["error"];
@@ -243,7 +266,7 @@ export async function updatePasswordAction(
     await releasePasswordRecoveryClaim(
       claims.session_id,
       userData.user.id,
-      recoveryClaim.claimId,
+      claimId,
     );
     return {
       status: "error",
@@ -256,7 +279,7 @@ export async function updatePasswordAction(
     await releasePasswordRecoveryClaim(
       claims.session_id,
       userData.user.id,
-      recoveryClaim.claimId,
+      claimId,
     );
     return {
       status: "error",
@@ -269,12 +292,20 @@ export async function updatePasswordAction(
     };
   }
 
-  await consumePasswordRecoverySession(
+  const consumed = await consumePasswordRecoverySession(
     claims.session_id,
     userData.user.id,
-    recoveryClaim.claimId,
+    claimId,
+    recoveryOperation.operationId,
   );
   await supabase.auth.signOut({ scope: "local" });
+  if (!consumed) {
+    return {
+      status: "error",
+      message:
+        "Your password changed, but recovery finalization could not be confirmed. Return to sign in with the new password; support can trace this attempt.",
+    };
+  }
   return {
     status: "success",
     message: "Password updated. Return to sign in with your new password.",

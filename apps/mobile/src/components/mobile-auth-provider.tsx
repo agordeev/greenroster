@@ -1,4 +1,5 @@
 import * as Linking from "expo-linking";
+import type { Session } from "@supabase/supabase-js";
 import {
   createContext,
   useCallback,
@@ -11,7 +12,10 @@ import {
 } from "react";
 import { AppState, Platform } from "react-native";
 
-import { parseMobileAuthCallback } from "@/lib/auth/mobile-auth-callback";
+import {
+  parseMobileAuthCallback,
+  type MobileAuthCallback,
+} from "@/lib/auth/mobile-auth-callback";
 import {
   initialMobileAuthState,
   mobileAuthStateForEvent,
@@ -19,7 +23,11 @@ import {
   type MobileAuthState,
 } from "@/lib/auth/mobile-auth-state";
 import { mobileSupabase } from "@/lib/auth/mobile-supabase";
-import { recoveryRequirementStorage } from "@/lib/auth/secure-session-storage";
+import { mobileRecoveryApi } from "@/lib/auth/mobile-recovery-api";
+import {
+  recoveryHandleStorage,
+  recoveryRequirementStorage,
+} from "@/lib/auth/secure-session-storage";
 
 type MobileAuthContextValue = MobileAuthState & {
   retrySession(): Promise<void>;
@@ -27,21 +35,119 @@ type MobileAuthContextValue = MobileAuthState & {
 
 const MobileAuthContext = createContext<MobileAuthContextValue | null>(null);
 
+async function restoreMobileAuthState(
+  session: Session | null,
+  recoveryHandle: string | null,
+): Promise<MobileAuthState> {
+  if (recoveryHandle) {
+    const recovery = await mobileRecoveryApi.status(recoveryHandle);
+    if (recovery.ok && recovery.state === "active") {
+      if (session) await mobileSupabase.auth.signOut({ scope: "local" });
+      await recoveryRequirementStorage.require();
+      return { recoveryRequired: true, session: null, status: "signed-in" };
+    }
+    if (!recovery.ok && recovery.code === "unavailable") {
+      return { recoveryRequired: true, session: null, status: "error" };
+    }
+    await recoveryHandleStorage.clear();
+    await recoveryRequirementStorage.clear();
+    if (session) await mobileSupabase.auth.signOut({ scope: "local" });
+    return restoredMobileAuthState(null, false);
+  }
+
+  await recoveryRequirementStorage.clear();
+  return restoredMobileAuthState(session, false);
+}
+
 export function MobileAuthProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const callbackUrl = Linking.useURL();
   const handledCallback = useRef<string | null>(null);
+  const pendingRecoveryCallback = useRef<Extract<
+    MobileAuthCallback,
+    { kind: "code" }
+  > | null>(null);
   const authEventQueue = useRef<Promise<void>>(Promise.resolve());
   const [state, setState] = useState<MobileAuthState>(initialMobileAuthState);
 
+  const exchangeRecoveryCallback = useCallback(
+    async (
+      callback: Extract<MobileAuthCallback, { kind: "code" }>,
+      isActive: () => boolean = () => true,
+    ) => {
+      if (!isActive()) return;
+      setState((current) => ({ ...current, status: "checking" }));
+      try {
+        const recovery = await mobileRecoveryApi.exchange(
+          callback.code,
+          callback.recoveryState,
+        );
+        if (
+          !recovery.ok ||
+          recovery.state !== "active" ||
+          !recovery.recoveryHandle
+        ) {
+          if (
+            !recovery.ok &&
+            (recovery.code === "unavailable" ||
+              recovery.code === "rate_limited")
+          ) {
+            if (!isActive()) return;
+            setState({
+              recoveryRequired: false,
+              session: null,
+              status: "error",
+            });
+            return;
+          }
+
+          pendingRecoveryCallback.current = null;
+          await mobileSupabase.auth.signOut({ scope: "local" });
+          await recoveryHandleStorage.clear();
+          await recoveryRequirementStorage.clear();
+          if (!isActive()) return;
+          setState({
+            recoveryRequired: false,
+            session: null,
+            status: "signed-out",
+          });
+          return;
+        }
+
+        await mobileSupabase.auth.signOut({ scope: "local" });
+        await authEventQueue.current;
+        await recoveryHandleStorage.set(recovery.recoveryHandle);
+        await recoveryRequirementStorage.require();
+        if (!isActive()) return;
+
+        pendingRecoveryCallback.current = null;
+        setState({
+          recoveryRequired: true,
+          session: null,
+          status: "signed-in",
+        });
+      } catch {
+        if (!isActive()) return;
+        setState({ recoveryRequired: false, session: null, status: "error" });
+      }
+    },
+    [],
+  );
+
   const retrySession = useCallback(async () => {
+    const recoveryCallback = pendingRecoveryCallback.current;
+    if (recoveryCallback) {
+      await exchangeRecoveryCallback(recoveryCallback);
+      return;
+    }
+
     setState((current) => ({ ...current, status: "checking" }));
     authEventQueue.current = authEventQueue.current.then(async () => {
       try {
-        const [{ data, error }, recoveryRequired] = await Promise.all([
+        const [{ data, error }, recoveryHandle] = await Promise.all([
           mobileSupabase.auth.getSession(),
-          recoveryRequirementStorage.isRequired(),
+          recoveryHandleStorage.get(),
         ]);
 
         if (error) {
@@ -49,25 +155,21 @@ export function MobileAuthProvider({
           return;
         }
 
-        if (!data.session && recoveryRequired) {
-          await recoveryRequirementStorage.clear();
-        }
-
-        setState(restoredMobileAuthState(data.session, recoveryRequired));
+        setState(await restoreMobileAuthState(data.session, recoveryHandle));
       } catch {
         setState({ recoveryRequired: false, session: null, status: "error" });
       }
     });
     await authEventQueue.current;
-  }, []);
+  }, [exchangeRecoveryCallback]);
 
   useEffect(() => {
     let active = true;
     authEventQueue.current = Promise.all([
       mobileSupabase.auth.getSession(),
-      recoveryRequirementStorage.isRequired(),
+      recoveryHandleStorage.get(),
     ])
-      .then(async ([{ data, error }, recoveryRequired]) => {
+      .then(async ([{ data, error }, recoveryHandle]) => {
         if (!active || handledCallback.current) return;
 
         if (error) {
@@ -75,12 +177,13 @@ export function MobileAuthProvider({
           return;
         }
 
-        if (!data.session && recoveryRequired) {
-          await recoveryRequirementStorage.clear();
-        }
-
         if (!active || handledCallback.current) return;
-        setState(restoredMobileAuthState(data.session, recoveryRequired));
+        const restored = await restoreMobileAuthState(
+          data.session,
+          recoveryHandle,
+        );
+        if (!active || handledCallback.current) return;
+        setState(restored);
       })
       .catch(() => {
         if (!active || handledCallback.current) return;
@@ -96,12 +199,15 @@ export function MobileAuthProvider({
           if (event === "PASSWORD_RECOVERY") {
             await recoveryRequirementStorage.require();
           } else if (event === "SIGNED_OUT") {
+            if (await recoveryHandleStorage.get()) return;
             await recoveryRequirementStorage.clear();
           }
 
           if (!active) return;
           setState((current) =>
-            mobileAuthStateForEvent(current, event, session),
+            event === "PASSWORD_RECOVERY"
+              ? { ...current, recoveryRequired: true, status: "checking" }
+              : mobileAuthStateForEvent(current, event, session),
           );
         } catch {
           if (!active) return;
@@ -121,7 +227,13 @@ export function MobileAuthProvider({
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web" || state.status === "checking") return;
+    if (
+      Platform.OS === "web" ||
+      state.status === "checking" ||
+      state.recoveryRequired
+    ) {
+      return;
+    }
 
     const updateRefresh = (appState: string) => {
       if (appState === "active") {
@@ -138,7 +250,7 @@ export function MobileAuthProvider({
       subscription.remove();
       mobileSupabase.auth.stopAutoRefresh();
     };
-  }, [state.status]);
+  }, [state.recoveryRequired, state.status]);
 
   useEffect(() => {
     if (!callbackUrl || handledCallback.current === callbackUrl) return;
@@ -162,28 +274,14 @@ export function MobileAuthProvider({
         return;
       }
 
-      if (!active) return;
-      setState((current) => ({ ...current, status: "checking" }));
-      try {
-        const { data, error } =
-          await mobileSupabase.auth.exchangeCodeForSession(callback.code);
-        await authEventQueue.current;
-        if (!active) return;
-        setState((current) => ({
-          recoveryRequired: error ? false : current.recoveryRequired,
-          session: error ? null : data.session,
-          status: error ? "error" : "signed-in",
-        }));
-      } catch {
-        if (!active) return;
-        setState({ recoveryRequired: false, session: null, status: "error" });
-      }
+      pendingRecoveryCallback.current = callback;
+      await exchangeRecoveryCallback(callback, () => active);
     });
 
     return () => {
       active = false;
     };
-  }, [callbackUrl]);
+  }, [callbackUrl, exchangeRecoveryCallback]);
 
   const value = useMemo(
     () => ({ ...state, retrySession }),

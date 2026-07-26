@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 const sessionClaimsSchema = z.object({
+  exp: z.number().int().positive(),
   session_id: z.uuid(),
   sub: z.uuid(),
 });

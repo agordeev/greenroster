@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../apps/mobile/src/lib/auth/mobile-supabase", () => ({
   mobileSupabase: { auth: {} },
 }));
+vi.mock("../apps/mobile/src/lib/auth/mobile-recovery-api", () => ({
+  mobileRecoveryApi: {},
+}));
 
 import { createMobileAuthActions } from "../apps/mobile/src/lib/auth/mobile-auth-actions";
 
@@ -10,10 +13,23 @@ type AuthClient = Parameters<typeof createMobileAuthActions>[0];
 
 function createAuthClient() {
   return {
-    resetPasswordForEmail: vi.fn(),
     signInWithPassword: vi.fn(),
     signOut: vi.fn().mockResolvedValue({ error: null }),
   } as unknown as AuthClient;
+}
+
+function createRecoveryClient() {
+  return {
+    requestPasswordRecovery: vi.fn().mockResolvedValue({
+      correlationId: "40000000-0000-4000-8000-000000000101",
+      ok: true,
+      state: "requested",
+    }),
+  } as unknown as Parameters<typeof createMobileAuthActions>[1];
+}
+
+function createActions(auth: AuthClient, recovery = createRecoveryClient()) {
+  return createMobileAuthActions(auth, recovery);
 }
 
 describe("mobile sign-in actions", () => {
@@ -32,7 +48,7 @@ describe("mobile sign-in actions", () => {
       error: null,
     } as never);
 
-    const result = await createMobileAuthActions(auth).signIn(
+    const result = await createActions(auth).signIn(
       " MEMBER@Example.COM ",
       "secret",
     );
@@ -45,7 +61,7 @@ describe("mobile sign-in actions", () => {
   });
 
   it("rejects invalid fields before calling Auth", async () => {
-    const actions = createMobileAuthActions(auth);
+    const actions = createActions(auth);
 
     await expect(actions.signIn("invalid", "secret")).resolves.toMatchObject({
       field: "email",
@@ -67,7 +83,7 @@ describe("mobile sign-in actions", () => {
         data: { session: null, user: null },
         error: { status: 429 },
       } as never);
-    const actions = createMobileAuthActions(auth);
+    const actions = createActions(auth);
 
     await expect(
       actions.signIn("missing@example.com", "wrong"),
@@ -88,7 +104,7 @@ describe("mobile sign-in actions", () => {
     } as never);
 
     await expect(
-      createMobileAuthActions(auth).signIn("member@example.com", "secret"),
+      createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
       message: "The sign-in service could not be reached. Try again.",
       status: "error",
@@ -102,7 +118,7 @@ describe("mobile sign-in actions", () => {
     } as never);
 
     await expect(
-      createMobileAuthActions(auth).signIn("member@example.com", "secret"),
+      createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
       message: "Verify your account e-mail before signing in.",
       status: "error",
@@ -116,7 +132,7 @@ describe("mobile sign-in actions", () => {
     );
 
     await expect(
-      createMobileAuthActions(auth).signIn("member@example.com", "secret"),
+      createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
       message:
         "The sign-in service could not be reached. Check your connection and try again.",
@@ -126,20 +142,16 @@ describe("mobile sign-in actions", () => {
 });
 
 describe("mobile recovery actions", () => {
-  it("uses the exact app callback and returns neutral success", async () => {
+  it("normalizes the e-mail and returns neutral success", async () => {
     const auth = createAuthClient();
-    vi.mocked(auth.resetPasswordForEmail).mockResolvedValue({
-      data: {},
-      error: { status: 400 },
-    } as never);
+    const recovery = createRecoveryClient();
 
-    const result = await createMobileAuthActions(auth).requestPasswordRecovery(
+    const result = await createActions(auth, recovery).requestPasswordRecovery(
       " MEMBER@Example.COM ",
     );
 
-    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith(
+    expect(recovery.requestPasswordRecovery).toHaveBeenCalledWith(
       "member@example.com",
-      { redirectTo: "greenroster://auth/callback" },
     );
     expect(result).toMatchObject({
       message:
@@ -150,13 +162,15 @@ describe("mobile recovery actions", () => {
 
   it("distinguishes rate limiting without exposing account existence", async () => {
     const auth = createAuthClient();
-    vi.mocked(auth.resetPasswordForEmail).mockResolvedValue({
-      data: {},
-      error: { status: 429 },
-    } as never);
+    const recovery = createRecoveryClient();
+    vi.mocked(recovery.requestPasswordRecovery).mockResolvedValue({
+      code: "rate_limited",
+      correlationId: "40000000-0000-4000-8000-000000000101",
+      ok: false,
+    });
 
     await expect(
-      createMobileAuthActions(auth).requestPasswordRecovery(
+      createActions(auth, recovery).requestPasswordRecovery(
         "member@example.com",
       ),
     ).resolves.toMatchObject({
@@ -167,31 +181,35 @@ describe("mobile recovery actions", () => {
 
   it("maps provider failures without leaking provider details", async () => {
     const auth = createAuthClient();
-    vi.mocked(auth.resetPasswordForEmail).mockResolvedValue({
-      data: {},
-      error: { status: 503 },
-    } as never);
+    const recovery = createRecoveryClient();
+    vi.mocked(recovery.requestPasswordRecovery).mockResolvedValue({
+      code: "unavailable",
+      correlationId: "40000000-0000-4000-8000-000000000101",
+      ok: false,
+    });
 
     await expect(
-      createMobileAuthActions(auth).requestPasswordRecovery(
+      createActions(auth, recovery).requestPasswordRecovery(
         "member@example.com",
       ),
     ).resolves.toMatchObject({
-      message: "The recovery service could not be reached. Try again.",
+      message:
+        "The recovery service could not be reached. Check your connection and try again.",
       status: "error",
     });
   });
 
   it("reports validation and connection failures safely", async () => {
     const auth = createAuthClient();
-    const actions = createMobileAuthActions(auth);
+    const recovery = createRecoveryClient();
+    const actions = createActions(auth, recovery);
 
     await expect(
       actions.requestPasswordRecovery("invalid"),
     ).resolves.toMatchObject({ field: "email", status: "error" });
-    expect(auth.resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(recovery.requestPasswordRecovery).not.toHaveBeenCalled();
 
-    vi.mocked(auth.resetPasswordForEmail).mockRejectedValue(
+    vi.mocked(recovery.requestPasswordRecovery).mockRejectedValue(
       new Error("provider details"),
     );
     await expect(
@@ -208,9 +226,9 @@ describe("mobile sign-out action", () => {
   it("uses local scope so only this device session is cleared", async () => {
     const auth = createAuthClient();
 
-    await expect(
-      createMobileAuthActions(auth).signOut(),
-    ).resolves.toMatchObject({ status: "success" });
+    await expect(createActions(auth).signOut()).resolves.toMatchObject({
+      status: "success",
+    });
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
@@ -218,9 +236,7 @@ describe("mobile sign-out action", () => {
     const auth = createAuthClient();
     vi.mocked(auth.signOut).mockRejectedValue(new Error("provider details"));
 
-    await expect(
-      createMobileAuthActions(auth).signOut(),
-    ).resolves.toMatchObject({
+    await expect(createActions(auth).signOut()).resolves.toMatchObject({
       message: "GreenRoster could not sign out. Try again.",
       status: "error",
     });

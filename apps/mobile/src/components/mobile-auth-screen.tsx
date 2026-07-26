@@ -21,15 +21,21 @@ import {
 } from "@/lib/auth/mobile-auth-actions";
 
 export function MobileAuthScreen({
+  initialMessage,
   mode,
-}: Readonly<{ mode: "recovery" | "sign-in" }>) {
+}: Readonly<{ initialMessage?: string; mode: "recovery" | "sign-in" }>) {
   const router = useRouter();
   const theme = useTheme();
   const passwordInput = useRef<TextInput>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<MobileAuthActionResult | null>(null);
+  const [result, setResult] = useState<MobileAuthActionResult | null>(
+    initialMessage
+      ? { field: null, message: initialMessage, status: "success" }
+      : null,
+  );
   const isSignIn = mode === "sign-in";
 
   const submit = async () => {
@@ -112,7 +118,7 @@ export function MobileAuthScreen({
                     onChangeText={setPassword}
                     onSubmitEditing={submit}
                     returnKeyType="go"
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                     style={[
                       styles.input,
                       { borderColor: theme.textSecondary, color: theme.text },
@@ -124,6 +130,16 @@ export function MobileAuthScreen({
                       {result.message}
                     </ThemedText>
                   ) : null}
+                  <Pressable
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: showPassword }}
+                    onPress={() => setShowPassword((visible) => !visible)}
+                    style={({ pressed }) => pressed && styles.pressed}
+                  >
+                    <ThemedText type="smallBold" themeColor="accent">
+                      {showPassword ? "Hide password" : "Show password"}
+                    </ThemedText>
+                  </Pressable>
                 </View>
               ) : null}
 

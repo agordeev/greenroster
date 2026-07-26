@@ -1,7 +1,7 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { MOBILE_AUTH_CALLBACK_URL } from "./mobile-auth-callback";
+import { mobileRecoveryApi } from "./mobile-recovery-api";
 import { mobileSupabase } from "./mobile-supabase";
 
 const credentialsSchema = z.object({
@@ -15,7 +15,11 @@ const recoverySchema = z.object({
 
 type MobileAuthClient = Pick<
   typeof mobileSupabase.auth,
-  "resetPasswordForEmail" | "signInWithPassword" | "signOut"
+  "signInWithPassword" | "signOut"
+>;
+type MobileRecoveryClient = Pick<
+  typeof mobileRecoveryApi,
+  "requestPasswordRecovery"
 >;
 
 export type MobileAuthActionResult = Readonly<{
@@ -24,7 +28,10 @@ export type MobileAuthActionResult = Readonly<{
   status: "error" | "success";
 }>;
 
-export function createMobileAuthActions(auth: MobileAuthClient) {
+export function createMobileAuthActions(
+  auth: MobileAuthClient,
+  recovery: MobileRecoveryClient,
+) {
   return {
     async requestPasswordRecovery(
       email: string,
@@ -39,11 +46,11 @@ export function createMobileAuthActions(auth: MobileAuthClient) {
       }
 
       try {
-        const { error } = await auth.resetPasswordForEmail(parsed.data.email, {
-          redirectTo: MOBILE_AUTH_CALLBACK_URL,
-        });
+        const result = await recovery.requestPasswordRecovery(
+          parsed.data.email,
+        );
 
-        if (error?.status === 429) {
+        if (!result.ok && result.code === "rate_limited") {
           return {
             field: null,
             message: "Too many attempts. Wait a moment and try again.",
@@ -51,19 +58,11 @@ export function createMobileAuthActions(auth: MobileAuthClient) {
           };
         }
 
-        if (error && isAuthRetryableFetchError(error)) {
+        if (!result.ok) {
           return {
             field: null,
             message:
               "The recovery service could not be reached. Check your connection and try again.",
-            status: "error",
-          };
-        }
-
-        if (error?.status !== undefined && error.status >= 500) {
-          return {
-            field: null,
-            message: "The recovery service could not be reached. Try again.",
             status: "error",
           };
         }
@@ -167,4 +166,7 @@ export function createMobileAuthActions(auth: MobileAuthClient) {
   };
 }
 
-export const mobileAuthActions = createMobileAuthActions(mobileSupabase.auth);
+export const mobileAuthActions = createMobileAuthActions(
+  mobileSupabase.auth,
+  mobileRecoveryApi,
+);

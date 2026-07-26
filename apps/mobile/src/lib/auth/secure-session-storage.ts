@@ -22,6 +22,19 @@ export const secureSessionStorage =
   createChunkedSessionStorage(secureStoreDriver);
 
 const recoveryRequirementKey = "greenroster.auth.recovery-required";
+const recoveryHandleKey = "greenroster.auth.recovery-handle";
+
+export const recoveryHandleStorage = {
+  clear() {
+    return secureStoreDriver.removeItem(recoveryHandleKey);
+  },
+  get() {
+    return secureStoreDriver.getItem(recoveryHandleKey);
+  },
+  set(handle: string) {
+    return secureStoreDriver.setItem(recoveryHandleKey, handle);
+  },
+};
 
 export const recoveryRequirementStorage = {
   async clear() {
