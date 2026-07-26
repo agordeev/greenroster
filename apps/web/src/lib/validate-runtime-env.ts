@@ -47,9 +47,20 @@ function requiredOrigin(environment: Environment, name: string): string {
   return url.origin;
 }
 
+function requiredEmail(environment: Environment, name: string): string {
+  const value = requiredValue(environment, name).toLowerCase();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    throw new Error(`${name} must be a valid e-mail address`);
+  }
+
+  return value;
+}
+
 export function validateWebRuntimeEnv(environment: Environment) {
   return Object.freeze({
     appUrl: requiredOrigin(environment, "APP_URL"),
+    supportEmail: requiredEmail(environment, "SUPPORT_EMAIL"),
     supabaseUrl: requiredHttpUrl(environment, "NEXT_PUBLIC_SUPABASE_URL"),
     supabasePublishableKey: requiredValue(
       environment,

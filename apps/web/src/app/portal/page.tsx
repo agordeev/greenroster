@@ -1,8 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { signOutAction } from "@/app/actions/auth";
 import { resolveIdentityAffiliation } from "@/lib/auth/identity-affiliation";
 import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-registry";
 import { signInPath } from "@/lib/auth/safe-return-path";
@@ -10,6 +10,7 @@ import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { GroupBootstrapForm } from "./group-bootstrap-form";
+import { PortalShell } from "./portal-shell";
 
 const contextSchema = z
   .array(
@@ -52,6 +53,7 @@ export default async function PortalPage() {
   if (!userData.user.email_confirmed_at) {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Account verification"
         title="Verify your account e-mail"
         message="This identity cannot access or create a group until its account e-mail is verified."
@@ -63,6 +65,7 @@ export default async function PortalPage() {
   if (!claims || claims.sub !== userData.user.id) {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Protected portal"
         title="Your session could not be checked"
         message="The authentication service is temporarily unavailable. Try again in a moment."
@@ -78,6 +81,7 @@ export default async function PortalPage() {
   if (recoveryState === "unavailable") {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Protected portal"
         title="Your session could not be checked"
         message="The authentication service is temporarily unavailable. Try again in a moment."
@@ -91,6 +95,7 @@ export default async function PortalPage() {
   ) {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Recovery session expired"
         title="Request a new password recovery link"
         message="This recovery session cannot open the portal. Sign out, then request a new link if you still need to change your password."
@@ -105,6 +110,7 @@ export default async function PortalPage() {
   if (contextResult.error || !parsedContext.success) {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Protected portal"
         title="Your group access could not be checked"
         message="The service is temporarily unavailable. Sign out and try again."
@@ -118,6 +124,7 @@ export default async function PortalPage() {
     if (!affiliation.ok) {
       return (
         <PortalState
+          email={userData.user.email}
           kicker="Protected portal"
           title="Your group access could not be checked"
           message="The service is temporarily unavailable. Sign out and try again."
@@ -128,6 +135,7 @@ export default async function PortalPage() {
     if (affiliation.state !== "unattached") {
       return (
         <PortalState
+          email={userData.user.email}
           kicker="Access unavailable"
           title="Your group access is not active"
           message="You are signed in, but this identity does not have an active group membership. Ask a group administrator to review your access."
@@ -136,38 +144,22 @@ export default async function PortalPage() {
     }
 
     return (
-      <main className="portal-empty">
-        <p className="ledger-kicker">Administrator first run</p>
-        <h1>Set up your group</h1>
-        <p>
-          Your verified account is ready. Group identity and your
-          person-specific administrator access are created together.
-        </p>
-        <GroupBootstrapForm identityKey={userData.user.id} />
-        <form action={signOutAction}>
-          <button className="secondary-button" type="submit">
-            Sign out
-          </button>
-        </form>
-      </main>
-    );
-  }
-
-  if (context.role === "member") {
-    return (
-      <main className="portal-empty">
-        <p className="ledger-kicker">Role denied</p>
-        <h1>Portal access is not available for this role</h1>
-        <p>
-          You are signed in, but the administrative portal requires a
-          coordinator or administrator role.
-        </p>
-        <form action={signOutAction}>
-          <button className="secondary-button" type="submit">
-            Sign out
-          </button>
-        </form>
-      </main>
+      <PortalShell
+        email={userData.user.email ?? "Verified account"}
+        groupName="Group not created"
+        roleStatus="Access not created"
+        timeZone="Choose during setup"
+      >
+        <section className="portal-ledger">
+          <p className="ledger-kicker">Administrator first run</p>
+          <h1>Set up your group</h1>
+          <p>
+            Your verified account is ready. Group identity and your
+            person-specific administrator access are created together.
+          </p>
+          <GroupBootstrapForm identityKey={userData.user.id} />
+        </section>
+      </PortalShell>
     );
   }
 
@@ -180,6 +172,7 @@ export default async function PortalPage() {
   if (groupResult.error || !groupResult.data) {
     return (
       <PortalState
+        email={userData.user.email}
         kicker="Protected portal"
         title="Your group could not be loaded"
         message="The service is temporarily unavailable. Sign out and try again."
@@ -196,23 +189,41 @@ export default async function PortalPage() {
       ? groupResult.data.time_zone
       : "";
 
+  if (context.role === "member") {
+    return (
+      <PortalShell
+        email={userData.user.email ?? "Signed-in account"}
+        groupName={groupName}
+        role={context.role}
+        timeZone={timeZone}
+      >
+        <section className="portal-ledger role-denied">
+          <p className="ledger-kicker">Role denied</p>
+          <h1>Portal access is not available for this role</h1>
+          <p>
+            You are signed in, but the administrative portal requires a
+            coordinator or administrator role.
+          </p>
+          <div className="information-actions">
+            <Link className="primary-link" href="/home">
+              Home
+            </Link>
+            <Link className="secondary-link" href="/support">
+              Contact support
+            </Link>
+          </div>
+        </section>
+      </PortalShell>
+    );
+  }
+
   return (
-    <main className="portal-shell">
-      <header className="club-card">
-        <div>
-          <p className="eyebrow">{groupName}</p>
-          <p className="brand-note">{timeZone}</p>
-        </div>
-        <div className="club-person">
-          <span>{userData.user.email}</span>
-          <strong>{context.role}</strong>
-          <form action={signOutAction}>
-            <button className="text-button" type="submit">
-              Sign out
-            </button>
-          </form>
-        </div>
-      </header>
+    <PortalShell
+      email={userData.user.email ?? "Signed-in account"}
+      groupName={groupName}
+      role={context.role}
+      timeZone={timeZone}
+    >
       <section className="portal-ledger">
         <p className="ledger-kicker">Clubhouse operations</p>
         <h1>Welcome to your group</h1>
@@ -222,25 +233,33 @@ export default async function PortalPage() {
           area is enabled.
         </p>
       </section>
-    </main>
+    </PortalShell>
   );
 }
 
 function PortalState({
+  email,
   kicker,
   title,
   message,
-}: Readonly<{ kicker: string; title: string; message: string }>) {
+}: Readonly<{
+  email?: string;
+  kicker: string;
+  title: string;
+  message: string;
+}>) {
   return (
-    <main className="portal-empty">
-      <p className="ledger-kicker">{kicker}</p>
-      <h1>{title}</h1>
-      <p>{message}</p>
-      <form action={signOutAction}>
-        <button className="secondary-button" type="submit">
-          Sign out
-        </button>
-      </form>
-    </main>
+    <PortalShell
+      email={email ?? "Session details unavailable"}
+      groupName="Group unavailable"
+      roleStatus="Access not resolved"
+      timeZone=""
+    >
+      <section className="portal-ledger">
+        <p className="ledger-kicker">{kicker}</p>
+        <h1>{title}</h1>
+        <p>{message}</p>
+      </section>
+    </PortalShell>
   );
 }

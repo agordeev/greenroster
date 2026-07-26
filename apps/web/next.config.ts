@@ -4,6 +4,7 @@ import { validateWebRuntimeEnv } from "./src/lib/validate-runtime-env";
 
 validateWebRuntimeEnv({
   APP_URL: process.env.APP_URL,
+  SUPPORT_EMAIL: process.env.SUPPORT_EMAIL,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,

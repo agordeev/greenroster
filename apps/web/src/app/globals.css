@@ -298,27 +298,150 @@ input {
   padding: clamp(1.5rem, 4vw, 3rem);
   background: var(--scorecard);
 }
-.club-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
+.skip-link {
+  position: fixed;
+  z-index: 20;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  transform: translateY(-200%);
+  background: var(--ink);
+  color: var(--ledger);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.portal-header,
+.information-header {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.35fr) minmax(10rem, 1fr) auto auto;
+  align-items: center;
+  gap: 1rem 1.5rem;
   padding: 1.25rem 1.5rem;
   border: 1px solid var(--rule);
   background: var(--ledger);
 }
-.club-person {
+.portal-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+.portal-brand > span:last-child {
   display: grid;
-  justify-items: end;
-  gap: 0.25rem;
+  min-width: 0;
+  gap: 0.125rem;
+}
+.portal-brand strong {
+  font-family: var(--font-ledger);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.portal-brand small,
+.portal-group small {
+  color: var(--pencil);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.portal-group {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+.portal-group > span {
+  color: var(--quiet);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.portal-group strong {
+  font-family: var(--font-ledger);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+.portal-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.portal-nav a,
+.information-footer a {
   color: var(--pencil);
   font-size: 0.8125rem;
+  text-underline-offset: 0.25rem;
 }
-.club-person strong {
+.portal-nav a[aria-current="page"] {
+  color: var(--bentgrass);
+  font-weight: 700;
+}
+.account-block {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 1rem;
+  min-width: 0;
+}
+.account-identity {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+  text-align: right;
+}
+.account-identity span {
+  max-width: 14rem;
+  color: var(--pencil);
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-identity strong {
+  color: var(--bentgrass);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.account-menu {
+  position: relative;
+}
+.account-menu summary {
+  color: var(--bentgrass);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.account-menu > div {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  display: grid;
+  min-width: min(20rem, calc(100vw - 3rem));
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+  background: var(--ledger);
+  box-shadow: 0 1rem 2.5rem rgb(31 41 33 / 12%);
+}
+.account-menu a {
+  color: var(--pencil);
+  font-size: 0.8125rem;
+  text-underline-offset: 0.25rem;
+}
+.account-menu span {
+  color: var(--pencil);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.account-menu strong {
   color: var(--bentgrass);
   font-size: 0.6875rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+.portal-main {
+  min-height: calc(100vh - 15rem);
 }
 .portal-ledger,
 .portal-empty {
@@ -349,6 +472,80 @@ input {
 .portal-empty form {
   margin-top: 2rem;
 }
+.role-denied .information-actions {
+  margin-top: 2rem;
+}
+.information-shell {
+  min-height: 100vh;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: var(--scorecard);
+}
+.information-header {
+  grid-template-columns: 1fr auto;
+}
+.information-card {
+  max-width: 58rem;
+  min-height: 26rem;
+  margin: clamp(3rem, 10vh, 7rem) auto;
+  padding: clamp(2rem, 6vw, 5rem);
+  border: 1px solid var(--rule);
+  background: var(--ledger);
+}
+.information-card h1 {
+  margin: 0.625rem 0 1.5rem;
+  font-family: var(--font-ledger);
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.information-copy {
+  max-width: 42rem;
+  color: var(--pencil);
+  line-height: 1.65;
+}
+.information-copy h2 {
+  margin: 2rem 0 0.5rem;
+  color: var(--ink);
+  font-family: var(--font-ledger);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.information-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.5rem;
+}
+.primary-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--bentgrass);
+  background: var(--bentgrass);
+  color: var(--ledger);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.information-actions .primary-link {
+  margin-top: 0;
+}
+.status-note {
+  padding: 1rem;
+  border-left: 0.25rem solid var(--flag);
+  background: var(--sand);
+  color: var(--ink);
+}
+.information-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  padding: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
 
 @media (max-width: 800px) {
   .auth-shell {
@@ -364,6 +561,19 @@ input {
   }
   .brand-lockup {
     margin-bottom: 3rem;
+  }
+  .portal-header {
+    grid-template-columns: minmax(12rem, 1fr) auto;
+  }
+  .portal-group {
+    grid-column: 1;
+  }
+  .portal-nav {
+    grid-column: 1;
+  }
+  .account-block {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 }
 
@@ -389,17 +599,21 @@ input {
   .portal-shell {
     padding: 0;
   }
-  .club-card {
-    align-items: stretch;
-    flex-direction: column;
+  .portal-header,
+  .information-header {
     border-width: 0 0 1px;
-  }
-  .club-person {
-    justify-items: start;
   }
   .portal-ledger,
   .portal-empty {
     min-height: calc(100vh - 10rem);
+    margin: 0;
+    border: 0;
+  }
+  .information-shell {
+    padding: 0;
+  }
+  .information-card {
+    min-height: calc(100vh - 12rem);
     margin: 0;
     border: 0;
   }

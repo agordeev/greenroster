@@ -11,6 +11,7 @@ afterEach(() => {
 describe("web runtime configuration", () => {
   const validEnvironment = {
     APP_URL: "http://127.0.0.1:3000",
+    SUPPORT_EMAIL: "Support@GreenRoster.example",
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
     SUPABASE_SECRET_KEY: "secret-key",
@@ -19,6 +20,7 @@ describe("web runtime configuration", () => {
   it("returns validated configuration", () => {
     expect(validateWebRuntimeEnv(validEnvironment)).toEqual({
       appUrl: "http://127.0.0.1:3000",
+      supportEmail: "support@greenroster.example",
       supabaseUrl: "http://127.0.0.1:54321",
       supabasePublishableKey: "publishable-key",
       supabaseSecretKey: "secret-key",
@@ -74,6 +76,15 @@ describe("web runtime configuration", () => {
     ).toThrowError(
       "Replace placeholder environment variable: SUPABASE_SECRET_KEY",
     );
+  });
+
+  it("requires a valid support address", () => {
+    expect(() =>
+      validateWebRuntimeEnv({
+        ...validEnvironment,
+        SUPPORT_EMAIL: "not-an-address",
+      }),
+    ).toThrowError("SUPPORT_EMAIL must be a valid e-mail address");
   });
 });
 

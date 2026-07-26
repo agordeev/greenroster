@@ -66,9 +66,7 @@ describe("authentication input contracts", () => {
     expect(resolveSafeReturnPath("/portal/members?status=inactive")).toBe(
       "/portal",
     );
-    expect(resolveSafeReturnPath("//attacker.example/portal")).toBe(
-      "/portal",
-    );
+    expect(resolveSafeReturnPath("//attacker.example/portal")).toBe("/portal");
     expect(resolveSafeReturnPath("https://attacker.example/portal")).toBe(
       "/portal",
     );
