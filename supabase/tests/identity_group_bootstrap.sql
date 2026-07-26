@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(99);
+select plan(112);
 
 select has_type('public', 'membership_role', 'membership roles have a database enum');
 select has_type('public', 'membership_status', 'membership states have a database enum');
@@ -106,6 +106,22 @@ select ok(
 select ok(
   pg_catalog.has_function_privilege('authenticated', 'public.resolve_identity_context()', 'execute'),
   'authenticated users can resolve only their own active identity context'
+);
+select ok(
+  pg_catalog.has_function_privilege('authenticated', 'public.resolve_group_onboarding()', 'execute'),
+  'authenticated sessions can request the role-filtered onboarding projection'
+);
+select ok(
+  not pg_catalog.has_function_privilege('anon', 'public.resolve_group_onboarding()', 'execute'),
+  'anonymous sessions cannot request group onboarding state'
+);
+select ok(
+  (select prosecdef from pg_catalog.pg_proc where oid = 'public.resolve_group_onboarding()'::pg_catalog.regprocedure),
+  'onboarding projection executes through its constrained security-definer boundary'
+);
+select ok(
+  (select proconfig = array['search_path=""'] from pg_catalog.pg_proc where oid = 'public.resolve_group_onboarding()'::pg_catalog.regprocedure),
+  'onboarding projection pins an empty search path'
 );
 select ok(
   pg_catalog.has_column_privilege('service_role', 'public.memberships', 'id', 'select'),
@@ -349,6 +365,16 @@ select results_eq(
   $$ select created_group_id, 'administrator'::public.membership_role from bootstrap_a $$,
   'identity context derives the administrator group and role without client input'
 );
+select is(
+  (select group_profile_complete from public.resolve_group_onboarding()),
+  true,
+  'administrator onboarding derives the completed group profile from stored fields'
+);
+select is(
+  (select additional_membership_count from public.resolve_group_onboarding()),
+  5::bigint,
+  'administrator onboarding counts only additional stored group memberships'
+);
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 select is((select count(*) from public.groups), 1::bigint, 'member reads only the active membership group');
@@ -357,6 +383,11 @@ select is(
   (select role from public.resolve_identity_context()),
   'member'::public.membership_role,
   'member role is resolved from current stored membership'
+);
+select is(
+  (select count(*) from public.resolve_group_onboarding()),
+  0::bigint,
+  'member role cannot receive the administrative onboarding projection'
 );
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000004', true);
@@ -367,18 +398,29 @@ select is(
   'coordinator'::public.membership_role,
   'coordinator role is resolved from current stored membership'
 );
+select is(
+  (select additional_membership_count from public.resolve_group_onboarding()),
+  5::bigint,
+  'coordinator onboarding projection remains scoped to the active group'
+);
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000005', true);
 select is((select count(*) from public.groups), 0::bigint, 'inactive membership loses tenant reads immediately');
 select is((select count(*) from public.resolve_identity_context()), 0::bigint, 'inactive membership has no protected identity context');
+select is((select count(*) from public.resolve_group_onboarding()), 0::bigint, 'inactive membership has no onboarding projection');
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000006', true);
 select is((select count(*) from public.groups), 0::bigint, 'disabled profile loses tenant reads immediately');
 select is((select count(*) from public.resolve_identity_context()), 0::bigint, 'disabled profile has no protected identity context');
+select is((select count(*) from public.resolve_group_onboarding()), 0::bigint, 'disabled profile has no onboarding projection');
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000011', true);
 select is((select count(*) from public.groups), 0::bigint, 'Auth-banned identity loses tenant reads on the next request');
 select is((select count(*) from public.resolve_identity_context()), 0::bigint, 'Auth-banned identity has no protected identity context');
+select is((select count(*) from public.resolve_group_onboarding()), 0::bigint, 'Auth-banned identity has no onboarding projection');
+
+select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000010', true);
+select is((select count(*) from public.resolve_group_onboarding()), 0::bigint, 'unverified identity has no onboarding projection');
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 select throws_ok(
@@ -405,6 +447,12 @@ select throws_ok(
 reset role;
 select pg_catalog.set_config('request.jwt.claim.sub', '', true);
 set local role anon;
+select throws_ok(
+  $$ select * from public.resolve_group_onboarding() $$,
+  '42501',
+  null,
+  'anonymous role cannot execute the onboarding projection directly'
+);
 select throws_ok(
   $$ select * from public.groups $$,
   '42501',

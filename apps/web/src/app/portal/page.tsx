@@ -7,9 +7,11 @@ import { resolveIdentityAffiliation } from "@/lib/auth/identity-affiliation";
 import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-registry";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
+import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { GroupBootstrapForm } from "./group-bootstrap-form";
+import { OnboardingChecklist } from "./onboarding-checklist";
 import { PortalShell } from "./portal-shell";
 
 const contextSchema = z
@@ -18,6 +20,15 @@ const contextSchema = z
       membership_id: z.uuid(),
       group_id: z.uuid(),
       role: z.enum(["member", "coordinator", "administrator"]),
+    }),
+  )
+  .max(1);
+
+const onboardingSchema = z
+  .array(
+    z.object({
+      additional_membership_count: z.number().int().nonnegative(),
+      group_profile_complete: z.boolean(),
     }),
   )
   .max(1);
@@ -217,6 +228,37 @@ export default async function PortalPage() {
     );
   }
 
+  const onboardingResult = await supabase.rpc("resolve_group_onboarding");
+  const parsedOnboarding = onboardingSchema.safeParse(onboardingResult.data);
+  const onboarding = parsedOnboarding.success
+    ? parsedOnboarding.data[0]
+    : undefined;
+
+  if (onboardingResult.error || !onboarding) {
+    return (
+      <PortalShell
+        email={userData.user.email ?? "Signed-in account"}
+        groupName={groupName}
+        role={context.role}
+        timeZone={timeZone}
+      >
+        <section className="portal-ledger">
+          <p className="ledger-kicker">Group onboarding</p>
+          <h1>Setup status could not be loaded</h1>
+          <p>
+            The stored onboarding facts are temporarily unavailable. Refresh
+            before continuing group setup.
+          </p>
+        </section>
+      </PortalShell>
+    );
+  }
+
+  const checklist = buildOnboardingChecklist(
+    onboarding.group_profile_complete,
+    onboarding.additional_membership_count,
+  );
+
   return (
     <PortalShell
       email={userData.user.email ?? "Signed-in account"}
@@ -232,6 +274,7 @@ export default async function PortalPage() {
           Group setup status follows stored configuration as each operational
           area is enabled.
         </p>
+        <OnboardingChecklist items={checklist} />
       </section>
     </PortalShell>
   );
