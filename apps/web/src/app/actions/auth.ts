@@ -16,6 +16,7 @@ import {
   releasePasswordRecoveryClaim,
   resolvePasswordRecoveryState,
 } from "@/lib/auth/password-recovery-registry";
+import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { createServerActionSupabaseClient } from "@/lib/supabase/server-action-client";
@@ -24,6 +25,7 @@ export async function signInAction(
   _previousState: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  const returnPath = resolveSafeReturnPath(formData.get("returnPath"));
   const parsed = credentialsSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -70,7 +72,7 @@ export async function signInAction(
     };
   }
 
-  redirect("/portal");
+  redirect(returnPath);
 }
 
 export async function requestPasswordResetAction(

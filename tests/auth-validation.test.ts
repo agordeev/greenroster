@@ -6,6 +6,10 @@ import {
   recoverySchema,
 } from "../apps/web/src/lib/auth/auth-validation";
 import { recoveryDestination } from "../apps/web/src/lib/auth/recovery-callback";
+import {
+  resolveSafeReturnPath,
+  signInPath,
+} from "../apps/web/src/lib/auth/safe-return-path";
 import { passwordRecoveryStateFromRow } from "../apps/web/src/lib/auth/password-recovery-state";
 import { resolveBootstrapOperationId } from "../apps/web/src/lib/groups/bootstrap-operation";
 
@@ -52,6 +56,26 @@ describe("authentication input contracts", () => {
     expect(recoveryDestination("https://attacker.example")).toBeNull();
     expect(recoveryDestination("//attacker.example")).toBeNull();
     expect(recoveryDestination(null)).toBeNull();
+  });
+
+  it("preserves only parameter-free protected portal return paths", () => {
+    expect(resolveSafeReturnPath("/portal")).toBe("/portal");
+    expect(resolveSafeReturnPath("/portal/account-settings")).toBe(
+      "/portal/account-settings",
+    );
+    expect(resolveSafeReturnPath("/portal/members?status=inactive")).toBe(
+      "/portal",
+    );
+    expect(resolveSafeReturnPath("//attacker.example/portal")).toBe(
+      "/portal",
+    );
+    expect(resolveSafeReturnPath("https://attacker.example/portal")).toBe(
+      "/portal",
+    );
+    expect(resolveSafeReturnPath("/portal/../admin")).toBe("/portal");
+    expect(signInPath("/portal/account")).toBe(
+      "/sign-in?next=%2Fportal%2Faccount",
+    );
   });
 
   it("keeps a valid group-bootstrap operation across a reload", () => {

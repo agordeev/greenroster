@@ -1,11 +1,13 @@
 import { AuthForm } from "./auth-form";
+import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
 type SignInPageProps = {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ next?: string; status?: string }>;
 };
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const { status } = await searchParams;
+  const { next, status } = await searchParams;
+  const returnPath = resolveSafeReturnPath(next);
 
   return (
     <main className="auth-shell">
@@ -35,7 +37,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </p>
         ) : null}
 
-        <AuthForm />
+        <AuthForm returnPath={returnPath} />
       </section>
 
       <aside className="auth-context" aria-label="GreenRoster product context">

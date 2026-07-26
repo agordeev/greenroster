@@ -6,7 +6,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { signInAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
 
-export function AuthForm() {
+export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
   const [state, formAction, pending] = useActionState(
     signInAction,
     initialAuthFormState,
@@ -22,6 +22,7 @@ export function AuthForm() {
 
   return (
     <form action={formAction} className="auth-form" noValidate>
+      <input name="returnPath" type="hidden" value={returnPath} />
       <div className="field-group">
         <label htmlFor="email">Account e-mail</label>
         <input

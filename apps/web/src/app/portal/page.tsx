@@ -5,6 +5,7 @@ import { z } from "zod";
 import { signOutAction } from "@/app/actions/auth";
 import { resolveIdentityAffiliation } from "@/lib/auth/identity-affiliation";
 import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-registry";
+import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -46,7 +47,7 @@ export default async function PortalPage() {
       />
     );
   }
-  if (userError || !userData.user) redirect("/sign-in");
+  if (userError || !userData.user) redirect(signInPath("/portal"));
 
   if (!userData.user.email_confirmed_at) {
     return (
