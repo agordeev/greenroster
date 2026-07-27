@@ -6,13 +6,20 @@ import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { mobileAuthActions } from "@/lib/auth/mobile-auth-actions";
 
-export function MobileSignOutButton() {
+export function MobileSignOutButton({
+  beforeSignOut,
+  disabled = false,
+}: Readonly<{
+  beforeSignOut?: () => boolean | Promise<boolean>;
+  disabled?: boolean;
+}>) {
   const theme = useTheme();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const signOut = async () => {
-    if (pending) return;
+    if (pending || disabled) return;
+    if (beforeSignOut && !(await beforeSignOut())) return;
     setPending(true);
     setError(null);
     const result = await mobileAuthActions.signOut();
@@ -28,14 +35,16 @@ export function MobileSignOutButton() {
         </ThemedText>
       ) : null}
       <Pressable
+        accessibilityLabel="Sign out on this device"
         accessibilityRole="button"
-        disabled={pending}
-        onPress={signOut}
+        accessibilityState={{ busy: pending, disabled: pending || disabled }}
+        disabled={pending || disabled}
+        onPress={() => void signOut()}
         style={({ pressed }) => [
           styles.button,
           { borderColor: theme.separator },
           pressed && styles.pressed,
-          pending && styles.disabled,
+          (pending || disabled) && styles.disabled,
         ]}
       >
         {pending ? (
