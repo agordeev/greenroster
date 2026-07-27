@@ -1,6 +1,6 @@
 # GreenRoster implementation progress
 
-Last updated: July 26, 2026
+Last updated: July 27, 2026
 
 This is the live implementation ledger. [`master-spec.md`](./master-spec.md) defines the product, and [`phases/README.md`](./phases/README.md) defines the delivery order.
 
@@ -10,7 +10,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 - **Active slice:** Member editing, private projections, and status lifecycle
 - **Status:** In progress
 - **Next action:** Implement server-authoritative member profile/contact editing, role-filtered private contact projections, and audited deactivate/reactivate operations while preserving historical identity and enforcing pending/active/inactive behavior.
-- **Blockers:** Phase 01 remains blocked on Vercel Git access, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. Real Resend sending also requires a production API key, verified sending domain, and registered webhook; these external inputs do not block provider-independent Phase 02 lifecycle implementation and verification.
+- **Blockers:** Phase 01 remains blocked on hosted Supabase production configuration, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. Real Resend sending also requires a production API key, verified sending domain, and registered webhook; these external inputs do not block provider-independent Phase 02 lifecycle implementation and verification.
 
 ## Phase status
 
@@ -29,6 +29,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                                  |
 | ------------- | --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| July 27, 2026 | Vercel production configuration         | Blocked  | GitHub integration is connected, but the project has no deployment and zero production environment variables; hosted Supabase values are required before a safe production build          |
 | July 26, 2026 | Invitation lifecycle and acceptance     | Complete | Commit `0c3d0e6`; clean PG17 reset, 700 pgTAP, clean schema lint, 230 unit tests/full builds, frozen offline install, protected-route browser checks, stable retries, and clean re-review |
 | July 26, 2026 | Resend invitation delivery and feedback | Complete | Commit `6f4bdeb`; clean PG17 reset, 655 pgTAP, schema lint, 206 unit tests/full builds, frozen offline install, retry/replay/suppression checks, and clean independent review             |
 | July 26, 2026 | Invitation and e-mail outbox foundation | Complete | Commit `7822a3d`; clean PG17 reset, 595 pgTAP, schema lint, 192 unit tests/full builds, startup config validation, token secrecy/idempotency/tenant checks, and clean review              |
@@ -36,7 +37,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 | July 26, 2026 | Member quota and seed-history boundary  | Complete | Commit `ebb3c15`; clean PG17 reset, 484 pgTAP, 155 unit tests/full builds, exact A/B/C projection provenance, tenant/admin/idempotency/audit checks, and clean review                     |
 | July 26, 2026 | Administrator quota settings editor     | Complete | Commits `99b2eb4`/`ba84948`; verified A/C saves and reload, gap blocking, matched-band preview, dirty-loss/a11y guards, 139 tests/full builds, and clean review                           |
 | July 26, 2026 | Quota rules and settings foundation     | Complete | Commit `6a808c3`; ordered tenant RLS/RPC migration, exact A/B/C engine, 435 pgTAP/124 unit tests, advisors/lint/full builds/browser smoke, and clean review                               |
-| July 26, 2026 | GitHub and Vercel deployment bootstrap  | Blocked  | Published clean `main` to `agordeev/greenroster`; created `andrey-gordeevs-projects/greenroster`; Vercel Git connection is denied until its GitHub application receives repository access |
+| July 26, 2026 | GitHub and Vercel deployment bootstrap  | Complete | Published `main` to `agordeev/greenroster`, created `andrey-gordeevs-projects/greenroster`, installed the Vercel GitHub App, and connected the repository                                 |
 | July 26, 2026 | Phase 01 external-input re-audit        | Blocked  | Loopback HTTP emits no installed-link entitlements/filters; zero Apple signing identities/team, Android release is debug-signed, legal routes await owner approval; review concurs        |
 | July 26, 2026 | Atomic password-recovery finalization   | Complete | Commit `a9247a3`; exact claim command and Auth hash change consume/audit atomically; 395 pgTAP/111 unit tests, clean schema lint, full builds, two live GoTrue paths, and review pass     |
 | July 26, 2026 | Tenant isolation and correlation proof  | Complete | Commit `7777bef`; role/state RPC denials and zero Realtime publication pass 347 pgTAP; real local Auth/browser action correlation resolves to exactly one audit row; review clean         |
