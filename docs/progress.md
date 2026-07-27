@@ -10,7 +10,7 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 - **Active slice:** Member editing, private projections, and status lifecycle
 - **Status:** In progress
 - **Next action:** Implement server-authoritative member profile/contact editing, role-filtered private contact projections, and audited deactivate/reactivate operations while preserving historical identity and enforcing pending/active/inactive behavior.
-- **Blockers:** Phase 01 remains blocked on Cloudflare DNS verification for `greenroaster.rapidlabs.dev`, hosted Supabase schema deployment, installed universal/app-link verification, and approved Terms/Privacy contents with canonical versions. Real Resend sending also requires a production API key, verified sending domain, and registered webhook; these external inputs do not block provider-independent Phase 02 lifecycle implementation and verification.
+- **Blockers:** Phase 01 remains blocked on hosted Supabase schema deployment, installed universal/app-link verification for `greenroster.rapidlabs.dev`, and approved Terms/Privacy contents with canonical versions. Real Resend sending also requires a production API key, verified sending domain, and registered webhook; these external inputs do not block provider-independent Phase 02 lifecycle implementation and verification.
 
 ## Phase status
 
@@ -29,7 +29,8 @@ This is the live implementation ledger. [`master-spec.md`](./master-spec.md) def
 
 | Date          | Work                                    | Result   | Evidence                                                                                                                                                                                  |
 | ------------- | --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| July 27, 2026 | Vercel production configuration         | Blocked  | Supabase variables and canonical APP_URL are Production-scoped; custom domain is attached, with Cloudflare CNAME verification, migrations, and Resend remaining                           |
+| July 27, 2026 | Production custom domain correction    | Complete | `greenroster.rapidlabs.dev` is attached and verified by Vercel through the Cloudflare DNS-only CNAME; Production `APP_URL` uses the canonical host and the misspelled alias was removed |
+| July 27, 2026 | Vercel production configuration         | Blocked  | Supabase variables and canonical `APP_URL` are Production-scoped; hosted migrations, first production deployment, app-link release credentials, and Resend remain                     |
 | July 26, 2026 | Invitation lifecycle and acceptance     | Complete | Commit `0c3d0e6`; clean PG17 reset, 700 pgTAP, clean schema lint, 230 unit tests/full builds, frozen offline install, protected-route browser checks, stable retries, and clean re-review |
 | July 26, 2026 | Resend invitation delivery and feedback | Complete | Commit `6f4bdeb`; clean PG17 reset, 655 pgTAP, schema lint, 206 unit tests/full builds, frozen offline install, retry/replay/suppression checks, and clean independent review             |
 | July 26, 2026 | Invitation and e-mail outbox foundation | Complete | Commit `7822a3d`; clean PG17 reset, 595 pgTAP, schema lint, 192 unit tests/full builds, startup config validation, token secrecy/idempotency/tenant checks, and clean review              |
