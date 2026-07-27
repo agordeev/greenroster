@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import { executeGetMemberDetailProjection } from "@/lib/memberships/member-detail-data";
 import {
   executeGetManageableMember,
   executeGetMemberPrivateContactDetail,
@@ -16,6 +17,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { PortalShell } from "../portal-shell";
 import { MemberCreateInvite } from "./member-create-invite";
+import { MemberDetailSections } from "./member-detail-sections";
 import { MemberManagement } from "./member-management";
 import { MemberQuotaEditor } from "./member-quota-editor";
 
@@ -75,23 +77,22 @@ export default async function MemberManagementPage({
   let selectedMember = null;
   let privateContact = null;
   let quotaContext = null;
+  let detailProjection = null;
   if (selectedId) {
     try {
-      selectedMember = await executeGetManageableMember(
-        session.userId,
-        selectedId,
-      );
-      privateContact = await executeGetMemberPrivateContactDetail(
-        session.userId,
-        selectedId,
-        crypto.randomUUID(),
-      );
-      if (portalContext.role === "administrator") {
-        quotaContext = await executeGetMemberQuotaBootstrapContext(
-          session.userId,
-          selectedId,
-        );
-      }
+      [selectedMember, privateContact, detailProjection, quotaContext] =
+        await Promise.all([
+          executeGetManageableMember(session.userId, selectedId),
+          executeGetMemberPrivateContactDetail(
+            session.userId,
+            selectedId,
+            crypto.randomUUID(),
+          ),
+          executeGetMemberDetailProjection(session.userId, selectedId),
+          portalContext.role === "administrator"
+            ? executeGetMemberQuotaBootstrapContext(session.userId, selectedId)
+            : Promise.resolve(null),
+        ]);
     } catch (error) {
       return renderError(error, portalContext);
     }
@@ -135,6 +136,12 @@ export default async function MemberManagementPage({
           <MemberQuotaEditor
             key={`${quotaContext.membershipId}:${quotaContext.projectionVersion}:${quotaContext.settingsVersion}`}
             context={quotaContext}
+          />
+        ) : null}
+        {detailProjection ? (
+          <MemberDetailSections
+            projection={detailProjection}
+            timeZone={portalContext.timeZone}
           />
         ) : null}
       </section>
