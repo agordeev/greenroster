@@ -46,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ad2ba667-146c-4072-bef0-575c05f2cce9"
+      }
+    },
+    "owner": "rapidlabs-apps"
   }
 }
