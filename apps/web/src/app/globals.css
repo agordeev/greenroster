@@ -1341,6 +1341,53 @@ input {
   gap: 1rem;
   margin-top: 1.5rem;
 }
+
+.account-email-shell .auth-ledger {
+  max-width: 44rem;
+}
+.account-email-form {
+  margin-top: 1.5rem;
+}
+.account-email-current {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--rule-soft);
+  background: var(--inset);
+}
+.account-email-current dt {
+  color: var(--quiet);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.account-email-current dd {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}
+.account-email-confirmation {
+  display: flex;
+  align-items: start;
+  gap: 0.6rem;
+  color: var(--pencil);
+  line-height: 1.5;
+}
+.account-email-confirmation input {
+  margin-top: 0.25rem;
+}
+.account-email-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .account-email-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
 .member-detail-heading,
 .member-detail-section {
   padding: 1.25rem;

@@ -87,6 +87,7 @@ export function PortalShell({
             <div>
               <span>{email}</span>
               <strong>{visibleRole}</strong>
+              <Link href="/account">Account e-mail</Link>
               <Link href="/privacy">Privacy Policy</Link>
               <Link href="/terms">Terms of Use</Link>
             </div>

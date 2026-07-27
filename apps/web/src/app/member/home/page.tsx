@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { z } from "zod";
 
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
@@ -42,6 +43,9 @@ export default async function MemberHomePage() {
             Your membership is active and your profile is complete. You can
             return here whenever you sign in to GreenRoster.
           </p>
+          <Link className="secondary-link" href="/account">
+            Manage account e-mail
+          </Link>
         </div>
       </section>
     </main>

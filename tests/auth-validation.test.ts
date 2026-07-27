@@ -86,6 +86,8 @@ describe("authentication input contracts", () => {
     expect(resolveSafeReturnPath("/member/home")).toBe("/member/home");
     expect(resolveSafeReturnPath("/member/home?admin=true")).toBe("/portal");
     expect(resolveSafeReturnPath("/member/home/extra")).toBe("/portal");
+    expect(resolveSafeReturnPath("/account")).toBe("/account");
+    expect(resolveSafeReturnPath("/account?admin=true")).toBe("/portal");
   });
 
   it("keeps a valid group-bootstrap operation across a reload", () => {

@@ -1,10 +1,12 @@
 const protectedPortalPath = /^\/portal(?:\/[A-Za-z0-9_-]+)*$/;
 const cleanInvitationAcceptancePath = "/invitations/accept";
 const cleanMemberPaths = new Set(["/member/first-run", "/member/home"]);
+const cleanAccountPath = "/account";
 
 export function resolveSafeReturnPath(value: unknown): string {
   if (typeof value !== "string") return "/portal";
   if (value === cleanInvitationAcceptancePath) return value;
+  if (value === cleanAccountPath) return value;
   if (cleanMemberPaths.has(value)) return value;
   return protectedPortalPath.test(value) ? value : "/portal";
 }
