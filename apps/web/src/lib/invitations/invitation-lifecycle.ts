@@ -76,6 +76,7 @@ export type ManageableInvitation = Readonly<{
     | "cancelled"
     | null;
   deliveryFailureReason: string | null;
+  deliveryActionRequired: boolean;
 }>;
 
 export type InvitationLifecycleDependencies = Readonly<{

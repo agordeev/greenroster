@@ -8,6 +8,8 @@ import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-regis
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
+import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
+import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { GroupBootstrapForm } from "./group-bootstrap-form";
@@ -331,6 +333,14 @@ export default async function PortalPage() {
     }
   }
 
+  let dashboardSummary: PortalDashboardSummary | null = null;
+  let dashboardUnavailable = false;
+  try {
+    dashboardSummary = await executePortalDashboardData(userData.user.id);
+  } catch {
+    dashboardUnavailable = true;
+  }
+
   return (
     <PortalShell
       email={userData.user.email ?? "Signed-in account"}
@@ -346,6 +356,10 @@ export default async function PortalPage() {
           Group setup status follows stored configuration as each operational
           area is enabled.
         </p>
+        <PortalDashboardSummaryCard
+          summary={dashboardSummary}
+          unavailable={dashboardUnavailable}
+        />
         <OnboardingChecklist items={checklist} />
         {context.role === "administrator" ? (
           <section
@@ -382,6 +396,107 @@ export default async function PortalPage() {
       </section>
     </PortalShell>
   );
+}
+
+function PortalDashboardSummaryCard({
+  summary,
+  unavailable,
+}: Readonly<{
+  summary: PortalDashboardSummary | null;
+  unavailable: boolean;
+}>) {
+  return (
+    <section
+      className="dashboard-summary"
+      aria-labelledby="dashboard-summary-title"
+    >
+      <div className="dashboard-summary-heading">
+        <div>
+          <p className="ledger-kicker">Operational snapshot</p>
+          <h2 id="dashboard-summary-title">Roster and delivery health</h2>
+        </div>
+        <p>Authoritative counts from your current group</p>
+      </div>
+      {unavailable ? (
+        <p className="dashboard-summary-unavailable" data-status="error">
+          The roster and invitation summary could not be loaded. Onboarding and
+          quota settings remain available; refresh to try again.
+        </p>
+      ) : summary ? (
+        <>
+          <div className="dashboard-summary-grid">
+            <Link
+              className="dashboard-summary-card"
+              href="/portal/members?status=pending"
+              aria-label={`Review ${summary.membershipCounts.pending} pending memberships`}
+            >
+              <span>Pending memberships</span>
+              <strong>{summary.membershipCounts.pending}</strong>
+              <small>Review roster</small>
+            </Link>
+            <Link
+              className="dashboard-summary-card"
+              href="/portal/members?status=active"
+              aria-label={`Review ${summary.membershipCounts.active} active memberships`}
+            >
+              <span>Active memberships</span>
+              <strong>{summary.membershipCounts.active}</strong>
+              <small>Review roster</small>
+            </Link>
+            <Link
+              className="dashboard-summary-card"
+              href="/portal/members?status=inactive"
+              aria-label={`Review ${summary.membershipCounts.inactive} inactive memberships`}
+            >
+              <span>Inactive memberships</span>
+              <strong>{summary.membershipCounts.inactive}</strong>
+              <small>Review roster</small>
+            </Link>
+          </div>
+          <Link
+            className={`dashboard-action-summary${
+              summary.actionRequiredInvitations.total === 0
+                ? " dashboard-action-summary--clear"
+                : ""
+            }`}
+            href="/portal/invitations?delivery=action-required"
+            aria-label={`Review ${summary.actionRequiredInvitations.total} invitation delivery issues`}
+          >
+            <span>
+              <strong>
+                {summary.actionRequiredInvitations.total === 0
+                  ? "Invitation delivery health"
+                  : "Invitation delivery attention"}
+              </strong>
+              <small>
+                {summary.actionRequiredInvitations.total === 0
+                  ? "No failed or suppressed invitations"
+                  : formatActionRequiredInvitationSummary(
+                      summary.actionRequiredInvitations,
+                    )}
+              </small>
+            </span>
+            <strong>{summary.actionRequiredInvitations.total}</strong>
+          </Link>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
+function formatActionRequiredInvitationSummary(
+  summary: PortalDashboardSummary["actionRequiredInvitations"],
+) {
+  const labels = [
+    summary.failedPermanent > 0
+      ? `${summary.failedPermanent} failed permanently`
+      : null,
+    summary.suppressed > 0 ? `${summary.suppressed} suppressed` : null,
+    summary.addressSuppression > 0
+      ? `${summary.addressSuppression} provider suppression`
+      : null,
+  ];
+  return labels.filter((label): label is string => label !== null).join(" · ");
 }
 
 function PortalState({

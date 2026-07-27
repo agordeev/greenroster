@@ -72,6 +72,7 @@ const manageableInvitationRowsSchema = z.array(
         ])
         .nullable(),
       delivery_failure_reason: z.string().nullable(),
+      delivery_action_required: z.boolean(),
     })
     .strict(),
 );
@@ -249,6 +250,7 @@ export async function executeListManageableInvitations(
     version: row.invitation_version,
     deliveryState: row.delivery_state,
     deliveryFailureReason: row.delivery_failure_reason,
+    deliveryActionRequired: row.delivery_action_required,
   }));
 }
 

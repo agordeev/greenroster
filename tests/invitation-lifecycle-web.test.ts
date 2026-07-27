@@ -27,6 +27,7 @@ const listRow = {
   invitation_version: 1,
   delivery_state: "queued",
   delivery_failure_reason: null,
+  delivery_action_required: false,
 };
 
 const config = {
@@ -250,6 +251,7 @@ describe("invitation lifecycle mutation boundary", () => {
         version: 1,
         deliveryState: "queued",
         deliveryFailureReason: null,
+        deliveryActionRequired: false,
       },
     ]);
     expect(rpc).toHaveBeenCalledWith("list_manageable_membership_invitations", {

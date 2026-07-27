@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FormEvent, useRef, useState, useTransition } from "react";
 
 import {
@@ -9,25 +10,51 @@ import {
   revokeMembershipInvitationAction,
 } from "@/app/actions/memberships";
 import type { ManageableInvitation } from "@/lib/invitations/invitation-lifecycle";
+import {
+  describeInvitationDelivery,
+  type InvitationDeliveryFilter,
+} from "@/domain/portal-list-filters";
 
 export function InvitationManagement({
   invitations,
+  deliveryFilter = null,
   role,
 }: Readonly<{
   invitations: readonly ManageableInvitation[];
+  deliveryFilter?: InvitationDeliveryFilter | null;
   role: "member" | "coordinator" | "administrator";
 }>) {
   if (invitations.length === 0) {
     return (
       <div className="invitation-management-empty">
-        <h2>No pending invitations</h2>
-        <p>New invitations will appear here while they await acceptance.</p>
+        <h2>
+          {deliveryFilter === "action-required"
+            ? "No invitation delivery issues"
+            : "No pending invitations"}
+        </h2>
+        <p>
+          {deliveryFilter === "action-required"
+            ? "No pending invitation currently has a failed or suppressed e-mail delivery."
+            : "New invitations will appear here while they await acceptance."}
+        </p>
+        {deliveryFilter === "action-required" ? (
+          <Link className="secondary-link" href="/portal/invitations">
+            View all pending invitations
+          </Link>
+        ) : null}
       </div>
     );
   }
 
   return (
-    <div className="invitation-management" aria-label="Pending invitations">
+    <div
+      className="invitation-management"
+      aria-label={
+        deliveryFilter === "action-required"
+          ? "Action-required invitation deliveries"
+          : "Pending invitations"
+      }
+    >
       {invitations.map((invitation) => (
         <InvitationCard
           key={invitation.invitationId}
@@ -148,9 +175,7 @@ function InvitationCard({
     });
   }
 
-  const delivery = invitation.deliveryState
-    ? `Latest delivery: ${formatDeliveryState(invitation.deliveryState)}`
-    : "Delivery has not started";
+  const delivery = describeInvitationDelivery(invitation);
 
   return (
     <article className="invitation-card" aria-labelledby={`invitation-${id}`}>
@@ -281,12 +306,6 @@ function ConfirmationField({ id }: Readonly<{ id: string }>) {
 
 function formatStatus(status: ManageableInvitation["status"]) {
   return status === "expired" ? "Expired · resend available" : "Pending";
-}
-
-function formatDeliveryState(
-  state: NonNullable<ManageableInvitation["deliveryState"]>,
-) {
-  return state.replaceAll("_", " ");
 }
 
 function formatDate(value: string) {

@@ -4,6 +4,10 @@ import { z } from "zod";
 
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import {
+  filterManageableInvitations,
+  parseInvitationDeliveryFilter,
+} from "@/domain/portal-list-filters";
 import { executeListManageableInvitations } from "@/lib/invitations/invitation-lifecycle-data";
 import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -26,7 +30,11 @@ const groupSchema = z.object({
   time_zone: z.string(),
 });
 
-export default async function InvitationManagementPage() {
+export default async function InvitationManagementPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ delivery?: string | string[] | undefined }>;
+}>) {
   let session: Awaited<ReturnType<typeof verifyMutationSession>>;
   try {
     session = await verifyMutationSession();
@@ -47,6 +55,12 @@ export default async function InvitationManagementPage() {
   } catch (error) {
     return renderLifecycleError(error, portalContext);
   }
+  const query = await searchParams;
+  const deliveryFilter = parseInvitationDeliveryFilter(query.delivery);
+  const visibleInvitations = filterManageableInvitations(
+    invitations,
+    deliveryFilter,
+  );
 
   return (
     <PortalShell
@@ -58,14 +72,20 @@ export default async function InvitationManagementPage() {
     >
       <section className="portal-ledger" aria-labelledby="invitations-title">
         <p className="ledger-kicker">Member administration</p>
-        <h1 id="invitations-title">Pending invitations</h1>
+        <h1 id="invitations-title">
+          {deliveryFilter === "action-required"
+            ? "Invitation delivery attention"
+            : "Pending invitations"}
+        </h1>
         <p>
-          Regenerate a single-use link, correct an address as an administrator,
-          or revoke an invitation. Every change is checked against your current
-          group role on the server.
+          {deliveryFilter === "action-required"
+            ? "Review pending invitations whose e-mail delivery failed permanently or is suppressed."
+            : "Regenerate a single-use link, correct an address as an administrator, or revoke an invitation."}{" "}
+          Every change is checked against your current group role on the server.
         </p>
         <InvitationManagement
-          invitations={invitations}
+          invitations={visibleInvitations}
+          deliveryFilter={deliveryFilter}
           role={portalContext.role}
         />
       </section>

@@ -25,6 +25,7 @@ import type {
   MemberEditInput,
   MemberPrivateContact,
   MemberRoleInput,
+  MemberStatus,
 } from "@/lib/memberships/member-management";
 
 type EditorValues = Omit<
@@ -64,12 +65,14 @@ export function MemberManagement({
   privateContact,
   role,
   selectedMember,
+  statusFilter = null,
 }: Readonly<{
   actorMembershipId: string;
   members: readonly ManageableMember[];
   privateContact: MemberPrivateContact | null;
   role: "member" | "coordinator" | "administrator";
   selectedMember: ManageableMember | null;
+  statusFilter?: MemberStatus | null;
 }>) {
   const [terminal, setTerminal] = useState<{
     membershipId: string | null;
@@ -96,14 +99,33 @@ export function MemberManagement({
           <h2>Roster</h2>
           <span>{members.length} records</span>
         </div>
+        {statusFilter ? (
+          <div className="member-filter-summary">
+            <span>Showing {formatStatus(statusFilter)} memberships</span>
+            <Link href="/portal/members">Clear filter</Link>
+          </div>
+        ) : null}
         {members.length === 0 ? (
-          <p className="member-empty">No member records are available.</p>
+          <div className="member-empty">
+            <p>
+              {statusFilter
+                ? `No ${formatStatus(statusFilter).toLowerCase()} membership records match this filter.`
+                : "No member records are available."}
+            </p>
+            {statusFilter ? (
+              <Link className="secondary-link" href="/portal/members">
+                View all members
+              </Link>
+            ) : null}
+          </div>
         ) : (
           <ul>
             {members.map((member) => (
               <li key={member.membershipId}>
                 <Link
-                  href={`/portal/members?membership=${member.membershipId}`}
+                  href={`/portal/members?${
+                    statusFilter ? `status=${statusFilter}&` : ""
+                  }membership=${member.membershipId}`}
                   aria-current={
                     selectedMember?.membershipId === member.membershipId
                       ? "page"

@@ -5,6 +5,10 @@ import { z } from "zod";
 
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import {
+  filterManageableMembers,
+  parseMemberStatusFilter,
+} from "@/domain/portal-list-filters";
 import { executeGetMemberDetailProjection } from "@/lib/memberships/member-detail-data";
 import {
   executeGetManageableMember,
@@ -44,7 +48,10 @@ type PortalContext = Readonly<{
 export default async function MemberManagementPage({
   searchParams,
 }: Readonly<{
-  searchParams: Promise<{ membership?: string | string[] | undefined }>;
+  searchParams: Promise<{
+    membership?: string | string[] | undefined;
+    status?: string | string[] | undefined;
+  }>;
 }>) {
   let session: Awaited<ReturnType<typeof verifyMutationSession>>;
   try {
@@ -68,11 +75,19 @@ export default async function MemberManagementPage({
   }
 
   const query = await searchParams;
+  const statusFilter = parseMemberStatusFilter(query.status);
+  const visibleMembers = filterManageableMembers(members, statusFilter);
   const requestedMembership = Array.isArray(query.membership)
     ? query.membership[0]
     : query.membership;
   const parsedMembership = z.uuid().safeParse(requestedMembership);
-  const selectedId = parsedMembership.success ? parsedMembership.data : null;
+  const selectedId =
+    parsedMembership.success &&
+    visibleMembers.some(
+      (member) => member.membershipId === parsedMembership.data,
+    )
+      ? parsedMembership.data
+      : null;
 
   let selectedMember = null;
   let privateContact = null;
@@ -127,10 +142,11 @@ export default async function MemberManagementPage({
         ) : null}
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
-          members={members}
+          members={visibleMembers}
           privateContact={privateContact}
           role={portalContext.role}
           selectedMember={selectedMember}
+          statusFilter={statusFilter}
         />
         {quotaContext ? (
           <MemberQuotaEditor
