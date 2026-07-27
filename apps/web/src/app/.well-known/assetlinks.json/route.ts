@@ -1,8 +1,8 @@
-import { createAppLinkAssociations } from "../../../lib/app-link-associations";
+import { createAndroidAssetLinksAssociation } from "../../../lib/app-link-associations";
 
 export function GET() {
-  const associations = createAppLinkAssociations(process.env);
-  return Response.json([associations.android], {
+  const association = createAndroidAssetLinksAssociation(process.env);
+  return Response.json([association], {
     headers: { "Cache-Control": "public, max-age=3600" },
   });
 }

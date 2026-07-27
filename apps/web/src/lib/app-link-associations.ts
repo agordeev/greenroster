@@ -13,6 +13,16 @@ function requiredValue(environment: Environment, name: string): string {
 }
 
 export function createAppLinkAssociations(environment: Environment) {
+  const apple = createAppleAppSiteAssociation(environment);
+  const android = createAndroidAssetLinksAssociation(environment);
+
+  return Object.freeze({
+    android,
+    apple,
+  });
+}
+
+export function createAppleAppSiteAssociation(environment: Environment) {
   const applePrefix = requiredValue(
     environment,
     "APPLE_APP_IDENTIFIER_PREFIX",
@@ -23,6 +33,20 @@ export function createAppLinkAssociations(environment: Environment) {
     );
   }
 
+  return Object.freeze({
+    applinks: {
+      apps: [],
+      details: [
+        {
+          appID: `${applePrefix}.${bundleIdentifier}`,
+          paths: [...linkedPaths],
+        },
+      ],
+    },
+  });
+}
+
+export function createAndroidAssetLinksAssociation(environment: Environment) {
   const androidFingerprint = requiredValue(
     environment,
     "ANDROID_APP_CERTIFICATE_SHA256",
@@ -34,24 +58,11 @@ export function createAppLinkAssociations(environment: Environment) {
   }
 
   return Object.freeze({
-    android: {
-      relation: ["delegate_permission/common.handle_all_urls"],
-      target: {
-        namespace: "android_app",
-        package_name: bundleIdentifier,
-        sha256_cert_fingerprints: [androidFingerprint],
-      },
-    },
-    apple: {
-      applinks: {
-        apps: [],
-        details: [
-          {
-            appID: `${applePrefix}.${bundleIdentifier}`,
-            paths: [...linkedPaths],
-          },
-        ],
-      },
+    relation: ["delegate_permission/common.handle_all_urls"],
+    target: {
+      namespace: "android_app",
+      package_name: bundleIdentifier,
+      sha256_cert_fingerprints: [androidFingerprint],
     },
   });
 }

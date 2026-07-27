@@ -51,6 +51,81 @@ describe("website application-link associations", () => {
     );
   });
 
+  it("serves Apple association without Android configuration", async () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "A1B2C3D4E5");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", "");
+
+    const response = getAppleAssociation();
+
+    expect(response.headers.get("cache-control")).toBe("public, max-age=3600");
+    expect(await response.json()).toEqual({
+      applinks: {
+        apps: [],
+        details: [
+          {
+            appID: "A1B2C3D4E5.com.greenroster.app",
+            paths: ["/", "/rounds", "/leaderboard", "/profile"],
+          },
+        ],
+      },
+    });
+  });
+
+  it("serves Android association without Apple configuration", async () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", fingerprint);
+
+    const response = getAndroidAssociation();
+
+    expect(response.headers.get("cache-control")).toBe("public, max-age=3600");
+    expect(await response.json()).toEqual([
+      {
+        relation: ["delegate_permission/common.handle_all_urls"],
+        target: {
+          namespace: "android_app",
+          package_name: "com.greenroster.app",
+          sha256_cert_fingerprints: [fingerprint],
+        },
+      },
+    ]);
+  });
+
+  it("fails fast when Apple configuration is missing at its endpoint", () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", fingerprint);
+
+    expect(() => getAppleAssociation()).toThrowError(
+      "Missing required environment variable: APPLE_APP_IDENTIFIER_PREFIX",
+    );
+  });
+
+  it("fails fast when Android configuration is missing at its endpoint", () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "A1B2C3D4E5");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", "");
+
+    expect(() => getAndroidAssociation()).toThrowError(
+      "Missing required environment variable: ANDROID_APP_CERTIFICATE_SHA256",
+    );
+  });
+
+  it("rejects a malformed Apple identifier at its endpoint", () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "not-an-identifier");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", "");
+
+    expect(() => getAppleAssociation()).toThrowError(
+      "APPLE_APP_IDENTIFIER_PREFIX must be a 10-character identifier",
+    );
+  });
+
+  it("rejects a malformed Android fingerprint at its endpoint", () => {
+    vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "");
+    vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", "not-a-fingerprint");
+
+    expect(() => getAndroidAssociation()).toThrowError(
+      "ANDROID_APP_CERTIFICATE_SHA256 must be a colon-delimited SHA-256 fingerprint",
+    );
+  });
+
   it("serves both platform association documents as cacheable JSON", async () => {
     vi.stubEnv("APPLE_APP_IDENTIFIER_PREFIX", "A1B2C3D4E5");
     vi.stubEnv("ANDROID_APP_CERTIFICATE_SHA256", fingerprint);

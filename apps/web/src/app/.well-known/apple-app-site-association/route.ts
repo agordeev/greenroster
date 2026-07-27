@@ -1,8 +1,8 @@
-import { createAppLinkAssociations } from "../../../lib/app-link-associations";
+import { createAppleAppSiteAssociation } from "../../../lib/app-link-associations";
 
 export function GET() {
-  const associations = createAppLinkAssociations(process.env);
-  return Response.json(associations.apple, {
+  const association = createAppleAppSiteAssociation(process.env);
+  return Response.json(association, {
     headers: { "Cache-Control": "public, max-age=3600" },
   });
 }
