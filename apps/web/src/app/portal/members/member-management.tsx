@@ -8,10 +8,12 @@ import type { FormEvent } from "react";
 import {
   changeMemberRoleAction,
   editMemberAction,
+  setMemberHandicapAction,
   setMemberStatusAction,
 } from "@/app/actions/memberships";
 import {
   canChangeMemberRole,
+  memberHandicapFingerprint,
   memberTargetPermissions,
   memberProfileFingerprint,
   memberRoleFingerprint,
@@ -37,6 +39,7 @@ import type {
   ManageableMember,
   ManageableMemberRosterRow,
   MemberEditInput,
+  MemberHandicapInput,
   MemberPrivateContact,
   MemberRoleInput,
 } from "@/lib/memberships/member-management";
@@ -668,6 +671,12 @@ function MemberEditor({
   const [selectedRole, setSelectedRole] = useState(member.role);
   const [roleReason, setRoleReason] = useState("");
   const [roleConfirmed, setRoleConfirmed] = useState(false);
+  const [handicapId, setHandicapId] = useState("");
+  const [handicap, setHandicap] = useState("");
+  const [handicapAsOf, setHandicapAsOf] = useState("");
+  const [handicapReason, setHandicapReason] = useState("");
+  const [handicapConfirmed, setHandicapConfirmed] = useState(false);
+  const [handicapStale, setHandicapStale] = useState(false);
   const [profileBaselineFingerprint, setProfileBaselineFingerprint] = useState(
     memberProfileFingerprint(initialValues(member, privateContact), ""),
   );
@@ -677,8 +686,30 @@ function MemberEditor({
   const [roleBaselineFingerprint, setRoleBaselineFingerprint] = useState(
     memberRoleFingerprint(member.role, "", false),
   );
+  const [handicapBaselineFingerprint, setHandicapBaselineFingerprint] =
+    useState(memberHandicapFingerprint("", "", "", "", false));
   const operationId = useRef<string | null>(null);
   const operationFingerprint = useRef<string | null>(null);
+  const handicapRecoveryKey = `greenroster:member-handicap:${member.membershipId}`;
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(handicapRecoveryKey);
+      if (!stored) return;
+      const value: unknown = JSON.parse(stored);
+      if (!isHandicapDraft(value)) return;
+      window.sessionStorage.removeItem(handicapRecoveryKey);
+      window.setTimeout(() => {
+        setHandicapId(value.handicapId);
+        setHandicap(value.handicap);
+        setHandicapAsOf(value.asOf);
+        setHandicapReason(value.reason);
+        setHandicapConfirmed(value.confirmed);
+      }, 0);
+    } catch {
+      // Storage restrictions or an invalid draft must not block member access.
+    }
+  }, [handicapRecoveryKey]);
 
   const profileDirty =
     memberProfileFingerprint(values, editReason) !== profileBaselineFingerprint;
@@ -688,7 +719,15 @@ function MemberEditor({
   const roleDirty =
     memberRoleFingerprint(selectedRole, roleReason, roleConfirmed) !==
     roleBaselineFingerprint;
-  const dirty = profileDirty || statusDirty || roleDirty;
+  const handicapDirty =
+    memberHandicapFingerprint(
+      handicapId,
+      handicap,
+      handicapAsOf,
+      handicapReason,
+      handicapConfirmed,
+    ) !== handicapBaselineFingerprint;
+  const dirty = profileDirty || statusDirty || roleDirty || handicapDirty;
 
   useEffect(() => {
     function warnBeforeUnload(event: BeforeUnloadEvent) {
@@ -722,7 +761,8 @@ function MemberEditor({
         !(form instanceof HTMLFormElement) ||
         form.classList.contains("member-edit-form") ||
         form.classList.contains("member-status-form") ||
-        form.classList.contains("member-role-form")
+        form.classList.contains("member-role-form") ||
+        form.classList.contains("member-handicap-form")
       ) {
         return;
       }
@@ -760,7 +800,10 @@ function MemberEditor({
     setValues((current) => ({ ...current, [key]: value }));
   }
 
-  function beginOperation(kind: "edit" | "status" | "role", payload: unknown) {
+  function beginOperation(
+    kind: "edit" | "status" | "role" | "handicap",
+    payload: unknown,
+  ) {
     const state = retainMemberOperationId(
       {
         fingerprint: operationFingerprint.current,
@@ -781,7 +824,12 @@ function MemberEditor({
     if (
       !shouldAllowMemberFormSubmit(
         "profile",
-        { profile: profileDirty, status: statusDirty, role: roleDirty },
+        {
+          profile: profileDirty,
+          status: statusDirty,
+          role: roleDirty,
+          handicap: handicapDirty,
+        },
         () =>
           window.confirm(
             "Discard other unsaved member changes before saving member details?",
@@ -801,6 +849,7 @@ function MemberEditor({
       setRoleConfirmed(false);
       setRoleBaselineFingerprint(memberRoleFingerprint(member.role, "", false));
     }
+    if (handicapDirty) resetHandicapForm();
     onTerminalMessage("error", "");
     const editPayload = {
       ...values,
@@ -843,7 +892,12 @@ function MemberEditor({
     if (
       !shouldAllowMemberFormSubmit(
         "status",
-        { profile: profileDirty, status: statusDirty, role: roleDirty },
+        {
+          profile: profileDirty,
+          status: statusDirty,
+          role: roleDirty,
+          handicap: handicapDirty,
+        },
         () =>
           window.confirm(
             "Discard other unsaved member changes before changing membership status?",
@@ -866,6 +920,7 @@ function MemberEditor({
       setRoleConfirmed(false);
       setRoleBaselineFingerprint(memberRoleFingerprint(member.role, "", false));
     }
+    if (handicapDirty) resetHandicapForm();
     onTerminalMessage("error", "");
     const input = {
       membershipId: member.membershipId,
@@ -923,7 +978,12 @@ function MemberEditor({
     if (
       !shouldAllowMemberFormSubmit(
         "role",
-        { profile: profileDirty, status: statusDirty, role: roleDirty },
+        {
+          profile: profileDirty,
+          status: statusDirty,
+          role: roleDirty,
+          handicap: handicapDirty,
+        },
         () =>
           window.confirm(
             "Discard unsaved member changes before changing this role?",
@@ -945,6 +1005,7 @@ function MemberEditor({
       setStatusConfirmed(false);
       setStatusBaselineFingerprint(memberStatusFingerprint("", false));
     }
+    if (handicapDirty) resetHandicapForm();
     onTerminalMessage("error", "");
     const payload = {
       membershipId: member.membershipId,
@@ -986,6 +1047,127 @@ function MemberEditor({
         );
       }
     });
+  }
+
+  function resetHandicapForm() {
+    setHandicapId("");
+    setHandicap("");
+    setHandicapAsOf("");
+    setHandicapReason("");
+    setHandicapConfirmed(false);
+    setHandicapStale(false);
+    setHandicapBaselineFingerprint(
+      memberHandicapFingerprint("", "", "", "", false),
+    );
+  }
+
+  function submitHandicap(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canEdit) return;
+    if (
+      !handicap ||
+      !handicapAsOf ||
+      !handicapReason.trim() ||
+      !handicapConfirmed
+    ) {
+      onTerminalMessage(
+        "error",
+        "Enter a handicap and as-of date, provide a reason, and confirm the correction.",
+      );
+      return;
+    }
+    if (
+      !shouldAllowMemberFormSubmit(
+        "handicap",
+        {
+          profile: profileDirty,
+          status: statusDirty,
+          role: roleDirty,
+          handicap: handicapDirty,
+        },
+        () =>
+          window.confirm(
+            "Discard other unsaved member changes before recording this handicap?",
+          ),
+      )
+    ) {
+      return;
+    }
+    if (profileDirty) {
+      const restoredValues = initialValues(member, privateContact);
+      setValues(restoredValues);
+      setEditReason("");
+      setProfileBaselineFingerprint(
+        memberProfileFingerprint(restoredValues, ""),
+      );
+    }
+    if (statusDirty) {
+      setStatusReason("");
+      setStatusConfirmed(false);
+      setStatusBaselineFingerprint(memberStatusFingerprint("", false));
+    }
+    if (roleDirty) {
+      setSelectedRole(member.role);
+      setRoleReason("");
+      setRoleConfirmed(false);
+      setRoleBaselineFingerprint(memberRoleFingerprint(member.role, "", false));
+    }
+    onTerminalMessage("error", "");
+    const payload = {
+      membershipId: member.membershipId,
+      handicapId: handicapId.trim() || null,
+      handicap,
+      asOf: handicapAsOf,
+      expectedMembershipVersion: member.membershipVersion,
+      confirmed: true as const,
+      reason: handicapReason.trim(),
+    };
+    const input: MemberHandicapInput = {
+      ...payload,
+      operationId: beginOperation("handicap", payload),
+    };
+
+    startTransition(async () => {
+      try {
+        const result = await setMemberHandicapAction(input);
+        if (result.ok) {
+          operationId.current = null;
+          operationFingerprint.current = null;
+          resetHandicapForm();
+          onTerminalMessage(
+            "success",
+            `Manual handicap ${result.data.handicap} recorded as of ${result.data.asOf}.`,
+          );
+          router.refresh();
+          return;
+        }
+        setHandicapStale(result.error.code === "stale_version");
+        onTerminalMessage("error", result.error.message);
+      } catch {
+        onTerminalMessage(
+          "error",
+          "The member service is temporarily unavailable. Try again.",
+        );
+      }
+    });
+  }
+
+  function reloadStaleHandicap() {
+    try {
+      window.sessionStorage.setItem(
+        handicapRecoveryKey,
+        JSON.stringify({
+          handicapId,
+          handicap,
+          asOf: handicapAsOf,
+          reason: handicapReason,
+          confirmed: handicapConfirmed,
+        }),
+      );
+    } catch {
+      // Reload still gives the actor a current version if storage is blocked.
+    }
+    window.location.reload();
   }
 
   return (
@@ -1172,6 +1354,95 @@ function MemberEditor({
         </fieldset>
       </form>
 
+      <form
+        className="member-handicap-form"
+        onSubmit={submitHandicap}
+        noValidate
+      >
+        <fieldset disabled={pending || !canEdit}>
+          <legend>Record manual handicap</legend>
+          <p className="field-help">
+            Each correction adds a new dated record. Existing handicap history
+            is retained below.
+          </p>
+          <div className="member-form-grid">
+            <Field
+              label="Handicap ID"
+              value={handicapId}
+              onChange={setHandicapId}
+            />
+            <label className="field-group">
+              <span>Handicap</span>
+              <input
+                type="number"
+                min="-10"
+                max="54"
+                step="0.1"
+                value={handicap}
+                onChange={(event) => setHandicap(event.target.value)}
+                required
+              />
+            </label>
+            <label className="field-group">
+              <span>As-of date</span>
+              <input
+                type="date"
+                value={handicapAsOf}
+                onChange={(event) => setHandicapAsOf(event.target.value)}
+                required
+              />
+            </label>
+          </div>
+          <label className="field-group">
+            <span>Reason (required)</span>
+            <textarea
+              value={handicapReason}
+              onChange={(event) => setHandicapReason(event.target.value)}
+              maxLength={500}
+              rows={3}
+              required
+            />
+          </label>
+          <label
+            className="invitation-confirmation"
+            htmlFor={`member-handicap-confirm-${member.membershipId}`}
+          >
+            <input
+              id={`member-handicap-confirm-${member.membershipId}`}
+              type="checkbox"
+              checked={handicapConfirmed}
+              onChange={(event) => setHandicapConfirmed(event.target.checked)}
+              required
+            />
+            <span>
+              I confirm this dated correction and understand it will be retained
+              in member history.
+            </span>
+          </label>
+          <button
+            className="secondary-button"
+            type="submit"
+            disabled={
+              !handicap ||
+              !handicapAsOf ||
+              !handicapReason.trim() ||
+              !handicapConfirmed
+            }
+          >
+            {pending ? "Recording…" : "Record handicap"}
+          </button>
+          {handicapStale ? (
+            <button
+              className="text-button"
+              type="button"
+              onClick={reloadStaleHandicap}
+            >
+              Reload current member and keep this draft
+            </button>
+          ) : null}
+        </fieldset>
+      </form>
+
       {member.status === "pending" ? (
         <p className="field-help">
           Pending members must accept their invitation before activation
@@ -1304,6 +1575,24 @@ function MemberEditor({
         </p>
       ) : null}
     </div>
+  );
+}
+
+function isHandicapDraft(value: unknown): value is Readonly<{
+  handicapId: string;
+  handicap: string;
+  asOf: string;
+  reason: string;
+  confirmed: boolean;
+}> {
+  if (!value || typeof value !== "object") return false;
+  const draft = value as Record<string, unknown>;
+  return (
+    typeof draft.handicapId === "string" &&
+    typeof draft.handicap === "string" &&
+    typeof draft.asOf === "string" &&
+    typeof draft.reason === "string" &&
+    typeof draft.confirmed === "boolean"
   );
 }
 

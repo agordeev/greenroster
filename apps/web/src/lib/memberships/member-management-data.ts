@@ -12,6 +12,8 @@ import {
   type ManageableMemberRosterRow,
   type MemberEditInput,
   type MemberEditResult,
+  type MemberHandicapInput,
+  type MemberHandicapResult,
   type MemberPrivateContact,
   type MemberRoleInput,
   type MemberRoleResult,
@@ -159,6 +161,20 @@ const roleResultRowSchema = z
     old_role: z.enum(["member", "coordinator", "administrator"]),
     new_role: z.enum(["member", "coordinator", "administrator"]),
     role_changed: z.boolean(),
+  })
+  .strict();
+
+const handicapResultRowSchema = z
+  .object({
+    handicap_record_id: z.uuid(),
+    changed_membership_id: z.uuid(),
+    changed_group_id: z.uuid(),
+    membership_version: z.number().int().positive(),
+    handicap_id: z.string().nullable(),
+    handicap: decimalValueSchema.unwrap(),
+    source: z.literal("manual"),
+    as_of: z.iso.date(),
+    created_at: z.string().datetime({ offset: true }),
   })
   .strict();
 
@@ -465,5 +481,45 @@ export async function executeChangeMemberRole(
     oldRole: row.old_role,
     newRole: row.new_role,
     roleChanged: row.role_changed,
+  };
+}
+
+export async function executeSetMemberHandicap(
+  actorUserId: string,
+  input: MemberHandicapInput,
+  correlationId: string,
+  overrides?: Partial<MemberManagementDataDependencies>,
+): Promise<MemberHandicapResult> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  const client = await dependencies.createClient();
+  const { data, error } = await client.rpc("set_member_handicap", {
+    p_actor_user_id: actorUserId,
+    p_membership_id: input.membershipId,
+    p_handicap_id: input.handicapId,
+    p_handicap: input.handicap,
+    p_as_of: input.asOf,
+    p_expected_membership_version: input.expectedMembershipVersion,
+    p_confirmed: input.confirmed,
+    p_reason: input.reason,
+    p_correlation_id: correlationId,
+    p_operation_id: input.operationId,
+  });
+  if (error) throw mapMemberError(error);
+  const row = oneRow(handicapResultRowSchema, data);
+  if (row.changed_membership_id !== input.membershipId) {
+    throw new MutationError("unexpected", {
+      cause: new Error("Member handicap returned an inconsistent membership"),
+    });
+  }
+  return {
+    recordId: row.handicap_record_id,
+    membershipId: row.changed_membership_id,
+    groupId: row.changed_group_id,
+    membershipVersion: row.membership_version,
+    handicapId: row.handicap_id,
+    handicap: row.handicap,
+    source: row.source,
+    asOf: row.as_of,
+    createdAt: row.created_at,
   };
 }

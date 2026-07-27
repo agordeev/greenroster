@@ -7,15 +7,19 @@ import type { FormEvent } from "react";
 import {
   createPendingMemberProfileAction,
   issueMembershipInvitationAction,
+  setMemberHandicapAction,
 } from "@/app/actions/memberships";
 import { signInPath } from "@/lib/auth/safe-return-path";
+import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
 import type { MemberRole } from "@/lib/memberships/member-management";
 
 import {
   buildMemberProfileCreatePayload,
+  buildMemberHandicapRecordPayload,
   canCreatePendingMember,
   emptyMemberCreateInviteDraft,
   memberCreateInviteRecoveryStorageKey,
+  memberCreateRequiresHandicapBeforeInvite,
   parseMemberCreateInviteRecovery,
   retainMemberCreateInviteOperationId,
   serializeMemberCreateInviteRecovery,
@@ -44,11 +48,13 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
   );
   const [createConfirmed, setCreateConfirmed] = useState(false);
   const [inviteConfirmed, setInviteConfirmed] = useState(false);
+  const [handicapRecorded, setHandicapRecorded] = useState(false);
   const [createdMembershipId, setCreatedMembershipId] = useState<string | null>(
     null,
   );
   const createOperation = useRef(emptyOperationState);
   const inviteOperation = useRef(emptyOperationState);
+  const handicapOperation = useRef(emptyOperationState);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,27 +74,100 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     }
     queueMicrotask(() => {
       if (cancelled) return;
-      setDraft(recovery.draft);
+      // Confirmation is intentionally re-established after a session
+      // recovery; the values and operation id remain retryable, but a stale
+      // browser snapshot cannot silently authorize the consequential action.
+      setDraft({ ...recovery.draft, handicapConfirmed: false });
       setCreatedMembershipId(recovery.createdMembershipId);
       setCreateConfirmed(false);
       setInviteConfirmed(false);
+      setHandicapRecorded(false);
       setPhase(recovery.createdMembershipId ? "ready" : "idle");
       setMessageStatus("success");
       setMessage("Draft restored. Confirm each action before retrying.");
       createOperation.current = recovery.createOperation;
       inviteOperation.current = recovery.inviteOperation;
+      handicapOperation.current = recovery.handicapOperation;
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const memberCreated = createdMembershipId !== null;
+  const handicapRequiredBeforeInvite = memberCreateRequiresHandicapBeforeInvite(
+    draft,
+    handicapRecorded,
+  );
+  const draftDirty = memberCreated
+    ? handicapRequiredBeforeInvite
+    : JSON.stringify(draft) !== JSON.stringify(emptyMemberCreateInviteDraft);
+
+  useEffect(() => {
+    function warnBeforeUnload(event: BeforeUnloadEvent) {
+      if (!draftDirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    function confirmLinkNavigation(event: MouseEvent) {
+      if (!draftDirty || event.defaultPrevented || event.button !== 0) return;
+      const target = event.target;
+      const link =
+        target instanceof Element
+          ? target.closest<HTMLAnchorElement>("a[href]")
+          : null;
+      if (!link) return;
+      if (
+        !shouldAllowDirtyNavigation(draftDirty, () =>
+          window.confirm("Discard the unsaved new member draft?"),
+        )
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+
+    function confirmOtherFormSubmission(event: SubmitEvent) {
+      const form = event.target;
+      if (
+        !draftDirty ||
+        !(form instanceof HTMLFormElement) ||
+        form.classList.contains("member-create-form") ||
+        form.classList.contains("member-invite-form") ||
+        form.classList.contains("member-handicap-form")
+      ) {
+        return;
+      }
+      if (
+        !shouldAllowDirtyNavigation(draftDirty, () =>
+          window.confirm("Discard the unsaved new member draft?"),
+        )
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    document.addEventListener("click", confirmLinkNavigation, true);
+    document.addEventListener("submit", confirmOtherFormSubmission, true);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeUnload);
+      document.removeEventListener("click", confirmLinkNavigation, true);
+      document.removeEventListener("submit", confirmOtherFormSubmission, true);
+    };
+  }, [draftDirty]);
+
   if (!canCreatePendingMember(role)) {
     return null;
   }
 
-  const memberCreated = createdMembershipId !== null;
-  const busy = pending || phase === "creating" || phase === "inviting";
+  const busy =
+    pending ||
+    phase === "creating" ||
+    phase === "inviting" ||
+    phase === "recording-handicap";
 
   function update<K extends keyof MemberCreateInviteDraft>(
     key: K,
@@ -169,9 +248,73 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     });
   }
 
+  function submitHandicap(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || !createdMembershipId) return;
+
+    const handicap = draft.handicap.trim();
+    const asOf = draft.handicapAsOf.trim();
+    if (!handicap || !asOf) {
+      setError("Enter a handicap value and as-of date before recording it.");
+      return;
+    }
+    if (!draft.handicapReason.trim()) {
+      setError("Add a reason before recording the manual handicap.");
+      return;
+    }
+    if (!draft.handicapConfirmed) {
+      setError("Confirm the handicap details before recording them.");
+      return;
+    }
+
+    const payload = buildMemberHandicapRecordPayload(
+      draft,
+      createdMembershipId,
+    );
+    handicapOperation.current = retainMemberCreateInviteOperationId(
+      handicapOperation.current,
+      "handicap",
+      payload,
+      () => crypto.randomUUID(),
+    );
+    const operationId = handicapOperation.current.operationId;
+    if (!operationId) {
+      setError("The handicap record could not be prepared. Try again.");
+      return;
+    }
+
+    setMessage("");
+    setPhase("recording-handicap");
+    startTransition(async () => {
+      try {
+        const result = await setMemberHandicapAction({
+          ...payload,
+          operationId,
+        });
+        if (!result.ok) {
+          handleMutationError(result.error.code, result.error.message);
+          return;
+        }
+        setMessageStatus("success");
+        setMessage("Handicap recorded. You can now send the invitation.");
+        setHandicapRecorded(true);
+        setPhase("ready");
+      } catch {
+        setError("The handicap service is temporarily unavailable. Try again.");
+      }
+    });
+  }
+
   function submitInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || !createdMembershipId) return;
+
+    if (handicapRequiredBeforeInvite) {
+      setError(
+        "Record the drafted handicap before sending the invitation, or clear the handicap draft.",
+      );
+      return;
+    }
 
     const invitedEmail = normalizeEmail(draft.invitedEmail);
     if (!isEmail(invitedEmail)) {
@@ -224,9 +367,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         setDraft(emptyMemberCreateInviteDraft);
         setCreateConfirmed(false);
         setInviteConfirmed(false);
+        setHandicapRecorded(false);
         setCreatedMembershipId(null);
         createOperation.current = emptyOperationState;
         inviteOperation.current = emptyOperationState;
+        handicapOperation.current = emptyOperationState;
         router.replace(`/portal/members?membership=${createdMembershipId}`);
       } catch {
         setError(
@@ -242,11 +387,25 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       router.replace(signInPath("/portal/members"));
       return;
     }
+    if (code === "stale_version" && createdMembershipId) {
+      preserveHandicapForMemberEditor(createdMembershipId);
+      router.replace(
+        `/portal/members?membership=${encodeURIComponent(createdMembershipId)}`,
+      );
+      return;
+    }
     setError(errorMessage);
   }
 
   function reset() {
     if (busy) return;
+    if (
+      !shouldAllowDirtyNavigation(draftDirty, () =>
+        window.confirm("Discard the current new member draft?"),
+      )
+    ) {
+      return;
+    }
     clearRecoveryState();
     setDraft(emptyMemberCreateInviteDraft);
     setPhase("idle");
@@ -254,9 +413,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     setMessageStatus("error");
     setCreateConfirmed(false);
     setInviteConfirmed(false);
+    setHandicapRecorded(false);
     setCreatedMembershipId(null);
     createOperation.current = emptyOperationState;
     inviteOperation.current = emptyOperationState;
+    handicapOperation.current = emptyOperationState;
   }
 
   function preserveRecoveryState() {
@@ -268,6 +429,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           createdMembershipId,
           createOperation: createOperation.current,
           inviteOperation: inviteOperation.current,
+          handicapOperation: handicapOperation.current,
         }),
       );
     } catch {
@@ -280,6 +442,23 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       window.sessionStorage.removeItem(memberCreateInviteRecoveryStorageKey);
     } catch {
       // Storage is best-effort recovery only.
+    }
+  }
+
+  function preserveHandicapForMemberEditor(membershipId: string) {
+    try {
+      window.sessionStorage.setItem(
+        `greenroster:member-handicap:${membershipId}`,
+        JSON.stringify({
+          handicapId: draft.handicapId,
+          handicap: draft.handicap,
+          asOf: draft.handicapAsOf,
+          reason: draft.handicapReason,
+          confirmed: false,
+        }),
+      );
+    } catch {
+      // The authoritative member editor still loads even without draft storage.
     }
   }
 
@@ -383,33 +562,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 }
               />
             </label>
-            <label
-              className="field-group"
-              htmlFor="member-create-secondary-email"
-            >
-              <span>Secondary e-mail (optional)</span>
-              <input
-                id="member-create-secondary-email"
-                name="secondaryEmail"
-                type="email"
-                value={draft.secondaryEmail}
-                onChange={(event) =>
-                  update("secondaryEmail", event.target.value)
-                }
-                autoComplete="email"
-              />
-            </label>
-            <label className="field-group" htmlFor="member-create-mobile-phone">
-              <span>Mobile phone (optional)</span>
-              <input
-                id="member-create-mobile-phone"
-                name="mobilePhone"
-                type="tel"
-                value={draft.mobilePhone}
-                onChange={(event) => update("mobilePhone", event.target.value)}
-                autoComplete="tel"
-              />
-            </label>
             <label className="member-check" htmlFor="member-create-dues">
               <input
                 id="member-create-dues"
@@ -431,6 +583,163 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
           </div>
           <fieldset className="member-contact-fieldset">
+            <legend>Contact details (optional)</legend>
+            <div className="member-form-grid">
+              <label
+                className="field-group"
+                htmlFor="member-create-secondary-email"
+              >
+                <span>Secondary e-mail</span>
+                <input
+                  id="member-create-secondary-email"
+                  name="secondaryEmail"
+                  type="email"
+                  value={draft.secondaryEmail}
+                  onChange={(event) =>
+                    update("secondaryEmail", event.target.value)
+                  }
+                  autoComplete="email"
+                />
+              </label>
+              <label className="field-group" htmlFor="member-create-home-phone">
+                <span>Home phone</span>
+                <input
+                  id="member-create-home-phone"
+                  name="homePhone"
+                  type="tel"
+                  value={draft.homePhone}
+                  onChange={(event) => update("homePhone", event.target.value)}
+                  autoComplete="tel"
+                />
+              </label>
+              <label className="field-group" htmlFor="member-create-work-phone">
+                <span>Work phone</span>
+                <input
+                  id="member-create-work-phone"
+                  name="workPhone"
+                  type="tel"
+                  value={draft.workPhone}
+                  onChange={(event) => update("workPhone", event.target.value)}
+                  autoComplete="tel"
+                />
+              </label>
+              <label
+                className="field-group"
+                htmlFor="member-create-mobile-phone"
+              >
+                <span>Mobile phone</span>
+                <input
+                  id="member-create-mobile-phone"
+                  name="mobilePhone"
+                  type="tel"
+                  value={draft.mobilePhone}
+                  onChange={(event) =>
+                    update("mobilePhone", event.target.value)
+                  }
+                  autoComplete="tel"
+                />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="member-contact-fieldset">
+            <legend>Postal address (optional)</legend>
+            <div className="member-form-grid">
+              <label
+                className="field-group"
+                htmlFor="member-create-address-line1"
+              >
+                <span>Address line 1</span>
+                <input
+                  id="member-create-address-line1"
+                  name="addressLine1"
+                  value={draft.addressLine1}
+                  onChange={(event) =>
+                    update("addressLine1", event.target.value)
+                  }
+                  autoComplete="address-line1"
+                />
+              </label>
+              <label
+                className="field-group"
+                htmlFor="member-create-address-line2"
+              >
+                <span>Address line 2</span>
+                <input
+                  id="member-create-address-line2"
+                  name="addressLine2"
+                  value={draft.addressLine2}
+                  onChange={(event) =>
+                    update("addressLine2", event.target.value)
+                  }
+                  autoComplete="address-line2"
+                />
+              </label>
+              <label className="field-group" htmlFor="member-create-city">
+                <span>City</span>
+                <input
+                  id="member-create-city"
+                  name="city"
+                  value={draft.city}
+                  onChange={(event) => update("city", event.target.value)}
+                  autoComplete="address-level2"
+                />
+              </label>
+              <label
+                className="field-group"
+                htmlFor="member-create-state-region"
+              >
+                <span>State / region</span>
+                <input
+                  id="member-create-state-region"
+                  name="stateRegion"
+                  value={draft.stateRegion}
+                  onChange={(event) =>
+                    update("stateRegion", event.target.value)
+                  }
+                  autoComplete="address-level1"
+                />
+              </label>
+              <label
+                className="field-group"
+                htmlFor="member-create-postal-code"
+              >
+                <span>Postal code</span>
+                <input
+                  id="member-create-postal-code"
+                  name="postalCode"
+                  value={draft.postalCode}
+                  onChange={(event) => update("postalCode", event.target.value)}
+                  autoComplete="postal-code"
+                />
+              </label>
+              <label className="field-group" htmlFor="member-create-country">
+                <span>Country</span>
+                <input
+                  id="member-create-country"
+                  name="country"
+                  value={draft.country}
+                  onChange={(event) => update("country", event.target.value)}
+                  autoComplete="country-name"
+                />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="member-contact-fieldset">
+            <legend>Handicap (optional)</legend>
+            <p className="field-help">
+              These values stay in the draft until the profile exists. Recording
+              a handicap is a separate confirmed action after creation.
+            </p>
+            <HandicapFields
+              draft={draft}
+              idPrefix="member-create"
+              onChange={(key, value) => update(key, value)}
+            />
+          </fieldset>
+
+          <fieldset className="member-contact-fieldset">
             <legend>Private contact visibility</legend>
             <div className="member-visibility-grid">
               <label
@@ -449,6 +758,34 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
               <label
                 className="member-check"
+                htmlFor="member-create-home-visible"
+              >
+                <input
+                  id="member-create-home-visible"
+                  type="checkbox"
+                  checked={draft.homePhoneVisible}
+                  onChange={(event) =>
+                    update("homePhoneVisible", event.target.checked)
+                  }
+                />
+                <span>List home phone</span>
+              </label>
+              <label
+                className="member-check"
+                htmlFor="member-create-work-visible"
+              >
+                <input
+                  id="member-create-work-visible"
+                  type="checkbox"
+                  checked={draft.workPhoneVisible}
+                  onChange={(event) =>
+                    update("workPhoneVisible", event.target.checked)
+                  }
+                />
+                <span>List work phone</span>
+              </label>
+              <label
+                className="member-check"
                 htmlFor="member-create-mobile-visible"
               >
                 <input
@@ -460,6 +797,20 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                   }
                 />
                 <span>List mobile phone</span>
+              </label>
+              <label
+                className="member-check"
+                htmlFor="member-create-address-listed"
+              >
+                <input
+                  id="member-create-address-listed"
+                  type="checkbox"
+                  checked={draft.addressListed}
+                  onChange={(event) =>
+                    update("addressListed", event.target.checked)
+                  }
+                />
+                <span>List postal address</span>
               </label>
             </div>
             <small className="field-help">
@@ -503,8 +854,55 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       </form>
 
       {createdMembershipId ? (
+        <form
+          className="member-handicap-form"
+          onSubmit={submitHandicap}
+          noValidate
+        >
+          <fieldset disabled={busy || handicapRecorded}>
+            <legend>Record handicap</legend>
+            <p>
+              The pending profile exists. Record this manual handicap separately
+              before sending the invitation; the new membership starts at
+              membership version 1.
+            </p>
+            <HandicapFields
+              draft={draft}
+              idPrefix="member-handicap"
+              onChange={(key, value) => update(key, value)}
+            />
+          </fieldset>
+          <div className="member-create-actions">
+            <button
+              className="secondary-button"
+              type="submit"
+              disabled={busy || handicapRecorded}
+            >
+              {phase === "recording-handicap"
+                ? "Recording…"
+                : handicapRecorded
+                  ? "Handicap recorded"
+                  : "Record handicap"}
+            </button>
+            <button
+              className="text-button"
+              type="button"
+              onClick={() =>
+                router.push(
+                  `/portal/members?membership=${encodeURIComponent(createdMembershipId)}`,
+                )
+              }
+              disabled={busy}
+            >
+              Open full member setup
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {createdMembershipId ? (
         <form className="member-invite-form" onSubmit={submitInvite} noValidate>
-          <fieldset disabled={busy}>
+          <fieldset disabled={busy || handicapRequiredBeforeInvite}>
             <legend>Send invitation</legend>
             <p>
               Membership <code>{createdMembershipId}</code> is pending. No
@@ -543,9 +941,18 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
           </fieldset>
           <div className="member-create-actions">
-            <button className="primary-button" type="submit" disabled={busy}>
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={busy || handicapRequiredBeforeInvite}
+            >
               {phase === "inviting" ? "Sending…" : "Send invitation"}
             </button>
+            {handicapRequiredBeforeInvite ? (
+              <p className="field-help" role="status">
+                Record the drafted handicap before sending the invitation.
+              </p>
+            ) : null}
           </div>
         </form>
       ) : null}
@@ -558,6 +965,93 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         {message}
       </div>
     </section>
+  );
+}
+
+type HandicapDraftKey =
+  | "handicapId"
+  | "handicap"
+  | "handicapAsOf"
+  | "handicapReason"
+  | "handicapConfirmed";
+
+function HandicapFields({
+  draft,
+  idPrefix,
+  onChange,
+}: Readonly<{
+  draft: MemberCreateInviteDraft;
+  idPrefix: string;
+  onChange: <K extends HandicapDraftKey>(
+    key: K,
+    value: MemberCreateInviteDraft[K],
+  ) => void;
+}>) {
+  return (
+    <>
+      <div className="member-form-grid">
+        <label className="field-group" htmlFor={`${idPrefix}-handicap-id`}>
+          <span>Handicap ID (optional)</span>
+          <input
+            id={`${idPrefix}-handicap-id`}
+            name="handicapId"
+            value={draft.handicapId}
+            onChange={(event) => onChange("handicapId", event.target.value)}
+            autoComplete="off"
+          />
+        </label>
+        <label className="field-group" htmlFor={`${idPrefix}-handicap-value`}>
+          <span>Handicap value</span>
+          <input
+            id={`${idPrefix}-handicap-value`}
+            name="handicap"
+            type="number"
+            inputMode="decimal"
+            min="-10"
+            max="54"
+            step="0.1"
+            value={draft.handicap}
+            onChange={(event) => onChange("handicap", event.target.value)}
+          />
+        </label>
+        <label className="field-group" htmlFor={`${idPrefix}-handicap-as-of`}>
+          <span>Handicap as of</span>
+          <input
+            id={`${idPrefix}-handicap-as-of`}
+            name="handicapAsOf"
+            type="date"
+            value={draft.handicapAsOf}
+            onChange={(event) => onChange("handicapAsOf", event.target.value)}
+          />
+        </label>
+      </div>
+      <label className="field-group" htmlFor={`${idPrefix}-handicap-reason`}>
+        <span>Reason for manual handicap (required to record)</span>
+        <textarea
+          id={`${idPrefix}-handicap-reason`}
+          name="handicapReason"
+          value={draft.handicapReason}
+          onChange={(event) => onChange("handicapReason", event.target.value)}
+          maxLength={500}
+          rows={3}
+        />
+      </label>
+      <label
+        className="member-create-confirmation"
+        htmlFor={`${idPrefix}-handicap-confirm`}
+      >
+        <input
+          id={`${idPrefix}-handicap-confirm`}
+          name="handicapConfirmed"
+          type="checkbox"
+          checked={draft.handicapConfirmed}
+          onChange={(event) =>
+            onChange("handicapConfirmed", event.target.checked)
+          }
+        />
+        <span>I confirm this manual handicap and its effective date.</span>
+      </label>
+    </>
   );
 }
 

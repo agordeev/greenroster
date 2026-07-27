@@ -23,12 +23,14 @@ import {
 } from "@/lib/invitations/invitation-lifecycle";
 import {
   runMemberEditMutation,
+  runMemberHandicapMutation,
   runMemberRoleMutation,
   runMemberStatusMutation,
 } from "@/lib/memberships/member-management";
 import {
   executeChangeMemberRole,
   executeEditMember,
+  executeSetMemberHandicap,
   executeSetMemberStatus,
 } from "@/lib/memberships/member-management-data";
 
@@ -152,4 +154,17 @@ export async function changeMemberRoleAction(input: unknown) {
     execute: executeChangeMemberRole,
     verifySession: verifyMutationSession,
   });
+}
+
+export async function setMemberHandicapAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runMemberHandicapMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeSetMemberHandicap,
+      verifySession: verifyMutationSession,
+    },
+  );
 }

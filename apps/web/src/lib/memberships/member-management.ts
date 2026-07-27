@@ -39,6 +39,19 @@ const confirmation = z.literal(true, {
   error: "Confirm the member status change before continuing.",
 });
 
+const handicapValue = z.preprocess(
+  (value) => (typeof value === "string" ? value.trim() : value),
+  z
+    .union([z.string().regex(/^-?\d+(?:\.\d)?$/), z.number()])
+    .transform((value) => String(value))
+    .refine((value) => Number(value) >= -10 && Number(value) <= 54, {
+      message: "Handicap must be between -10 and 54.",
+    })
+    .refine((value) => Number.isInteger(Number(value) * 10), {
+      message: "Handicap can have at most one decimal place.",
+    }),
+);
+
 export const memberEditInputSchema = z
   .object({
     membershipId: z.uuid(),
@@ -93,9 +106,25 @@ export const memberRoleInputSchema = z
   })
   .strict();
 
+export const memberHandicapInputSchema = z
+  .object({
+    membershipId: z.uuid(),
+    handicapId: nullableText(100),
+    handicap: handicapValue,
+    asOf: z.iso.date(),
+    expectedMembershipVersion: z.number().int().positive(),
+    confirmed: z.literal(true, {
+      error: "Confirm the handicap correction before continuing.",
+    }),
+    reason: z.string().trim().min(1).max(500),
+    operationId: z.uuid(),
+  })
+  .strict();
+
 export type MemberEditInput = z.infer<typeof memberEditInputSchema>;
 export type MemberStatusInput = z.infer<typeof memberStatusInputSchema>;
 export type MemberRoleInput = z.infer<typeof memberRoleInputSchema>;
+export type MemberHandicapInput = z.infer<typeof memberHandicapInputSchema>;
 
 export type MemberStatus = "pending" | "active" | "inactive";
 export type MemberRole = "member" | "coordinator" | "administrator";
@@ -190,6 +219,18 @@ export type MemberRoleResult = Readonly<{
   roleChanged: boolean;
 }>;
 
+export type MemberHandicapResult = Readonly<{
+  recordId: string;
+  membershipId: string;
+  groupId: string;
+  membershipVersion: number;
+  handicapId: string | null;
+  handicap: string;
+  source: "manual";
+  asOf: string;
+  createdAt: string;
+}>;
+
 export type MemberMutationDependencies<TInput, TResult> = Readonly<{
   verifySession: () => Promise<VerifiedMutationSession>;
   execute: (
@@ -204,7 +245,7 @@ export type MemberOperationState = Readonly<{
   operationId: string | null;
 }>;
 
-export type MemberFormKind = "profile" | "status" | "role";
+export type MemberFormKind = "profile" | "status" | "role" | "handicap";
 
 export function memberEditorFingerprint(
   values: unknown,
@@ -234,9 +275,24 @@ export function memberRoleFingerprint(
   return JSON.stringify({ role, reason, confirmed });
 }
 
+export function memberHandicapFingerprint(
+  handicapId: string,
+  handicap: string,
+  asOf: string,
+  reason: string,
+  confirmed: boolean,
+) {
+  return JSON.stringify({ handicapId, handicap, asOf, reason, confirmed });
+}
+
 export function shouldAllowMemberFormSubmit(
   form: MemberFormKind,
-  dirty: Readonly<{ profile: boolean; status: boolean; role?: boolean }>,
+  dirty: Readonly<{
+    profile: boolean;
+    status: boolean;
+    role?: boolean;
+    handicap?: boolean;
+  }>,
   confirmDiscard: () => boolean,
 ) {
   const otherFormDirty = (
@@ -247,7 +303,7 @@ export function shouldAllowMemberFormSubmit(
 
 export function retainMemberOperationId(
   state: MemberOperationState,
-  kind: "edit" | "status" | "role",
+  kind: "edit" | "status" | "role" | "handicap",
   payload: unknown,
   createId: () => string,
 ): Readonly<{ fingerprint: string; operationId: string }> {
@@ -317,6 +373,21 @@ export async function runMemberRoleMutation(
   return runVerifiedMutation(rawInput, correlationCandidate, {
     execute: dependencies.execute,
     inputSchema: memberRoleInputSchema,
+    verifySession: dependencies.verifySession,
+  });
+}
+
+export async function runMemberHandicapMutation(
+  rawInput: unknown,
+  correlationCandidate: string | null | undefined,
+  dependencies: MemberMutationDependencies<
+    MemberHandicapInput,
+    MemberHandicapResult
+  >,
+): Promise<MutationResult<MemberHandicapResult>> {
+  return runVerifiedMutation(rawInput, correlationCandidate, {
+    execute: dependencies.execute,
+    inputSchema: memberHandicapInputSchema,
     verifySession: dependencies.verifySession,
   });
 }
