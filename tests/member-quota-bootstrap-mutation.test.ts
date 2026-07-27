@@ -4,6 +4,7 @@ import {
   runMemberQuotaBootstrapMutation,
   type MemberQuotaBootstrapResult,
 } from "../apps/web/src/lib/memberships/member-quota-bootstrap";
+import { executeGetMemberQuotaBootstrapContext } from "../apps/web/src/lib/memberships/member-quota-bootstrap-data";
 import { MutationError } from "../apps/web/src/lib/mutations/result";
 
 const session = {
@@ -12,6 +13,7 @@ const session = {
 };
 
 const input = {
+  confirmed: true as const,
   expectedProjectionVersion: 0,
   expectedSettingsVersion: 2,
   initialQuota: "18.5",
@@ -39,6 +41,64 @@ const result: MemberQuotaBootstrapResult = {
 };
 
 describe("member quota bootstrap mutation boundary", () => {
+  it("parses the administrator detail context with ordered calculation-only seeds", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [
+        {
+          adjustment_bands: [],
+          context_group_id: "50000000-0000-4000-8000-000000000001",
+          context_membership_id: input.membershipId,
+          initial_quota: "18.50",
+          initial_quota_provenance: "administrator_override",
+          projection_ready: true,
+          projection_effective_at: "2026-07-27T09:00:00.000Z",
+          projection_source: { kind: "seed_history", seed_positions: [1, 2] },
+          projection_version: 3,
+          projected_quota: "25.00",
+          seed_totals: [
+            { position: 1, point_total: "20.00" },
+            { position: 2, point_total: "30.00" },
+          ],
+          settings_history_length: 10,
+          settings_method: "moving_average",
+          settings_precision: 2,
+          settings_rounding_rule: "half_away_from_zero",
+          settings_version: 4,
+          uses_initial_quota: false,
+        },
+      ],
+      error: null,
+    });
+
+    await expect(
+      executeGetMemberQuotaBootstrapContext(
+        session.userId,
+        input.membershipId,
+        {
+          createClient: () => ({ rpc }),
+        },
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        membershipId: input.membershipId,
+        projectedQuota: "25.00",
+        projectionEffectiveAt: "2026-07-27T09:00:00.000Z",
+        seedTotals: [
+          { position: 1, pointTotal: "20.00" },
+          { position: 2, pointTotal: "30.00" },
+        ],
+        settingsMethod: "moving_average",
+      }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "resolve_membership_quota_bootstrap_context",
+      {
+        p_actor_user_id: session.userId,
+        p_membership_id: input.membershipId,
+      },
+    );
+  });
+
   it("authenticates first, trims safe fields, and defaults initial use on", async () => {
     const executeBootstrap = vi.fn().mockResolvedValue(result);
 
@@ -138,6 +198,7 @@ describe("member quota bootstrap mutation boundary", () => {
   it.each([
     [{ ...input, expectedSettingsVersion: 0 }, "expectedSettingsVersion"],
     [{ ...input, expectedProjectionVersion: -1 }, "expectedProjectionVersion"],
+    [{ ...input, confirmed: false }, "confirmed"],
     [
       { ...input, seedTotals: Array.from({ length: 21 }, () => "20") },
       "seedTotals",

@@ -6,6 +6,9 @@ import type { MutationResult } from "../mutations/result";
 
 const memberQuotaBootstrapInputSchema = z
   .object({
+    confirmed: z.literal(true, {
+      error: "Confirm the quota bootstrap change before continuing.",
+    }),
     expectedProjectionVersion: z.number().int().nonnegative(),
     expectedSettingsVersion: z.number().int().positive(),
     initialQuota: z.string().trim().min(1).nullable(),
@@ -38,6 +41,37 @@ export type MemberQuotaBootstrapInput = z.infer<
 >;
 
 export type MemberQuotaProjectionSource = Readonly<Record<string, unknown>>;
+
+export type MemberQuotaBootstrapContext = Readonly<{
+  membershipId: string;
+  groupId: string;
+  initialQuota: string | null;
+  usesInitialQuota: boolean;
+  initialQuotaProvenance: string | null;
+  seedTotals: readonly Readonly<{
+    position: number;
+    pointTotal: string;
+  }>[];
+  projectionVersion: number;
+  projectionReady: boolean;
+  projectedQuota: string | null;
+  projectionSource: MemberQuotaProjectionSource;
+  projectionEffectiveAt: string | null;
+  settingsVersion: number;
+  settingsMethod:
+    "moving_average" | "best_10_of_20" | "previous_plus_minus" | null;
+  settingsHistoryLength: number | null;
+  settingsPrecision: 0 | 1 | 2 | null;
+  settingsRoundingRule: "half_away_from_zero" | null;
+  adjustmentBands: readonly Readonly<{
+    adjustment: string;
+    lowerBound: string;
+    lowerInclusive: boolean;
+    position: number;
+    upperBound: string;
+    upperInclusive: boolean;
+  }>[];
+}>;
 
 export type MemberQuotaBootstrapResult = Readonly<{
   groupId: string;

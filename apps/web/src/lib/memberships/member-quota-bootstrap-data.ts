@@ -5,14 +5,14 @@ import { z } from "zod";
 import {
   projectMemberQuotaBootstrap,
   type MemberQuotaBootstrapProjection,
-} from "@/domain/member-quota-bootstrap";
+} from "../../domain/member-quota-bootstrap";
 import type {
+  MemberQuotaBootstrapContext,
   MemberQuotaBootstrapInput,
   MemberQuotaBootstrapResult,
   MemberQuotaProjectionSource,
-} from "@/lib/memberships/member-quota-bootstrap";
-import { MutationError } from "@/lib/mutations/result";
-import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
+} from "./member-quota-bootstrap";
+import { MutationError } from "../mutations/result";
 
 const decimalValueSchema = z
   .union([z.string(), z.number()])
@@ -37,6 +37,13 @@ const adjustmentBandSchema = z
   })
   .strict();
 
+const seedTotalSchema = z
+  .object({
+    point_total: decimalValueSchema,
+    position: z.number().int().min(1).max(20),
+  })
+  .strict();
+
 const projectionSourceSchema = z.record(z.string(), z.unknown());
 
 const contextRowSchema = z
@@ -47,9 +54,11 @@ const contextRowSchema = z
     initial_quota: decimalValueSchema.nullable(),
     initial_quota_provenance: z.string().nullable(),
     projection_ready: z.boolean(),
+    projection_effective_at: z.string().datetime({ offset: true }).nullable(),
     projection_source: projectionSourceSchema,
     projection_version: z.number().int().nonnegative(),
     projected_quota: decimalValueSchema.nullable(),
+    seed_totals: z.array(seedTotalSchema).max(20),
     settings_history_length: z.number().int().nullable(),
     settings_method: quotaMethodSchema.nullable(),
     settings_precision: precisionSchema.nullable(),
@@ -75,6 +84,25 @@ const resultRowSchema = z
   .strict();
 
 const resultRowsSchema = z.array(resultRowSchema).length(1);
+
+type RpcClient = Readonly<{
+  rpc: (
+    functionName: string,
+    args: Readonly<Record<string, unknown>>,
+  ) => PromiseLike<Readonly<{ data: unknown; error: SupabaseRpcError | null }>>;
+}>;
+
+export type MemberQuotaBootstrapDataDependencies = Readonly<{
+  createClient: () => RpcClient | Promise<RpcClient>;
+}>;
+
+const defaultDependencies: MemberQuotaBootstrapDataDependencies = {
+  createClient: async () => {
+    const { createSupabaseServiceClient } =
+      await import("../supabase/service-client");
+    return createSupabaseServiceClient();
+  },
+};
 
 type SupabaseRpcError = Readonly<{
   code?: string;
@@ -144,12 +172,74 @@ function quotaBandInput(context: z.infer<typeof contextRowSchema>) {
   }));
 }
 
+export async function executeGetMemberQuotaBootstrapContext(
+  actorUserId: string,
+  membershipId: string,
+  overrides?: Partial<MemberQuotaBootstrapDataDependencies>,
+): Promise<MemberQuotaBootstrapContext> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  const supabase = await dependencies.createClient();
+  const result = await supabase.rpc(
+    "resolve_membership_quota_bootstrap_context",
+    {
+      p_actor_user_id: actorUserId,
+      p_membership_id: membershipId,
+    },
+  );
+
+  if (result.error) throw mapMemberQuotaBootstrapError(result.error);
+  if (Array.isArray(result.data) && result.data.length === 0) {
+    throw new MutationError("unavailable");
+  }
+
+  const rows = contextRowsSchema.safeParse(result.data);
+  if (!rows.success) {
+    throw new MutationError("unexpected", { cause: rows.error });
+  }
+  const context = rows.data[0];
+  if (!context || context.context_membership_id !== membershipId) {
+    throw new MutationError("unexpected", {
+      cause: new Error("Membership quota context target mismatch"),
+    });
+  }
+
+  return {
+    membershipId: context.context_membership_id,
+    groupId: context.context_group_id,
+    initialQuota: context.initial_quota,
+    usesInitialQuota: context.uses_initial_quota,
+    initialQuotaProvenance: context.initial_quota_provenance,
+    seedTotals: context.seed_totals.map((seed) => ({
+      position: seed.position,
+      pointTotal: seed.point_total,
+    })),
+    projectionVersion: context.projection_version,
+    projectionReady: context.projection_ready,
+    projectedQuota: context.projected_quota,
+    projectionSource: context.projection_source,
+    projectionEffectiveAt: context.projection_effective_at,
+    settingsVersion: context.settings_version,
+    settingsMethod: context.settings_method,
+    settingsHistoryLength: context.settings_history_length,
+    settingsPrecision: context.settings_precision,
+    settingsRoundingRule: context.settings_rounding_rule,
+    adjustmentBands: context.adjustment_bands.map((band) => ({
+      adjustment: band.adjustment,
+      lowerBound: band.lower_bound,
+      lowerInclusive: band.lower_inclusive,
+      position: band.position,
+      upperBound: band.upper_bound,
+      upperInclusive: band.upper_inclusive,
+    })),
+  };
+}
+
 export async function executeMemberQuotaBootstrap(
   actorUserId: string,
   input: MemberQuotaBootstrapInput,
   correlationId: string,
 ): Promise<MemberQuotaBootstrapResult> {
-  const supabase = createSupabaseServiceClient();
+  const supabase = await defaultDependencies.createClient();
   const contextResult = await supabase.rpc(
     "resolve_membership_quota_bootstrap_context",
     {

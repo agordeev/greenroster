@@ -10,12 +10,14 @@ import {
   executeGetMemberPrivateContactDetail,
   executeListManageableMembers,
 } from "@/lib/memberships/member-management-data";
+import { executeGetMemberQuotaBootstrapContext } from "@/lib/memberships/member-quota-bootstrap-data";
 import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { PortalShell } from "../portal-shell";
 import { MemberCreateInvite } from "./member-create-invite";
 import { MemberManagement } from "./member-management";
+import { MemberQuotaEditor } from "./member-quota-editor";
 
 const contextSchema = z
   .array(
@@ -72,6 +74,7 @@ export default async function MemberManagementPage({
 
   let selectedMember = null;
   let privateContact = null;
+  let quotaContext = null;
   if (selectedId) {
     try {
       selectedMember = await executeGetManageableMember(
@@ -83,6 +86,12 @@ export default async function MemberManagementPage({
         selectedId,
         crypto.randomUUID(),
       );
+      if (portalContext.role === "administrator") {
+        quotaContext = await executeGetMemberQuotaBootstrapContext(
+          session.userId,
+          selectedId,
+        );
+      }
     } catch (error) {
       return renderError(error, portalContext);
     }
@@ -122,6 +131,12 @@ export default async function MemberManagementPage({
           role={portalContext.role}
           selectedMember={selectedMember}
         />
+        {quotaContext ? (
+          <MemberQuotaEditor
+            key={`${quotaContext.membershipId}:${quotaContext.projectionVersion}:${quotaContext.settingsVersion}`}
+            context={quotaContext}
+          />
+        ) : null}
       </section>
     </PortalShell>
   );
