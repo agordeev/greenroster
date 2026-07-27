@@ -20,12 +20,25 @@ import {
   shouldAllowMemberFormSubmit,
 } from "@/lib/memberships/member-management";
 import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
+import {
+  buildMemberRosterHref,
+  memberRosterHasNoActiveMembers,
+  memberRosterQueryHasFilters,
+  memberRosterTotalPages,
+  sortDirectionFor,
+  type MemberRosterQuery,
+  type MemberRosterSortKey,
+} from "@/domain/member-roster-query";
+import {
+  formatMemberRosterInitialQuotaUsage,
+  formatMemberRosterQuotaProvenance,
+} from "@/domain/member-roster-presentation";
 import type {
   ManageableMember,
+  ManageableMemberRosterRow,
   MemberEditInput,
   MemberPrivateContact,
   MemberRoleInput,
-  MemberStatus,
 } from "@/lib/memberships/member-management";
 
 type EditorValues = Omit<
@@ -61,18 +74,22 @@ const emptyContact: MemberPrivateContact = {
 
 export function MemberManagement({
   actorMembershipId,
+  activeCount,
   members,
   privateContact,
   role,
+  rosterQuery,
   selectedMember,
-  statusFilter = null,
+  totalCount,
 }: Readonly<{
   actorMembershipId: string;
-  members: readonly ManageableMember[];
+  activeCount: number;
+  members: readonly ManageableMemberRosterRow[];
   privateContact: MemberPrivateContact | null;
   role: "member" | "coordinator" | "administrator";
+  rosterQuery: MemberRosterQuery;
   selectedMember: ManageableMember | null;
-  statusFilter?: MemberStatus | null;
+  totalCount: number;
 }>) {
   const [terminal, setTerminal] = useState<{
     membershipId: string | null;
@@ -97,50 +114,17 @@ export function MemberManagement({
       <div className="member-list" aria-label="Group members">
         <div className="member-list-heading">
           <h2>Roster</h2>
-          <span>{members.length} records</span>
+          <span>{totalCount} records</span>
         </div>
-        {statusFilter ? (
-          <div className="member-filter-summary">
-            <span>Showing {formatStatus(statusFilter)} memberships</span>
-            <Link href="/portal/members">Clear filter</Link>
-          </div>
-        ) : null}
-        {members.length === 0 ? (
-          <div className="member-empty">
-            <p>
-              {statusFilter
-                ? `No ${formatStatus(statusFilter).toLowerCase()} membership records match this filter.`
-                : "No member records are available."}
-            </p>
-            {statusFilter ? (
-              <Link className="secondary-link" href="/portal/members">
-                View all members
-              </Link>
-            ) : null}
-          </div>
-        ) : (
-          <ul>
-            {members.map((member) => (
-              <li key={member.membershipId}>
-                <Link
-                  href={`/portal/members?${
-                    statusFilter ? `status=${statusFilter}&` : ""
-                  }membership=${member.membershipId}`}
-                  aria-current={
-                    selectedMember?.membershipId === member.membershipId
-                      ? "page"
-                      : undefined
-                  }
-                >
-                  <span>{formatMemberName(member)}</span>
-                  <small>
-                    {formatStatus(member.status)} · {formatRole(member.role)}
-                  </small>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <MemberRosterFilters query={rosterQuery} />
+        <MemberAlphabetFilter query={rosterQuery} />
+        <MemberRosterContent
+          activeCount={activeCount}
+          members={members}
+          query={rosterQuery}
+          selectedMemberId={selectedMember?.membershipId ?? null}
+          totalCount={totalCount}
+        />
       </div>
 
       {selectedMember ? (
@@ -169,6 +153,494 @@ export function MemberManagement({
         {terminalMessage}
       </div>
     </div>
+  );
+}
+
+function MemberRosterFilters({
+  query,
+}: Readonly<{ query: MemberRosterQuery }>) {
+  return (
+    <form
+      className="member-roster-filters"
+      action="/portal/members"
+      method="get"
+    >
+      <div className="member-roster-filter-grid">
+        <label className="field-group member-roster-search">
+          <span>Search name, invited e-mail, or Handicap ID</span>
+          <input
+            name="search"
+            type="search"
+            defaultValue={query.search}
+            maxLength={200}
+            autoComplete="off"
+          />
+        </label>
+        <label className="field-group">
+          <span>Status</span>
+          <select name="status" defaultValue={query.status ?? ""}>
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </label>
+        {query.alphabet ? (
+          <input type="hidden" name="alphabet" value={query.alphabet} />
+        ) : null}
+        <label className="field-group">
+          <span>Role</span>
+          <select name="role" defaultValue={query.role ?? ""}>
+            <option value="">All roles</option>
+            <option value="member">Member</option>
+            <option value="coordinator">Coordinator</option>
+            <option value="administrator">Administrator</option>
+          </select>
+        </label>
+        <label className="field-group">
+          <span>Dues</span>
+          <select name="dues" defaultValue={query.dues ?? ""}>
+            <option value="">All dues states</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Not recorded</option>
+          </select>
+        </label>
+        <label className="field-group">
+          <span>Rows per page</span>
+          <select name="pageSize" defaultValue={String(query.pageSize)}>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+        <label className="field-group">
+          <span>Sort by</span>
+          <select name="sort" defaultValue={query.sort}>
+            <option value="name">Name</option>
+            <option value="status">Status</option>
+            <option value="role">Role</option>
+            <option value="dues">Dues</option>
+            <option value="tee">Tee</option>
+            <option value="handicap">Handicap</option>
+            <option value="quota">Quota</option>
+            <option value="date_added">Date added</option>
+            <option value="invitation">Invitation</option>
+          </select>
+        </label>
+        <label className="field-group">
+          <span>Direction</span>
+          <select name="direction" defaultValue={query.direction}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </label>
+      </div>
+      <div className="member-roster-filter-actions">
+        <button className="secondary-button" type="submit">
+          Apply filters
+        </button>
+        {memberRosterQueryHasFilters(query) ||
+        query.page !== 1 ||
+        query.pageSize !== 25 ? (
+          <Link className="secondary-link" href="/portal/members">
+            Clear filters
+          </Link>
+        ) : null}
+      </div>
+    </form>
+  );
+}
+
+function MemberAlphabetFilter({
+  query,
+}: Readonly<{ query: MemberRosterQuery }>) {
+  return (
+    <nav
+      className="member-alphabet-filter"
+      aria-label="Filter members by surname initial"
+    >
+      <span>Alphabet</span>
+      <Link
+        href={buildMemberRosterHref(query, {
+          alphabet: null,
+          page: 1,
+          membership: null,
+        })}
+        aria-current={query.alphabet === null ? "page" : undefined}
+      >
+        All
+      </Link>
+      {Array.from({ length: 26 }, (_, index) => {
+        const letter = String.fromCharCode(65 + index);
+        return (
+          <Link
+            key={letter}
+            href={buildMemberRosterHref(query, {
+              alphabet: letter,
+              page: 1,
+              membership: null,
+            })}
+            aria-current={query.alphabet === letter ? "page" : undefined}
+          >
+            {letter}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function MemberRosterContent({
+  activeCount,
+  members,
+  query,
+  selectedMemberId,
+  totalCount,
+}: Readonly<{
+  activeCount: number;
+  members: readonly ManageableMemberRosterRow[];
+  query: MemberRosterQuery;
+  selectedMemberId: string | null;
+  totalCount: number;
+}>) {
+  const totalPages = memberRosterTotalPages(totalCount, query);
+  const pageOutOfRange = totalCount > 0 && query.page > totalPages;
+  const noActiveMembers = memberRosterHasNoActiveMembers(
+    query,
+    activeCount,
+    totalCount,
+  );
+
+  if (pageOutOfRange) {
+    return (
+      <div className="member-roster-empty" role="status">
+        <h3>This roster page is out of range</h3>
+        <p>
+          The matching roster has {totalPages} page{totalPages === 1 ? "" : "s"}
+          . Open the first page to continue.
+        </p>
+        <Link
+          className="secondary-link"
+          href={buildMemberRosterHref(query, { page: 1, membership: null })}
+        >
+          Open first page
+        </Link>
+      </div>
+    );
+  }
+
+  if (members.length === 0) {
+    const filtered = memberRosterQueryHasFilters(query);
+    return (
+      <div className="member-roster-empty" role="status">
+        <h3>
+          {filtered ? "No members match these filters" : "No members yet"}
+        </h3>
+        <p>
+          {filtered
+            ? "Try a different search or clear the roster filters."
+            : "Create or import a member to begin building the group roster."}
+        </p>
+        {filtered ? (
+          <Link className="secondary-link" href="/portal/members">
+            Clear filters
+          </Link>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {noActiveMembers ? (
+        <div className="member-roster-empty" role="status">
+          <h3>No active members</h3>
+          <p>
+            This group has roster records, but none are active yet. Pending and
+            inactive records remain visible below for follow-up.
+          </p>
+        </div>
+      ) : null}
+      <p className="member-roster-result-summary" aria-live="polite">
+        Showing {members.length} of {totalCount} matching member
+        {totalCount === 1 ? "" : "s"}. Page {query.page} of {totalPages}.
+      </p>
+      <div className="member-roster-table-wrap">
+        <table className="member-roster-table">
+          <caption className="visually-hidden">Group member roster</caption>
+          <thead>
+            <tr>
+              <MemberSortHeader label="Member" query={query} sortKey="name" />
+              <MemberSortHeader label="Status" query={query} sortKey="status" />
+              <MemberSortHeader label="Role" query={query} sortKey="role" />
+              <MemberSortHeader label="Dues" query={query} sortKey="dues" />
+              <MemberSortHeader label="Tee" query={query} sortKey="tee" />
+              <MemberSortHeader
+                label="Handicap"
+                query={query}
+                sortKey="handicap"
+              />
+              <MemberSortHeader label="Quota" query={query} sortKey="quota" />
+              <MemberSortHeader
+                label="Added"
+                query={query}
+                sortKey="date_added"
+              />
+              <MemberSortHeader
+                label="Invitation"
+                query={query}
+                sortKey="invitation"
+              />
+            </tr>
+          </thead>
+          <tbody>
+            {members.map((member) => (
+              <MemberRosterTableRow
+                key={member.membershipId}
+                member={member}
+                query={query}
+                selected={selectedMemberId === member.membershipId}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul
+        className="member-roster-cards"
+        aria-label="Group member roster cards"
+      >
+        {members.map((member) => (
+          <li key={member.membershipId}>
+            <MemberRosterCard
+              member={member}
+              query={query}
+              selected={selectedMemberId === member.membershipId}
+            />
+          </li>
+        ))}
+      </ul>
+      <MemberRosterPagination query={query} totalPages={totalPages} />
+    </>
+  );
+}
+
+function MemberSortHeader({
+  label,
+  query,
+  sortKey,
+}: Readonly<{
+  label: string;
+  query: MemberRosterQuery;
+  sortKey: MemberRosterSortKey;
+}>) {
+  const active = query.sort === sortKey;
+  const nextDirection = sortDirectionFor(query, sortKey);
+  return (
+    <th
+      scope="col"
+      aria-sort={
+        active
+          ? query.direction === "asc"
+            ? "ascending"
+            : "descending"
+          : "none"
+      }
+    >
+      <Link
+        href={buildMemberRosterHref(query, {
+          sort: sortKey,
+          direction: nextDirection,
+          page: 1,
+          membership: null,
+        })}
+        aria-label={`${label}; sort ${nextDirection === "asc" ? "ascending" : "descending"}`}
+      >
+        {label}
+        {active ? (
+          <span aria-hidden="true">
+            {" "}
+            {query.direction === "asc" ? "↑" : "↓"}
+          </span>
+        ) : null}
+      </Link>
+    </th>
+  );
+}
+
+function MemberRosterTableRow({
+  member,
+  query,
+  selected,
+}: Readonly<{
+  member: ManageableMemberRosterRow;
+  query: MemberRosterQuery;
+  selected: boolean;
+}>) {
+  const href = buildMemberRosterHref(query, {
+    membership: member.membershipId,
+  });
+  return (
+    <tr>
+      <th scope="row">
+        <Link href={href} aria-current={selected ? "page" : undefined}>
+          {formatMemberName(member)}
+        </Link>
+      </th>
+      <td>{formatStatus(member.status)}</td>
+      <td>{formatRole(member.role)}</td>
+      <td>{member.duesPaid ? "Paid" : "Not recorded"}</td>
+      <td>{member.teeLocation ? formatTee(member.teeLocation) : "Not set"}</td>
+      <td>{formatRosterHandicap(member)}</td>
+      <td>{formatRosterQuota(member)}</td>
+      <td>{formatDate(member.dateAdded)}</td>
+      <td>{formatInvitation(member)}</td>
+    </tr>
+  );
+}
+
+function MemberRosterCard({
+  member,
+  query,
+  selected,
+}: Readonly<{
+  member: ManageableMemberRosterRow;
+  query: MemberRosterQuery;
+  selected: boolean;
+}>) {
+  return (
+    <article
+      className="member-roster-card"
+      data-selected={selected || undefined}
+    >
+      <div className="member-roster-card-heading">
+        <h3>
+          <Link
+            href={buildMemberRosterHref(query, {
+              membership: member.membershipId,
+            })}
+            aria-current={selected ? "page" : undefined}
+          >
+            {formatMemberName(member)}
+          </Link>
+        </h3>
+        <span>{formatStatus(member.status)}</span>
+      </div>
+      <dl>
+        <div>
+          <dt>Role</dt>
+          <dd>{formatRole(member.role)}</dd>
+        </div>
+        <div>
+          <dt>Dues</dt>
+          <dd>{member.duesPaid ? "Paid" : "Not recorded"}</dd>
+        </div>
+        <div>
+          <dt>Tee</dt>
+          <dd>
+            {member.teeLocation ? formatTee(member.teeLocation) : "Not set"}
+          </dd>
+        </div>
+        <div>
+          <dt>Handicap</dt>
+          <dd>{formatRosterHandicap(member)}</dd>
+        </div>
+        <div>
+          <dt>Quota</dt>
+          <dd>{formatRosterQuota(member)}</dd>
+        </div>
+        <div>
+          <dt>Added</dt>
+          <dd>{formatDate(member.dateAdded)}</dd>
+        </div>
+        <div>
+          <dt>Invitation</dt>
+          <dd>{formatInvitation(member)}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function MemberRosterPagination({
+  query,
+  totalPages,
+}: Readonly<{ query: MemberRosterQuery; totalPages: number }>) {
+  if (totalPages <= 1) return null;
+  return (
+    <nav className="member-roster-pagination" aria-label="Member roster pages">
+      <span>
+        Page {query.page} of {totalPages}
+      </span>
+      <div>
+        {query.page > 1 ? (
+          <Link
+            href={buildMemberRosterHref(query, {
+              page: query.page - 1,
+              membership: null,
+            })}
+          >
+            Previous
+          </Link>
+        ) : null}
+        {query.page < totalPages ? (
+          <Link
+            href={buildMemberRosterHref(query, {
+              page: query.page + 1,
+              membership: null,
+            })}
+          >
+            Next
+          </Link>
+        ) : null}
+      </div>
+    </nav>
+  );
+}
+
+function formatRosterHandicap(member: ManageableMemberRosterRow) {
+  if (member.handicapValue === null) return "Not recorded";
+  const source = member.handicapSource
+    ? ` · ${member.handicapSource === "manual" ? "Manual" : "Import"}`
+    : "";
+  const asOf = member.handicapAsOf ? ` · ${member.handicapAsOf}` : "";
+  return `${member.handicapValue}${source}${asOf}`;
+}
+
+function formatRosterQuota(member: ManageableMemberRosterRow) {
+  const initialQuotaUsage = formatMemberRosterInitialQuotaUsage(
+    member.usesInitialQuota,
+  );
+  if (member.currentQuota === null) {
+    return [
+      member.usesInitialQuota ? "Initial quota pending" : "Not recorded",
+      initialQuotaUsage,
+    ].join(" · ");
+  }
+  const provenance = formatMemberRosterQuotaProvenance(
+    member.currentQuotaProvenance,
+  );
+  const effective = member.currentQuotaEffectiveAt
+    ? `effective ${formatDate(member.currentQuotaEffectiveAt)}`
+    : null;
+  return [member.currentQuota, provenance, effective, initialQuotaUsage]
+    .filter((value): value is string => Boolean(value))
+    .join(" · ");
+}
+
+function formatInvitation(member: ManageableMemberRosterRow) {
+  if (member.invitationDeliveryActionRequired) {
+    return `${member.invitationState ? formatInvitationState(member.invitationState) : "Invitation"} · Action required`;
+  }
+  return member.invitationState
+    ? formatInvitationState(member.invitationState)
+    : "None";
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
+    date,
   );
 }
 
@@ -916,6 +1388,12 @@ function formatStatus(status: ManageableMember["status"]) {
   return status[0].toUpperCase() + status.slice(1);
 }
 
+function formatInvitationState(
+  status: NonNullable<ManageableMemberRosterRow["invitationState"]>,
+) {
+  return status[0].toUpperCase() + status.slice(1);
+}
+
 function formatMemberName(
   member: Pick<ManageableMember, "firstName" | "lastName">,
 ) {
@@ -924,4 +1402,8 @@ function formatMemberName(
 
 function formatRole(role: ManageableMember["role"]) {
   return role[0].toUpperCase() + role.slice(1);
+}
+
+function formatTee(tee: NonNullable<ManageableMemberRosterRow["teeLocation"]>) {
+  return tee[0].toUpperCase() + tee.slice(1);
 }

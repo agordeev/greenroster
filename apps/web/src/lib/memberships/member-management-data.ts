@@ -3,7 +3,13 @@ import "server-only";
 import { z } from "zod";
 
 import {
+  memberRosterRpcArgs,
+  type MemberRosterQuery,
+} from "../../domain/member-roster-query";
+
+import {
   type ManageableMember,
+  type ManageableMemberRosterRow,
   type MemberEditInput,
   type MemberEditResult,
   type MemberPrivateContact,
@@ -54,6 +60,48 @@ const memberRowSchema = z
     created_at: z.string().datetime({ offset: true }),
     activated_at: z.string().datetime({ offset: true }).nullable(),
     inactivated_at: z.string().datetime({ offset: true }).nullable(),
+  })
+  .strict();
+
+const decimalValueSchema = z
+  .union([z.string(), z.number()])
+  .transform((value) => String(value).trim())
+  .nullable();
+const countSchema = z
+  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)])
+  .transform((value) => Number(value));
+const rosterRowSchema = z
+  .object({
+    membership_id: z.uuid(),
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable(),
+    status: z.enum(["pending", "active", "inactive"]),
+    role: z.enum(["member", "coordinator", "administrator"]),
+    dues_paid: z.boolean(),
+    tee_location: z.enum(["pro", "back", "middle", "front"]).nullable(),
+    handicap_value: decimalValueSchema,
+    handicap_source: z.enum(["manual", "import"]).nullable(),
+    handicap_as_of: z.iso.date().nullable(),
+    handicap_id: z.string().nullable(),
+    current_quota: decimalValueSchema,
+    current_quota_provenance: z.record(z.string(), z.unknown()).nullable(),
+    current_quota_effective_at: z
+      .string()
+      .datetime({ offset: true })
+      .nullable(),
+    uses_initial_quota: z.boolean(),
+    date_added: z.string().datetime({ offset: true }),
+    invitation_state: z
+      .enum(["pending", "accepted", "revoked", "expired"])
+      .nullable(),
+    invitation_delivery_action_required: z.boolean(),
+  })
+  .strict();
+const rosterEnvelopeSchema = z
+  .object({
+    total_count: countSchema,
+    active_count: countSchema,
+    rows: z.array(rosterRowSchema),
   })
   .strict();
 
@@ -182,6 +230,60 @@ export async function executeListManageableMembers(
   if (!parsed.success)
     throw new MutationError("unexpected", { cause: parsed.error });
   return parsed.data.map(mapMember);
+}
+
+function mapRosterRow(
+  row: z.infer<typeof rosterRowSchema>,
+): ManageableMemberRosterRow {
+  return {
+    membershipId: row.membership_id,
+    firstName: row.first_name ?? "",
+    lastName: row.last_name ?? "",
+    status: row.status,
+    role: row.role,
+    duesPaid: row.dues_paid,
+    teeLocation: row.tee_location,
+    handicapValue: row.handicap_value,
+    handicapSource: row.handicap_source,
+    handicapAsOf: row.handicap_as_of,
+    handicapId: row.handicap_id,
+    currentQuota: row.current_quota,
+    currentQuotaProvenance: row.current_quota_provenance,
+    currentQuotaEffectiveAt: row.current_quota_effective_at,
+    usesInitialQuota: row.uses_initial_quota,
+    dateAdded: row.date_added,
+    invitationState: row.invitation_state,
+    invitationDeliveryActionRequired: row.invitation_delivery_action_required,
+  };
+}
+
+export async function executeListManageableMemberRoster(
+  actorUserId: string,
+  query: MemberRosterQuery,
+  overrides?: Partial<MemberManagementDataDependencies>,
+): Promise<
+  Readonly<{
+    activeCount: number;
+    members: readonly ManageableMemberRosterRow[];
+    totalCount: number;
+  }>
+> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  const client = await dependencies.createClient();
+  const { data, error } = await client.rpc(
+    "list_manageable_member_roster",
+    memberRosterRpcArgs(actorUserId, query),
+  );
+  if (error) throw mapMemberError(error);
+  const parsed = rosterEnvelopeSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new MutationError("unexpected", { cause: parsed.error });
+  }
+  return {
+    activeCount: parsed.data.active_count,
+    totalCount: parsed.data.total_count,
+    members: parsed.data.rows.map(mapRosterRow),
+  };
 }
 
 export async function executeGetManageableMember(

@@ -6,14 +6,14 @@ import { z } from "zod";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {
-  filterManageableMembers,
-  parseMemberStatusFilter,
-} from "@/domain/portal-list-filters";
+  parseMemberRosterQuery,
+  visibleMemberRosterSelection,
+} from "@/domain/member-roster-query";
 import { executeGetMemberDetailProjection } from "@/lib/memberships/member-detail-data";
 import {
   executeGetManageableMember,
   executeGetMemberPrivateContactDetail,
-  executeListManageableMembers,
+  executeListManageableMemberRoster,
 } from "@/lib/memberships/member-management-data";
 import { executeGetMemberQuotaBootstrapContext } from "@/lib/memberships/member-quota-bootstrap-data";
 import { MutationError } from "@/lib/mutations/result";
@@ -50,7 +50,15 @@ export default async function MemberManagementPage({
 }: Readonly<{
   searchParams: Promise<{
     membership?: string | string[] | undefined;
+    search?: string | string[] | undefined;
+    alphabet?: string | string[] | undefined;
     status?: string | string[] | undefined;
+    role?: string | string[] | undefined;
+    dues?: string | string[] | undefined;
+    sort?: string | string[] | undefined;
+    direction?: string | string[] | undefined;
+    page?: string | string[] | undefined;
+    pageSize?: string | string[] | undefined;
   }>;
 }>) {
   let session: Awaited<ReturnType<typeof verifyMutationSession>>;
@@ -67,27 +75,23 @@ export default async function MemberManagementPage({
     return renderError(error);
   }
 
-  let members;
+  const query = await searchParams;
+  const rosterQuery = parseMemberRosterQuery(query);
+
+  let roster;
   try {
-    members = await executeListManageableMembers(session.userId);
+    roster = await executeListManageableMemberRoster(
+      session.userId,
+      rosterQuery,
+    );
   } catch (error) {
     return renderError(error, portalContext);
   }
 
-  const query = await searchParams;
-  const statusFilter = parseMemberStatusFilter(query.status);
-  const visibleMembers = filterManageableMembers(members, statusFilter);
-  const requestedMembership = Array.isArray(query.membership)
-    ? query.membership[0]
-    : query.membership;
-  const parsedMembership = z.uuid().safeParse(requestedMembership);
-  const selectedId =
-    parsedMembership.success &&
-    visibleMembers.some(
-      (member) => member.membershipId === parsedMembership.data,
-    )
-      ? parsedMembership.data
-      : null;
+  const selectedId = visibleMemberRosterSelection(
+    query.membership,
+    roster.members.map((member) => member.membershipId),
+  );
 
   let selectedMember = null;
   let privateContact = null;
@@ -142,11 +146,13 @@ export default async function MemberManagementPage({
         ) : null}
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
-          members={visibleMembers}
+          activeCount={roster.activeCount}
+          members={roster.members}
           privateContact={privateContact}
           role={portalContext.role}
+          rosterQuery={rosterQuery}
           selectedMember={selectedMember}
-          statusFilter={statusFilter}
+          totalCount={roster.totalCount}
         />
         {quotaContext ? (
           <MemberQuotaEditor

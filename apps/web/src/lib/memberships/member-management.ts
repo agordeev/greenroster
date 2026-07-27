@@ -120,6 +120,27 @@ export type ManageableMember = Readonly<{
   inactivatedAt: string | null;
 }>;
 
+export type ManageableMemberRosterRow = Readonly<{
+  membershipId: string;
+  firstName: string;
+  lastName: string;
+  status: MemberStatus;
+  role: MemberRole;
+  duesPaid: boolean;
+  teeLocation: "pro" | "back" | "middle" | "front" | null;
+  handicapValue: string | null;
+  handicapSource: "manual" | "import" | null;
+  handicapAsOf: string | null;
+  handicapId: string | null;
+  currentQuota: string | null;
+  currentQuotaProvenance: Readonly<Record<string, unknown>> | null;
+  currentQuotaEffectiveAt: string | null;
+  usesInitialQuota: boolean;
+  dateAdded: string;
+  invitationState: "pending" | "accepted" | "revoked" | "expired" | null;
+  invitationDeliveryActionRequired: boolean;
+}>;
+
 export type MemberPrivateContact = Readonly<{
   membershipId: string;
   groupId: string;
