@@ -21,6 +21,14 @@ import {
   runRegenerateInvitationMutation,
   runRevokeInvitationMutation,
 } from "@/lib/invitations/invitation-lifecycle";
+import {
+  runMemberEditMutation,
+  runMemberStatusMutation,
+} from "@/lib/memberships/member-management";
+import {
+  executeEditMember,
+  executeSetMemberStatus,
+} from "@/lib/memberships/member-management-data";
 
 export async function transferAdministratorRoleAction(input: unknown) {
   const requestHeaders = await headers();
@@ -108,6 +116,28 @@ export async function revokeMembershipInvitationAction(input: unknown) {
     requestHeaders.get("x-correlation-id"),
     {
       executeRevoke: executeRevokeInvitation,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function editMemberAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runMemberEditMutation(input, requestHeaders.get("x-correlation-id"), {
+    execute: executeEditMember,
+    verifySession: verifyMutationSession,
+  });
+}
+
+export async function setMemberStatusAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runMemberStatusMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeSetMemberStatus,
       verifySession: verifyMutationSession,
     },
   );

@@ -27,7 +27,7 @@ export function PortalShell({
   role?: PortalRole;
   roleStatus?: string;
   timeZone: string;
-  currentSection?: "home" | "invitations";
+  currentSection?: "home" | "members" | "invitations";
 }>) {
   const visibleRole = role
     ? roleLabel[role]
@@ -61,6 +61,12 @@ export function PortalShell({
             aria-current={currentSection === "home" ? "page" : undefined}
           >
             Home
+          </Link>
+          <Link
+            href="/portal/members"
+            aria-current={currentSection === "members" ? "page" : undefined}
+          >
+            Members
           </Link>
           <Link
             href="/portal/invitations"

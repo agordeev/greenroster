@@ -45,8 +45,8 @@ select ok(
   'trusted server can read golfer profiles through an explicit grant'
 );
 select ok(
-  has_table_privilege('service_role', 'public.membership_private_contacts', 'select'),
-  'trusted server can read private contacts through an explicit grant'
+  not has_table_privilege('service_role', 'public.membership_private_contacts', 'select'),
+  'trusted server cannot read private contacts through a raw table grant'
 );
 select ok(
   has_function_privilege(
