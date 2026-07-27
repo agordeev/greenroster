@@ -1023,6 +1023,95 @@ input {
   gap: 1.5rem;
   margin-top: 2.5rem;
 }
+.member-create-invite {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  background: var(--inset);
+}
+.member-create-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.member-create-heading h2 {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-ledger);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.member-create-step {
+  color: var(--quiet);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.member-create-copy {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--pencil);
+  line-height: 1.55;
+}
+.member-create-form,
+.member-invite-form {
+  display: grid;
+  gap: 1.25rem;
+}
+.member-create-form > fieldset,
+.member-invite-form > fieldset {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.member-create-form legend,
+.member-invite-form legend {
+  margin-bottom: 0.25rem;
+  font-family: var(--font-ledger);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+.member-create-form .member-contact-fieldset {
+  padding: 1rem;
+}
+.member-create-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.member-create-confirmation {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  color: var(--pencil);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+.member-create-confirmation input {
+  margin-top: 0.2rem;
+}
+.member-invite-form {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule-soft);
+}
+.member-invite-form p {
+  margin: 0;
+  color: var(--pencil);
+  line-height: 1.5;
+}
+.member-invite-form code {
+  color: var(--graphite);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
 .member-list,
 .member-editor,
 .member-editor-empty {
@@ -1225,6 +1314,7 @@ input {
   .quota-policy-row,
   .band-row,
   .invitation-actions,
+  .member-create-heading,
   .member-management,
   .member-form-grid,
   .member-summary {

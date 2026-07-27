@@ -14,6 +14,7 @@ import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { PortalShell } from "../portal-shell";
+import { MemberCreateInvite } from "./member-create-invite";
 import { MemberManagement } from "./member-management";
 
 const contextSchema = z
@@ -105,11 +106,14 @@ export default async function MemberManagementPage({
           current group role and record versions on every action.
         </p>
         {portalContext.role !== "member" ? (
-          <p>
-            <Link className="secondary-link" href="/portal/members/import">
-              Import members from CSV
-            </Link>
-          </p>
+          <>
+            <p>
+              <Link className="secondary-link" href="/portal/members/import">
+                Import members from CSV
+              </Link>
+            </p>
+            <MemberCreateInvite role={portalContext.role} />
+          </>
         ) : null}
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
