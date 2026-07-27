@@ -1,4 +1,5 @@
 import { MemberDestinationScreen } from "@/components/member-destination-screen";
+import { GroupDirectoryLink } from "@/components/group-directory-link";
 import { useMobileAuth } from "@/components/mobile-auth-provider";
 import { MobileSignOutButton } from "@/components/mobile-sign-out-button";
 import { useMobileFirstRun } from "@/components/mobile-first-run-provider";
@@ -54,6 +55,7 @@ export default function ProfileScreen() {
         ],
       ]}
     >
+      <GroupDirectoryLink />
       {!recoveryRequired ? (
         <AccountEmailSection
           key={currentEmail ?? "no-session-email"}

@@ -1,4 +1,5 @@
 import { MemberDestinationScreen } from "@/components/member-destination-screen";
+import { GroupDirectoryLink } from "@/components/group-directory-link";
 
 export default function HomeScreen() {
   return (
@@ -13,6 +14,8 @@ export default function HomeScreen() {
         ["Next RSVP", "Not loaded"],
         ["Recent result", "Not loaded"],
       ]}
-    />
+    >
+      <GroupDirectoryLink />
+    </MemberDestinationScreen>
   );
 }
