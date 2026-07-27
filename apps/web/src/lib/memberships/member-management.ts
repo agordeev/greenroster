@@ -82,8 +82,20 @@ export const memberStatusInputSchema = z
   })
   .strict();
 
+export const memberRoleInputSchema = z
+  .object({
+    membershipId: z.uuid(),
+    newRole: z.enum(["member", "coordinator", "administrator"]),
+    expectedMembershipVersion: z.number().int().positive(),
+    confirmed: confirmation,
+    reason: z.string().trim().min(1).max(500),
+    operationId: z.uuid(),
+  })
+  .strict();
+
 export type MemberEditInput = z.infer<typeof memberEditInputSchema>;
 export type MemberStatusInput = z.infer<typeof memberStatusInputSchema>;
+export type MemberRoleInput = z.infer<typeof memberRoleInputSchema>;
 
 export type MemberStatus = "pending" | "active" | "inactive";
 export type MemberRole = "member" | "coordinator" | "administrator";
@@ -148,6 +160,15 @@ export type MemberStatusResult = Readonly<{
   cancelledNotificationCount: number;
 }>;
 
+export type MemberRoleResult = Readonly<{
+  membershipId: string;
+  groupId: string;
+  membershipVersion: number;
+  oldRole: MemberRole;
+  newRole: MemberRole;
+  roleChanged: boolean;
+}>;
+
 export type MemberMutationDependencies<TInput, TResult> = Readonly<{
   verifySession: () => Promise<VerifiedMutationSession>;
   execute: (
@@ -161,6 +182,8 @@ export type MemberOperationState = Readonly<{
   fingerprint: string | null;
   operationId: string | null;
 }>;
+
+export type MemberFormKind = "profile" | "status" | "role";
 
 export function memberEditorFingerprint(
   values: unknown,
@@ -182,18 +205,28 @@ export function memberStatusFingerprint(reason: string, confirmed: boolean) {
   return JSON.stringify({ reason, confirmed });
 }
 
+export function memberRoleFingerprint(
+  role: MemberRole,
+  reason: string,
+  confirmed: boolean,
+) {
+  return JSON.stringify({ role, reason, confirmed });
+}
+
 export function shouldAllowMemberFormSubmit(
-  form: "profile" | "status",
-  dirty: Readonly<{ profile: boolean; status: boolean }>,
+  form: MemberFormKind,
+  dirty: Readonly<{ profile: boolean; status: boolean; role?: boolean }>,
   confirmDiscard: () => boolean,
 ) {
-  const otherFormDirty = form === "profile" ? dirty.status : dirty.profile;
+  const otherFormDirty = (
+    Object.entries(dirty) as Array<[MemberFormKind, boolean | undefined]>
+  ).some(([kind, isDirty]) => kind !== form && Boolean(isDirty));
   return !otherFormDirty || confirmDiscard();
 }
 
 export function retainMemberOperationId(
   state: MemberOperationState,
-  kind: "edit" | "status",
+  kind: "edit" | "status" | "role",
   payload: unknown,
   createId: () => string,
 ): Readonly<{ fingerprint: string; operationId: string }> {
@@ -221,6 +254,13 @@ export function memberTargetPermissions(
   } as const;
 }
 
+export function canChangeMemberRole(
+  actorRole: MemberRole,
+  target: Pick<ManageableMember, "role" | "status">,
+) {
+  return actorRole === "administrator" && target.status === "active";
+}
+
 export async function runMemberEditMutation(
   rawInput: unknown,
   correlationCandidate: string | null | undefined,
@@ -244,6 +284,18 @@ export async function runMemberStatusMutation(
   return runVerifiedMutation(rawInput, correlationCandidate, {
     execute: dependencies.execute,
     inputSchema: memberStatusInputSchema,
+    verifySession: dependencies.verifySession,
+  });
+}
+
+export async function runMemberRoleMutation(
+  rawInput: unknown,
+  correlationCandidate: string | null | undefined,
+  dependencies: MemberMutationDependencies<MemberRoleInput, MemberRoleResult>,
+): Promise<MutationResult<MemberRoleResult>> {
+  return runVerifiedMutation(rawInput, correlationCandidate, {
+    execute: dependencies.execute,
+    inputSchema: memberRoleInputSchema,
     verifySession: dependencies.verifySession,
   });
 }

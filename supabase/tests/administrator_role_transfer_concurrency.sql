@@ -168,7 +168,7 @@ begin
         '64000000-0000-4000-8000-000000000004',
         1,
         true,
-        'Concurrent transfer retry',
+        'Concurrent transfer',
         '24000000-0000-4000-8000-000000000099',
         '34000000-0000-4000-8000-000000000001'
       )
@@ -227,6 +227,12 @@ select extensions.dblink_disconnect('admin_demotion_c2');
 drop function app.test_concurrent_administrator_demotion(uuid, double precision);
 
 begin;
+delete from public.notification_deliveries
+where group_id = '54000000-0000-4000-8000-000000000002';
+delete from public.membership_role_change_notifications
+where group_id = '54000000-0000-4000-8000-000000000002';
+delete from public.notification_outbox_jobs
+where group_id = '54000000-0000-4000-8000-000000000002';
 alter table public.audit_events disable trigger audit_events_append_only;
 delete from public.audit_events
 where actor_user_id = '14000000-0000-4000-8000-000000000003'

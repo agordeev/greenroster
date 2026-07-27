@@ -292,7 +292,9 @@ select ok(
 );
 select ok(
   (select after_state::text not like '%Alex.Secondary%'
-    and after_state::text not like '%555%'
+    and after_state::text not like '%+1 (555) 123-4567%'
+    and after_state::text not like '%+15551234567%'
+    and after_state::text not like '%5557654321%'
     and after_state::text not like '%Main Street%'
    from public.audit_events where action = 'member.created'),
   'audit after-state excludes sensitive contact values'

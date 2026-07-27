@@ -117,6 +117,10 @@ describe("invitation notification worker", () => {
       "claim_membership_invitation_email",
       "record_email_send_success",
     ]);
+    expect(calls[0]?.args).toEqual({
+      p_claim_token: claimToken,
+      p_stale_before: "2026-07-26T11:58:30.000Z",
+    });
     expect(calls[1]?.args).toMatchObject({
       p_delivery_id: deliveryId,
       p_provider_message_id: "provider-message-1",

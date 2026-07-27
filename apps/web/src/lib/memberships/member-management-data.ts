@@ -7,6 +7,8 @@ import {
   type MemberEditInput,
   type MemberEditResult,
   type MemberPrivateContact,
+  type MemberRoleInput,
+  type MemberRoleResult,
   type MemberStatusInput,
   type MemberStatusResult,
 } from "./member-management";
@@ -38,8 +40,8 @@ const memberRowSchema = z
     membership_id: z.uuid(),
     group_id: z.uuid(),
     user_id: z.uuid().nullable(),
-    first_name: z.string(),
-    last_name: z.string(),
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable(),
     spouse_first_name: z.string().nullable(),
     spouse_last_name: z.string().nullable(),
     tee_location: z.enum(["pro", "back", "middle", "front"]).nullable(),
@@ -101,6 +103,17 @@ const statusResultRowSchema = z
   })
   .strict();
 
+const roleResultRowSchema = z
+  .object({
+    membership_id: z.uuid(),
+    group_id: z.uuid(),
+    membership_version: z.number().int().positive(),
+    old_role: z.enum(["member", "coordinator", "administrator"]),
+    new_role: z.enum(["member", "coordinator", "administrator"]),
+    role_changed: z.boolean(),
+  })
+  .strict();
+
 function mapMemberError(error: SupabaseRpcError): MutationError {
   if (error.code === "P0003")
     return new MutationError("forbidden", { cause: error });
@@ -138,8 +151,8 @@ function mapMember(row: z.infer<typeof memberRowSchema>): ManageableMember {
     membershipId: row.membership_id,
     groupId: row.group_id,
     userId: row.user_id,
-    firstName: row.first_name,
-    lastName: row.last_name,
+    firstName: row.first_name ?? "",
+    lastName: row.last_name ?? "",
     spouseFirstName: row.spouse_first_name,
     spouseLastName: row.spouse_last_name,
     teeLocation: row.tee_location,
@@ -315,5 +328,40 @@ export async function executeSetMemberStatus(
     status: row.status,
     inactivatedAt: row.inactivated_at,
     cancelledNotificationCount: row.cancelled_notification_count,
+  };
+}
+
+export async function executeChangeMemberRole(
+  actorUserId: string,
+  input: MemberRoleInput,
+  correlationId: string,
+  overrides?: Partial<MemberManagementDataDependencies>,
+): Promise<MemberRoleResult> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  const client = await dependencies.createClient();
+  const { data, error } = await client.rpc("change_member_role", {
+    p_actor_user_id: actorUserId,
+    p_membership_id: input.membershipId,
+    p_new_role: input.newRole,
+    p_expected_membership_version: input.expectedMembershipVersion,
+    p_confirmed: input.confirmed,
+    p_reason: input.reason,
+    p_correlation_id: correlationId,
+    p_operation_id: input.operationId,
+  });
+  if (error) throw mapMemberError(error);
+  const row = oneRow(roleResultRowSchema, data);
+  if (row.membership_id !== input.membershipId) {
+    throw new MutationError("unexpected", {
+      cause: new Error("Member role returned an inconsistent membership"),
+    });
+  }
+  return {
+    membershipId: row.membership_id,
+    groupId: row.group_id,
+    membershipVersion: row.membership_version,
+    oldRole: row.old_role,
+    newRole: row.new_role,
+    roleChanged: row.role_changed,
   };
 }

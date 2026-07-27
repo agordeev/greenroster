@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(31);
+select plan(32);
 
 select ok(
   not has_function_privilege(
@@ -213,7 +213,11 @@ select is((select source from public.audit_events where action = 'membership.adm
 select is((select before_state -> 'replacement' ->> 'role' from public.audit_events where action = 'membership.administrator_transferred'), 'member'::text, 'the audit retains the replacement prior role');
 select is((select after_state -> 'previous_administrator' ->> 'role' from public.audit_events where action = 'membership.administrator_transferred'), 'coordinator'::text, 'the audit retains the actor resulting role');
 
-select lives_ok(
+update public.memberships
+set version = version + 1
+where id = '63000000-0000-4000-8000-000000000001';
+
+select throws_ok(
   $$
     select * from public.transfer_group_administrator(
       '13000000-0000-4000-8000-000000000001',
@@ -223,7 +227,21 @@ select lives_ok(
       '33000000-0000-4000-8000-000000000006'
     )
   $$,
-  'a retry reconciles the original success after the actor role changed'
+  '23505',
+  'operation_id_reused',
+  'a transfer operation id cannot be reused with another payload'
+);
+select lives_ok(
+  $$
+    select * from public.transfer_group_administrator(
+      '13000000-0000-4000-8000-000000000001',
+      '63000000-0000-4000-8000-000000000002',
+      1, true, 'Planned ownership handoff',
+      '23000000-0000-4000-8000-000000000099',
+      '33000000-0000-4000-8000-000000000006'
+    )
+  $$,
+  'an identical retry reconciles after the actor role changed'
 );
 select is((select count(*) from public.audit_events where action = 'membership.administrator_transferred'), 1::bigint, 'an idempotent retry writes no duplicate audit event');
 select is((select version from public.groups where id = '53000000-0000-4000-8000-000000000001'), 2::bigint, 'an idempotent retry does not advance the group version');

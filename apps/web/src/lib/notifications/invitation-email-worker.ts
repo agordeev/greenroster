@@ -104,7 +104,7 @@ export const notificationPermanentFailureCodes = [
 
 export type NotificationPermanentFailureCode =
   (typeof notificationPermanentFailureCodes)[number];
-type NotificationFailureCode =
+export type NotificationFailureCode =
   | NotificationPermanentFailureCode
   | "provider_rate_limited"
   | "provider_unavailable";
@@ -193,7 +193,7 @@ function providerErrorName(error: unknown): string | null {
   return typeof name === "string" ? name : null;
 }
 
-function isRetryableProviderFailure(error: unknown): boolean {
+export function isRetryableProviderFailure(error: unknown): boolean {
   const status = providerStatus(error);
   const name = providerErrorName(error);
   if (name === "concurrent_idempotent_requests") return true;
@@ -212,7 +212,7 @@ function isRetryableProviderFailure(error: unknown): boolean {
   return true;
 }
 
-function providerFailureCode(error: unknown): NotificationFailureCode {
+export function providerFailureCode(error: unknown): NotificationFailureCode {
   const status = providerStatus(error);
   const name = providerErrorName(error);
   if (status === 429 || name === "concurrent_idempotent_requests") {
@@ -228,7 +228,7 @@ function providerFailureCode(error: unknown): NotificationFailureCode {
   return "provider_rejected";
 }
 
-function retryAt(now: Date, retrySeconds: number): string {
+export function retryAt(now: Date, retrySeconds: number): string {
   return new Date(now.getTime() + retrySeconds * 1000).toISOString();
 }
 
@@ -246,7 +246,7 @@ function parseClaimRows(
   return { kind: "row", row: parsed.data[0] };
 }
 
-async function recordFailure(
+export async function recordEmailFailure(
   client: NotificationRpcClient,
   deliveryId: string,
   claimToken: string,
@@ -273,8 +273,12 @@ export async function runInvitationEmailWorker(
   const config = await dependencies.getConfig();
   const client = await dependencies.createClient();
   const claimToken = dependencies.createClaimToken();
+  const staleBefore = new Date(
+    dependencies.now().getTime() - config.retrySeconds * 1000,
+  ).toISOString();
   const claim = await client.rpc("claim_membership_invitation_email", {
     p_claim_token: claimToken,
+    p_stale_before: staleBefore,
   });
 
   if (isRpcFailure(claim.error)) return { kind: "unavailable" };
@@ -285,7 +289,7 @@ export async function runInvitationEmailWorker(
   const row = parsedClaim.row;
 
   if (row.attempt_number > config.maxAttempts) {
-    const recorded = await recordFailure(
+    const recorded = await recordEmailFailure(
       client,
       row.delivery_id,
       claimToken,
@@ -314,7 +318,7 @@ export async function runInvitationEmailWorker(
       rawToken: token.rawToken,
     });
   } catch {
-    const recorded = await recordFailure(
+    const recorded = await recordEmailFailure(
       client,
       row.delivery_id,
       claimToken,
@@ -339,7 +343,7 @@ export async function runInvitationEmailWorker(
       groupName: row.group_name,
     });
   } catch {
-    const recorded = await recordFailure(
+    const recorded = await recordEmailFailure(
       client,
       row.delivery_id,
       claimToken,
@@ -371,7 +375,7 @@ export async function runInvitationEmailWorker(
     if (response.error) {
       const retryable = isRetryableProviderFailure(response.error);
       const code = providerFailureCode(response.error);
-      const recorded = await recordFailure(
+      const recorded = await recordEmailFailure(
         client,
         row.delivery_id,
         claimToken,
@@ -396,7 +400,7 @@ export async function runInvitationEmailWorker(
       providerMessageId.length > 255 ||
       providerMessageId.trim() !== providerMessageId
     ) {
-      const recorded = await recordFailure(
+      const recorded = await recordEmailFailure(
         client,
         row.delivery_id,
         claimToken,
@@ -424,7 +428,7 @@ export async function runInvitationEmailWorker(
   } catch (error) {
     const retryable = isRetryableProviderFailure(error);
     const code = providerFailureCode(error);
-    const recorded = await recordFailure(
+    const recorded = await recordEmailFailure(
       client,
       row.delivery_id,
       claimToken,

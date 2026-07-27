@@ -149,11 +149,7 @@ export function validateWebRuntimeEnv(environment: Environment) {
       "RESEND_WEBHOOK_SECRET",
       "whsec_",
     ),
-    notificationJobSecret: requiredSecret(
-      environment,
-      "NOTIFICATION_JOB_SECRET",
-      32,
-    ),
+    cronSecret: requiredSecret(environment, "CRON_SECRET", 32),
     notificationEmailMaxAttempts,
     notificationEmailRetrySeconds,
   });

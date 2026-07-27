@@ -20,7 +20,7 @@ describe("web runtime configuration", () => {
     RESEND_API_KEY: "re_test_synthetic",
     RESEND_FROM_EMAIL: "notifications@greenroster.test",
     RESEND_WEBHOOK_SECRET: "whsec_test_synthetic",
-    NOTIFICATION_JOB_SECRET: "test-only-notification-job-secret-value",
+    CRON_SECRET: "test-only-notification-cron-secret-value",
     NOTIFICATION_EMAIL_MAX_ATTEMPTS: "3",
     NOTIFICATION_EMAIL_RETRY_SECONDS: "300",
   };
@@ -38,7 +38,7 @@ describe("web runtime configuration", () => {
       resendApiKey: "re_test_synthetic",
       resendFromEmail: "notifications@greenroster.test",
       resendWebhookSecret: "whsec_test_synthetic",
-      notificationJobSecret: "test-only-notification-job-secret-value",
+      cronSecret: "test-only-notification-cron-secret-value",
       notificationEmailMaxAttempts: 3,
       notificationEmailRetrySeconds: 300,
     });
@@ -81,9 +81,9 @@ describe("web runtime configuration", () => {
     expect(() =>
       validateWebRuntimeEnv({
         ...validEnvironment,
-        NOTIFICATION_JOB_SECRET: "too-short",
+        CRON_SECRET: "too-short",
       }),
-    ).toThrowError("NOTIFICATION_JOB_SECRET must contain at least 32 bytes");
+    ).toThrowError("CRON_SECRET must contain at least 32 bytes");
 
     expect(() =>
       validateWebRuntimeEnv({

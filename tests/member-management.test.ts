@@ -75,6 +75,25 @@ describe("member management mutation boundaries", () => {
           activated_at: "2026-07-27T00:00:00.000Z",
           inactivated_at: null,
         },
+        {
+          membership_id: "60000000-0000-4000-8000-000000000002",
+          group_id: "50000000-0000-4000-8000-000000000001",
+          user_id: "10000000-0000-4000-8000-000000000002",
+          first_name: null,
+          last_name: null,
+          spouse_first_name: null,
+          spouse_last_name: null,
+          tee_location: null,
+          role: "administrator",
+          status: "active",
+          dues_paid: false,
+          membership_version: 1,
+          profile_version: 0,
+          contact_version: 0,
+          created_at: "2026-07-27T00:00:00.000Z",
+          activated_at: "2026-07-27T00:00:00.000Z",
+          inactivated_at: null,
+        },
       ],
       error: null,
     });
@@ -89,6 +108,13 @@ describe("member management mutation boundaries", () => {
       }),
     );
     expect(members[0]).not.toHaveProperty("mobilePhone");
+    expect(members[1]).toEqual(
+      expect.objectContaining({
+        firstName: "",
+        lastName: "",
+        profileVersion: 0,
+      }),
+    );
     expect(rpc).toHaveBeenCalledWith("list_manageable_members", {
       p_actor_user_id: session.userId,
     });

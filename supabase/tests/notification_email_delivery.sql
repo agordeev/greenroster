@@ -28,7 +28,7 @@ select ok(
 select ok(
   has_function_privilege(
     'service_role',
-    'public.claim_membership_invitation_email(uuid)',
+    'public.claim_membership_invitation_email(uuid,timestamp with time zone)',
     'execute'
   ),
   'trusted server can claim invitation e-mails'
@@ -36,7 +36,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'authenticated',
-    'public.claim_membership_invitation_email(uuid)',
+    'public.claim_membership_invitation_email(uuid,timestamp with time zone)',
     'execute'
   ),
   'authenticated clients cannot claim invitation e-mails'
@@ -137,7 +137,7 @@ select * from public.issue_membership_invitation(
 
 create temporary table claimed_one as
 select * from public.claim_membership_invitation_email(
-  '96000000-0000-4000-8000-000000000001'
+  '96000000-0000-4000-8000-000000000001', now() - interval '5 minutes'
 );
 
 select is((select count(*) from claimed_one), 1::bigint, 'one due invitation is claimed');
@@ -163,10 +163,24 @@ select ok(
 );
 
 select is(
-  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000002')),
+  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000002', now() - interval '5 minutes')),
   0::bigint,
   'a second claim cannot take a sending delivery'
 );
+
+update public.notification_deliveries
+set claimed_at = now() - interval '10 minutes'
+where id = (select delivery_id from claimed_one);
+update public.notification_outbox_jobs
+set claimed_at = now() - interval '10 minutes'
+where id = (select outbox_job_id from claimed_one);
+create temporary table reclaimed_one as
+select * from public.claim_membership_invitation_email(
+  '96000000-0000-4000-8000-000000000008', now() - interval '5 minutes'
+);
+select is((select count(*) from reclaimed_one), 1::bigint, 'an expired invitation claim is recovered');
+select is((select delivery_id from reclaimed_one), (select delivery_id from claimed_one), 'invitation claim recovery preserves delivery idempotency');
+select is((select attempt_number from reclaimed_one), 2, 'invitation claim recovery advances the attempt count');
 
 select throws_ok(
   $$ select public.record_email_send_success(
@@ -181,7 +195,7 @@ select throws_ok(
 
 select public.record_email_send_success(
   (select delivery_id from claimed_one),
-  '96000000-0000-4000-8000-000000000001',
+  '96000000-0000-4000-8000-000000000008',
   'resend-message-one'
 );
 
@@ -222,7 +236,7 @@ select * from public.issue_membership_invitation(
   '95000000-0000-4000-8000-000000000004'
 );
 create temporary table claimed_retry as
-select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000003');
+select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000003', now() - interval '5 minutes');
 
 select public.record_email_send_failure(
   (select delivery_id from claimed_retry),
@@ -276,7 +290,7 @@ select * from public.issue_membership_invitation(
   '95000000-0000-4000-8000-000000000006'
 );
 create temporary table claimed_permanent as
-select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000004');
+select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000004', now() - interval '5 minutes');
 
 select public.record_email_send_failure(
   (select delivery_id from claimed_permanent),
@@ -308,7 +322,7 @@ set issued_at = now() - interval '2 days',
     expires_at = now() - interval '1 second'
 where id = (select issued_invitation_id from issued_expired);
 select is(
-  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000006')),
+  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000006', now() - interval '5 minutes')),
   0::bigint,
   'expired queued invitations are not claimed'
 );
@@ -341,7 +355,7 @@ update public.memberships
 set status = 'inactive', inactivated_at = now()
 where id = '93000000-0000-4000-8000-000000000008';
 select is(
-  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000007')),
+  (select count(*) from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000007', now() - interval '5 minutes')),
   0::bigint,
   'ineligible pending membership invitations are not claimed'
 );
@@ -468,7 +482,7 @@ select * from public.issue_membership_invitation(
   '95000000-0000-4000-8000-000000000008'
 );
 create temporary table claimed_complaint as
-select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000005');
+select * from public.claim_membership_invitation_email('96000000-0000-4000-8000-000000000005', now() - interval '5 minutes');
 select public.record_email_send_success(
   (select delivery_id from claimed_complaint),
   '96000000-0000-4000-8000-000000000005',

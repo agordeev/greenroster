@@ -6,12 +6,15 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import type { FormEvent } from "react";
 
 import {
+  changeMemberRoleAction,
   editMemberAction,
   setMemberStatusAction,
 } from "@/app/actions/memberships";
 import {
+  canChangeMemberRole,
   memberTargetPermissions,
   memberProfileFingerprint,
+  memberRoleFingerprint,
   memberStatusFingerprint,
   retainMemberOperationId,
   shouldAllowMemberFormSubmit,
@@ -21,6 +24,7 @@ import type {
   ManageableMember,
   MemberEditInput,
   MemberPrivateContact,
+  MemberRoleInput,
 } from "@/lib/memberships/member-management";
 
 type EditorValues = Omit<
@@ -67,6 +71,24 @@ export function MemberManagement({
   role: "member" | "coordinator" | "administrator";
   selectedMember: ManageableMember | null;
 }>) {
+  const [terminal, setTerminal] = useState<{
+    membershipId: string | null;
+    message: string;
+    status: "success" | "error";
+  }>({ membershipId: null, message: "", status: "error" });
+  const terminalMessage =
+    terminal.membershipId === (selectedMember?.membershipId ?? null)
+      ? terminal.message
+      : "";
+
+  function showTerminalMessage(status: "success" | "error", message: string) {
+    setTerminal({
+      membershipId: selectedMember?.membershipId ?? null,
+      message,
+      status,
+    });
+  }
+
   return (
     <div className="member-management">
       <div className="member-list" aria-label="Group members">
@@ -88,9 +110,7 @@ export function MemberManagement({
                       : undefined
                   }
                 >
-                  <span>
-                    {member.firstName} {member.lastName}
-                  </span>
+                  <span>{formatMemberName(member)}</span>
                   <small>
                     {formatStatus(member.status)} · {formatRole(member.role)}
                   </small>
@@ -108,6 +128,7 @@ export function MemberManagement({
           member={selectedMember}
           privateContact={privateContact ?? emptyContact}
           role={role}
+          onTerminalMessage={showTerminalMessage}
         />
       ) : (
         <div className="member-editor-empty">
@@ -118,6 +139,13 @@ export function MemberManagement({
           </p>
         </div>
       )}
+      <div
+        className="form-message"
+        aria-live="polite"
+        data-status={terminalMessage ? terminal.status : undefined}
+      >
+        {terminalMessage}
+      </div>
     </div>
   );
 }
@@ -125,11 +153,13 @@ export function MemberManagement({
 function MemberEditor({
   actorMembershipId,
   member,
+  onTerminalMessage,
   privateContact,
   role,
 }: Readonly<{
   actorMembershipId: string;
   member: ManageableMember;
+  onTerminalMessage: (status: "success" | "error", message: string) => void;
   privateContact: MemberPrivateContact;
   role: "member" | "coordinator" | "administrator";
 }>) {
@@ -141,15 +171,17 @@ function MemberEditor({
   const [editReason, setEditReason] = useState("");
   const [statusReason, setStatusReason] = useState("");
   const [statusConfirmed, setStatusConfirmed] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageStatus, setMessageStatus] = useState<"success" | "error">(
-    "error",
-  );
+  const [selectedRole, setSelectedRole] = useState(member.role);
+  const [roleReason, setRoleReason] = useState("");
+  const [roleConfirmed, setRoleConfirmed] = useState(false);
   const [profileBaselineFingerprint, setProfileBaselineFingerprint] = useState(
     memberProfileFingerprint(initialValues(member, privateContact), ""),
   );
   const [statusBaselineFingerprint, setStatusBaselineFingerprint] = useState(
     memberStatusFingerprint("", false),
+  );
+  const [roleBaselineFingerprint, setRoleBaselineFingerprint] = useState(
+    memberRoleFingerprint(member.role, "", false),
   );
   const operationId = useRef<string | null>(null);
   const operationFingerprint = useRef<string | null>(null);
@@ -159,7 +191,10 @@ function MemberEditor({
   const statusDirty =
     memberStatusFingerprint(statusReason, statusConfirmed) !==
     statusBaselineFingerprint;
-  const dirty = profileDirty || statusDirty;
+  const roleDirty =
+    memberRoleFingerprint(selectedRole, roleReason, roleConfirmed) !==
+    roleBaselineFingerprint;
+  const dirty = profileDirty || statusDirty || roleDirty;
 
   useEffect(() => {
     function warnBeforeUnload(event: BeforeUnloadEvent) {
@@ -192,7 +227,8 @@ function MemberEditor({
         !dirty ||
         !(form instanceof HTMLFormElement) ||
         form.classList.contains("member-edit-form") ||
-        form.classList.contains("member-status-form")
+        form.classList.contains("member-status-form") ||
+        form.classList.contains("member-role-form")
       ) {
         return;
       }
@@ -220,6 +256,7 @@ function MemberEditor({
   const restrictedTarget = !permissions.canEdit;
   const canEdit = permissions.canEdit;
   const canChangeStatus = permissions.canChangeStatus;
+  const canChangeRole = canChangeMemberRole(role, member);
   const nextStatus = member.status === "active" ? "inactive" : "active";
 
   function update<K extends keyof EditorValues>(
@@ -229,7 +266,7 @@ function MemberEditor({
     setValues((current) => ({ ...current, [key]: value }));
   }
 
-  function beginOperation(kind: "edit" | "status", payload: unknown) {
+  function beginOperation(kind: "edit" | "status" | "role", payload: unknown) {
     const state = retainMemberOperationId(
       {
         fingerprint: operationFingerprint.current,
@@ -250,10 +287,10 @@ function MemberEditor({
     if (
       !shouldAllowMemberFormSubmit(
         "profile",
-        { profile: profileDirty, status: statusDirty },
+        { profile: profileDirty, status: statusDirty, role: roleDirty },
         () =>
           window.confirm(
-            "Discard unsaved membership status changes before saving member details?",
+            "Discard other unsaved member changes before saving member details?",
           ),
       )
     ) {
@@ -264,7 +301,13 @@ function MemberEditor({
       setStatusConfirmed(false);
       setStatusBaselineFingerprint(memberStatusFingerprint("", false));
     }
-    setMessage("");
+    if (roleDirty) {
+      setSelectedRole(member.role);
+      setRoleReason("");
+      setRoleConfirmed(false);
+      setRoleBaselineFingerprint(memberRoleFingerprint(member.role, "", false));
+    }
+    onTerminalMessage("error", "");
     const editPayload = {
       ...values,
       membershipId: member.membershipId,
@@ -286,16 +329,16 @@ function MemberEditor({
           operationFingerprint.current = null;
           setEditReason("");
           setProfileBaselineFingerprint(memberProfileFingerprint(values, ""));
-          setMessageStatus("success");
-          setMessage("Member details saved.");
+          onTerminalMessage("success", "Member details saved.");
           router.refresh();
           return;
         }
-        setMessageStatus("error");
-        setMessage(result.error.message);
+        onTerminalMessage("error", result.error.message);
       } catch {
-        setMessageStatus("error");
-        setMessage("The member service is temporarily unavailable. Try again.");
+        onTerminalMessage(
+          "error",
+          "The member service is temporarily unavailable. Try again.",
+        );
       }
     });
   }
@@ -306,10 +349,10 @@ function MemberEditor({
     if (
       !shouldAllowMemberFormSubmit(
         "status",
-        { profile: profileDirty, status: statusDirty },
+        { profile: profileDirty, status: statusDirty, role: roleDirty },
         () =>
           window.confirm(
-            "Discard unsaved member profile changes before changing membership status?",
+            "Discard other unsaved member changes before changing membership status?",
           ),
       )
     ) {
@@ -323,7 +366,13 @@ function MemberEditor({
         memberProfileFingerprint(restoredValues, ""),
       );
     }
-    setMessage("");
+    if (roleDirty) {
+      setSelectedRole(member.role);
+      setRoleReason("");
+      setRoleConfirmed(false);
+      setRoleBaselineFingerprint(memberRoleFingerprint(member.role, "", false));
+    }
+    onTerminalMessage("error", "");
     const input = {
       membershipId: member.membershipId,
       newStatus: nextStatus,
@@ -347,8 +396,8 @@ function MemberEditor({
           setStatusReason("");
           setStatusConfirmed(false);
           setStatusBaselineFingerprint(memberStatusFingerprint("", false));
-          setMessageStatus("success");
-          setMessage(
+          onTerminalMessage(
+            "success",
             result.data.status === "inactive"
               ? "Member marked inactive; pending notifications were cancelled."
               : "Member reactivated.",
@@ -356,11 +405,91 @@ function MemberEditor({
           router.refresh();
           return;
         }
-        setMessageStatus("error");
-        setMessage(result.error.message);
+        onTerminalMessage("error", result.error.message);
       } catch {
-        setMessageStatus("error");
-        setMessage("The member service is temporarily unavailable. Try again.");
+        onTerminalMessage(
+          "error",
+          "The member service is temporarily unavailable. Try again.",
+        );
+      }
+    });
+  }
+
+  function submitRole(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canChangeRole || selectedRole === member.role) return;
+    const normalizedRoleReason = roleReason.trim();
+    if (!roleConfirmed || normalizedRoleReason.length === 0) {
+      onTerminalMessage(
+        "error",
+        "Confirm the access change and provide a reason.",
+      );
+      return;
+    }
+    if (
+      !shouldAllowMemberFormSubmit(
+        "role",
+        { profile: profileDirty, status: statusDirty, role: roleDirty },
+        () =>
+          window.confirm(
+            "Discard unsaved member changes before changing this role?",
+          ),
+      )
+    ) {
+      return;
+    }
+    if (profileDirty) {
+      const restoredValues = initialValues(member, privateContact);
+      setValues(restoredValues);
+      setEditReason("");
+      setProfileBaselineFingerprint(
+        memberProfileFingerprint(restoredValues, ""),
+      );
+    }
+    if (statusDirty) {
+      setStatusReason("");
+      setStatusConfirmed(false);
+      setStatusBaselineFingerprint(memberStatusFingerprint("", false));
+    }
+    onTerminalMessage("error", "");
+    const payload = {
+      membershipId: member.membershipId,
+      newRole: selectedRole,
+      expectedMembershipVersion: member.membershipVersion,
+      confirmed: true as const,
+      reason: normalizedRoleReason,
+    };
+    const input: MemberRoleInput = {
+      ...payload,
+      operationId: beginOperation("role", payload),
+    };
+
+    startTransition(async () => {
+      try {
+        const result = await changeMemberRoleAction(input);
+        if (result.ok) {
+          operationId.current = null;
+          operationFingerprint.current = null;
+          setRoleReason("");
+          setRoleConfirmed(false);
+          setRoleBaselineFingerprint(
+            memberRoleFingerprint(result.data.newRole, "", false),
+          );
+          onTerminalMessage(
+            "success",
+            result.data.roleChanged
+              ? `Member role changed to ${formatRole(result.data.newRole)}.`
+              : "Member role is already up to date.",
+          );
+          router.refresh();
+          return;
+        }
+        onTerminalMessage("error", result.error.message);
+      } catch {
+        onTerminalMessage(
+          "error",
+          "The member service is temporarily unavailable. Try again.",
+        );
       }
     });
   }
@@ -370,9 +499,7 @@ function MemberEditor({
       <div className="member-editor-heading">
         <div>
           <p className="ledger-kicker">Member detail</p>
-          <h2>
-            {member.firstName} {member.lastName}
-          </h2>
+          <h2>{formatMemberName(member)}</h2>
         </div>
         <span className={`member-status member-status-${member.status}`}>
           {formatStatus(member.status)}
@@ -612,13 +739,71 @@ function MemberEditor({
         </form>
       )}
 
-      <div
-        className="form-message"
-        aria-live="polite"
-        data-status={message ? messageStatus : undefined}
-      >
-        {message}
-      </div>
+      {canChangeRole ? (
+        <form className="member-role-form" onSubmit={submitRole} noValidate>
+          <fieldset disabled={pending}>
+            <legend>Role and access</legend>
+            <label className="field-group">
+              <span>Role</span>
+              <select
+                value={selectedRole}
+                onChange={(event) =>
+                  setSelectedRole(event.target.value as typeof selectedRole)
+                }
+              >
+                <option value="member">Member</option>
+                <option value="coordinator">Coordinator</option>
+                <option value="administrator">Administrator</option>
+              </select>
+            </label>
+            <label className="field-group">
+              <span>Reason (required)</span>
+              <textarea
+                value={roleReason}
+                onChange={(event) => setRoleReason(event.target.value)}
+                maxLength={500}
+                rows={3}
+                required
+              />
+            </label>
+            <label
+              className="invitation-confirmation"
+              htmlFor={`member-role-confirm-${member.membershipId}`}
+            >
+              <input
+                id={`member-role-confirm-${member.membershipId}`}
+                type="checkbox"
+                checked={roleConfirmed}
+                onChange={(event) => setRoleConfirmed(event.target.checked)}
+                required
+              />
+              <span>
+                I understand this changes the member&apos;s access immediately.
+              </span>
+            </label>
+            <button
+              className="secondary-button"
+              type="submit"
+              disabled={
+                selectedRole === member.role ||
+                roleReason.trim().length === 0 ||
+                !roleConfirmed
+              }
+            >
+              {pending ? "Working…" : "Save role change"}
+            </button>
+            {selectedRole === member.role ||
+            roleReason.trim().length === 0 ||
+            !roleConfirmed ? (
+              <p className="field-help" role="status">
+                Choose a different role, enter a reason, and confirm the
+                immediate access change before saving.
+              </p>
+            ) : null}
+          </fieldset>
+        </form>
+      ) : null}
+
       {dirty ? (
         <p className="field-help" role="status">
           Unsaved member changes will be confirmed before leaving this editor.
@@ -707,6 +892,12 @@ function initialValues(
 
 function formatStatus(status: ManageableMember["status"]) {
   return status[0].toUpperCase() + status.slice(1);
+}
+
+function formatMemberName(
+  member: Pick<ManageableMember, "firstName" | "lastName">,
+) {
+  return `${member.firstName} ${member.lastName}`.trim() || "Name needed";
 }
 
 function formatRole(role: ManageableMember["role"]) {

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { handleNotificationDrainRequest } from "../apps/web/src/app/api/jobs/notifications/drain/route";
+import {
+  handleNotificationDrainRequest,
+  runNotificationEmailDrain,
+  runNotificationEmailWorkers,
+} from "../apps/web/src/app/api/jobs/notifications/drain/route";
 
 function request(authorization?: string) {
   return new Request(
@@ -13,6 +17,67 @@ function request(authorization?: string) {
 }
 
 describe("notification drain route", () => {
+  it("dispatches invitation and role workers in one drain pass", async () => {
+    const calls: string[] = [];
+    const result = await runNotificationEmailWorkers({
+      runInvitation: async () => {
+        calls.push("invitation");
+        return { kind: "empty" as const };
+      },
+      runRoleChange: async () => {
+        calls.push("role");
+        return {
+          kind: "sent" as const,
+          deliveryId: "60000000-0000-4000-8000-000000000001",
+          providerMessageId: "provider-role-1",
+        };
+      },
+    });
+    expect(calls).toEqual(["invitation", "role"]);
+    expect(result).toEqual({
+      kind: "sent",
+      deliveryId: "60000000-0000-4000-8000-000000000001",
+      providerMessageId: "provider-role-1",
+    });
+  });
+
+  it("drains each category until empty within the bounded batch", async () => {
+    const invitationResults = [
+      {
+        kind: "sent" as const,
+        deliveryId: "60000000-0000-4000-8000-000000000010",
+        providerMessageId: "invite-provider-1",
+      },
+      { kind: "empty" as const },
+    ];
+    const roleResults = [
+      {
+        kind: "retryable" as const,
+        deliveryId: "60000000-0000-4000-8000-000000000011",
+      },
+      {
+        kind: "sent" as const,
+        deliveryId: "60000000-0000-4000-8000-000000000012",
+        providerMessageId: "role-provider-1",
+      },
+      { kind: "empty" as const },
+    ];
+    let invitationCalls = 0;
+    let roleCalls = 0;
+
+    const result = await runNotificationEmailDrain(
+      {
+        runInvitation: async () => invitationResults[invitationCalls++]!,
+        runRoleChange: async () => roleResults[roleCalls++]!,
+      },
+      5,
+    );
+
+    expect(invitationCalls).toBe(2);
+    expect(roleCalls).toBe(3);
+    expect(result.kind).toBe("sent");
+  });
+
   it("requires the internal bearer secret and returns only a generic result", async () => {
     let runs = 0;
     const dependencies = {

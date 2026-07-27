@@ -99,8 +99,9 @@ export default async function MemberManagementPage({
         <h1 id="members-title">Members</h1>
         <p>
           Review every membership state, update profile and private contact
-          details, or confirm an active/inactive status change. The server
-          checks your current group role and record versions on every action.
+          details, confirm an active/inactive status change, or manage roles
+          when your administrator access permits it. The server checks your
+          current group role and record versions on every action.
         </p>
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
