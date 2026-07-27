@@ -104,7 +104,7 @@ function requiredPrefixedSecret(
   return value;
 }
 
-export function validateWebRuntimeEnv(environment: Environment) {
+export function validateInvitationRuntimeEnv(environment: Environment) {
   const invitationTtlHours = requiredPositiveInteger(
     environment,
     "INVITATION_TTL_HOURS",
@@ -117,6 +117,21 @@ export function validateWebRuntimeEnv(environment: Environment) {
     throw new Error("INVITATION_TTL_HOURS must be a positive integer");
   }
 
+  return Object.freeze({
+    appUrl: requiredOrigin(environment, "APP_URL"),
+    invitationTokenSecret: requiredSecret(
+      environment,
+      "INVITATION_TOKEN_SECRET",
+      32,
+    ),
+    invitationTtlHours,
+    invitationTtlMilliseconds: invitationTtlHours * 60 * 60 * 1000,
+  });
+}
+
+export function validateWebRuntimeEnv(environment: Environment) {
+  const invitation = validateInvitationRuntimeEnv(environment);
+
   const notificationEmailMaxAttempts = requiredPositiveInteger(
     environment,
     "NOTIFICATION_EMAIL_MAX_ATTEMPTS",
@@ -127,7 +142,7 @@ export function validateWebRuntimeEnv(environment: Environment) {
   );
 
   return Object.freeze({
-    appUrl: requiredOrigin(environment, "APP_URL"),
+    appUrl: invitation.appUrl,
     supportEmail: requiredEmail(environment, "SUPPORT_EMAIL"),
     supabaseUrl: requiredHttpUrl(environment, "NEXT_PUBLIC_SUPABASE_URL"),
     supabasePublishableKey: requiredValue(
@@ -135,13 +150,9 @@ export function validateWebRuntimeEnv(environment: Environment) {
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     ),
     supabaseSecretKey: requiredValue(environment, "SUPABASE_SECRET_KEY"),
-    invitationTokenSecret: requiredSecret(
-      environment,
-      "INVITATION_TOKEN_SECRET",
-      32,
-    ),
-    invitationTtlHours,
-    invitationTtlMilliseconds: invitationTtlHours * 60 * 60 * 1000,
+    invitationTokenSecret: invitation.invitationTokenSecret,
+    invitationTtlHours: invitation.invitationTtlHours,
+    invitationTtlMilliseconds: invitation.invitationTtlMilliseconds,
     resendApiKey: requiredPrefixedSecret(environment, "RESEND_API_KEY", "re_"),
     resendFromEmail: requiredEmail(environment, "RESEND_FROM_EMAIL"),
     resendWebhookSecret: requiredPrefixedSecret(

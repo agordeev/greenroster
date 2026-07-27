@@ -1,10 +1,9 @@
-import { createHash, timingSafeEqual } from "node:crypto";
-
 import {
   runInvitationEmailWorker,
   type InvitationEmailWorkerResult,
 } from "../../../../../lib/notifications/invitation-email-worker";
 import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notifications/membership-role-change-email-worker";
+import { cronBearerMatches } from "../../../../../lib/jobs/cron-auth";
 
 export type NotificationDrainRouteDependencies = Readonly<{
   getJobSecret: () => string | Promise<string>;
@@ -73,20 +72,6 @@ export async function runNotificationEmailDrain(
   return results.find((result) => result.kind !== "empty") ?? { kind: "empty" };
 }
 
-function bearerMatches(
-  authorization: string | null,
-  expectedSecret: string,
-): boolean {
-  const token = authorization?.match(/^Bearer ([^\s]+)$/)?.[1];
-  if (!token || !expectedSecret) return false;
-
-  const actualDigest = createHash("sha256").update(token, "utf8").digest();
-  const expectedDigest = createHash("sha256")
-    .update(expectedSecret, "utf8")
-    .digest();
-  return timingSafeEqual(actualDigest, expectedDigest);
-}
-
 function response(status: number, body: Readonly<Record<string, unknown>>) {
   return Response.json(body, {
     headers: { "Cache-Control": "no-store" },
@@ -106,7 +91,9 @@ export async function handleNotificationDrainRequest(
     return response(503, { ok: false, status: "unavailable" });
   }
 
-  if (!bearerMatches(request.headers.get("authorization"), expectedSecret)) {
+  if (
+    !cronBearerMatches(request.headers.get("authorization"), expectedSecret)
+  ) {
     return response(401, { ok: false, status: "unauthorized" });
   }
 

@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { validateMobileRuntimeEnv } from "../apps/mobile/src/lib/validate-runtime-env";
-import { validateWebRuntimeEnv } from "../apps/web/src/lib/validate-runtime-env";
+import {
+  validateInvitationRuntimeEnv,
+  validateWebRuntimeEnv,
+} from "../apps/web/src/lib/validate-runtime-env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -41,6 +44,21 @@ describe("web runtime configuration", () => {
       cronSecret: "test-only-notification-cron-secret-value",
       notificationEmailMaxAttempts: 3,
       notificationEmailRetrySeconds: 300,
+    });
+  });
+
+  it("validates invitation workers without requiring the e-mail provider", () => {
+    expect(
+      validateInvitationRuntimeEnv({
+        APP_URL: validEnvironment.APP_URL,
+        INVITATION_TOKEN_SECRET: validEnvironment.INVITATION_TOKEN_SECRET,
+        INVITATION_TTL_HOURS: validEnvironment.INVITATION_TTL_HOURS,
+      }),
+    ).toEqual({
+      appUrl: "http://127.0.0.1:3000",
+      invitationTokenSecret: validEnvironment.INVITATION_TOKEN_SECRET,
+      invitationTtlHours: 48,
+      invitationTtlMilliseconds: 48 * 60 * 60 * 1000,
     });
   });
 

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -103,6 +104,13 @@ export default async function MemberManagementPage({
           when your administrator access permits it. The server checks your
           current group role and record versions on every action.
         </p>
+        {portalContext.role !== "member" ? (
+          <p>
+            <Link className="secondary-link" href="/portal/members/import">
+              Import members from CSV
+            </Link>
+          </p>
+        ) : null}
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
           members={members}

@@ -3,6 +3,10 @@
     {
       "path": "/api/jobs/notifications/drain",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/member-imports/drain",
+      "schedule": "* * * * *"
     }
   ]
 }
