@@ -164,12 +164,13 @@ export default async function RoundsPage({
           key={`round-workspace:${selectedRound?.roundId ?? "new"}:${selectedRound?.version ?? 0}:${publicationReview ? roundPublicationReviewKey(publicationReview) : "unavailable"}`}
           identityKey={`${portalContext.groupId}:${selectedRound?.roundId ?? "new"}`}
           initialValue={roundDraftFormValue(selectedRound ?? newRound)}
-          roundId={
-            selectedRound?.state === "draft" ? selectedRound.roundId : null
-          }
+          roundId={selectedRound?.roundId ?? null}
           format={
             selectedRound?.state === "draft" ? selectedRound.format : null
           }
+          description={selectedRound?.description ?? "this round"}
+          state={selectedRound?.state ?? "draft"}
+          version={selectedRound?.version ?? 1}
           publicationReview={publicationReview}
           publicationReviewUnavailable={publicationReviewUnavailable}
         />

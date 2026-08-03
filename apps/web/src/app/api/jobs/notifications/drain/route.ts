@@ -3,6 +3,7 @@ import {
   type InvitationEmailWorkerResult,
 } from "../../../../../lib/notifications/invitation-email-worker";
 import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notifications/membership-role-change-email-worker";
+import { runRoundCancelledEmailWorker } from "../../../../../lib/notifications/round-cancelled-email-worker";
 import { runRoundPublishedEmailWorker } from "../../../../../lib/notifications/round-published-email-worker";
 import { cronBearerMatches } from "../../../../../lib/jobs/cron-auth";
 
@@ -23,6 +24,7 @@ export type NotificationEmailWorkerRunners = Readonly<{
   runInvitation: () => Promise<InvitationEmailWorkerResult>;
   runRoleChange: () => Promise<InvitationEmailWorkerResult>;
   runRoundPublished: () => Promise<InvitationEmailWorkerResult>;
+  runRoundCancelled: () => Promise<InvitationEmailWorkerResult>;
 }>;
 
 export async function runNotificationEmailWorkers(
@@ -32,12 +34,14 @@ export async function runNotificationEmailWorkers(
     runInvitation: runInvitationEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
     runRoundPublished: runRoundPublishedEmailWorker,
+    runRoundCancelled: runRoundCancelledEmailWorker,
     ...overrides,
   };
   const results = await Promise.all([
     runners.runInvitation(),
     runners.runRoleChange(),
     runners.runRoundPublished(),
+    runners.runRoundCancelled(),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;
@@ -66,12 +70,14 @@ export async function runNotificationEmailDrain(
     runInvitation: runInvitationEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
     runRoundPublished: runRoundPublishedEmailWorker,
+    runRoundCancelled: runRoundCancelledEmailWorker,
     ...overrides,
   };
   const results = await Promise.all([
     drainWorker(runners.runInvitation, maxDeliveriesPerCategory),
     drainWorker(runners.runRoleChange, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundPublished, maxDeliveriesPerCategory),
+    drainWorker(runners.runRoundCancelled, maxDeliveriesPerCategory),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;

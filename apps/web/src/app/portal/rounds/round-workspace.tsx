@@ -6,6 +6,7 @@ import type { RoundDraftFormValue, RoundFormat } from "@/domain/round-drafts";
 import type { RoundPublicationReview } from "@/domain/round-publication";
 
 import { PublicationReviewPanel } from "./publication-review";
+import { RoundCancellationPanel } from "./round-cancellation-panel";
 import { RoundDraftForm } from "./round-draft-form";
 
 export function RoundWorkspace({
@@ -13,6 +14,9 @@ export function RoundWorkspace({
   initialValue,
   roundId,
   format,
+  description,
+  state,
+  version,
   publicationReview,
   publicationReviewUnavailable,
 }: Readonly<{
@@ -20,6 +24,9 @@ export function RoundWorkspace({
   initialValue: RoundDraftFormValue;
   roundId: string | null;
   format: RoundFormat | null;
+  description: string;
+  state: RoundDraftFormValue["state"];
+  version: number;
   publicationReview: RoundPublicationReview | null;
   publicationReviewUnavailable: boolean;
 }>) {
@@ -32,6 +39,17 @@ export function RoundWorkspace({
         initialValue={initialValue}
         onDirtyChange={setDraftDirty}
       />
+
+      {roundId &&
+      (state === "draft" || state === "published" || state === "live") ? (
+        <RoundCancellationPanel
+          roundId={roundId}
+          description={description}
+          state={state}
+          version={version}
+          draftDirty={draftDirty}
+        />
+      ) : null}
 
       {roundId && format ? (
         publicationReviewUnavailable || !publicationReview ? (

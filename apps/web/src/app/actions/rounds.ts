@@ -11,10 +11,14 @@ import {
   runCreateRoundDraftMutation,
   runUpdateRoundDraftMutation,
 } from "@/lib/rounds/round-drafts";
+import { runRoundCancellationMutation } from "@/domain/round-cancellation";
+import { runRoundRsvpMutation } from "@/domain/round-rsvp";
 import {
   executeCreateRoundDraft,
   executeUpdateRoundDraft,
 } from "@/lib/rounds/round-drafts-data";
+import { executeCancelRound } from "@/lib/rounds/round-cancellation-data";
+import { executeSetRoundRsvp } from "@/lib/rounds/round-rsvp-data";
 import {
   executePreviewRoundPublication,
   executePublishRound,
@@ -68,4 +72,25 @@ export async function publishRoundAction(input: unknown) {
       verifySession: verifyMutationSession,
     },
   );
+}
+
+export async function cancelRoundAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundCancellationMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeCancelRound,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function setRoundRsvpAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundRsvpMutation(input, requestHeaders.get("x-correlation-id"), {
+    source: "member_web",
+    execute: executeSetRoundRsvp,
+    verifySession: verifyMutationSession,
+  });
 }

@@ -9,6 +9,10 @@ import {
   buildRoundPublishedEmail,
   renderRoundPublishedEmail,
 } from "../apps/web/src/emails/round-published";
+import {
+  buildRoundCancelledEmail,
+  renderRoundCancelledEmail,
+} from "../apps/web/src/emails/round-cancelled";
 
 const input = {
   acceptanceUrl:
@@ -108,5 +112,38 @@ describe("round published email", () => {
       "Scheduled for: scheduled time supplied by the server",
     );
     expect(email.text).toContain("Format: Individual Gross");
+  });
+});
+
+describe("round cancelled email", () => {
+  it("includes the mandatory cancellation reason in HTML and plain text", async () => {
+    const email = await renderRoundCancelledEmail({
+      cancellationReason: "<Course closed>\n",
+      description: "<August Championship>",
+      groupName: "<Saturday League>",
+      groupTimeZone: "America/New_York",
+      scheduledAt: "2026-08-15T13:00:00.000Z",
+    });
+
+    expect(email.subject).toContain("Saturday League");
+    expect(email.html).toContain("Round cancelled");
+    expect(email.html).toContain("&lt;Course closed&gt;");
+    expect(email.html).toContain("August Championship");
+    expect(email.html).not.toContain("<img");
+    expect(email.text).toContain("Reason: <Course closed>");
+    expect(email.text).toContain("Scheduled for:");
+  });
+
+  it("keeps text deterministic when the cancellation reason has line breaks", () => {
+    const email = buildRoundCancelledEmail({
+      cancellationReason: "weather\nclosure",
+      description: "August Championship",
+      groupName: "Saturday League",
+      groupTimeZone: "UTC",
+      scheduledAt: "2026-08-15T13:00:00.000Z",
+    });
+
+    expect(email.text).toContain("Reason: weather closure");
+    expect(email.text).not.toContain("weather\nclosure");
   });
 });
