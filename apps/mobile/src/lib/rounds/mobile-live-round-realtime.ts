@@ -59,19 +59,39 @@ export type MobileLiveRoundRealtimeApplyResult = Readonly<{
 }>;
 
 export type MobileLiveRoundRealtimeStatus =
-  "current" | "stale" | "reconnecting" | "refetching" | "stopped";
+  | "current"
+  | "stale"
+  | "reconnecting"
+  | "refetching"
+  | "stopped"
+  | "locked"
+  | "permission_denied";
+
+export type MobileLiveRoundRealtimeErrorCode =
+  "permission_denied" | "locked" | "validation" | "unavailable";
+
+export class MobileLiveRoundRealtimeError extends Error {
+  readonly code: MobileLiveRoundRealtimeErrorCode;
+
+  constructor(code: MobileLiveRoundRealtimeErrorCode, message: string) {
+    super(message);
+    this.name = "MobileLiveRoundRealtimeError";
+    this.code = code;
+  }
+}
 
 export type MobileLiveRoundRealtimeView = Readonly<{
   state: MobileLiveRoundState | null;
   status: MobileLiveRoundRealtimeStatus;
   lastEventAt: string | null;
   error: string | null;
+  errorCode: MobileLiveRoundRealtimeErrorCode | null;
 }>;
 
 function mapProjectionEvent(
   row: z.infer<typeof projectionEventSchema>,
 ): MobileLiveRoundRealtimeEvent {
-  const controller = {
+  return {
     participantId: row.participant_id,
     groupId: row.group_id,
     roundId: row.round_id,
@@ -88,7 +108,6 @@ function mapProjectionEvent(
       changedAt: row.updated_at,
     },
   };
-  return controller;
 }
 
 export function parseMobileLiveRoundRealtimePayload(
@@ -182,17 +201,20 @@ export function createMobileLiveRoundRealtime(
   let status: MobileLiveRoundRealtimeStatus = "stopped";
   let lastEventAt: string | null = null;
   let error: string | null = null;
+  let errorCode: MobileLiveRoundRealtimeErrorCode | null = null;
   let channel: MobileRealtimeChannel | null = null;
   let refetchInFlight: Promise<void> | null = null;
 
   const now = dependencies.now ?? (() => new Date().toISOString());
   const notify = () =>
-    dependencies.onChange?.({ error, lastEventAt, state, status });
+    dependencies.onChange?.({ error, errorCode, lastEventAt, state, status });
+  const currentStatus = () => status;
 
   async function refetch() {
     if (refetchInFlight) return refetchInFlight;
     status = "refetching";
     error = null;
+    errorCode = null;
     notify();
     refetchInFlight = dependencies
       .refetch()
@@ -206,9 +228,27 @@ export function createMobileLiveRoundRealtime(
         error = null;
       })
       .catch((cause: unknown) => {
-        status = "stale";
-        state = state ? markMobileLiveRoundStale(state) : state;
-        error = cause instanceof Error ? cause.message : "refetch_failed";
+        const typed =
+          cause instanceof MobileLiveRoundRealtimeError
+            ? cause
+            : new MobileLiveRoundRealtimeError(
+                "unavailable",
+                cause instanceof Error ? cause.message : "refetch_failed",
+              );
+        errorCode = typed.code;
+        status =
+          typed.code === "locked"
+            ? "locked"
+            : typed.code === "permission_denied"
+              ? "permission_denied"
+              : "stale";
+        state =
+          typed.code === "locked" || typed.code === "permission_denied"
+            ? state
+            : state
+              ? markMobileLiveRoundStale(state)
+              : state;
+        error = typed.message;
       })
       .finally(() => {
         refetchInFlight = null;
@@ -221,6 +261,7 @@ export function createMobileLiveRoundRealtime(
     const event = parseMobileLiveRoundRealtimePayload(payload);
     if (!event || !state) {
       status = "stale";
+      errorCode = "unavailable";
       if (state) state = markMobileLiveRoundStale(state);
       error = "invalid_realtime_payload";
       notify();
@@ -236,6 +277,7 @@ export function createMobileLiveRoundRealtime(
     lastEventAt = now();
     if (result.status === "gap") {
       status = "stale";
+      errorCode = null;
       error = "realtime_version_gap";
       notify();
       await refetch();
@@ -243,17 +285,26 @@ export function createMobileLiveRoundRealtime(
     }
     status = "current";
     error = null;
+    errorCode = null;
     notify();
   }
 
   return {
     getView(): MobileLiveRoundRealtimeView {
-      return { error, lastEventAt, state, status };
+      return { error, errorCode, lastEventAt, state, status };
     },
     async start() {
       status = "refetching";
       notify();
       await refetch();
+      const statusAfterRefetch = currentStatus();
+      if (
+        statusAfterRefetch === "locked" ||
+        statusAfterRefetch === "permission_denied" ||
+        statusAfterRefetch === "stopped"
+      ) {
+        return;
+      }
       channel = dependencies.client.channel(
         `mobile-live-round:${dependencies.groupId}:${dependencies.roundId}`,
       );
@@ -277,6 +328,7 @@ export function createMobileLiveRoundRealtime(
             nextStatus === "CLOSED"
           ) {
             status = "reconnecting";
+            errorCode = "unavailable";
             error = nextStatus;
             if (state) state = markMobileLiveRoundStale(state);
             notify();
@@ -297,6 +349,8 @@ export function createMobileLiveRoundRealtime(
       if (channel?.unsubscribe) await channel.unsubscribe();
       channel = null;
       status = "stopped";
+      error = null;
+      errorCode = null;
       notify();
     },
     async handlePayload(payload: unknown) {

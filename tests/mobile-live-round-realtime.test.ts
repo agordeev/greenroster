@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   applyMobileLiveRoundRealtimeEvent,
   createMobileLiveRoundRealtime,
+  MobileLiveRoundRealtimeError,
   parseMobileLiveRoundRealtimePayload,
 } from "../apps/mobile/src/lib/rounds/mobile-live-round-realtime";
 import { createMobileLiveRoundState } from "../apps/mobile/src/lib/rounds/mobile-live-round-state";
@@ -145,5 +146,52 @@ describe("mobile live round realtime", () => {
     expect(realtime.getView().status).toBe("reconnecting");
     await realtime.reconnect();
     expect(refetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("surfaces typed lifecycle errors and does not subscribe after a locked refetch", async () => {
+    let onStatus: ((status: string) => void) | undefined;
+    const subscribe = vi.fn((callback?: (status: string) => void) => {
+      onStatus = callback;
+    });
+    const channel = {
+      on: vi.fn().mockReturnThis(),
+      subscribe,
+      unsubscribe: vi.fn(),
+    };
+    const client = { channel: vi.fn().mockReturnValue(channel) };
+    const refetch = vi
+      .fn()
+      .mockRejectedValue(
+        new MobileLiveRoundRealtimeError("locked", "Round completed."),
+      );
+    const realtime = createMobileLiveRoundRealtime({
+      client,
+      groupId,
+      roundId,
+      refetch,
+    });
+    const changes: Array<{ status: string; errorCode: string | null }> = [];
+    const observing = createMobileLiveRoundRealtime({
+      client,
+      groupId,
+      roundId,
+      refetch,
+      onChange: (view) => changes.push(view),
+    });
+
+    await realtime.start();
+    expect(realtime.getView()).toMatchObject({
+      status: "locked",
+      errorCode: "locked",
+      error: "Round completed.",
+    });
+    expect(client.channel).not.toHaveBeenCalled();
+    await realtime.stop();
+
+    await observing.start();
+    expect(changes).toContainEqual(
+      expect.objectContaining({ status: "locked", errorCode: "locked" }),
+    );
+    expect(onStatus).toBeUndefined();
   });
 });

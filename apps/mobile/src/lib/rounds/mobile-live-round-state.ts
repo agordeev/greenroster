@@ -128,6 +128,37 @@ export function sortMobileLiveRoundParticipants(
   });
 }
 
+export function mobileLiveRoundVisibleOrder(
+  serverOrder: readonly string[],
+  deferredOrder: readonly string[] | null,
+) {
+  if (!deferredOrder) return [...serverOrder];
+  const available = new Set(serverOrder);
+  const preserved = deferredOrder.filter((participantId) =>
+    available.has(participantId),
+  );
+  return [
+    ...preserved,
+    ...serverOrder.filter(
+      (participantId) => !preserved.includes(participantId),
+    ),
+  ];
+}
+
+export function mobileLiveRoundOrderIsDeferred(
+  serverOrder: readonly string[],
+  visibleOrder: readonly string[],
+  deferredOrder: readonly string[] | null,
+) {
+  return (
+    deferredOrder !== null &&
+    (visibleOrder.length !== serverOrder.length ||
+      visibleOrder.some(
+        (participantId, index) => participantId !== serverOrder[index],
+      ))
+  );
+}
+
 function sortStateParticipants(state: MobileLiveRoundState) {
   return {
     ...state,

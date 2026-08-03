@@ -130,6 +130,21 @@ describe("mobile score queue", () => {
     });
   });
 
+  it("marks pending items permanently locked without purging the scoped queue", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000006", 19));
+    await queue.markRoundLocked(scope);
+    expect(await queue.peek(scope)).toMatchObject({
+      status: "failed",
+      failure: {
+        code: "locked",
+        message: "This round is no longer accepting score changes.",
+      },
+    });
+    expect(await queue.hasPendingUser(scope.userId)).toBe(true);
+  });
+
   it("purges every scoped queue for a user on sign-out", async () => {
     const secure = storage();
     const queue = createMobileScoreQueue({ platform: "ios", storage: secure });

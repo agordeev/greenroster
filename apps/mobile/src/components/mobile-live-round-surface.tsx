@@ -39,11 +39,16 @@ import {
   markMobileLiveRoundFailed,
   markMobileLiveRoundPending,
   markMobileLiveRoundStale,
+  mobileLiveRoundOrderIsDeferred,
+  mobileLiveRoundVisibleOrder,
   replaceMobileLiveRoundSnapshot,
   type MobileLiveRoundPendingScore,
   type MobileLiveRoundState,
 } from "@/lib/rounds/mobile-live-round-state";
-import { createMobileLiveRoundRealtime } from "@/lib/rounds/mobile-live-round-realtime";
+import {
+  createMobileLiveRoundRealtime,
+  MobileLiveRoundRealtimeError,
+} from "@/lib/rounds/mobile-live-round-realtime";
 import { createMobileScoreQueue } from "@/lib/rounds/mobile-score-queue";
 import { createMobileLiveRoundSnapshotStorage } from "@/lib/rounds/mobile-live-round-snapshot-storage";
 import { createMobileOperationId } from "@/lib/mobile-operation-id";
@@ -86,9 +91,8 @@ export function MobileLiveRoundSurface({
 
   const purgeRoundOfflineData = useCallback(
     async (scope: { userId: string; groupId: string; roundId: string }) => {
-      if (!queue.isSupported) return;
       await Promise.allSettled([
-        queue.clear(scope),
+        queue.isSupported ? queue.clear(scope) : Promise.resolve(),
         snapshotStorage.clear(scope),
       ]);
     },
@@ -97,9 +101,8 @@ export function MobileLiveRoundSurface({
 
   const purgeUserOfflineData = useCallback(
     async (userId: string) => {
-      if (!queue.isSupported) return;
       await Promise.allSettled([
-        queue.clearUser(userId),
+        queue.isSupported ? queue.clearUser(userId) : Promise.resolve(),
         snapshotStorage.clearUser(userId),
       ]);
     },
@@ -152,18 +155,24 @@ export function MobileLiveRoundSurface({
     }
     if (queue.isSupported) {
       try {
-        const accessibleLiveRoundIds = new Set(
-          result.data
-            .filter((round) => round.state === "live")
-            .map((round) => round.roundId),
+        const accessibleRounds = new Map(
+          result.data.map((round) => [round.roundId, round]),
         );
         const cachedRounds = await snapshotStorage.listUser(session.user.id);
-        await Promise.all(
-          cachedRounds
-            .filter(
-              (cached) => !accessibleLiveRoundIds.has(cached.round.roundId),
-            )
-            .map((cached) => purgeRoundOfflineData(cached.scope)),
+        await Promise.allSettled(
+          cachedRounds.map(async (cached) => {
+            const freshRound = accessibleRounds.get(cached.round.roundId);
+            if (!freshRound) {
+              await purgeRoundOfflineData(cached.scope);
+              return;
+            }
+            if (freshRound.state !== "live") {
+              await Promise.allSettled([
+                queue.markRoundLocked(cached.scope),
+                snapshotStorage.clear(cached.scope),
+              ]);
+            }
+          }),
         );
       } catch {
         // Cache reconciliation is best effort; the fresh server list remains authoritative.
@@ -202,6 +211,7 @@ export function MobileLiveRoundSurface({
     let active = true;
     let realtime: ReturnType<typeof createMobileLiveRoundRealtime> | null =
       null;
+    let lifecycleHandled = false;
     const sequence = ++scoreRequestSequence.current;
     queueMicrotask(() => {
       if (!active) return;
@@ -269,10 +279,7 @@ export function MobileLiveRoundSurface({
       const result = await mobileLiveRoundApi.read(liveRoundId);
       if (!active || sequence !== scoreRequestSequence.current) return;
       if (!result.ok) {
-        if (
-          scope &&
-          (result.code === "permission_denied" || result.code === "locked")
-        ) {
+        if (scope && result.code === "permission_denied") {
           await purgeRoundOfflineData(scope);
           if (!active || sequence !== scoreRequestSequence.current) return;
           setScoreState(null);
@@ -284,6 +291,23 @@ export function MobileLiveRoundSurface({
           );
           clearSelectedRound();
           void loadRounds();
+          return;
+        }
+        if (scope && result.code === "locked") {
+          try {
+            if (queue.isSupported) await queue.markRoundLocked(scope);
+          } finally {
+            if (!active || sequence !== scoreRequestSequence.current) return;
+            setScoreState(null);
+            setScoreStatus("error");
+            setScoreMessage(result.message);
+            setRealtimeStatus("stale");
+            setRounds((current) =>
+              current.filter((round) => round.roundId !== liveRoundId),
+            );
+            clearSelectedRound();
+            void loadRounds();
+          }
           return;
         }
         setScoreStatus(cachedState ? "ready" : "error");
@@ -315,7 +339,20 @@ export function MobileLiveRoundSurface({
         initialState: initial,
         refetch: async () => {
           const refreshed = await mobileLiveRoundApi.read(first.roundId);
-          if (!refreshed.ok) throw new Error(refreshed.message);
+          if (!refreshed.ok) {
+            const errorCode =
+              refreshed.code === "permission_denied"
+                ? "permission_denied"
+                : refreshed.code === "locked"
+                  ? "locked"
+                  : refreshed.code === "validation"
+                    ? "validation"
+                    : "unavailable";
+            throw new MobileLiveRoundRealtimeError(
+              errorCode,
+              refreshed.message,
+            );
+          }
           await snapshotStorage
             .save(scope, refreshed.data, selectedRoundSummary)
             .catch(() => undefined);
@@ -326,6 +363,37 @@ export function MobileLiveRoundSurface({
         },
         onChange: (view) => {
           if (!active) return;
+          if (
+            !lifecycleHandled &&
+            (view.errorCode === "permission_denied" ||
+              view.errorCode === "locked")
+          ) {
+            lifecycleHandled = true;
+            setScoreState(null);
+            setScoreStatus("error");
+            setScoreMessage(view.error ?? "This round is no longer available.");
+            setRealtimeStatus(view.status);
+            void (async () => {
+              try {
+                if (scope) {
+                  if (view.errorCode === "permission_denied") {
+                    await purgeRoundOfflineData(scope);
+                  } else if (queue.isSupported) {
+                    await queue.markRoundLocked(scope);
+                  }
+                }
+              } finally {
+                if (!active) return;
+                setRounds((current) =>
+                  current.filter((round) => round.roundId !== liveRoundId),
+                );
+                clearSelectedRound();
+                if (realtime) await realtime.stop();
+                void loadRounds();
+              }
+            })();
+            return;
+          }
           setRealtimeStatus(view.status);
           if (view.state) setScoreState(view.state);
           if (view.error && view.status === "stale")
@@ -333,7 +401,7 @@ export function MobileLiveRoundSurface({
         },
       });
       await realtime.start();
-      if (!active) {
+      if (!active || lifecycleHandled) {
         await realtime.stop();
         return;
       }
@@ -665,9 +733,6 @@ function LiveLeaderboard({
     () => state.participants.map((entry) => entry.participant.participantId),
     [state.participants],
   );
-  const [focusedParticipantId, setFocusedParticipantId] = useState<
-    string | null
-  >(null);
   const [deferredOrder, setDeferredOrder] = useState<readonly string[] | null>(
     null,
   );
@@ -683,30 +748,19 @@ function LiveLeaderboard({
     [state.participants],
   );
   const visibleOrder = useMemo(() => {
-    if (!focusedParticipantId || !deferredOrder) return serverOrder;
-    const available = new Set(serverOrder);
-    const preserved = deferredOrder.filter((participantId) =>
-      available.has(participantId),
-    );
-    return [
-      ...preserved,
-      ...serverOrder.filter(
-        (participantId) => !preserved.includes(participantId),
-      ),
-    ];
-  }, [deferredOrder, focusedParticipantId, serverOrder]);
+    return mobileLiveRoundVisibleOrder(serverOrder, deferredOrder);
+  }, [deferredOrder, serverOrder]);
   const visibleParticipants = visibleOrder
     .map((participantId) => participantsById.get(participantId))
     .filter(
       (entry): entry is MobileLiveRoundState["participants"][number] =>
         entry !== undefined,
     );
-  const orderDeferred =
-    focusedParticipantId !== null &&
-    (visibleOrder.length !== serverOrder.length ||
-      visibleOrder.some(
-        (participantId, index) => participantId !== serverOrder[index],
-      ));
+  const orderDeferred = mobileLiveRoundOrderIsDeferred(
+    serverOrder,
+    visibleOrder,
+    deferredOrder,
+  );
 
   return (
     <View style={styles.section}>
@@ -725,7 +779,6 @@ function LiveLeaderboard({
             accessibilityRole="button"
             accessibilityLabel="Review updated standings"
             onPress={() => {
-              setFocusedParticipantId(null);
               setDeferredOrder(null);
             }}
             style={[styles.secondaryButton, { borderColor: theme.separator }]}
@@ -743,16 +796,7 @@ function LiveLeaderboard({
           focusable
           accessibilityRole="text"
           accessibilityLabel={`${participantName(entry.participant)}, ${formatScore(entry.confirmed.golfPoints)} points, ${formatSigned(entry.confirmed.plusMinus)}`}
-          onFocus={() => {
-            setFocusedParticipantId(entry.participant.participantId);
-            setDeferredOrder(serverOrder);
-          }}
-          onBlur={() => {
-            setFocusedParticipantId((current) =>
-              current === entry.participant.participantId ? null : current,
-            );
-            setDeferredOrder(null);
-          }}
+          onFocus={() => setDeferredOrder((current) => current ?? serverOrder)}
           style={styles.scoreRow}
         >
           <View style={styles.roundCopy}>
@@ -1165,9 +1209,15 @@ function formatRoundMeta(round: MobileRoundSummary) {
 function formatRealtimeStatus(status: string) {
   return status === "current"
     ? "Connected"
-    : status === "stopped"
-      ? "Stopped"
-      : "Stale — refreshing";
+    : status === "locked"
+      ? "Round locked"
+      : status === "permission_denied"
+        ? "Access unavailable"
+        : status === "stopped"
+          ? "Stopped"
+          : status === "refetching"
+            ? "Refreshing"
+            : "Stale — refreshing";
 }
 
 function formatLastSynced(value: string | null) {

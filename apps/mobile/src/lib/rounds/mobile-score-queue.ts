@@ -108,6 +108,11 @@ export type MobileScoreQueueDrainResult = Readonly<{
   receipt?: MobileLiveRoundScoreReceipt;
 }>;
 
+export type MobileScoreQueuePermanentFailure = Readonly<{
+  code: Exclude<MobileScoreQueueItem["failure"], null>["code"];
+  message: string;
+}>;
+
 const queueKeyPrefix = "greenroster.mobile.score-queue";
 const queueIndexKeyPrefix = `${queueKeyPrefix}-index`;
 
@@ -244,6 +249,29 @@ export function createMobileScoreQueue(
     }
   }
 
+  async function markPendingFailed(
+    scope: MobileScoreQueueScope,
+    failure: MobileScoreQueuePermanentFailure = {
+      code: "locked",
+      message: "This round is no longer accepting score changes.",
+    },
+  ) {
+    const items = await read(scope);
+    let changed = false;
+    const updated = items.map((item) => {
+      if (item.status !== "pending") return item;
+      changed = true;
+      return {
+        ...item,
+        status: "failed" as const,
+        failure,
+        updatedAt: now(),
+      };
+    });
+    if (changed) await write(scope, updated);
+    return updated;
+  }
+
   return {
     platform,
     isSupported: isNative(platform),
@@ -328,6 +356,15 @@ export function createMobileScoreQueue(
       const parsedScope = scopeSchema.parse(scope);
       await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
       await forgetScope(parsedScope);
+    },
+
+    markPendingFailed,
+
+    async markRoundLocked(scope: MobileScoreQueueScope) {
+      return markPendingFailed(scope, {
+        code: "locked",
+        message: "This round is no longer accepting score changes.",
+      });
     },
 
     async clearUser(userId: string) {

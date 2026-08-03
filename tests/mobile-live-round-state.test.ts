@@ -8,6 +8,8 @@ import {
   markMobileLiveRoundFailed,
   markMobileLiveRoundPending,
   markMobileLiveRoundSyncing,
+  mobileLiveRoundOrderIsDeferred,
+  mobileLiveRoundVisibleOrder,
   sortMobileLiveRoundParticipants,
 } from "../apps/mobile/src/lib/rounds/mobile-live-round-state";
 
@@ -228,5 +230,26 @@ describe("mobile live round state", () => {
       participantId,
       "30000000-0000-4000-8000-000000000004",
     ]);
+  });
+
+  it("keeps an accessibility-deferred order across blur until explicit review", () => {
+    const serverOrder = ["a", "b", "c"];
+    const deferredOrder = ["b", "a", "c"];
+    const whileFocused = mobileLiveRoundVisibleOrder(
+      serverOrder,
+      deferredOrder,
+    );
+    expect(whileFocused).toEqual(deferredOrder);
+    expect(
+      mobileLiveRoundOrderIsDeferred(serverOrder, whileFocused, deferredOrder),
+    ).toBe(true);
+
+    // Row blur does not clear deferredOrder; only Review updated standings
+    // clears it and applies the latest authoritative order.
+    const afterReview = mobileLiveRoundVisibleOrder(serverOrder, null);
+    expect(afterReview).toEqual(serverOrder);
+    expect(mobileLiveRoundOrderIsDeferred(serverOrder, afterReview, null)).toBe(
+      false,
+    );
   });
 });
