@@ -1,6 +1,7 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { createMobileOperationId } from "../mobile-operation-id";
 import { mobileAccountEmailApi } from "./mobile-account-email-api";
 import { mobileSupabase } from "./mobile-supabase";
 
@@ -12,6 +13,7 @@ const accountEmailSchema = z
   .pipe(z.email());
 
 export type MobileAccountEmailActionResult = Readonly<{
+  correlationId?: string;
   field: "email" | "confirmation" | null;
   message: string;
   status: "error" | "pending" | "success";
@@ -81,6 +83,8 @@ export function createMobileAccountEmailActions(
         };
       }
 
+      const correlationId = createMobileOperationId();
+      let requestSent = false;
       try {
         const sessionResult = await auth.getSession();
         if (sessionResult.error) {
@@ -102,13 +106,17 @@ export function createMobileAccountEmailActions(
           };
         }
 
-        const result = await api.requestEmailChange(
+        const resultPromise = api.requestEmailChange(
           accessToken,
           parsedNext.data,
           confirmed,
+          correlationId,
         );
+        requestSent = true;
+        const result = await resultPromise;
         if (result.ok) {
           return {
+            correlationId: result.correlationId ?? correlationId,
             field: null,
             message:
               "Secure confirmation messages were requested. Your signed-in address stays unchanged until the provider completes the required verification flow.",
@@ -118,6 +126,7 @@ export function createMobileAccountEmailActions(
 
         if (result.code === "authentication_required") {
           return {
+            correlationId: result.correlationId ?? correlationId,
             field: null,
             message: authenticationErrorMessage(),
             status: "error",
@@ -125,6 +134,7 @@ export function createMobileAccountEmailActions(
         }
         if (result.code === "forbidden") {
           return {
+            correlationId: result.correlationId ?? correlationId,
             field: null,
             message:
               "Password recovery sessions cannot change account e-mail. Sign in normally and submit the change again.",
@@ -133,6 +143,7 @@ export function createMobileAccountEmailActions(
         }
         if (result.code === "rate_limited") {
           return {
+            correlationId: result.correlationId ?? correlationId,
             field: null,
             message: "Too many attempts. Wait a moment and try again.",
             status: "error",
@@ -141,6 +152,7 @@ export function createMobileAccountEmailActions(
         if (result.code === "validation") {
           const field = result.fieldErrors?.email ? "email" : null;
           return {
+            correlationId: result.correlationId ?? correlationId,
             field,
             message:
               field === "email"
@@ -152,12 +164,14 @@ export function createMobileAccountEmailActions(
         }
 
         return {
+          correlationId: result.correlationId ?? correlationId,
           field: null,
           message: connectionErrorMessage(),
           status: "error",
         };
       } catch {
         return {
+          ...(requestSent ? { correlationId } : {}),
           field: null,
           message: connectionErrorMessage(),
           status: "error",

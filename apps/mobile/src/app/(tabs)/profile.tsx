@@ -1,4 +1,5 @@
 import { useNavigation } from "expo-router";
+import Constants from "expo-constants";
 import {
   useCallback,
   useEffect,
@@ -10,6 +11,7 @@ import {
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -41,6 +43,7 @@ import {
   type MobileSelfProfileDraft,
 } from "@/lib/profile/mobile-self-profile-state";
 import { createMobileOperationId } from "@/lib/mobile-operation-id";
+import { mobileRuntimeEnv } from "@/lib/runtime-env";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function ProfileScreen() {
@@ -58,6 +61,7 @@ export default function ProfileScreen() {
   const [profileFeedback, setProfileFeedback] = useState<{
     status: "error" | "success";
     message: string;
+    correlationId?: string;
     field?: string;
   } | null>(null);
   const [handicapDirty, setHandicapDirty] = useState(false);
@@ -274,14 +278,17 @@ export default function ProfileScreen() {
     if (!result.ok) {
       setProfileFeedback({
         status: "error",
+        correlationId: result.correlationId,
         message: result.message,
         field: result.field,
       });
       if (result.code !== "unavailable") profileRetryContext.current = null;
       if (result.code === "stale") {
-        Alert.alert("Profile changed", result.message, [
-          { text: "Reload", onPress: () => void reloadProfile() },
-        ]);
+        Alert.alert(
+          "Profile changed",
+          supportMessage(result.message, result.correlationId),
+          [{ text: "Reload", onPress: () => void reloadProfile() }],
+        );
       }
       return;
     }
@@ -415,6 +422,7 @@ export default function ProfileScreen() {
           currentEmail={currentEmail}
         />
       ) : null}
+      <ProfileAboutSection />
       <MobileSignOutButton
         disabled={saveState !== null}
         beforeSignOut={confirmSignOut}
@@ -444,6 +452,7 @@ function ProfileEditor({
   feedback: {
     status: "error" | "success";
     message: string;
+    correlationId?: string;
     field?: string;
   } | null;
 }>) {
@@ -637,13 +646,20 @@ function ProfileEditor({
         onPress={() => onChange("addressListed", !draft.addressListed)}
       />
       {feedback ? (
-        <ThemedText
-          type="small"
-          themeColor={feedback.status === "error" ? "accent" : "textSecondary"}
-          role={feedback.status === "error" ? "alert" : "status"}
-        >
-          {feedback.message}
-        </ThemedText>
+        <>
+          <ThemedText
+            type="small"
+            themeColor={
+              feedback.status === "error" ? "accent" : "textSecondary"
+            }
+            role={feedback.status === "error" ? "alert" : "status"}
+          >
+            {feedback.message}
+          </ThemedText>
+          {feedback.status === "error" && feedback.correlationId ? (
+            <SupportReference correlationId={feedback.correlationId} />
+          ) : null}
+        </>
       ) : null}
       <ActionButton
         label={busy ? "Saving profile…" : "Save profile"}
@@ -684,6 +700,10 @@ function HandicapEditor({
   );
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    correlationId?: string;
+    message: string;
+  } | null>(null);
   const activeHandicapToken = useRef<string | null>(null);
   const handicapRetryContext = useRef<
     (MobileMutationOperationContext & { fingerprint: string }) | null
@@ -746,6 +766,7 @@ function HandicapEditor({
       }),
     );
     handicapRetryContext.current = operationContext;
+    setFeedback(null);
     setBusy(true);
     const result = await mobileSelfProfileApi.setHandicap(
       {
@@ -767,18 +788,30 @@ function HandicapEditor({
     activeHandicapToken.current = null;
     setBusy(false);
     if (!result.ok) {
+      setFeedback({
+        correlationId: result.correlationId,
+        message: result.message,
+      });
       if (result.code === "stale") {
-        Alert.alert("Handicap changed", result.message, [
-          { text: "Keep editing", style: "cancel" },
-          { text: "Reload latest", onPress: onReload },
-        ]);
+        Alert.alert(
+          "Handicap changed",
+          supportMessage(result.message, result.correlationId),
+          [
+            { text: "Keep editing", style: "cancel" },
+            { text: "Reload latest", onPress: onReload },
+          ],
+        );
       } else {
-        Alert.alert("Handicap not saved", result.message);
+        Alert.alert(
+          "Handicap not saved",
+          supportMessage(result.message, result.correlationId),
+        );
       }
       if (result.code !== "unavailable") handicapRetryContext.current = null;
       return;
     }
     handicapRetryContext.current = null;
+    setFeedback(null);
     Alert.alert(
       "Handicap recorded",
       "The manual handicap observation was recorded. The current value remains determined by the server's as-of ordering.",
@@ -841,6 +874,16 @@ function HandicapEditor({
         checked={confirmed}
         onPress={() => setConfirmed((value) => !value)}
       />
+      {feedback ? (
+        <>
+          <ThemedText type="small" themeColor="accent" role="alert">
+            {feedback.message}
+          </ThemedText>
+          {feedback.correlationId ? (
+            <SupportReference correlationId={feedback.correlationId} />
+          ) : null}
+        </>
+      ) : null}
       <ActionButton
         label={busy ? "Recording handicap…" : "Record manual handicap"}
         onPress={() => void save()}
@@ -1142,18 +1185,28 @@ function AccountEmailSection({
         onPress={() => setConfirmed((value) => !value)}
       />
       {result?.field ? (
-        <ThemedText type="small" themeColor="accent" role="alert">
-          {result.message}
-        </ThemedText>
+        <>
+          <ThemedText type="small" themeColor="accent" role="alert">
+            {result.message}
+          </ThemedText>
+          {result.status === "error" && result.correlationId ? (
+            <SupportReference correlationId={result.correlationId} />
+          ) : null}
+        </>
       ) : null}
       {result && !result.field ? (
-        <ThemedText
-          type="small"
-          themeColor={result.status === "error" ? "accent" : "textSecondary"}
-          role={result.status === "error" ? "alert" : "status"}
-        >
-          {result.message}
-        </ThemedText>
+        <>
+          <ThemedText
+            type="small"
+            themeColor={result.status === "error" ? "accent" : "textSecondary"}
+            role={result.status === "error" ? "alert" : "status"}
+          >
+            {result.message}
+          </ThemedText>
+          {result.status === "error" && result.correlationId ? (
+            <SupportReference correlationId={result.correlationId} />
+          ) : null}
+        </>
       ) : null}
       <ActionButton
         label="Send confirmation links"
@@ -1183,6 +1236,97 @@ function AccountEmailSection({
           </ThemedText>
         )}
       </Pressable>
+    </View>
+  );
+}
+
+function SupportReference({
+  correlationId,
+}: Readonly<{ correlationId: string }>) {
+  return (
+    <ThemedText
+      accessibilityLabel={`Support reference ${correlationId}`}
+      selectable
+      type="small"
+      themeColor="textSecondary"
+    >
+      Support reference: {correlationId}
+    </ThemedText>
+  );
+}
+
+function supportMessage(message: string, correlationId?: string) {
+  return correlationId
+    ? `${message}\n\nSupport reference: ${correlationId}`
+    : message;
+}
+
+const profileAboutLinks = [
+  ["Help center", "/help"],
+  ["Contact support", "/support"],
+  ["Send feedback", "/feedback"],
+  ["Privacy Policy", "/privacy"],
+  ["Terms of Use", "/terms"],
+] as const;
+
+function ProfileAboutSection() {
+  const theme = useTheme();
+  const appVersion = Constants.expoConfig?.version ?? "Unavailable";
+  const appBuild =
+    Platform.OS === "ios"
+      ? (Constants.platform?.ios?.buildNumber ??
+        Constants.expoConfig?.ios?.buildNumber ??
+        null)
+      : Platform.OS === "android"
+        ? (Constants.platform?.android?.versionCode?.toString() ??
+          Constants.expoConfig?.android?.versionCode?.toString() ??
+          null)
+        : null;
+
+  return (
+    <View style={[styles.section, { borderColor: theme.separator }]}>
+      <SectionHeading
+        title="About GreenRoster"
+        body="Get help, contact support, share feedback, and review the current legal documents. These pages open securely in your browser."
+      />
+      <View
+        accessibilityLabel="GreenRoster app version and build"
+        style={styles.appMetadata}
+      >
+        <View style={styles.metadataRow}>
+          <ThemedText type="smallBold" themeColor="textSecondary">
+            APP VERSION
+          </ThemedText>
+          <ThemedText>{appVersion}</ThemedText>
+        </View>
+        <View style={styles.metadataRow}>
+          <ThemedText type="smallBold" themeColor="textSecondary">
+            BUILD
+          </ThemedText>
+          <ThemedText>{appBuild ?? "Unavailable"}</ThemedText>
+        </View>
+      </View>
+      <View style={styles.aboutLinks}>
+        {profileAboutLinks.map(([label, path]) => (
+          <Pressable
+            key={path}
+            accessibilityHint="Opens this GreenRoster page in your browser."
+            accessibilityLabel={label}
+            accessibilityRole="link"
+            onPress={() =>
+              void Linking.openURL(`${mobileRuntimeEnv.appUrl}${path}`)
+            }
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <ThemedText type="smallBold" themeColor="accent">
+              {label}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -1235,6 +1379,9 @@ const styles = StyleSheet.create({
   secondaryButton: { minHeight: 48, justifyContent: "center" },
   currentHandicap: { gap: Spacing.two },
   currentEmail: { gap: Spacing.two },
+  appMetadata: { gap: Spacing.two },
+  metadataRow: { gap: Spacing.one },
+  aboutLinks: { gap: Spacing.one },
   pressed: { opacity: 0.72 },
   disabled: { opacity: 0.6 },
 });

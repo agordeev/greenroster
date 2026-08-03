@@ -82,10 +82,39 @@ describe("mobile self-profile API", () => {
       }),
     ).resolves.toMatchObject({
       code: "validation",
+      correlationId: "40000000-0000-4000-8000-000000000001",
       field: "firstName",
       ok: false,
     });
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("keeps the mutation support reference when the refreshed projection is invalid", async () => {
+    const operationContext = {
+      correlationId: "40000000-0000-4000-8000-000000000010",
+      operationId: "40000000-0000-4000-8000-000000000011",
+    };
+    rpc
+      .mockResolvedValueOnce({ data: [{}], error: null })
+      .mockResolvedValueOnce({ data: [], error: null });
+
+    await expect(
+      api.setHandicap(
+        {
+          handicapId: "GHIN-1",
+          handicap: "7.6",
+          asOf: "2026-07-27",
+          expectedMembershipVersion: 4,
+          confirmed: true,
+          reason: "Correction",
+        },
+        operationContext,
+      ),
+    ).resolves.toMatchObject({
+      code: "unavailable",
+      correlationId: operationContext.correlationId,
+      ok: false,
+    });
   });
 
   it("normalizes and sends profile fields with optimistic versions and operation context", async () => {
@@ -183,7 +212,11 @@ describe("mobile self-profile API", () => {
         confirmed: true,
         reason: "Correction",
       }),
-    ).resolves.toMatchObject({ code: "stale", ok: false });
+    ).resolves.toMatchObject({
+      code: "stale",
+      correlationId: "40000000-0000-4000-8000-000000000001",
+      ok: false,
+    });
   });
 
   it("allows a caller to replay an ambiguous committed update with the same context", async () => {
@@ -226,7 +259,11 @@ describe("mobile self-profile API", () => {
       .mockResolvedValueOnce({ data: [baseRow], error: null });
     const first = await api.update(input, operationContext);
     const retry = await api.update(input, operationContext);
-    expect(first).toMatchObject({ code: "unavailable", ok: false });
+    expect(first).toMatchObject({
+      code: "unavailable",
+      correlationId: operationContext.correlationId,
+      ok: false,
+    });
     expect(retry).toMatchObject({ ok: true });
     expect(rpc).toHaveBeenNthCalledWith(
       1,

@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("../apps/mobile/src/lib/mobile-operation-id", () => ({
+  createMobileOperationId: vi.fn(() => "40000000-0000-4000-8000-000000000001"),
+}));
+
 import { createMobileAccountEmailClient } from "../apps/mobile/src/lib/auth/mobile-account-email-client";
 
 const appUrl = "https://greenroster.rapidlabs.dev";
@@ -24,6 +28,7 @@ describe("mobile account e-mail API client", () => {
         "private-access-token",
         "new@example.com",
         true,
+        correlationId,
       ),
     ).resolves.toMatchObject({ ok: true, status: "pending" });
     expect(fetchImplementation).toHaveBeenCalledWith(
@@ -33,6 +38,7 @@ describe("mobile account e-mail API client", () => {
         headers: {
           Authorization: "Bearer private-access-token",
           "Content-Type": "application/json",
+          "x-correlation-id": correlationId,
         },
         method: "POST",
       }),
@@ -57,13 +63,28 @@ describe("mobile account e-mail API client", () => {
     const client = createMobileAccountEmailClient(appUrl, fetchImplementation);
 
     await expect(
-      client.requestEmailChange("token", "new@example.com", true),
+      client.requestEmailChange(
+        "token",
+        "new@example.com",
+        true,
+        correlationId,
+      ),
     ).resolves.toMatchObject({ code: "forbidden", ok: false });
     await expect(
-      client.requestEmailChange("token", "new@example.com", true),
+      client.requestEmailChange(
+        "token",
+        "new@example.com",
+        true,
+        correlationId,
+      ),
     ).resolves.toMatchObject({ code: "unavailable", ok: false });
     await expect(
-      client.requestEmailChange("token", "new@example.com", true),
+      client.requestEmailChange(
+        "token",
+        "new@example.com",
+        true,
+        correlationId,
+      ),
     ).resolves.toMatchObject({ code: "unavailable", ok: false });
   });
 });

@@ -103,14 +103,19 @@ export type MobileSelfProfileResult =
   | Readonly<{
       ok: false;
       code: MobileSelfProfileErrorCode;
+      correlationId?: string;
       message: string;
       field?: string;
     }>;
 
 export type MobileSelfProfileClient = Pick<typeof mobileSupabase, "rpc">;
 
-function mapError(message: string): MobileSelfProfileResult {
+function mapError(
+  message: string,
+  correlationId?: string,
+): MobileSelfProfileResult {
   const normalized = message.toLowerCase();
+  const supportReference = correlationId ? { correlationId } : {};
   if (
     normalized.includes("version_changed") ||
     normalized.includes("stale") ||
@@ -118,6 +123,7 @@ function mapError(message: string): MobileSelfProfileResult {
   ) {
     return {
       code: "stale",
+      ...supportReference,
       message:
         "This profile changed elsewhere. Review the latest values before saving again.",
       ok: false,
@@ -133,6 +139,7 @@ function mapError(message: string): MobileSelfProfileResult {
   ) {
     return {
       code: "permission_denied",
+      ...supportReference,
       message:
         "This account cannot edit the member profile. Contact a group administrator.",
       ok: false,
@@ -146,12 +153,14 @@ function mapError(message: string): MobileSelfProfileResult {
   ) {
     return {
       code: "validation",
+      ...supportReference,
       message: "Check the highlighted profile values and try again.",
       ok: false,
     };
   }
   return {
     code: "unavailable",
+    ...supportReference,
     message:
       "GreenRoster could not save your profile. Check your connection and try again.",
     ok: false,
@@ -165,11 +174,15 @@ function validationField(error: unknown) {
   return "profile";
 }
 
-function parseData(value: unknown): MobileSelfProfileResult {
+function parseData(
+  value: unknown,
+  correlationId?: string,
+): MobileSelfProfileResult {
   const parsed = z.array(selfProfileRowSchema).safeParse(value);
   if (!parsed.success || !parsed.data[0]) {
     return {
       code: "unavailable",
+      ...(correlationId ? { correlationId } : {}),
       message:
         "GreenRoster returned an invalid profile. Check your connection and try again.",
       ok: false,
@@ -222,14 +235,18 @@ function parseData(value: unknown): MobileSelfProfileResult {
 }
 
 export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
-  const resolve = async (): Promise<MobileSelfProfileResult> => {
+  const resolve = async (
+    correlationId?: string,
+  ): Promise<MobileSelfProfileResult> => {
     try {
       const { data, error } = await client.rpc(
         "resolve_mobile_member_self_profile",
       );
-      return error ? mapError(error.message) : parseData(data);
+      return error
+        ? mapError(error.message, correlationId)
+        : parseData(data, correlationId);
     } catch {
-      return mapError("network_unavailable");
+      return mapError("network_unavailable", correlationId);
     }
   };
 
@@ -256,6 +273,7 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
       } catch (error) {
         return {
           code: "validation",
+          correlationId: operationContext.correlationId,
           field: validationField(error),
           message: "Check the highlighted profile values and try again.",
           ok: false,
@@ -271,6 +289,7 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
       if (!parsed.success) {
         return {
           code: "validation",
+          correlationId: operationContext.correlationId,
           field: String(parsed.error.issues[0]?.path[0] ?? "profile"),
           message: "Check the highlighted profile values and try again.",
           ok: false,
@@ -309,10 +328,11 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
             p_operation_id: operationContext.operationId,
           },
         );
-        if (error) return mapError(error.message);
-        return resolve();
+        if (error)
+          return mapError(error.message, operationContext.correlationId);
+        return resolve(operationContext.correlationId);
       } catch {
-        return mapError("network_unavailable");
+        return mapError("network_unavailable", operationContext.correlationId);
       }
     },
     async setHandicap(
@@ -330,6 +350,7 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
       if (!parsed.success) {
         return {
           code: "validation",
+          correlationId: operationContext.correlationId,
           field: String(parsed.error.issues[0]?.path[0] ?? "handicap"),
           message: "Enter a valid handicap, date, confirmation, and reason.",
           ok: false,
@@ -346,10 +367,11 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
           p_correlation_id: operationContext.correlationId,
           p_operation_id: operationContext.operationId,
         });
-        if (error) return mapError(error.message);
-        return resolve();
+        if (error)
+          return mapError(error.message, operationContext.correlationId);
+        return resolve(operationContext.correlationId);
       } catch {
-        return mapError("network_unavailable");
+        return mapError("network_unavailable", operationContext.correlationId);
       }
     },
   };

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { createMobileOperationId } from "../mobile-operation-id";
+
 const accountEmailResponseSchema = z.discriminatedUnion("ok", [
   z.object({
     correlationId: z.uuid(),
@@ -33,6 +35,7 @@ export function createMobileAccountEmailClient(
       accessToken: string,
       email: string,
       confirmed: boolean,
+      correlationId = createMobileOperationId(),
     ): Promise<MobileAccountEmailApiResult> {
       try {
         const response = await fetchImplementation(
@@ -42,6 +45,7 @@ export function createMobileAccountEmailClient(
             headers: {
               Authorization: `Bearer ${accessToken}`,
               "Content-Type": "application/json",
+              "x-correlation-id": correlationId,
             },
             method: "POST",
           },
@@ -57,7 +61,7 @@ export function createMobileAccountEmailClient(
 
       return {
         code: "unavailable",
-        correlationId: "00000000-0000-4000-8000-000000000000",
+        correlationId,
         ok: false,
       };
     },

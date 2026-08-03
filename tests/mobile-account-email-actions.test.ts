@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../apps/mobile/src/lib/mobile-operation-id", () => ({
+  createMobileOperationId: vi.fn(() => "40000000-0000-4000-8000-000000000001"),
+}));
 vi.mock("../apps/mobile/src/lib/auth/mobile-supabase", () => ({
   mobileSupabase: { auth: {} },
 }));
@@ -56,6 +59,7 @@ describe("mobile account e-mail actions", () => {
       "private-access-token",
       "new@example.com",
       true,
+      expect.any(String),
     );
     expect(result).toMatchObject({ status: "pending", field: null });
     expect(result.message).toContain("verification flow");
@@ -144,10 +148,29 @@ describe("mobile account e-mail actions", () => {
     await expect(
       actions.requestEmailChange("old@example.com", "four@example.com", true),
     ).resolves.toMatchObject({
+      correlationId,
       message:
         "The account e-mail service could not be reached. Check your connection and try again.",
       status: "error",
     });
+  });
+
+  it("does not expose a support reference before an Auth request is sent", async () => {
+    vi.mocked(auth.getSession).mockRejectedValueOnce(
+      new Error("session unavailable"),
+    );
+
+    const result = await createMobileAccountEmailActions(
+      auth,
+      api,
+    ).requestEmailChange("old@example.com", "new@example.com", true);
+    expect(result).toMatchObject({
+      message:
+        "The account e-mail service could not be reached. Check your connection and try again.",
+      status: "error",
+    });
+    expect(result).not.toHaveProperty("correlationId");
+    expect(api.requestEmailChange).not.toHaveBeenCalled();
   });
 
   it("refreshes the real Auth session and reports safe refresh failures", async () => {
