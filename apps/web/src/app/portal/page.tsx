@@ -43,7 +43,9 @@ const onboardingSchema = z
 const quotaSettingsSchema = z.object({
   method: z.enum(["moving_average", "best_10_of_20", "previous_plus_minus"]),
   moving_average_history_length: z.number().int().min(4).max(20).nullable(),
+  participation_merit: z.union([z.string(), z.number()]),
   precision: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  standings_reset_date: z.string().nullable(),
   version: z.number().int().positive(),
 });
 
@@ -54,6 +56,13 @@ const quotaBandsSchema = z.array(
     lower_inclusive: z.boolean(),
     upper_bound: z.union([z.string(), z.number()]),
     upper_inclusive: z.boolean(),
+  }),
+);
+
+const placementMeritRowsSchema = z.array(
+  z.object({
+    merit_points: z.union([z.string(), z.number()]),
+    rank: z.number().int().positive(),
   }),
 );
 
@@ -288,10 +297,12 @@ export default async function PortalPage() {
   let quotaSettingsUnavailable = false;
 
   if (context.role === "administrator") {
-    const [settingsResult, bandsResult] = await Promise.all([
+    const [settingsResult, bandsResult, placementResult] = await Promise.all([
       supabase
         .from("group_quota_settings")
-        .select("method,moving_average_history_length,precision,version")
+        .select(
+          "method,moving_average_history_length,precision,version,participation_merit,standings_reset_date",
+        )
         .eq("group_id", context.group_id)
         .maybeSingle(),
       supabase
@@ -301,17 +312,27 @@ export default async function PortalPage() {
         )
         .eq("group_id", context.group_id)
         .order("position"),
+      supabase
+        .from("placement_merit_rows")
+        .select("rank,merit_points")
+        .eq("group_id", context.group_id)
+        .order("rank"),
     ]);
     const parsedSettings = quotaSettingsSchema
       .nullable()
       .safeParse(settingsResult.data);
     const parsedBands = quotaBandsSchema.safeParse(bandsResult.data);
+    const parsedPlacement = placementMeritRowsSchema.safeParse(
+      placementResult.data,
+    );
 
     quotaSettingsUnavailable = Boolean(
       settingsResult.error ||
       bandsResult.error ||
+      placementResult.error ||
       !parsedSettings.success ||
-      !parsedBands.success,
+      !parsedBands.success ||
+      !parsedPlacement.success,
     );
 
     if (!quotaSettingsUnavailable && parsedSettings.data) {
@@ -328,6 +349,14 @@ export default async function PortalPage() {
         historyLength: parsedSettings.data.moving_average_history_length,
         method: parsedSettings.data.method,
         precision: parsedSettings.data.precision,
+        participationMerit: String(parsedSettings.data.participation_merit),
+        placementMerit: parsedPlacement.success
+          ? parsedPlacement.data.map((placement) => ({
+              rank: placement.rank,
+              points: String(placement.merit_points),
+            }))
+          : [],
+        standingsResetDate: parsedSettings.data.standings_reset_date,
         version: parsedSettings.data.version,
       };
     }
@@ -370,8 +399,10 @@ export default async function PortalPage() {
               <p className="ledger-kicker">Quota policy</p>
               <h2 id="quota-settings-title">Set the calculation rules</h2>
               <p>
-                Changes apply prospectively. Published rounds keep their own
-                snapshotted policy.
+                Quota and merit rules apply to rounds published after this save;
+                published rounds keep their own snapshots. The standings reset
+                date changes the current standings window immediately, without
+                rewriting results or quota history.
               </p>
             </div>
             {quotaSettingsUnavailable ? (

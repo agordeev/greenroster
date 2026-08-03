@@ -6,8 +6,12 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { configureQuotaSettingsAction } from "@/app/actions/groups";
 import {
   calculateQuota,
+  type PlacementMeritRow,
   type QuotaAdjustmentBand,
   type QuotaMethod,
+  validateParticipationMerit,
+  validatePlacementMeritRows,
+  validateStandingsResetDate,
 } from "@/domain/quota-rules";
 import {
   shouldAllowDirtyNavigation,
@@ -18,11 +22,15 @@ export type QuotaSettingsFormValue = Readonly<{
   bands: readonly QuotaAdjustmentBand[];
   historyLength: number | null;
   method: QuotaMethod;
+  participationMerit: string;
+  placementMerit: readonly PlacementMeritRow[];
   precision: 0 | 1 | 2;
+  standingsResetDate: string | null;
   version: number;
 }>;
 
 type BandRow = QuotaAdjustmentBand & Readonly<{ id: string }>;
+type PlacementRow = PlacementMeritRow & Readonly<{ id: string }>;
 
 const emptyMethodCBands: readonly BandRow[] = [];
 
@@ -54,6 +62,18 @@ export function QuotaSettingsForm({
         }))
       : emptyMethodCBands,
   );
+  const [participationMerit, setParticipationMerit] = useState(
+    initialValue?.participationMerit ?? "0",
+  );
+  const [placementMerit, setPlacementMerit] = useState<readonly PlacementRow[]>(
+    initialValue?.placementMerit.map((row) => ({
+      ...row,
+      id: `stored-placement-${row.rank}`,
+    })) ?? [],
+  );
+  const [standingsResetDate, setStandingsResetDate] = useState(
+    initialValue?.standingsResetDate ?? "",
+  );
   const [settingsVersion, setSettingsVersion] = useState(
     initialValue?.version ?? 0,
   );
@@ -80,13 +100,27 @@ export function QuotaSettingsForm({
       parsedHistoryLength > 20)
       ? "History length must be a whole number from 4 through 20."
       : null;
+  const participationMeritError = meritValidationError(() =>
+    validateParticipationMerit(participationMerit),
+  );
+  const placementMeritError = meritValidationError(() =>
+    validatePlacementMeritRows(placementMerit),
+  );
+  const standingsResetDateError = meritValidationError(() =>
+    validateStandingsResetDate(standingsResetDate || null),
+  );
+  const meritError =
+    participationMeritError || placementMeritError || standingsResetDateError;
   const baseline = settingsFingerprint(initialValue);
   const currentFingerprint = JSON.stringify({
     bands: bands.map(withoutBandId),
     historyLength: method === "moving_average" ? historyLength : null,
     method,
+    participationMerit,
+    placementMerit: placementMerit.map(withoutPlacementId),
     precision,
     reason,
+    standingsResetDate: standingsResetDate || null,
   });
   const dirty = currentFingerprint !== baseline;
   const methodExample =
@@ -157,9 +191,12 @@ export function QuotaSettingsForm({
       expectedSettingsVersion: settingsVersion,
       historyLength: method === "moving_average" ? parsedHistoryLength : null,
       method,
+      participationMerit: participationMerit.trim(),
+      placementMerit: placementMerit.map(withoutPlacementId),
       precision,
       reason,
       roundingRule: "half_away_from_zero" as const,
+      standingsResetDate: standingsResetDate.trim() || null,
     };
     const serializedPayload = JSON.stringify(payload);
     if (operationPayload.current !== serializedPayload) {
@@ -203,7 +240,9 @@ export function QuotaSettingsForm({
       removeStoredOperation(operationStorageKey);
       setSettingsVersion(result.data.settingsVersion);
       setReason("");
-      setMessage("Quota rules saved. New rounds will use this policy.");
+      setMessage(
+        "Quota and merit rules saved for future rounds. The standings window updated immediately; published snapshots and quota history are unchanged.",
+      );
       router.refresh();
     });
   }
@@ -220,6 +259,14 @@ export function QuotaSettingsForm({
     setMethod(initialValue?.method ?? null);
     setHistoryLength(String(initialValue?.historyLength ?? 10));
     setPrecision(initialValue?.precision ?? null);
+    setParticipationMerit(initialValue?.participationMerit ?? "0");
+    setPlacementMerit(
+      initialValue?.placementMerit.map((row) => ({
+        ...row,
+        id: `stored-placement-${row.rank}`,
+      })) ?? [],
+    );
+    setStandingsResetDate(initialValue?.standingsResetDate ?? "");
     setSettingsVersion(initialValue?.version ?? 0);
     setBands(
       initialValue?.bands.length
@@ -339,6 +386,157 @@ export function QuotaSettingsForm({
           <small>Exact halves round away from zero.</small>
         </fieldset>
       </div>
+
+      <section
+        className="merit-settings"
+        aria-labelledby="merit-settings-title"
+      >
+        <div className="band-editor-heading">
+          <div>
+            <p className="ledger-kicker">Merit and standings</p>
+            <h3 id="merit-settings-title">
+              Configure the Order of Merit policy
+            </h3>
+            <p>
+              Participation applies to every Playing permanent member. Placement
+              rows are optional and use competition ranking; ties receive the
+              full points for their shared rank.
+            </p>
+          </div>
+        </div>
+        <div className="quota-policy-row">
+          <label className="field-group">
+            <span>Participation merit</span>
+            <input
+              value={participationMerit}
+              onChange={(event) => setParticipationMerit(event.target.value)}
+              inputMode="decimal"
+              aria-invalid={Boolean(participationMeritError)}
+              aria-describedby={
+                participationMeritError
+                  ? "participation-merit-error"
+                  : undefined
+              }
+              required
+            />
+            <small>Use 0 for no participation points; maximum 100.</small>
+            {participationMeritError ? (
+              <small className="field-error" id="participation-merit-error">
+                {participationMeritError}
+              </small>
+            ) : null}
+          </label>
+          <label className="field-group">
+            <span>Standings reset date</span>
+            <input
+              type="date"
+              value={standingsResetDate}
+              onChange={(event) => setStandingsResetDate(event.target.value)}
+              aria-invalid={Boolean(standingsResetDateError)}
+              aria-describedby={
+                standingsResetDateError
+                  ? "standings-reset-date-error"
+                  : undefined
+              }
+            />
+            <small>
+              Use the group&apos;s local calendar date. Leave blank to include
+              all standings history; this does not change quota history.
+            </small>
+            {standingsResetDateError ? (
+              <small className="field-error" id="standings-reset-date-error">
+                {standingsResetDateError}
+              </small>
+            ) : null}
+          </label>
+        </div>
+        <div className="band-editor-heading">
+          <div>
+            <h4>Placement merit table</h4>
+            <p>
+              Ranks must be positive and strictly ordered. An empty table awards
+              nothing.
+            </p>
+          </div>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() =>
+              setPlacementMerit((current) => [
+                ...current,
+                {
+                  id: crypto.randomUUID(),
+                  points: "",
+                  rank: current.length
+                    ? (current.at(-1)?.rank ?? current.length) + 1
+                    : 1,
+                },
+              ])
+            }
+          >
+            Add placement row
+          </button>
+        </div>
+        {placementMerit.map((row, index) => (
+          <fieldset className="band-row" key={row.id}>
+            <legend>Placement rank {index + 1}</legend>
+            <label>
+              Rank
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={row.rank}
+                aria-label={`Placement row ${index + 1} rank`}
+                aria-invalid={Boolean(placementMeritError)}
+                onChange={(event) =>
+                  setPlacementMerit((current) =>
+                    current.map((item, itemIndex) =>
+                      itemIndex === index
+                        ? { ...item, rank: Number(event.target.value) }
+                        : item,
+                    ),
+                  )
+                }
+              />
+            </label>
+            <label>
+              Merit points
+              <input
+                value={row.points}
+                inputMode="decimal"
+                aria-label={`Placement row ${index + 1} merit points`}
+                aria-invalid={Boolean(placementMeritError)}
+                onChange={(event) =>
+                  setPlacementMerit((current) =>
+                    current.map((item, itemIndex) =>
+                      itemIndex === index
+                        ? { ...item, points: event.target.value }
+                        : item,
+                    ),
+                  )
+                }
+              />
+            </label>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() =>
+                setPlacementMerit((current) =>
+                  current.filter((_, itemIndex) => itemIndex !== index),
+                )
+              }
+            >
+              Remove
+            </button>
+          </fieldset>
+        ))}
+        {placementMeritError ? (
+          <p className="field-error" role="alert">
+            {placementMeritError}
+          </p>
+        ) : null}
+      </section>
 
       {methodExample ? (
         <div className="quota-rule-example">
@@ -557,20 +755,24 @@ export function QuotaSettingsForm({
       <p
         className="quota-validation-summary"
         id="quota-save-summary"
-        role={bandError || historyError ? "alert" : undefined}
+        role={bandError || historyError || meritError ? "alert" : undefined}
       >
         {bandError
           ? `Cannot save: ${bandError}`
           : historyError
             ? `Cannot save: ${historyError}`
-            : ""}
+            : meritError
+              ? `Cannot save: ${meritError}`
+              : ""}
       </p>
       <div className="quota-form-actions">
         <button
           className="primary-button"
           type="submit"
           aria-describedby={
-            bandError || historyError ? "quota-save-summary" : undefined
+            bandError || historyError || meritError
+              ? "quota-save-summary"
+              : undefined
           }
           disabled={
             pending ||
@@ -578,6 +780,7 @@ export function QuotaSettingsForm({
             precision === null ||
             Boolean(historyError) ||
             Boolean(bandError) ||
+            Boolean(meritError) ||
             reason.trim().length === 0
           }
         >
@@ -606,6 +809,10 @@ function withoutBandId(band: BandRow): QuotaAdjustmentBand {
   };
 }
 
+function withoutPlacementId(row: PlacementRow): PlacementMeritRow {
+  return { rank: row.rank, points: row.points };
+}
+
 function settingsFingerprint(value: QuotaSettingsFormValue | null) {
   return JSON.stringify({
     bands: value?.bands ?? [],
@@ -614,9 +821,21 @@ function settingsFingerprint(value: QuotaSettingsFormValue | null) {
         ? String(value?.historyLength ?? 10)
         : null,
     method: value?.method ?? null,
+    participationMerit: value?.participationMerit ?? "0",
+    placementMerit: value?.placementMerit ?? [],
     precision: value?.precision ?? null,
     reason: "",
+    standingsResetDate: value?.standingsResetDate ?? null,
   });
+}
+
+function meritValidationError(validate: () => void): string | null {
+  try {
+    validate();
+    return null;
+  } catch (error) {
+    return error instanceof Error ? error.message : "Review this setting.";
+  }
 }
 
 function quotaPreview(

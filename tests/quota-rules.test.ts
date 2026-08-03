@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateQuota,
+  validateParticipationMerit,
   validateAdjustmentBands,
+  validatePlacementMeritRows,
+  validateStandingsResetDate,
   type QuotaAdjustmentBand,
 } from "../apps/web/src/domain/quota-rules";
 
@@ -283,5 +286,37 @@ describe("quota rules", () => {
         useInitialQuota: false,
       }),
     ).toThrow("at most 2 decimal places");
+  });
+
+  it("validates merit boundaries, ordered placement rows, and local reset dates", () => {
+    expect(() => validateParticipationMerit("0")).not.toThrow();
+    expect(() => validateParticipationMerit("100.00")).not.toThrow();
+    expect(() => validateParticipationMerit("100.001")).toThrow();
+    expect(() => validateParticipationMerit("-0.01")).toThrow();
+
+    expect(() =>
+      validatePlacementMeritRows([
+        { rank: 1, points: "10" },
+        { rank: 3, points: "4.00" },
+      ]),
+    ).not.toThrow();
+    expect(() =>
+      validatePlacementMeritRows([
+        { rank: 2, points: "5" },
+        { rank: 1, points: "10" },
+      ]),
+    ).toThrow("strictly ordered");
+    expect(() =>
+      validatePlacementMeritRows([{ rank: 1, points: "500.01" }]),
+    ).toThrow();
+    for (const points of ["-0", "-00", "-00.00"]) {
+      expect(() => validatePlacementMeritRows([{ rank: 1, points }])).toThrow(
+        "negative zero",
+      );
+    }
+
+    expect(() => validateStandingsResetDate(null)).not.toThrow();
+    expect(() => validateStandingsResetDate("2026-02-28")).not.toThrow();
+    expect(() => validateStandingsResetDate("2026-02-30")).toThrow();
   });
 });

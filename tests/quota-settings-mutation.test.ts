@@ -17,17 +17,23 @@ const input = {
   historyLength: 10,
   method: "moving_average" as const,
   operationId: "30000000-0000-4000-8000-000000000001",
+  participationMerit: "0",
+  placementMerit: [],
   precision: 1 as const,
   reason: "  Establish the initial quota policy  ",
   roundingRule: "half_away_from_zero" as const,
+  standingsResetDate: null,
 };
 
 const result: QuotaSettingsResult = {
   groupId: "50000000-0000-4000-8000-000000000001",
   historyLength: 10,
   method: "moving_average",
+  participationMerit: "0",
+  placementMerit: [],
   precision: 1,
   roundingRule: "half_away_from_zero",
+  standingsResetDate: null,
   settingsVersion: 1,
 };
 
@@ -90,6 +96,18 @@ describe("quota settings mutation boundary", () => {
 
   it.each([
     [{ ...input, historyLength: 3 }, "historyLength"],
+    [{ ...input, participationMerit: "100.001" }, "participationMerit"],
+    [{ ...input, standingsResetDate: "2026-02-30" }, "standingsResetDate"],
+    [
+      {
+        ...input,
+        placementMerit: [
+          { rank: 2, points: "5" },
+          { rank: 1, points: "10" },
+        ],
+      },
+      "placementMerit",
+    ],
     [{ ...input, precision: 3 }, "precision"],
     [{ ...input, expectedSettingsVersion: -1 }, "expectedSettingsVersion"],
     [{ ...input, reason: " " }, "reason"],
@@ -171,6 +189,29 @@ describe("quota settings mutation boundary", () => {
     expect(executeConfigure).toHaveBeenCalledWith(
       session.userId,
       normalizedInput,
+      expect.any(String),
+    );
+  });
+
+  it("normalizes a blank standings reset date to null before the RPC", async () => {
+    const executeConfigure = vi.fn().mockResolvedValue(result);
+    const response = await runQuotaSettingsMutation(
+      { ...input, standingsResetDate: "" },
+      null,
+      {
+        executeConfigure,
+        verifySession: vi.fn().mockResolvedValue(session),
+      },
+    );
+
+    expect(response.ok).toBe(true);
+    expect(executeConfigure).toHaveBeenCalledWith(
+      session.userId,
+      {
+        ...input,
+        standingsResetDate: null,
+        reason: "Establish the initial quota policy",
+      },
       expect.any(String),
     );
   });

@@ -4,6 +4,10 @@ import {
   validateAdjustmentBands,
   type QuotaAdjustmentBand,
   type QuotaMethod,
+  type PlacementMeritRow,
+  validateParticipationMerit,
+  validatePlacementMeritRows,
+  validateStandingsResetDate,
 } from "../../domain/quota-rules";
 import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import { runVerifiedMutation } from "../mutations/run-verified-mutation";
@@ -31,6 +35,53 @@ const sharedQuotaSettingsFields = {
   precision: quotaPrecisionSchema,
   reason: z.string().trim().min(1).max(500),
   roundingRule: z.literal("half_away_from_zero"),
+  participationMerit: z
+    .string()
+    .trim()
+    .refine((value) => {
+      try {
+        validateParticipationMerit(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "Participation merit must be between 0 and 100 with at most two decimals."),
+  placementMerit: z
+    .array(
+      z
+        .object({
+          rank: z.number().int().positive(),
+          points: z.string().trim().min(1),
+        })
+        .strict(),
+    )
+    .superRefine((rows, context) => {
+      try {
+        validatePlacementMeritRows(rows);
+      } catch (error) {
+        context.addIssue({
+          code: "custom",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Review the ordered placement merit rows.",
+          path: ["placementMerit"],
+        });
+      }
+    }),
+  standingsResetDate: z
+    .string()
+    .trim()
+    .nullable()
+    .refine((value) => {
+      try {
+        validateStandingsResetDate(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "Standings reset date must be a valid group-local date.")
+    .transform((value) => (value === "" ? null : value)),
 };
 
 const emptyBandsSchema = z.array(z.never()).length(0);
@@ -90,6 +141,9 @@ export type QuotaSettingsResult = Readonly<{
   method: QuotaMethod;
   precision: 0 | 1 | 2;
   roundingRule: "half_away_from_zero";
+  participationMerit: string;
+  placementMerit: readonly PlacementMeritRow[];
+  standingsResetDate: string | null;
   settingsVersion: number;
 }>;
 

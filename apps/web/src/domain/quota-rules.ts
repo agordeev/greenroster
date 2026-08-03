@@ -11,6 +11,52 @@ export type QuotaAdjustmentBand = Readonly<{
   upperInclusive: boolean;
 }>;
 
+export type PlacementMeritRow = Readonly<{
+  rank: number;
+  points: string;
+}>;
+
+/** Validate the administrator-configured participation merit amount. */
+export function validateParticipationMerit(value: string): void {
+  parseHundredths(value, 0, 100, "Participation merit");
+}
+
+/** Validate a strictly rank-ordered placement merit table. */
+export function validatePlacementMeritRows(
+  rows: readonly PlacementMeritRow[],
+): void {
+  let previousRank = 0;
+  for (const row of rows) {
+    if (!Number.isInteger(row.rank) || row.rank <= previousRank) {
+      throw new Error("Placement ranks must be positive and strictly ordered");
+    }
+    if (/^-0+(?:\.0+)?$/.test(row.points.trim())) {
+      throw new Error("Placement merit cannot use negative zero");
+    }
+    parseHundredths(row.points, 0, 500, "Placement merit");
+    previousRank = row.rank;
+  }
+}
+
+/** Accept only a calendar date; it is interpreted in the group's local zone. */
+export function validateStandingsResetDate(value: string | null): void {
+  if (value === null || value === "") return;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) throw new Error("Standings reset date must be a valid date");
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    year < 1 ||
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    throw new Error("Standings reset date must be a valid date");
+  }
+}
+
 export type QuotaCalculation =
   | Readonly<{
       ready: false;

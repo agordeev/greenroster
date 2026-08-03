@@ -21,6 +21,14 @@ const quotaSettingsRowsSchema = z
       ]),
       configured_precision: z.union([z.literal(0), z.literal(1), z.literal(2)]),
       configured_rounding_rule: z.literal("half_away_from_zero"),
+      configured_participation_merit: z.union([z.string(), z.number()]),
+      configured_placement_merit: z.array(
+        z.object({
+          rank: z.number().int().positive(),
+          points: z.union([z.string(), z.number()]),
+        }),
+      ),
+      configured_standings_reset_date: z.string().nullable(),
       settings_version: z.number().int().positive(),
     }),
   )
@@ -43,6 +51,9 @@ function mapQuotaSettingsError(error: SupabaseRpcError): MutationError {
   }
   if (error.code === "P0001") {
     return new MutationError("locked", { cause: error });
+  }
+  if (error.code === "23505" && error.message === "operation_id_reused") {
+    return new MutationError("operation_reused", { cause: error });
   }
   if (
     error.code === "22003" ||
@@ -73,6 +84,13 @@ function rpcBands(input: QuotaSettingsInput) {
   }));
 }
 
+function rpcPlacementMerit(input: QuotaSettingsInput) {
+  return input.placementMerit.map((row) => ({
+    rank: row.rank,
+    points: row.points,
+  }));
+}
+
 export async function executeConfigureQuotaSettings(
   actorUserId: string,
   input: QuotaSettingsInput,
@@ -90,6 +108,9 @@ export async function executeConfigureQuotaSettings(
     p_reason: input.reason,
     p_correlation_id: correlationId,
     p_operation_id: input.operationId,
+    p_participation_merit: input.participationMerit,
+    p_placement_merit: rpcPlacementMerit(input),
+    p_standings_reset_date: input.standingsResetDate,
   });
 
   if (error) throw mapQuotaSettingsError(error);
@@ -106,6 +127,12 @@ export async function executeConfigureQuotaSettings(
     method: row.configured_method,
     precision: row.configured_precision,
     roundingRule: row.configured_rounding_rule,
+    participationMerit: String(row.configured_participation_merit),
+    placementMerit: row.configured_placement_merit.map((placement) => ({
+      rank: placement.rank,
+      points: String(placement.points),
+    })),
+    standingsResetDate: row.configured_standings_reset_date,
     settingsVersion: row.settings_version,
   };
 }

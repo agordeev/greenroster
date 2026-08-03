@@ -6,16 +6,17 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 
 ## Current focus
 
-- **Phase:** 05 — Live round
-- **Active slice:** Phase 05 live-round operations: score-version/revision guarded Playing → Not Playing invalidation, coordinator stale-value handling, and storage-coordinated mobile pending-score lifecycle.
+- **Phase:** 06 — Completion and standings
+- **Active slice:** Phase 06 administrator merit and standings settings: participation merit, optional placement rows, and standings reset date (implemented; committing after review).
 - **Status:** In progress
-- **Next:** Implement the once-per-condition forgotten-round operational alert and reminder after the lifecycle/timing contract is supplied; then verify the Phase 05 exit criteria and continue to Phase 06.
+- **Next:** Start the completion-readiness slice with server-authoritative missing-input, rule-snapshot, and projection checks; keep the unsynced mobile-score handshake explicitly blocked.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
   - Phase 03 material format, roster, guest, and scoring edits need versioned rule/participant history plus guest/scoring/recipient semantics. The bulk-update allow-list and optional group-profile fields are still unspecified.
   - Phase 04 sponsored guest creation/withdrawal needs the guest-capable participant/revision/score model. Provider delivery, reminders, and deep links remain open.
   - Blocked: forgotten Live-round reminder timing and lifecycle. Need: an approved grace interval for “well past start,” completion/reopen state-transition semantics, and the mandatory push/outbox delivery contract so the once-per-condition flag can clear only on completion or cancellation.
+  - Blocked: Phase 06 completion readiness cannot yet prove unsynced mobile scores from the server. Need: a server-visible synchronization marker or an approved completion-time mobile queue handshake; the current pending queue exists only in native secure storage.
 
 ## Phase status
 
@@ -27,7 +28,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md) | In progress | Drafts, publication, round detail, RSVP/cancellation, and supported Published detail edits are complete; material edits and member UX await later models. |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md) | In progress | Member Next round/RSVP, guest permission, notification preferences/devices, and the native notification surface are complete; provider delivery and guest creation remain. |
 | [05 — Live round](./phases/05-live-round.md) | In progress | Published → Live, immutable revisions, current projection, actor-derived mobile round/read/write boundaries, native offline queue, Realtime recovery, stale current-value handling, server-confirmed mobile scorecard/leaderboard, portal score entry, and atomic coordinator/admin Playing → Not Playing score invalidation are complete in commits `716e7b0`, `4a9aa87`, `2db88cd`, `9d0e0ea`, `8510dc4`, `4066ada`, and `3bbf896`. The correction now compares both participant and reviewed score version/revision, shows authoritative stale values, and preserves mobile Locked/Failed queue state across Realtime refetches, participant invalidation, drain, discard, and multiple queue instances sharing SecureStore. Fresh local verification: pgTAP 47 files/1,834 tests, Vitest 101 files/603 tests, mobile 22 files/129 tests, web lint/typecheck/build, mobile lint/typecheck/export, Prettier, diff checks, and auth-gated browser smoke checks. Remaining: once-per-condition forgotten-round reminder/action-required flow. |
-| [06 — Completion and standings](./phases/06-completion-and-standings.md) | Not started | Begins after Phase 05 exit criteria pass. |
+| [06 — Completion and standings](./phases/06-completion-and-standings.md) | In progress | Administrator merit and standings settings are complete and verified; completion/readiness/result/reopen work follows only where authoritative contracts are complete. |
 | [07 — Release hardening](./phases/07-release-hardening.md) | Not started | Begins after Phase 06 exit criteria pass. |
 
 ## Recent milestones
@@ -45,6 +46,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 05 mobile lifecycle hardening | Commit `9d0e0ea`; definitive access/lifecycle loss purges protected cache safely, accessible non-Live rounds retain pending scores as Locked failures while clearing stale snapshots, Realtime terminal refetch errors stop queue drains, and accessibility-focused leaderboard reorder waits for explicit review. Full mobile tests 22 files/121 tests, typecheck, lint, Prettier, and Expo export pass. |
 | August 4, 2026 | Phase 05 Playing → Not Playing invalidation | Commit `8510dc4`; service-only coordinator/admin transition requires confirmation, reason, expected participant version, and trusted source, deletes only the current score projection, retains immutable revisions, audits the invalidation, and supports exact replay. The coordinator portal action and strict server adapter are covered by 10 focused tests; fresh pinned reset and pgTAP pass 47 files/1,824 tests, including 45 transition assertions; full Vitest passes 101/594 and web build passes. |
 | August 4, 2026 | Phase 05 score-concurrency and mobile queue hardening | Commits `4066ada`, `3bbf896`; the RSVP correction requires the reviewed score projection version and revision ID, rejects concurrent score changes with structured current values, and displays the affected score/derived values before re-confirmation. Mobile queue state is participant-scoped, preserved through Realtime refetches, serialized across drain/mark/remove/clear and across queue instances sharing SecureStore, and exposes discard only for Failed/Locked non-draining entries. Full local reset and pgTAP pass 47 files/1,834 tests; Vitest 101/603; mobile 22/129; web/mobile builds, lint/typecheck, Expo export, formatting, diff checks, and browser smoke pass. |
+| August 4, 2026 | Phase 06 merit and standings settings | Pending commit; administrator-only participation merit (0–100), ordered placement rows (0–500), group-local reset date, audited/versioned/idempotent settings, immutable publication snapshot fields, publication review fingerprint coverage, and quota-projection carry-forward for merit-only edits. Fresh local reset and pgTAP pass 48 files/1,865 tests; Vitest 102/610; web build, lint/typecheck, formatting, diff checks, and auth-gated browser smoke pass. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
