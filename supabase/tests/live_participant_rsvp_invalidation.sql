@@ -7,23 +7,23 @@ select no_plan();
 select has_function(
   'public',
   'set_live_round_participant_not_playing',
-  array['uuid','uuid','uuid','bigint','boolean','text','text','uuid','uuid'],
+  array['uuid','uuid','uuid','bigint','bigint','uuid','boolean','text','text','uuid','uuid'],
   'Live scored participant RSVP invalidation RPC exists'
 );
 select ok(
   has_function_privilege(
     'service_role',
-    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,boolean,text,text,uuid,uuid)',
+    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,bigint,uuid,boolean,text,text,uuid,uuid)',
     'execute'
   )
   and not has_function_privilege(
     'authenticated',
-    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,boolean,text,text,uuid,uuid)',
+    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,bigint,uuid,boolean,text,text,uuid,uuid)',
     'execute'
   )
   and not has_function_privilege(
     'anon',
-    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,boolean,text,text,uuid,uuid)',
+    'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,bigint,uuid,boolean,text,text,uuid,uuid)',
     'execute'
   ),
   'only the trusted server can call Live RSVP invalidation'
@@ -31,7 +31,7 @@ select ok(
 select ok(
   (select prosecdef
    from pg_catalog.pg_proc
-   where oid = 'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,boolean,text,text,uuid,uuid)'::regprocedure),
+   where oid = 'public.set_live_round_participant_not_playing(uuid,uuid,uuid,bigint,bigint,uuid,boolean,text,text,uuid,uuid)'::regprocedure),
   'Live RSVP invalidation is security definer'
 );
 select ok(
@@ -179,12 +179,50 @@ select * from public.set_round_participant_score(
   '9f000000-0000-4000-8000-000000000026'
 );
 
+create function pg_temp.capture_score_stale_detail()
+returns table (sqlstate text, message text, detail text)
+language plpgsql
+set search_path = ''
+as $$
+declare
+  captured_state text;
+  captured_message text;
+  captured_detail text;
+begin
+  begin
+    perform *
+    from public.set_live_round_participant_not_playing(
+      '9a000000-0000-4000-8000-000000000001',
+      '9d000000-0000-4000-8000-000000000001',
+      '9e000000-0000-4000-8000-000000000002',
+      1,
+      1,
+      (select revision.id
+       from public.score_revisions as revision
+       where revision.participant_id = '9e000000-0000-4000-8000-000000000002'
+         and revision.revision_number = 1),
+      true,
+      'Concurrent score stale correction',
+      'portal',
+      '9f000000-0000-4000-8000-000000000117',
+      '9f000000-0000-4000-8000-000000000217'
+    );
+  exception when others then
+    get stacked diagnostics
+      captured_state = returned_sqlstate,
+      captured_message = message_text,
+      captured_detail = pg_exception_detail;
+  end;
+  return query select captured_state, captured_message, captured_detail;
+end;
+$$;
+
 select throws_ok(
   $$ select * from public.set_live_round_participant_not_playing(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, false, 'Member left after score', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), false, 'Member left after score', 'portal',
     '9f000000-0000-4000-8000-000000000101',
     '9f000000-0000-4000-8000-000000000201'
   ) $$,
@@ -196,7 +234,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, null, 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, null, 'portal',
     '9f000000-0000-4000-8000-000000000102',
     '9f000000-0000-4000-8000-000000000202'
   ) $$,
@@ -208,7 +246,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Member left after score', 'member_web',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Member left after score', 'member_web',
     '9f000000-0000-4000-8000-000000000103',
     '9f000000-0000-4000-8000-000000000203'
   ) $$,
@@ -220,7 +258,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000003',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Member left after score', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Member left after score', 'portal',
     '9f000000-0000-4000-8000-000000000104',
     '9f000000-0000-4000-8000-000000000204'
   ) $$,
@@ -232,7 +270,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000004',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Recovery correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Recovery correction', 'portal',
     '9f000000-0000-4000-8000-000000000105',
     '9f000000-0000-4000-8000-000000000205'
   ) $$,
@@ -244,7 +282,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000005',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Banned correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Banned correction', 'portal',
     '9f000000-0000-4000-8000-000000000106',
     '9f000000-0000-4000-8000-000000000206'
   ) $$,
@@ -256,7 +294,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000006',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Inactive correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Inactive correction', 'portal',
     '9f000000-0000-4000-8000-000000000107',
     '9f000000-0000-4000-8000-000000000207'
   ) $$,
@@ -268,7 +306,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000007',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Cross tenant correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Cross tenant correction', 'portal',
     '9f000000-0000-4000-8000-000000000108',
     '9f000000-0000-4000-8000-000000000208'
   ) $$,
@@ -280,7 +318,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000006',
-    1, true, 'Cross participant correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000006'), true, 'Cross participant correction', 'portal',
     '9f000000-0000-4000-8000-000000000109',
     '9f000000-0000-4000-8000-000000000209'
   ) $$,
@@ -293,7 +331,7 @@ select * from public.set_live_round_participant_not_playing(
   '9a000000-0000-4000-8000-000000000002',
   '9d000000-0000-4000-8000-000000000001',
   '9e000000-0000-4000-8000-000000000001',
-  1, true, 'Member withdrew after scoring', 'portal',
+  1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000001'), true, 'Member withdrew after scoring', 'portal',
   '9f000000-0000-4000-8000-000000000111',
   '9f000000-0000-4000-8000-000000000211'
 );
@@ -318,7 +356,7 @@ select * from public.set_live_round_participant_not_playing(
   '9a000000-0000-4000-8000-000000000002',
   '9d000000-0000-4000-8000-000000000001',
   '9e000000-0000-4000-8000-000000000001',
-  1, true, 'Member withdrew after scoring', 'portal',
+  1, 1, (select (before_state ->> 'score_revision_id')::uuid from public.audit_events where operation_id = '9f000000-0000-4000-8000-000000000211'), true, 'Member withdrew after scoring', 'portal',
   '9f000000-0000-4000-8000-000000000111',
   '9f000000-0000-4000-8000-000000000211'
 );
@@ -331,20 +369,48 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000001',
-    1, true, 'Different reason', 'portal',
+    1, 1, (select (before_state ->> 'score_revision_id')::uuid from public.audit_events where operation_id = '9f000000-0000-4000-8000-000000000211'), true, 'Different reason', 'portal',
     '9f000000-0000-4000-8000-000000000111',
     '9f000000-0000-4000-8000-000000000211'
   ) $$,
   '23505', 'operation_id_reused',
   'reusing an operation ID with a different request is rejected'
 );
+select throws_ok(
+  $$ select * from public.set_live_round_participant_not_playing(
+    '9a000000-0000-4000-8000-000000000002',
+    '9d000000-0000-4000-8000-000000000001',
+    '9e000000-0000-4000-8000-000000000001',
+    1, 2, (select (before_state ->> 'score_revision_id')::uuid from public.audit_events where operation_id = '9f000000-0000-4000-8000-000000000211'), true, 'Member withdrew after scoring', 'portal',
+    '9f000000-0000-4000-8000-000000000111',
+    '9f000000-0000-4000-8000-000000000211'
+  ) $$,
+  '23505', 'operation_id_reused',
+  'reusing an operation ID with different score expectations is rejected'
+);
+
+create temporary table concurrent_score_change as
+select * from public.set_round_participant_score(
+  '9a000000-0000-4000-8000-000000000001',
+  '9e000000-0000-4000-8000-000000000002',
+  '{"golf_points":17.00}'::jsonb,
+  1,
+  '9f000000-0000-4000-8000-000000000117',
+  'portal',
+  'Concurrent coordinator score correction',
+  now(),
+  '9f000000-0000-4000-8000-000000000118',
+  '9f000000-0000-4000-8000-000000000218'
+);
+select is((select version from concurrent_score_change), 2::bigint, 'a concurrent score edit advances the projection version');
+select is((select count(*) from public.score_revisions where participant_id = '9e000000-0000-4000-8000-000000000002'), 2::bigint, 'the concurrent score edit appends a second revision');
 
 select throws_ok(
   $$ select * from public.set_live_round_participant_not_playing(
     '9a000000-0000-4000-8000-000000000001',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000002',
-    2, true, 'Stale participant correction', 'portal',
+    2, 2, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000002'), true, 'Stale participant correction', 'portal',
     '9f000000-0000-4000-8000-000000000112',
     '9f000000-0000-4000-8000-000000000212'
   ) $$,
@@ -354,12 +420,22 @@ select throws_ok(
 select is((select rsvp_status::text from public.round_participants where id = '9e000000-0000-4000-8000-000000000002'), 'playing', 'stale correction leaves RSVP unchanged');
 select is((select count(*) from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000002'), 1::bigint, 'stale correction leaves current score unchanged');
 
+create temporary table score_stale_detail as
+select * from pg_temp.capture_score_stale_detail();
+select is((select sqlstate from score_stale_detail), '40001', 'stale score expectations use serialization failure SQLSTATE');
+select is((select message from score_stale_detail), 'score_version_changed', 'stale score expectations use the stable error code');
+select is((select (detail::jsonb ->> 'version')::bigint from score_stale_detail), 2::bigint, 'stale score detail returns the current projection version');
+select is((select detail::jsonb ->> 'revision_id' from score_stale_detail), (select last_revision_id::text from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000002'), 'stale score detail returns the current revision ID');
+select is((select (detail::jsonb ->> 'golf_points')::numeric from score_stale_detail), 17.00::numeric, 'stale score detail returns the current points');
+select is((select rsvp_status::text from public.round_participants where id = '9e000000-0000-4000-8000-000000000002'), 'playing', 'stale score rejection leaves RSVP unchanged');
+select is((select count(*) from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000002'), 1::bigint, 'stale score rejection leaves the current projection');
+
 create temporary table administrator_change as
 select * from public.set_live_round_participant_not_playing(
   '9a000000-0000-4000-8000-000000000001',
   '9d000000-0000-4000-8000-000000000001',
   '9e000000-0000-4000-8000-000000000002',
-  1, true, 'Administrator confirmed withdrawal', 'mobile',
+  1, 2, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000002'), true, 'Administrator confirmed withdrawal', 'mobile',
   '9f000000-0000-4000-8000-000000000113',
   '9f000000-0000-4000-8000-000000000213'
 );
@@ -371,7 +447,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000003',
-    1, true, 'No score', 'portal',
+    1, 1, gen_random_uuid(), true, 'No score', 'portal',
     '9f000000-0000-4000-8000-000000000114',
     '9f000000-0000-4000-8000-000000000214'
   ) $$,
@@ -387,7 +463,7 @@ select throws_ok(
     '9a000000-0000-4000-8000-000000000002',
     '9d000000-0000-4000-8000-000000000001',
     '9e000000-0000-4000-8000-000000000004',
-    1, true, 'Completed correction', 'portal',
+    1, 1, (select last_revision_id from public.participant_score_projections where participant_id = '9e000000-0000-4000-8000-000000000004'), true, 'Completed correction', 'portal',
     '9f000000-0000-4000-8000-000000000115',
     '9f000000-0000-4000-8000-000000000215'
   ) $$,

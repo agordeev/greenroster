@@ -9,6 +9,8 @@ export const liveRoundParticipantNotPlayingInputSchema = z
     roundId: z.uuid(),
     participantId: z.uuid(),
     expectedParticipantVersion: z.number().int().positive(),
+    expectedScoreVersion: z.number().int().positive(),
+    expectedScoreRevisionId: z.uuid(),
     confirmed: z.literal(true),
     reason: z.string().trim().min(1).max(500),
     operationId: z.uuid(),

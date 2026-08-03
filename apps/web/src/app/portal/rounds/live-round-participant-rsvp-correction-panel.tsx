@@ -5,7 +5,12 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setLiveRoundParticipantNotPlayingAction } from "@/app/actions/rounds";
 import { liveRoundParticipantNotPlayingInputSchema } from "@/domain/live-round-participant-rsvp-correction";
-import type { LiveRoundScoreParticipant } from "@/domain/round-score";
+import type {
+  LiveRoundScoreParticipant,
+  RoundScoreCurrentState,
+} from "@/domain/round-score";
+
+import { currentScoreFromStaleDetails } from "./live-round-score-entry-state";
 
 export function LiveRoundParticipantRsvpCorrectionPanel({
   roundId,
@@ -44,7 +49,7 @@ export function LiveRoundParticipantRsvpCorrectionPanel({
         <div className="group-role-list">
           {playingParticipants.map((participant) => (
             <ParticipantRsvpCorrection
-              key={participant.participantId}
+              key={participantSyncKey(participant)}
               roundId={roundId}
               participant={participant}
             />
@@ -67,6 +72,7 @@ function ParticipantRsvpCorrection({
   const [participantVersion, setParticipantVersion] = useState(
     participant.participantVersion,
   );
+  const [score, setScore] = useState<RoundScoreCurrentState>(participant.score);
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"error" | "success" | "">("");
@@ -82,7 +88,7 @@ function ParticipantRsvpCorrection({
     participant.participantKind === "guest"
       ? `${displayName} · Guest`
       : displayName;
-  const scoreReady = participant.score.version > 0;
+  const scoreReady = score.version > 0 && score.revisionId !== null;
   const canEdit = participant.canEdit && rsvpStatus === "playing";
   const formId = `live-rsvp-correction-${participant.participantId}`;
 
@@ -113,6 +119,8 @@ function ParticipantRsvpCorrection({
       roundId,
       participantId: participant.participantId,
       expectedParticipantVersion: participantVersion,
+      expectedScoreVersion: score.version,
+      expectedScoreRevisionId: score.revisionId,
       confirmed: true,
       reason: normalizedReason,
       operationId: operationId.current,
@@ -145,13 +153,21 @@ function ParticipantRsvpCorrection({
         ) {
           operationId.current = null;
         }
+        if (result.error.code === "stale_version") {
+          const currentScore = currentScoreFromStaleDetails(
+            result.error.details,
+            participant.participantId,
+          );
+          if (currentScore) setScore(currentScore);
+          setReason("");
+        }
         if (
           result.error.code === "stale_version" ||
           result.error.code === "locked"
         ) {
           setMessage(
             result.error.code === "stale_version"
-              ? "This participant changed. Refresh the live round before retrying."
+              ? "This participant or score changed. Current server values are shown below; refresh the live round and re-confirm before retrying."
               : "The live round no longer accepts this correction. Refresh the live round.",
           );
           router.refresh();
@@ -186,6 +202,25 @@ function ParticipantRsvpCorrection({
         </div>
         <p>{rsvpStatus === "playing" ? "Playing" : "Not Playing"}</p>
       </div>
+
+      <dl className="group-profile-facts">
+        <div>
+          <dt>Current golf points</dt>
+          <dd>{formatScore(score.golfPoints)}</dd>
+        </div>
+        <div>
+          <dt>Current plus/minus</dt>
+          <dd>{formatScore(score.plusMinus)}</dd>
+        </div>
+        <div>
+          <dt>Current ranking value</dt>
+          <dd>{formatScore(score.rankingValue)}</dd>
+        </div>
+        <div>
+          <dt>Score version</dt>
+          <dd>{score.version > 0 ? String(score.version) : "Missing"}</dd>
+        </div>
+      </dl>
 
       {rsvpStatus === "playing" ? (
         <form
@@ -241,4 +276,18 @@ function ParticipantRsvpCorrection({
       )}
     </article>
   );
+}
+
+function participantSyncKey(participant: LiveRoundScoreParticipant): string {
+  return [
+    participant.participantId,
+    participant.rsvpStatus,
+    participant.participantVersion,
+    participant.score.version,
+    participant.score.revisionId ?? "missing",
+  ].join(":");
+}
+
+function formatScore(value: string | null): string {
+  return value === null ? "Missing" : value;
 }

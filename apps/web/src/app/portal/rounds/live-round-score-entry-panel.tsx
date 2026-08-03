@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantScoreAction } from "@/app/actions/rounds";
@@ -73,7 +74,7 @@ export function LiveRoundScoreEntryPanel({
         <div className="group-role-list">
           {participants.map((participant) => (
             <ParticipantScoreEditor
-              key={participant.participantId}
+              key={participantSyncKey(participant)}
               participant={participant}
             />
           ))}
@@ -86,6 +87,7 @@ export function LiveRoundScoreEntryPanel({
 function ParticipantScoreEditor({
   participant,
 }: Readonly<{ participant: LiveRoundScoreParticipant }>) {
+  const router = useRouter();
   const [score, setScore] = useState<RoundScoreCurrentState>(participant.score);
   const [draft, setDraft] = useState<LiveRoundScoreDraft>(() =>
     scoreDraftFromCurrentScore(participant.score),
@@ -210,11 +212,13 @@ function ParticipantScoreEditor({
               : "This score changed on the server. Refresh the current values and re-enter your intended value before saving.",
           );
           mutationContext.current = resetScoreMutationContext();
+          router.refresh();
         } else if (
           result.error.code === "locked" ||
           result.error.code === "operation_reused"
         ) {
           mutationContext.current = resetScoreMutationContext();
+          if (result.error.code === "locked") router.refresh();
         }
         return;
       }
@@ -412,4 +416,14 @@ function formatServerValues(
 
 function formatServerValue(value: string | null): string {
   return value === null ? "Missing" : value;
+}
+
+function participantSyncKey(participant: LiveRoundScoreParticipant): string {
+  return [
+    participant.participantId,
+    participant.rsvpStatus,
+    participant.participantVersion,
+    participant.score.version,
+    participant.score.revisionId ?? "missing",
+  ].join(":");
 }

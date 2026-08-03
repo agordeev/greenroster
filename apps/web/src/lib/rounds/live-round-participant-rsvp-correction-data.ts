@@ -6,6 +6,7 @@ import type {
   LiveRoundParticipantNotPlayingExecutionInput,
   LiveRoundParticipantNotPlayingReceipt,
 } from "../../domain/live-round-participant-rsvp-correction";
+import type { RoundScoreCurrentState } from "../../domain/round-score";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
 
@@ -26,7 +27,58 @@ const liveRoundParticipantNotPlayingRowsSchema = z
   )
   .length(1);
 
-type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
+type SupabaseRpcError = Readonly<{
+  code?: string;
+  message?: string;
+  details?: string | null;
+}>;
+
+const staleScoreStateSchema = z
+  .object({
+    participant_id: z.uuid(),
+    version: z.union([z.number().int().nonnegative(), z.string()]),
+    revision_id: z.uuid().nullable(),
+    gross_score: z.union([z.number(), z.string()]).nullable(),
+    net_score: z.union([z.number(), z.string()]).nullable(),
+    golf_points: z.union([z.number(), z.string()]).nullable(),
+    manual_merit: z.union([z.number(), z.string()]).nullable(),
+    plus_minus: z.union([z.number(), z.string()]).nullable(),
+    ranking_value: z.union([z.number(), z.string()]).nullable(),
+    changed_at: z.string().datetime({ offset: true }).nullable(),
+  })
+  .strict();
+
+function numericString(value: number | string | null): string | null {
+  return value === null ? null : String(value);
+}
+
+function currentScoreFromDetails(
+  details: string | null | undefined,
+): RoundScoreCurrentState | undefined {
+  if (!details) return undefined;
+  try {
+    const parsed = staleScoreStateSchema.safeParse(JSON.parse(details));
+    if (!parsed.success) return undefined;
+    const row = parsed.data;
+    const version =
+      typeof row.version === "number" ? row.version : Number(row.version);
+    if (!Number.isSafeInteger(version) || version < 0) return undefined;
+    return {
+      participantId: row.participant_id,
+      version,
+      revisionId: row.revision_id,
+      grossScore: numericString(row.gross_score),
+      netScore: numericString(row.net_score),
+      golfPoints: numericString(row.golf_points),
+      manualMerit: numericString(row.manual_merit),
+      plusMinus: numericString(row.plus_minus),
+      rankingValue: numericString(row.ranking_value),
+      changedAt: row.changed_at,
+    };
+  } catch {
+    return undefined;
+  }
+}
 
 function correctionFieldErrors(
   message: string | undefined,
@@ -37,6 +89,18 @@ function correctionFieldErrors(
       return {
         expectedParticipantVersion: [
           "Refresh the live round before trying this correction again.",
+        ],
+      };
+    case "score_version_invalid":
+      return {
+        expectedScoreVersion: [
+          "Refresh the current score before trying this correction again.",
+        ],
+      };
+    case "score_revision_context_required":
+      return {
+        expectedScoreRevisionId: [
+          "Refresh the current score before trying this correction again.",
         ],
       };
     case "rsvp_change_confirmation_required":
@@ -68,7 +132,11 @@ function mapLiveRoundParticipantNotPlayingError(
     return new MutationError("locked", { cause: error });
   }
   if (error.code === "40001") {
-    return new MutationError("stale_version", { cause: error });
+    const currentScore = currentScoreFromDetails(error.details);
+    return new MutationError("stale_version", {
+      cause: error,
+      ...(currentScore ? { details: { currentScore } } : {}),
+    });
   }
   if (error.code === "23505") {
     return new MutationError("operation_reused", { cause: error });
@@ -116,6 +184,8 @@ export async function executeSetLiveRoundParticipantNotPlaying(
       p_round_id: input.roundId,
       p_participant_id: input.participantId,
       p_expected_participant_version: input.expectedParticipantVersion,
+      p_expected_score_version: input.expectedScoreVersion,
+      p_expected_score_revision_id: input.expectedScoreRevisionId,
       p_confirmed: input.confirmed,
       p_reason: input.reason,
       p_source: input.source,

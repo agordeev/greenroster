@@ -10,6 +10,8 @@ const input = {
   roundId: "60000000-0000-4000-8000-000000000001",
   participantId: "80000000-0000-4000-8000-000000000001",
   expectedParticipantVersion: 4,
+  expectedScoreVersion: 7,
+  expectedScoreRevisionId: "81000000-0000-4000-8000-000000000001",
   confirmed: true as const,
   reason: "Player withdrew after entering a score.",
   operationId: "70000000-0000-4000-8000-000000000001",

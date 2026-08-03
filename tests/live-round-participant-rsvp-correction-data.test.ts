@@ -15,6 +15,8 @@ const input = {
   roundId,
   participantId,
   expectedParticipantVersion: 4,
+  expectedScoreVersion: 7,
+  expectedScoreRevisionId: "81000000-0000-4000-8000-000000000001",
   confirmed: true as const,
   reason: "Player withdrew after entering a score.",
   source: "portal" as const,
@@ -62,6 +64,8 @@ describe("live participant RSVP correction RPC adapter", () => {
         p_round_id: roundId,
         p_participant_id: participantId,
         p_expected_participant_version: 4,
+        p_expected_score_version: 7,
+        p_expected_score_revision_id: input.expectedScoreRevisionId,
         p_confirmed: true,
         p_reason: input.reason,
         p_source: "portal",
@@ -90,5 +94,47 @@ describe("live participant RSVP correction RPC adapter", () => {
         "20000000-0000-4000-8000-000000000002",
       ),
     ).rejects.toMatchObject({ code });
+  });
+
+  it("maps score-version stale details into the current server score", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: "40001",
+        message: "score_version_changed",
+        details: JSON.stringify({
+          participant_id: participantId,
+          version: 8,
+          revision_id: "82000000-0000-4000-8000-000000000001",
+          gross_score: "71",
+          net_score: null,
+          golf_points: "21.00",
+          manual_merit: null,
+          plus_minus: "8.70",
+          ranking_value: "8.70",
+          changed_at: "2026-08-03T12:00:01.000Z",
+        }),
+      },
+    });
+
+    await expect(
+      executeSetLiveRoundParticipantNotPlaying(
+        actorUserId,
+        input,
+        "20000000-0000-4000-8000-000000000003",
+      ),
+    ).rejects.toMatchObject({
+      code: "stale_version",
+      details: {
+        currentScore: {
+          participantId,
+          version: 8,
+          revisionId: "82000000-0000-4000-8000-000000000001",
+          golfPoints: "21.00",
+          plusMinus: "8.70",
+          rankingValue: "8.70",
+        },
+      },
+    });
   });
 });
