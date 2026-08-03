@@ -7,9 +7,9 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 06 — Completion and standings
-- **Active slice:** Phase 06 administrator merit and standings settings: participation merit, optional placement rows, and standings reset date (implemented; committing after review).
+- **Active slice:** Phase 06 server-authoritative ranking and competition-tie rule for completion preview.
 - **Status:** In progress
-- **Next:** Start the completion-readiness slice with server-authoritative missing-input, rule-snapshot, and projection checks; keep the unsynced mobile-score handshake explicitly blocked.
+- **Next:** Verify the ranking rule, then add completion-readiness blockers for missing inputs, absent snapshots, and nondeterministic rules; keep the unsynced mobile-score handshake explicitly blocked.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
@@ -47,6 +47,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 05 Playing → Not Playing invalidation | Commit `8510dc4`; service-only coordinator/admin transition requires confirmation, reason, expected participant version, and trusted source, deletes only the current score projection, retains immutable revisions, audits the invalidation, and supports exact replay. The coordinator portal action and strict server adapter are covered by 10 focused tests; fresh pinned reset and pgTAP pass 47 files/1,824 tests, including 45 transition assertions; full Vitest passes 101/594 and web build passes. |
 | August 4, 2026 | Phase 05 score-concurrency and mobile queue hardening | Commits `4066ada`, `3bbf896`; the RSVP correction requires the reviewed score projection version and revision ID, rejects concurrent score changes with structured current values, and displays the affected score/derived values before re-confirmation. Mobile queue state is participant-scoped, preserved through Realtime refetches, serialized across drain/mark/remove/clear and across queue instances sharing SecureStore, and exposes discard only for Failed/Locked non-draining entries. Full local reset and pgTAP pass 47 files/1,834 tests; Vitest 101/603; mobile 22/129; web/mobile builds, lint/typecheck, Expo export, formatting, diff checks, and browser smoke pass. |
 | August 4, 2026 | Phase 06 merit and standings settings | Commit `e2fde28`; administrator-only participation merit (0–100), ordered placement rows (0–500), group-local reset date, audited/versioned/idempotent settings, immutable publication snapshot fields, publication review fingerprint coverage, and quota-projection carry-forward for merit-only edits. Fresh local reset and pgTAP pass 48 files/1,865 tests; Vitest 102/610; web build, lint/typecheck, formatting, diff checks, and auth-gated browser smoke pass. |
+| August 4, 2026 | Phase 06 server-authoritative ranking rule | Commit `fa5acda`; private service-only ranking helper uses the immutable snapshot format, ranks Net by server plus/minus and Gross by golf points, includes Playing members and guests, preserves missing inputs as unranked, and applies competition ties with explicit round/group tenant keys. Fresh seeded local reset and pgTAP pass 49 files/1,883 tests, including 18 focused ranking checks; Vitest 102/610, application formatting, database lint, and diff checks pass. Independent review found no functional or security defects; the snapshot, anonymous-grant, and Gross-missing-input coverage gaps were closed. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
