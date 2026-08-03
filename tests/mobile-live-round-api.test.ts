@@ -199,4 +199,16 @@ describe("mobile live round API", () => {
       }),
     ).resolves.toMatchObject({ code: "locked", ok: false });
   });
+
+  it("treats a missing or revoked live round as definitive access loss", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: { code: "P0002", message: "round_not_found" },
+    });
+    const api = createMobileLiveRoundApi({ rpc });
+    await expect(api.read(roundId)).resolves.toMatchObject({
+      code: "permission_denied",
+      ok: false,
+    });
+  });
 });

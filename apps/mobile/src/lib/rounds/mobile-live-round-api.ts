@@ -370,6 +370,18 @@ function mapError(
     };
   }
   if (
+    error.code === "P0002" ||
+    normalized.includes("round_not_found") ||
+    normalized.includes("participant_not_found")
+  ) {
+    return {
+      code: "permission_denied",
+      ...supportReference,
+      message: "This live round is no longer available to this account.",
+      ok: false,
+    };
+  }
+  if (
     error.code === "22023" ||
     normalized.includes("invalid") ||
     normalized.includes("required") ||

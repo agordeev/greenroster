@@ -69,8 +69,8 @@ export function MobileSignOutButton({
 
   const signOut = async () => {
     if (pending || disabled) return;
-    if (beforeSignOut && !(await beforeSignOut())) return;
     if (!(await confirmPendingScores())) return;
+    if (beforeSignOut && !(await beforeSignOut())) return;
     setPending(true);
     setError(null);
     if (session?.user.id && scoreQueue.isSupported) {
