@@ -22,7 +22,13 @@ describe("mobile app-link registration", () => {
         action: "VIEW",
         autoVerify: true,
         category: ["BROWSABLE", "DEFAULT"],
-        data: ["/", "/rounds", "/leaderboard", "/profile"].map((path) => ({
+        data: [
+          "/",
+          "/rounds",
+          "/leaderboard",
+          "/profile",
+          "/notification-preferences",
+        ].map((path) => ({
           scheme: "https",
           host: "members.greenroster.example",
           path,

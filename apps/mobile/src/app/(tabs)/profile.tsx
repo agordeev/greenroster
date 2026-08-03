@@ -1,4 +1,4 @@
-import { useNavigation } from "expo-router";
+import { Link, useNavigation, type Href } from "expo-router";
 import Constants from "expo-constants";
 import {
   useCallback,
@@ -44,6 +44,7 @@ import {
 } from "@/lib/profile/mobile-self-profile-state";
 import { createMobileOperationId } from "@/lib/mobile-operation-id";
 import { mobileRuntimeEnv } from "@/lib/runtime-env";
+import { retireCurrentMobilePushDevice } from "@/lib/notifications/mobile-push-registration-default";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function ProfileScreen() {
@@ -362,11 +363,27 @@ export default function ProfileScreen() {
           ? "This recovery-only session cannot load member data. Continue to password replacement when prompted."
           : loadState === "error"
             ? "Check your connection and retry. Protected member data is not cached in general storage."
-            : "Group role and status are read-only. Notification preferences are managed in a later phase."
+            : "Group role and status are read-only. Notification preferences can be changed separately."
       }
       facts={facts}
     >
       <GroupDirectoryLink />
+      {!recoveryRequired ? (
+        <Link href={"/notification-preferences" as Href} asChild>
+          <Pressable
+            accessibilityLabel="Manage notification preferences"
+            accessibilityRole="link"
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <ThemedText type="smallBold" themeColor="accent">
+              Manage notification preferences
+            </ThemedText>
+          </Pressable>
+        </Link>
+      ) : null}
       {!recoveryRequired && loadState === "error" ? (
         <ActionButton
           label="Retry profile"
@@ -425,7 +442,30 @@ export default function ProfileScreen() {
       <ProfileAboutSection />
       <MobileSignOutButton
         disabled={saveState !== null}
-        beforeSignOut={confirmSignOut}
+        beforeSignOut={async () => {
+          if (!(await confirmSignOut())) return false;
+          if (session?.user.id) {
+            try {
+              const retirement = await retireCurrentMobilePushDevice(
+                session.user.id,
+              );
+              if (retirement.status === "unavailable") {
+                Alert.alert(
+                  "Push sign-out needs a connection",
+                  "GreenRoster could not retire this device's notifications. Reconnect and try signing out again.",
+                );
+                return false;
+              }
+            } catch {
+              Alert.alert(
+                "Push sign-out needs a connection",
+                "GreenRoster could not retire this device's notifications. Reconnect and try signing out again.",
+              );
+              return false;
+            }
+          }
+          return true;
+        }}
       />
     </MemberDestinationScreen>
   );

@@ -35,6 +35,7 @@ import {
   recoveryRequirementStorage,
 } from "@/lib/auth/secure-session-storage";
 import { mobileRuntimeEnv } from "@/lib/runtime-env";
+import { retireCurrentMobilePushDevice } from "@/lib/notifications/mobile-push-registration-default";
 
 type MobileAuthContextValue = MobileAuthState & {
   clearPendingDestination(): Promise<void>;
@@ -43,6 +44,16 @@ type MobileAuthContextValue = MobileAuthState & {
   pendingDestinationReady: boolean;
   retrySession(): Promise<void>;
 };
+
+async function retirePushDeviceBeforeLocalSignOut(session: Session | null) {
+  if (!session?.user.id) return;
+  try {
+    await retireCurrentMobilePushDevice(session.user.id);
+  } catch {
+    // Recovery and callback cleanup must still clear the local Auth session.
+    // The explicit profile sign-out path blocks when retirement is unavailable.
+  }
+}
 
 const MobileAuthContext = createContext<MobileAuthContextValue | null>(null);
 
@@ -53,7 +64,10 @@ async function restoreMobileAuthState(
   if (recoveryHandle) {
     const recovery = await mobileRecoveryApi.status(recoveryHandle);
     if (recovery.ok && recovery.state === "active") {
-      if (session) await mobileSupabase.auth.signOut({ scope: "local" });
+      if (session) {
+        await retirePushDeviceBeforeLocalSignOut(session);
+        await mobileSupabase.auth.signOut({ scope: "local" });
+      }
       await recoveryRequirementStorage.require();
       return { recoveryRequired: true, session: null, status: "signed-in" };
     }
@@ -62,7 +76,10 @@ async function restoreMobileAuthState(
     }
     await recoveryHandleStorage.clear();
     await recoveryRequirementStorage.clear();
-    if (session) await mobileSupabase.auth.signOut({ scope: "local" });
+    if (session) {
+      await retirePushDeviceBeforeLocalSignOut(session);
+      await mobileSupabase.auth.signOut({ scope: "local" });
+    }
     return restoredMobileAuthState(null, false);
   }
 
@@ -133,6 +150,11 @@ export function MobileAuthProvider({
           }
 
           pendingRecoveryCallback.current = null;
+          await retirePushDeviceBeforeLocalSignOut(
+            await mobileSupabase.auth
+              .getSession()
+              .then(({ data }) => data.session),
+          );
           await mobileSupabase.auth.signOut({ scope: "local" });
           await recoveryHandleStorage.clear();
           await recoveryRequirementStorage.clear();
@@ -145,6 +167,11 @@ export function MobileAuthProvider({
           return;
         }
 
+        await retirePushDeviceBeforeLocalSignOut(
+          await mobileSupabase.auth
+            .getSession()
+            .then(({ data }) => data.session),
+        );
         await mobileSupabase.auth.signOut({ scope: "local" });
         await authEventQueue.current;
         await recoveryHandleStorage.set(recovery.recoveryHandle);

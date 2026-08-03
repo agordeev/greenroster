@@ -1,7 +1,13 @@
 import { loadProjectEnv } from "@expo/env";
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
-const linkedPaths = ["/", "/rounds", "/leaderboard", "/profile"] as const;
+const linkedPaths = [
+  "/",
+  "/rounds",
+  "/leaderboard",
+  "/profile",
+  "/notification-preferences",
+] as const;
 
 loadProjectEnv(process.cwd(), { silent: true });
 
