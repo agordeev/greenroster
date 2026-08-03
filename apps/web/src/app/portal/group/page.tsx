@@ -14,7 +14,9 @@ import {
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { executeGroupRolesActivity } from "@/lib/groups/group-roles-activity-data";
+import { executeReadGroupGuestPermission } from "@/lib/groups/group-guest-permission-data";
 import { GroupProfileForm } from "./group-profile-form";
+import { GroupGuestPermissionForm } from "./group-guest-permission-form";
 import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -128,6 +130,13 @@ export default async function GroupRolesActivityPage({
     return renderGroupError(error, portalContext);
   }
 
+  let guestPermission;
+  try {
+    guestPermission = await executeReadGroupGuestPermission(session.userId);
+  } catch (error) {
+    return renderGroupError(error, portalContext);
+  }
+
   const nextHref = projection.activity.nextCursor
     ? `/portal/group?${groupRolesActivityQueryParams({
         ...query,
@@ -188,6 +197,36 @@ export default async function GroupRolesActivityPage({
                 <dd>{projection.group.timeZone}</dd>
               </div>
             </dl>
+          )}
+        </section>
+
+        <section
+          className="group-profile-panel group-guest-permission-panel"
+          aria-labelledby="guest-permission-title"
+        >
+          <div className="group-panel-heading">
+            <div>
+              <p className="ledger-kicker">Round participation</p>
+              <h2 id="guest-permission-title">Guest permission</h2>
+            </div>
+            <p>Version {guestPermission.groupVersion}</p>
+          </div>
+          {portalContext.role === "administrator" ? (
+            <GroupGuestPermissionForm
+              key={`${guestPermission.groupId}:${guestPermission.groupVersion}`}
+              initialValue={{
+                allowMemberGuests: guestPermission.allowMemberGuests,
+                groupVersion: guestPermission.groupVersion,
+              }}
+            />
+          ) : (
+            <p>
+              Member-added guests are currently{" "}
+              <strong>
+                {guestPermission.allowMemberGuests ? "allowed" : "disabled"}
+              </strong>
+              . Only an administrator can change this group policy.
+            </p>
           )}
         </section>
 

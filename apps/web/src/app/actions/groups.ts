@@ -9,6 +9,8 @@ import { runQuotaSettingsMutation } from "@/lib/groups/quota-settings";
 import { executeConfigureQuotaSettings } from "@/lib/groups/quota-settings-data";
 import { runGroupProfileMutation } from "@/lib/groups/group-profile";
 import { executeUpdateGroupProfile } from "@/lib/groups/group-profile-data";
+import { runGroupGuestPermissionMutation } from "@/lib/groups/group-guest-permission";
+import { executeUpdateGroupGuestPermission } from "@/lib/groups/group-guest-permission-data";
 
 export async function bootstrapGroupAction(input: unknown) {
   const requestHeaders = await headers();
@@ -44,6 +46,19 @@ export async function updateGroupProfileAction(input: unknown) {
     requestHeaders.get("x-correlation-id"),
     {
       executeUpdate: executeUpdateGroupProfile,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function updateGroupGuestPermissionAction(input: unknown) {
+  const requestHeaders = await headers();
+
+  return runGroupGuestPermissionMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      executeUpdate: executeUpdateGroupGuestPermission,
       verifySession: verifyMutationSession,
     },
   );

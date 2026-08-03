@@ -1775,6 +1775,22 @@ input {
 .group-profile-form textarea {
   resize: vertical;
 }
+.group-guest-permission-form .checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: var(--pencil);
+  font-weight: 700;
+}
+.group-guest-permission-form .checkbox-field input {
+  width: auto;
+  margin-top: 0.2rem;
+  padding: 0;
+  accent-color: var(--focus);
+}
+.group-guest-permission-form .field-help {
+  max-width: 48rem;
+}
 .group-profile-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
