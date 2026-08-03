@@ -140,9 +140,9 @@ select * from public.set_round_participant_score(
   '2c000000-0000-4000-8000-000000000001'
 );
 select is((select version from first_score), 1::bigint, 'member first score creates version one');
-select is((select golf_points from first_score), 20.00::numeric, 'points preserve exact decimal input');
-select is((select plus_minus from first_score), 7.70::numeric, 'server calculates plus/minus from the quota snapshot');
-select is((select ranking_value from first_score), 7.70::numeric, 'net ranking value is server-derived');
+select is((select golf_points::numeric from first_score), 20.00::numeric, 'points preserve exact decimal input');
+select is((select plus_minus::numeric from first_score), 7.70::numeric, 'server calculates plus/minus from the quota snapshot');
+select is((select ranking_value::numeric from first_score), 7.70::numeric, 'net ranking value is server-derived');
 select is(
   (select count(*) from public.score_revisions where participant_id = '1e000000-0000-4000-8000-000000000001'),
   1::bigint,
@@ -201,9 +201,9 @@ select * from public.set_round_participant_score(
   '2b000000-0000-4000-8000-000000000016',
   '2c000000-0000-4000-8000-000000000016'
 );
-select is((select plus_minus from guest_score), 6.50::numeric, 'sponsor may score a round-scoped guest');
+select is((select plus_minus::numeric from guest_score), 6.50::numeric, 'sponsor may score a round-scoped guest');
 create temporary table guest_incremental_score as
-from public.set_round_participant_score(
+select * from public.set_round_participant_score(
   '1a000000-0000-4000-8000-000000000002',
   '1e000000-0000-4000-8000-000000000006',
   '{"gross_score": 90}'::jsonb,
@@ -255,7 +255,7 @@ select throws_ok(
   ) $$,
   '40001', 'score_version_changed', 'stale score is rejected without overwrite'
 );
-select is((select golf_points from public.participant_score_projections where participant_id = '1e000000-0000-4000-8000-000000000001'), 20.00::numeric, 'stale score leaves current projection unchanged');
+select is((select golf_points::numeric from public.participant_score_projections where participant_id = '1e000000-0000-4000-8000-000000000001'), 20.00::numeric, 'stale score leaves current projection unchanged');
 
 select throws_ok(
   $$ select * from public.set_round_participant_score(
@@ -299,7 +299,7 @@ select * from public.set_round_participant_score(
   '2c000000-0000-4000-8000-000000000006'
 );
 select is((select version from corrected_score), 2::bigint, 'coordinator correction advances the independent score version');
-select is((select plus_minus from corrected_score), 5.70::numeric, 'correction recalculates plus/minus on the server');
+select is((select plus_minus::numeric from corrected_score), 5.70::numeric, 'correction recalculates plus/minus on the server');
 select is((select reason from public.score_revisions where revision_number = 2 and participant_id = '1e000000-0000-4000-8000-000000000001'), 'Coordinator correction', 'correction reason is retained');
 
 select throws_ok(
@@ -313,8 +313,8 @@ select throws_ok(
 );
 select throws_ok(
   $$ select * from public.set_round_participant_score(
-    '1a000000-0000-4000-8000-000000000002', '1e000000-0000-4000-8000-000000000001',
-    '{"manual_merit": 2.00}'::jsonb, 2,
+    '1a000000-0000-4000-8000-000000000003', '1e000000-0000-4000-8000-000000000001',
+    '{"golf_points": 17.00}'::jsonb, 2,
     '2a000000-0000-4000-8000-000000000008', 'portal', 'Merit correction', now(),
     '2b000000-0000-4000-8000-000000000008', '2c000000-0000-4000-8000-000000000008'
   ) $$,
@@ -334,16 +334,16 @@ select * from public.set_round_participant_score(
   '2b000000-0000-4000-8000-000000000009',
   '2c000000-0000-4000-8000-000000000009'
 );
-select is((select manual_merit from admin_merit), 2.00::numeric, 'administrator may author manual merit');
+select is((select manual_merit::numeric from admin_merit), 2.00::numeric, 'administrator may author manual merit');
 
 select throws_ok(
   $$ select * from public.set_round_participant_score(
-    '1a000000-0000-4000-8000-000000000003', '1e000000-0000-4000-8000-000000000004',
-    '{"gross_score": 80}'::jsonb, 0,
+    '1a000000-0000-4000-8000-000000000003', '1e000000-0000-4000-8000-000000000005',
+    '{"net_score": 80}'::jsonb, 0,
     '2a000000-0000-4000-8000-000000000010', 'mobile', null, now(),
     '2b000000-0000-4000-8000-000000000010', '2c000000-0000-4000-8000-000000000010'
   ) $$,
-  '22023', 'score_field_disabled', 'disabled gross score is rejected'
+  '22023', 'score_field_disabled', 'disabled net score is rejected'
 );
 select throws_ok(
   $$ select * from public.set_round_participant_score(

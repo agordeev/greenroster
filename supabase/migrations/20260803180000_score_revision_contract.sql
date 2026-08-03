@@ -656,16 +656,16 @@ begin
   next_points := current_points;
   next_manual := current_manual;
   if p_changed_fields ? 'gross_score' then
-    next_gross := app.score_field_number(p_changed_fields, 'gross_score', 0, 300, 0, true)::app.golf_score_value;
+    next_gross := app.score_field_number(p_changed_fields, 'gross_score', 0::numeric, 300::numeric, 0::smallint, true)::app.golf_score_value;
   end if;
   if p_changed_fields ? 'net_score' then
-    next_net := app.score_field_number(p_changed_fields, 'net_score', 0, 300, 0, true)::app.golf_score_value;
+    next_net := app.score_field_number(p_changed_fields, 'net_score', 0::numeric, 300::numeric, 0::smallint, true)::app.golf_score_value;
   end if;
   if p_changed_fields ? 'golf_points' then
-    next_points := app.score_field_number(p_changed_fields, 'golf_points', 0, 100, 2, false)::app.golf_points_value;
+    next_points := app.score_field_number(p_changed_fields, 'golf_points', 0::numeric, 100::numeric, 2::smallint, false)::app.golf_points_value;
   end if;
   if p_changed_fields ? 'manual_merit' then
-    next_manual := app.score_field_number(p_changed_fields, 'manual_merit', -1000, 1000, 2, false)::app.manual_merit_value;
+    next_manual := app.score_field_number(p_changed_fields, 'manual_merit', -1000::numeric, 1000::numeric, 2::smallint, false)::app.manual_merit_value;
   end if;
 
   if p_changed_fields ? 'gross_score'

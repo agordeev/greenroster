@@ -38,11 +38,26 @@ as $$
         identity.banned_until is null
         or identity.banned_until <= pg_catalog.statement_timestamp()
       )
+      and (
+        membership.role in ('coordinator', 'administrator')
+        or exists (
+          select 1
+          from public.round_participants as participant
+          where participant.round_id = round_record.id
+            and participant.group_id = round_record.group_id
+            and (
+              participant.membership_id = membership.id
+              or participant.sponsor_membership_id = membership.id
+            )
+        )
+      )
   );
 $$;
 
 revoke all on function app.can_read_live_score_projection(uuid, uuid)
 from public, anon, authenticated, service_role;
+grant execute on function app.can_read_live_score_projection(uuid, uuid)
+to authenticated;
 
 grant select on table public.participant_score_projections to authenticated;
 
@@ -152,6 +167,21 @@ begin
 
   if target_round.state <> 'live' then
     raise exception 'round_scoring_locked' using errcode = 'P0001';
+  end if;
+
+  if actor_membership.role = 'member'
+    and not exists (
+      select 1
+      from public.round_participants as participant
+      where participant.round_id = target_round.id
+        and participant.group_id = target_round.group_id
+        and (
+          participant.membership_id = actor_membership.id
+          or participant.sponsor_membership_id = actor_membership.id
+        )
+    )
+  then
+    raise exception 'round_not_found' using errcode = 'P0002';
   end if;
 
   select snapshot.*

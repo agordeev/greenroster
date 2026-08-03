@@ -14,6 +14,7 @@ import { RoundReadOnlyDetail } from "./round-read-only-detail";
 import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 import { RoundScoringPanel } from "./round-scoring-panel";
 import { LiveRoundScoreboard } from "./live-round-scoreboard";
+import { LiveRoundScoreEntryPanel } from "./live-round-score-entry-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -93,7 +94,10 @@ export function RoundWorkspace({
               </p>
             </section>
           ) : (
-            <LiveRoundScoreboard participants={liveScores} />
+            <>
+              <LiveRoundScoreboard participants={liveScores} />
+              <LiveRoundScoreEntryPanel participants={liveScores} />
+            </>
           )
         ) : null}
 

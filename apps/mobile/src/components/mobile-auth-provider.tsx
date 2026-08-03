@@ -36,6 +36,8 @@ import {
 } from "@/lib/auth/secure-session-storage";
 import { mobileRuntimeEnv } from "@/lib/runtime-env";
 import { retireCurrentMobilePushDevice } from "@/lib/notifications/mobile-push-registration-default";
+import { createMobileScoreQueue } from "@/lib/rounds/mobile-score-queue";
+import { mobileLiveRoundSnapshotStorage } from "@/lib/rounds/mobile-live-round-snapshot-storage";
 
 type MobileAuthContextValue = MobileAuthState & {
   clearPendingDestination(): Promise<void>;
@@ -55,6 +57,11 @@ async function retirePushDeviceBeforeLocalSignOut(session: Session | null) {
   }
 }
 
+async function clearMobileOfflineArtifacts(userId: string) {
+  if (Platform.OS === "web") return;
+  await mobileLiveRoundSnapshotStorage.clearUser(userId);
+}
+
 const MobileAuthContext = createContext<MobileAuthContextValue | null>(null);
 
 async function restoreMobileAuthState(
@@ -67,6 +74,7 @@ async function restoreMobileAuthState(
       if (session) {
         await retirePushDeviceBeforeLocalSignOut(session);
         await mobileSupabase.auth.signOut({ scope: "local" });
+        await clearMobileOfflineArtifacts(session.user.id);
       }
       await recoveryRequirementStorage.require();
       return { recoveryRequired: true, session: null, status: "signed-in" };
@@ -79,6 +87,7 @@ async function restoreMobileAuthState(
     if (session) {
       await retirePushDeviceBeforeLocalSignOut(session);
       await mobileSupabase.auth.signOut({ scope: "local" });
+      await clearMobileOfflineArtifacts(session.user.id);
     }
     return restoredMobileAuthState(null, false);
   }
@@ -96,6 +105,11 @@ export function MobileAuthProvider({
     { kind: "code" }
   > | null>(null);
   const authEventQueue = useRef<Promise<void>>(Promise.resolve());
+  const lastKnownUserId = useRef<string | null>(null);
+  const scoreQueue = useMemo(
+    () => createMobileScoreQueue({ platform: Platform.OS }),
+    [],
+  );
   const [state, setState] = useState<MobileAuthState>(initialMobileAuthState);
   const [pendingDestination, setPendingDestination] =
     useState<MobileLinkDestination | null>(null);
@@ -150,12 +164,14 @@ export function MobileAuthProvider({
           }
 
           pendingRecoveryCallback.current = null;
-          await retirePushDeviceBeforeLocalSignOut(
-            await mobileSupabase.auth
-              .getSession()
-              .then(({ data }) => data.session),
-          );
+          const currentSession = await mobileSupabase.auth
+            .getSession()
+            .then(({ data }) => data.session);
+          await retirePushDeviceBeforeLocalSignOut(currentSession);
           await mobileSupabase.auth.signOut({ scope: "local" });
+          if (currentSession?.user.id) {
+            await clearMobileOfflineArtifacts(currentSession.user.id);
+          }
           await recoveryHandleStorage.clear();
           await recoveryRequirementStorage.clear();
           if (!isActive()) return;
@@ -167,12 +183,14 @@ export function MobileAuthProvider({
           return;
         }
 
-        await retirePushDeviceBeforeLocalSignOut(
-          await mobileSupabase.auth
-            .getSession()
-            .then(({ data }) => data.session),
-        );
+        const currentSession = await mobileSupabase.auth
+          .getSession()
+          .then(({ data }) => data.session);
+        await retirePushDeviceBeforeLocalSignOut(currentSession);
         await mobileSupabase.auth.signOut({ scope: "local" });
+        if (currentSession?.user.id) {
+          await clearMobileOfflineArtifacts(currentSession.user.id);
+        }
         await authEventQueue.current;
         await recoveryHandleStorage.set(recovery.recoveryHandle);
         await recoveryRequirementStorage.require();
@@ -250,12 +268,21 @@ export function MobileAuthProvider({
     const { data } = mobileSupabase.auth.onAuthStateChange((event, session) => {
       authEventQueue.current = authEventQueue.current.then(async () => {
         if (!active) return;
+        if (session?.user.id) lastKnownUserId.current = session.user.id;
         if (handledCallback.current && event === "INITIAL_SESSION") return;
 
         try {
+          const priorUserId = lastKnownUserId.current;
           if (event === "PASSWORD_RECOVERY") {
             await recoveryRequirementStorage.require();
           } else if (event === "SIGNED_OUT") {
+            lastKnownUserId.current = null;
+            if (priorUserId && scoreQueue.isSupported) {
+              await scoreQueue.clearUser(priorUserId);
+            }
+            if (priorUserId) {
+              await clearMobileOfflineArtifacts(priorUserId);
+            }
             if (await recoveryHandleStorage.get()) return;
             await recoveryRequirementStorage.clear();
           }
@@ -281,7 +308,7 @@ export function MobileAuthProvider({
       active = false;
       data.subscription.unsubscribe();
     };
-  }, []);
+  }, [scoreQueue]);
 
   useEffect(() => {
     let active = true;

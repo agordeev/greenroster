@@ -18,6 +18,7 @@ export function MemberDestinationScreen({
   facts,
   introduction,
   title,
+  hideEmptyState = false,
   children,
 }: Readonly<{
   children?: ReactNode;
@@ -25,6 +26,7 @@ export function MemberDestinationScreen({
   emptyTitle: string;
   eyebrow: string;
   facts: readonly (readonly [label: string, value: string])[];
+  hideEmptyState?: boolean;
   introduction: string;
   title: string;
 }>) {
@@ -83,15 +85,17 @@ export function MemberDestinationScreen({
               </ThemedText>
             </View>
 
-            <ThemedView
-              type="backgroundElement"
-              style={[styles.emptyCard, { borderColor: theme.separator }]}
-            >
-              <ThemedText type="subtitle">{emptyTitle}</ThemedText>
-              <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
-                {emptyBody}
-              </ThemedText>
-            </ThemedView>
+            {!hideEmptyState ? (
+              <ThemedView
+                type="backgroundElement"
+                style={[styles.emptyCard, { borderColor: theme.separator }]}
+              >
+                <ThemedText type="subtitle">{emptyTitle}</ThemedText>
+                <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
+                  {emptyBody}
+                </ThemedText>
+              </ThemedView>
+            ) : null}
 
             {children}
 
