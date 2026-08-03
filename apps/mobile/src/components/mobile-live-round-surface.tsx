@@ -35,10 +35,12 @@ import {
 } from "@/lib/rounds/mobile-rounds-api";
 import {
   applyMobileLiveRoundScoreReceipt,
+  clearMobileLiveRoundPending,
   createMobileLiveRoundState,
   markMobileLiveRoundFailed,
   markMobileLiveRoundPending,
   markMobileLiveRoundStale,
+  mobileLiveRoundParticipantLockedMessage,
   mobileLiveRoundOrderIsDeferred,
   mobileLiveRoundVisibleOrder,
   replaceMobileLiveRoundSnapshot,
@@ -80,6 +82,9 @@ export function MobileLiveRoundSurface({
   const [realtimeStatus, setRealtimeStatus] = useState("stopped");
   const roundRequestSequence = useRef(0);
   const scoreRequestSequence = useRef(0);
+  const realtimeRef = useRef<ReturnType<
+    typeof createMobileLiveRoundRealtime
+  > | null>(null);
   const queue = useMemo(
     () => createMobileScoreQueue({ platform: Platform.OS }),
     [],
@@ -88,6 +93,21 @@ export function MobileLiveRoundSurface({
     () => createMobileLiveRoundSnapshotStorage(),
     [],
   );
+
+  const updateScoreState = useCallback(
+    (updater: SetStateAction<MobileLiveRoundState | null>) => {
+      setScoreState((current) => {
+        const next = typeof updater === "function" ? updater(current) : updater;
+        realtimeRef.current?.setLocalState(next);
+        return next;
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    realtimeRef.current?.setLocalState(scoreState);
+  }, [scoreState]);
 
   const purgeRoundOfflineData = useCallback(
     async (scope: { userId: string; groupId: string; roundId: string }) => {
@@ -107,6 +127,26 @@ export function MobileLiveRoundSurface({
       ]);
     },
     [queue, snapshotStorage],
+  );
+
+  const markLockedPendingScores = useCallback(
+    async (
+      scope: { userId: string; groupId: string; roundId: string },
+      participants: readonly MobileLiveRoundParticipant[],
+    ) => {
+      if (!queue.isSupported) return;
+      const lockedParticipantIds = participants
+        .filter(
+          (participant) =>
+            participant.rsvpStatus !== "playing" || !participant.canEdit,
+        )
+        .map((participant) => participant.participantId);
+      if (lockedParticipantIds.length === 0) return;
+      await Promise.allSettled([
+        queue.markParticipantsPendingFailed(scope, lockedParticipantIds),
+      ]);
+    },
+    [queue],
   );
 
   const selectedRound = useMemo(
@@ -241,6 +281,17 @@ export function MobileLiveRoundSurface({
             );
             const queued = await queue.list(scope);
             for (const item of queued) {
+              const pending: MobileLiveRoundPendingScore = {
+                participantId: item.participantId,
+                baseVersion: item.baseVersion,
+                changedFields: item.payload,
+                deviceOperationId: item.deviceOperationId,
+                operationId: item.operationId,
+                correlationId: item.correlationId,
+                clientChangedAt: item.clientChangedAt,
+                queuedAt: item.queuedAt,
+              };
+              cachedState = markMobileLiveRoundPending(cachedState, pending);
               if (item.status === "failed" && item.failure) {
                 cachedState = markMobileLiveRoundFailed(
                   cachedState,
@@ -252,17 +303,6 @@ export function MobileLiveRoundSurface({
                     permanent: true,
                   },
                 );
-              } else {
-                cachedState = markMobileLiveRoundPending(cachedState, {
-                  participantId: item.participantId,
-                  baseVersion: item.baseVersion,
-                  changedFields: item.payload,
-                  deviceOperationId: item.deviceOperationId,
-                  operationId: item.operationId,
-                  correlationId: item.correlationId,
-                  clientChangedAt: item.clientChangedAt,
-                  queuedAt: item.queuedAt,
-                });
               }
             }
             setScoreState(cachedState);
@@ -315,10 +355,16 @@ export function MobileLiveRoundSurface({
         setRealtimeStatus("stale");
         return;
       }
-      const initial = createMobileLiveRoundState({
-        participants: result.data,
-        syncedAt: new Date().toISOString(),
-      });
+      if (scope) await markLockedPendingScores(scope, result.data);
+      const initial = cachedState
+        ? replaceMobileLiveRoundSnapshot(cachedState, {
+            participants: result.data,
+            syncedAt: new Date().toISOString(),
+          })
+        : createMobileLiveRoundState({
+            participants: result.data,
+            syncedAt: new Date().toISOString(),
+          });
       setScoreState(initial);
       setScoreStatus("ready");
       if (scope) {
@@ -353,6 +399,7 @@ export function MobileLiveRoundSurface({
               refreshed.message,
             );
           }
+          await markLockedPendingScores(scope, refreshed.data);
           await snapshotStorage
             .save(scope, refreshed.data, selectedRoundSummary)
             .catch(() => undefined);
@@ -400,6 +447,7 @@ export function MobileLiveRoundSurface({
             setScoreMessage(view.error);
         },
       });
+      realtimeRef.current = realtime;
       await realtime.start();
       if (!active || lifecycleHandled) {
         await realtime.stop();
@@ -444,6 +492,7 @@ export function MobileLiveRoundSurface({
         if (drained.processed > 0 && active) {
           const refreshed = await mobileLiveRoundApi.read(first.roundId);
           if (refreshed.ok) {
+            await markLockedPendingScores(scope, refreshed.data);
             setScoreState((current) =>
               current
                 ? replaceMobileLiveRoundSnapshot(current, {
@@ -467,12 +516,14 @@ export function MobileLiveRoundSurface({
 
     return () => {
       active = false;
+      if (realtimeRef.current === realtime) realtimeRef.current = null;
       if (realtime) void realtime.stop();
     };
   }, [
     queue,
     clearSelectedRound,
     loadRounds,
+    markLockedPendingScores,
     purgeRoundOfflineData,
     selectedLiveRoundId,
     selectedRound,
@@ -533,7 +584,7 @@ export function MobileLiveRoundSurface({
         ) : (
           <LiveScorecard
             state={selectedScoreState}
-            onChange={setScoreState}
+            onChange={updateScoreState}
             queue={queue}
             sessionId={session?.user.id ?? null}
           />
@@ -873,6 +924,7 @@ function MobileScoreEditor({
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [discardBusy, setDiscardBusy] = useState(false);
   const enabledFields = [
     participant.enabledFields.golfPoints ? "golf_points" : null,
     participant.enabledFields.grossScore ? "gross_score" : null,
@@ -880,10 +932,28 @@ function MobileScoreEditor({
     participant.canAuthorManualMerit ? "manual_merit" : null,
   ].filter((value): value is keyof typeof draft => value !== null);
   const locked = participant.rsvpStatus !== "playing" || !participant.canEdit;
+  const hasPending = entry.pending !== null;
+  const lockedPending = entry.syncState === "Locked" && hasPending;
+  const pendingScope = sessionId
+    ? {
+        userId: sessionId,
+        groupId: participant.groupId,
+        roundId: participant.roundId,
+      }
+    : null;
+  const discardablePending =
+    hasPending &&
+    (entry.syncState === "Failed" || entry.syncState === "Locked");
+  const canDiscardPending = Boolean(
+    discardablePending &&
+    pendingScope &&
+    queue.isSupported &&
+    !queue.isDraining(pendingScope),
+  );
   const typedPlusMinus = previewPlusMinus(participant, draft.golf_points);
 
   async function save() {
-    if (busy || locked || !sessionId) return;
+    if (busy || locked || hasPending || !sessionId) return;
     const changedFields: Record<string, number | null> = {};
     for (const field of enabledFields) {
       const raw = draft[field].trim();
@@ -985,6 +1055,50 @@ function MobileScoreEditor({
     setBusy(false);
   }
 
+  async function discardPending() {
+    const pending = entry.pending;
+    if (
+      !pending ||
+      !discardablePending ||
+      !pendingScope ||
+      !queue.isSupported ||
+      discardBusy
+    ) {
+      return;
+    }
+    if (queue.isDraining(pendingScope)) {
+      setMessage(
+        "Wait for the pending score sync to finish before discarding.",
+      );
+      return;
+    }
+    setDiscardBusy(true);
+    try {
+      const removed = await queue.removeParticipant(
+        pendingScope,
+        participant.participantId,
+      );
+      onChange((current) =>
+        current
+          ? clearMobileLiveRoundPending(
+              current,
+              participant.participantId,
+              pending.deviceOperationId,
+            )
+          : current,
+      );
+      setMessage(
+        removed
+          ? "Pending score discarded."
+          : "Pending score was already removed.",
+      );
+    } catch {
+      setMessage("Could not discard the pending score. Try again.");
+    } finally {
+      setDiscardBusy(false);
+    }
+  }
+
   return (
     <View style={[styles.editor, { borderColor: theme.separator }]}>
       <View style={styles.roundCopy}>
@@ -1001,7 +1115,7 @@ function MobileScoreEditor({
           </ThemedText>
           <TextInput
             accessibilityLabel={`${fieldLabel(field)} for ${participantName(participant)}`}
-            editable={!locked && !busy}
+            editable={!locked && !hasPending && !busy}
             keyboardType="decimal-pad"
             placeholder="Missing"
             placeholderTextColor={theme.textSecondary}
@@ -1027,7 +1141,39 @@ function MobileScoreEditor({
           </ThemedText>
         </View>
       ) : null}
-      {entry.confirmed.version > 0 && !locked ? (
+      {hasPending ? (
+        <View style={styles.staleNotice} accessibilityRole="alert">
+          <ThemedText type="smallBold">
+            {lockedPending
+              ? "Pending score not sent"
+              : "Pending score needs attention"}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {entry.failure?.message ??
+              (lockedPending
+                ? mobileLiveRoundParticipantLockedMessage
+                : "This score is not official until it syncs.")}
+          </ThemedText>
+          {canDiscardPending ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ busy: discardBusy }}
+              disabled={discardBusy}
+              onPress={() => void discardPending()}
+              style={[styles.secondaryButton, { borderColor: theme.separator }]}
+            >
+              {discardBusy ? (
+                <ActivityIndicator color={theme.accent} />
+              ) : (
+                <ThemedText type="smallBold" themeColor="accent">
+                  Discard pending score
+                </ThemedText>
+              )}
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+      {entry.confirmed.version > 0 && !locked && !hasPending ? (
         <View style={styles.inputGroup}>
           <ThemedText type="small" themeColor="textSecondary">
             Correction reason
@@ -1077,13 +1223,13 @@ function MobileScoreEditor({
       ) : null}
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ busy, disabled: locked || busy }}
-        disabled={locked || busy}
+        accessibilityState={{ busy, disabled: locked || hasPending || busy }}
+        disabled={locked || hasPending || busy}
         onPress={() => void save()}
         style={[
           styles.primaryButton,
           { backgroundColor: theme.accent },
-          (locked || busy) && styles.disabled,
+          (locked || hasPending || busy) && styles.disabled,
         ]}
       >
         {busy ? (

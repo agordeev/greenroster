@@ -17,6 +17,7 @@ vi.mock("../apps/mobile/src/lib/auth/mobile-supabase", () => ({
 }));
 
 import { createMobileScoreQueue } from "../apps/mobile/src/lib/rounds/mobile-score-queue";
+import type { MobileScoreQueueSend } from "../apps/mobile/src/lib/rounds/mobile-score-queue";
 
 const scope = {
   userId: "10000000-0000-4000-8000-000000000001",
@@ -24,6 +25,8 @@ const scope = {
   roundId: "30000000-0000-4000-8000-000000000001",
 };
 const participantId = "40000000-0000-4000-8000-000000000001";
+const secondParticipantId = "40000000-0000-4000-8000-000000000002";
+const thirdParticipantId = "40000000-0000-4000-8000-000000000003";
 
 function storage() {
   const values = new Map<string, string>();
@@ -39,10 +42,14 @@ function storage() {
   };
 }
 
-function input(deviceOperationId: string, points: number) {
+function input(
+  deviceOperationId: string,
+  points: number,
+  forParticipantId = participantId,
+) {
   return {
     ...scope,
-    participantId,
+    participantId: forParticipantId,
     baseVersion: points === 19 ? 0 : 1,
     deviceOperationId,
     operationId: `50000000-0000-4000-8000-00000000000${points - 18}`,
@@ -143,6 +150,258 @@ describe("mobile score queue", () => {
       },
     });
     expect(await queue.hasPendingUser(scope.userId)).toBe(true);
+  });
+
+  it("marks only one participant's pending items locked", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000007", 19));
+    await queue.enqueue(
+      input("70000000-0000-4000-8000-000000000008", 20, secondParticipantId),
+    );
+
+    await queue.markParticipantPendingFailed(scope, participantId);
+
+    const items = await queue.list(scope);
+    expect(items[0]).toMatchObject({
+      participantId,
+      status: "failed",
+      failure: { code: "locked" },
+    });
+    expect(items[1]).toMatchObject({
+      participantId: secondParticipantId,
+      status: "pending",
+      failure: null,
+    });
+    await expect(
+      queue.remove(scope, items[0]!.deviceOperationId),
+    ).resolves.toBe(true);
+    expect(await queue.list(scope)).toHaveLength(1);
+    expect((await queue.peek(scope))?.participantId).toBe(secondParticipantId);
+  });
+
+  it("batches two locked participants without losing a third queue item", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000009", 19));
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000012", 22));
+    await queue.enqueue(
+      input("70000000-0000-4000-8000-000000000010", 20, secondParticipantId),
+    );
+    await queue.enqueue(
+      input("70000000-0000-4000-8000-000000000011", 21, thirdParticipantId),
+    );
+
+    await queue.markParticipantsPendingFailed(scope, [
+      participantId,
+      secondParticipantId,
+    ]);
+
+    const items = await queue.list(scope);
+    expect(items[0]).toMatchObject({ participantId, status: "failed" });
+    expect(items[1]).toMatchObject({ participantId, status: "failed" });
+    expect(items[2]).toMatchObject({
+      participantId: secondParticipantId,
+      status: "failed",
+    });
+    expect(items[3]).toMatchObject({
+      participantId: thirdParticipantId,
+      status: "pending",
+    });
+    await expect(queue.removeParticipant(scope, participantId)).resolves.toBe(
+      true,
+    );
+    expect(
+      (await queue.list(scope)).some(
+        (item) => item.participantId === participantId,
+      ),
+    ).toBe(false);
+  });
+
+  it("reconciles a deferred drain when the participant becomes locked", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000013", 19));
+
+    type SendResult = Awaited<ReturnType<MobileScoreQueueSend>>;
+    let resolveSend: ((result: SendResult) => void) | null = null;
+    let signalStarted: (() => void) | null = null;
+    const started = new Promise<void>((resolve) => {
+      signalStarted = resolve;
+    });
+    const send: MobileScoreQueueSend = () =>
+      new Promise((resolve) => {
+        resolveSend = resolve;
+        signalStarted?.();
+      });
+
+    const draining = queue.drain(scope, send);
+    await started;
+    expect(queue.isDraining(scope)).toBe(true);
+    const marking = queue.markParticipantPendingFailed(scope, participantId);
+    resolveSend?.({
+      code: "unavailable",
+      message: "offline",
+      ok: false,
+    });
+
+    await expect(draining).resolves.toMatchObject({ status: "transient" });
+    await marking;
+    expect(queue.isDraining(scope)).toBe(false);
+    expect(await queue.peek(scope)).toMatchObject({
+      status: "failed",
+      failure: { code: "locked" },
+    });
+  });
+
+  it("coordinates a deferred drain across queue instances when a participant locks", async () => {
+    const secure = storage();
+    const first = createMobileScoreQueue({ platform: "ios", storage: secure });
+    const second = createMobileScoreQueue({
+      platform: "ios",
+      storage: secure,
+    });
+    await first.enqueue(input("70000000-0000-4000-8000-000000000015", 19));
+
+    type SendResult = Awaited<ReturnType<MobileScoreQueueSend>>;
+    let resolveSend: ((result: SendResult) => void) | null = null;
+    let signalStarted: (() => void) | null = null;
+    const started = new Promise<void>((resolve) => {
+      signalStarted = resolve;
+    });
+    const send: MobileScoreQueueSend = () =>
+      new Promise((resolve) => {
+        resolveSend = resolve;
+        signalStarted?.();
+      });
+
+    const draining = first.drain(scope, send);
+    await started;
+    expect(second.isDraining(scope)).toBe(true);
+    let markingFinished = false;
+    const marking = second
+      .markParticipantPendingFailed(scope, participantId)
+      .then(() => {
+        markingFinished = true;
+      });
+    await Promise.resolve();
+    expect(markingFinished).toBe(false);
+
+    resolveSend?.({
+      code: "unavailable",
+      message: "offline",
+      ok: false,
+    });
+    await expect(draining).resolves.toMatchObject({ status: "transient" });
+    await marking;
+    expect(first.isDraining(scope)).toBe(false);
+    expect(await first.peek(scope)).toMatchObject({
+      status: "failed",
+      failure: { code: "locked" },
+    });
+  });
+
+  it("does not resurrect a removed participant queue during a deferred drain", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000014", 19));
+
+    type SendResult = Awaited<ReturnType<MobileScoreQueueSend>>;
+    let resolveSend: ((result: SendResult) => void) | null = null;
+    let signalStarted: (() => void) | null = null;
+    const started = new Promise<void>((resolve) => {
+      signalStarted = resolve;
+    });
+    const send: MobileScoreQueueSend = () =>
+      new Promise((resolve) => {
+        resolveSend = resolve;
+        signalStarted?.();
+      });
+
+    const draining = queue.drain(scope, send);
+    await started;
+    expect(queue.isDraining(scope)).toBe(true);
+    const removal = queue.removeParticipant(scope, participantId);
+    resolveSend?.({
+      ok: true,
+      data: {
+        participantId,
+        roundId: scope.roundId,
+        groupId: scope.groupId,
+        version: 1,
+        revisionId: "80000000-0000-4000-8000-000000000001",
+        grossScore: null,
+        netScore: null,
+        golfPoints: "19.00",
+        manualMerit: null,
+        plusMinus: "6.70",
+        rankingValue: "6.70",
+        changedAt: "2026-08-04T12:00:01.000Z",
+      },
+    });
+
+    await expect(draining).resolves.toMatchObject({ status: "drained" });
+    await expect(removal).resolves.toBe(false);
+    expect(queue.isDraining(scope)).toBe(false);
+    expect(await queue.list(scope)).toEqual([]);
+  });
+
+  it("coordinates a deferred drain across queue instances before removing a participant", async () => {
+    const secure = storage();
+    const first = createMobileScoreQueue({ platform: "ios", storage: secure });
+    const second = createMobileScoreQueue({
+      platform: "ios",
+      storage: secure,
+    });
+    await first.enqueue(input("70000000-0000-4000-8000-000000000016", 19));
+
+    type SendResult = Awaited<ReturnType<MobileScoreQueueSend>>;
+    let resolveSend: ((result: SendResult) => void) | null = null;
+    let signalStarted: (() => void) | null = null;
+    const started = new Promise<void>((resolve) => {
+      signalStarted = resolve;
+    });
+    const send: MobileScoreQueueSend = () =>
+      new Promise((resolve) => {
+        resolveSend = resolve;
+        signalStarted?.();
+      });
+
+    const draining = first.drain(scope, send);
+    await started;
+    expect(second.isDraining(scope)).toBe(true);
+    let removalFinished = false;
+    const removal = second
+      .removeParticipant(scope, participantId)
+      .then((removed) => {
+        removalFinished = true;
+        return removed;
+      });
+    await Promise.resolve();
+    expect(removalFinished).toBe(false);
+
+    resolveSend?.({
+      ok: true,
+      data: {
+        participantId,
+        roundId: scope.roundId,
+        groupId: scope.groupId,
+        version: 1,
+        revisionId: "80000000-0000-4000-8000-000000000002",
+        grossScore: null,
+        netScore: null,
+        golfPoints: "19.00",
+        manualMerit: null,
+        plusMinus: "6.70",
+        rankingValue: "6.70",
+        changedAt: "2026-08-04T12:00:01.000Z",
+      },
+    });
+
+    await expect(draining).resolves.toMatchObject({ status: "drained" });
+    await expect(removal).resolves.toBe(false);
+    expect(first.isDraining(scope)).toBe(false);
+    expect(await second.list(scope)).toEqual([]);
   });
 
   it("purges every scoped queue for a user on sign-out", async () => {

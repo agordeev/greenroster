@@ -113,8 +113,39 @@ export type MobileScoreQueuePermanentFailure = Readonly<{
   message: string;
 }>;
 
+const participantLockedFailure: MobileScoreQueuePermanentFailure = {
+  code: "locked",
+  message:
+    "This participant is no longer eligible for score changes. The pending score was not sent.",
+};
+
 const queueKeyPrefix = "greenroster.mobile.score-queue";
 const queueIndexKeyPrefix = `${queueKeyPrefix}-index`;
+
+type MobileScoreQueueCoordinator = {
+  drainingScopes: Set<string>;
+  scopeMutationTails: Map<string, Promise<void>>;
+  userMutationTails: Map<string, Promise<void>>;
+};
+
+const queueCoordinators = new WeakMap<
+  MobileScoreQueueStorage,
+  MobileScoreQueueCoordinator
+>();
+
+function coordinatorForStorage(
+  storage: MobileScoreQueueStorage,
+): MobileScoreQueueCoordinator {
+  const existing = queueCoordinators.get(storage);
+  if (existing) return existing;
+  const coordinator: MobileScoreQueueCoordinator = {
+    drainingScopes: new Set<string>(),
+    scopeMutationTails: new Map<string, Promise<void>>(),
+    userMutationTails: new Map<string, Promise<void>>(),
+  };
+  queueCoordinators.set(storage, coordinator);
+  return coordinator;
+}
 
 export function mobileScoreQueueStorageKey(scope: MobileScoreQueueScope) {
   const parsed = scopeSchema.parse(scope);
@@ -200,6 +231,49 @@ export function createMobileScoreQueue(
   const now = dependencies.now ?? (() => new Date().toISOString());
   const nextOperationId =
     dependencies.createOperationId ?? createMobileOperationId;
+  const { drainingScopes, scopeMutationTails, userMutationTails } =
+    coordinatorForStorage(storage);
+
+  async function withLock<T>(
+    locks: Map<string, Promise<void>>,
+    key: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previous = locks.get(key) ?? Promise.resolve();
+    let release!: () => void;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    locks.set(key, current);
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (locks.get(key) === current) locks.delete(key);
+    }
+  }
+
+  function withUserMutation<T>(userId: string, operation: () => Promise<T>) {
+    ensureNative(platform);
+    const parsedUserId = uuidSchema.parse(userId);
+    return withLock(userMutationTails, parsedUserId, operation);
+  }
+
+  function withScopedMutation<T>(
+    scope: MobileScoreQueueScope,
+    operation: () => Promise<T>,
+  ) {
+    ensureNative(platform);
+    const parsedScope = scopeSchema.parse(scope);
+    return withUserMutation(parsedScope.userId, () =>
+      withLock(
+        scopeMutationTails,
+        mobileScoreQueueStorageKey(parsedScope),
+        operation,
+      ),
+    );
+  }
 
   async function read(scope: MobileScoreQueueScope) {
     ensureNative(platform);
@@ -272,6 +346,44 @@ export function createMobileScoreQueue(
     return updated;
   }
 
+  async function markParticipantsPendingFailed(
+    scope: MobileScoreQueueScope,
+    participantIds: readonly string[],
+    failure: MobileScoreQueuePermanentFailure = participantLockedFailure,
+  ) {
+    const parsedParticipantIds = new Set(
+      participantIds.map((participantId) => uuidSchema.parse(participantId)),
+    );
+    if (parsedParticipantIds.size === 0) return read(scope);
+    const items = await read(scope);
+    let changed = false;
+    const updated = items.map((item) => {
+      if (
+        item.status !== "pending" ||
+        !parsedParticipantIds.has(item.participantId)
+      ) {
+        return item;
+      }
+      changed = true;
+      return {
+        ...item,
+        status: "failed" as const,
+        failure,
+        updatedAt: now(),
+      };
+    });
+    if (changed) await write(scope, updated);
+    return updated;
+  }
+
+  async function markParticipantPendingFailed(
+    scope: MobileScoreQueueScope,
+    participantId: string,
+    failure: MobileScoreQueuePermanentFailure = participantLockedFailure,
+  ) {
+    return markParticipantsPendingFailed(scope, [participantId], failure);
+  }
+
   return {
     platform,
     isSupported: isNative(platform),
@@ -285,98 +397,160 @@ export function createMobileScoreQueue(
     },
 
     async enqueue(input: MobileScoreQueueInput): Promise<MobileScoreQueueItem> {
-      ensureNative(platform);
-      const timestamp = input.clientChangedAt ?? now();
-      const queuedAt = now();
-      const parsed = queueItemSchema.safeParse({
-        userId: input.userId,
-        groupId: input.groupId,
-        roundId: input.roundId,
-        participantId: input.participantId,
-        baseVersion: input.baseVersion,
-        deviceOperationId: input.deviceOperationId ?? nextOperationId(),
-        operationId: input.operationId ?? nextOperationId(),
-        correlationId: input.correlationId ?? nextOperationId(),
-        payload: input.payload,
-        reason: input.reason?.trim() || null,
-        clientChangedAt: timestamp,
-        queuedAt,
-        createdAt: queuedAt,
-        updatedAt: queuedAt,
-        attempts: 0,
-        status: "pending",
-        failure: null,
-      });
-      if (!parsed.success) {
-        throw queueError("invalid_operation");
-      }
+      return withScopedMutation(
+        {
+          userId: input.userId,
+          groupId: input.groupId,
+          roundId: input.roundId,
+        },
+        async () => {
+          ensureNative(platform);
+          const timestamp = input.clientChangedAt ?? now();
+          const queuedAt = now();
+          const parsed = queueItemSchema.safeParse({
+            userId: input.userId,
+            groupId: input.groupId,
+            roundId: input.roundId,
+            participantId: input.participantId,
+            baseVersion: input.baseVersion,
+            deviceOperationId: input.deviceOperationId ?? nextOperationId(),
+            operationId: input.operationId ?? nextOperationId(),
+            correlationId: input.correlationId ?? nextOperationId(),
+            payload: input.payload,
+            reason: input.reason?.trim() || null,
+            clientChangedAt: timestamp,
+            queuedAt,
+            createdAt: queuedAt,
+            updatedAt: queuedAt,
+            attempts: 0,
+            status: "pending",
+            failure: null,
+          });
+          if (!parsed.success) {
+            throw queueError("invalid_operation");
+          }
 
-      const scope = {
-        userId: parsed.data.userId,
-        groupId: parsed.data.groupId,
-        roundId: parsed.data.roundId,
-      } satisfies MobileScoreQueueScope;
-      const items = await read(scope);
-      const existing = items.find(
-        (item) => item.deviceOperationId === parsed.data.deviceOperationId,
+          const scope = {
+            userId: parsed.data.userId,
+            groupId: parsed.data.groupId,
+            roundId: parsed.data.roundId,
+          } satisfies MobileScoreQueueScope;
+          const items = await read(scope);
+          const existing = items.find(
+            (item) => item.deviceOperationId === parsed.data.deviceOperationId,
+          );
+          if (existing) {
+            if (
+              operationFingerprint(existing) !==
+              operationFingerprint(parsed.data)
+            ) {
+              throw queueError("operation_id_reused");
+            }
+            return existing;
+          }
+          const next = [...items, parsed.data];
+          await rememberScope(scope);
+          await write(scope, next);
+          return parsed.data;
+        },
       );
-      if (existing) {
-        if (
-          operationFingerprint(existing) !== operationFingerprint(parsed.data)
-        ) {
-          throw queueError("operation_id_reused");
-        }
-        return existing;
-      }
-      const next = [...items, parsed.data];
-      await rememberScope(scope);
-      await write(scope, next);
-      return parsed.data;
     },
 
     async remove(scope: MobileScoreQueueScope, deviceOperationId: string) {
-      const items = await read(scope);
-      const next = items.filter(
-        (item) => item.deviceOperationId !== deviceOperationId,
-      );
-      if (next.length !== items.length) {
-        if (next.length === 0) {
-          const parsedScope = scopeSchema.parse(scope);
-          await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
-          await forgetScope(parsedScope);
-        } else {
-          await write(scope, next);
+      return withScopedMutation(scope, async () => {
+        const items = await read(scope);
+        const next = items.filter(
+          (item) => item.deviceOperationId !== deviceOperationId,
+        );
+        if (next.length !== items.length) {
+          if (next.length === 0) {
+            const parsedScope = scopeSchema.parse(scope);
+            await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
+            await forgetScope(parsedScope);
+          } else {
+            await write(scope, next);
+          }
         }
-      }
-      return next.length !== items.length;
-    },
-
-    async clear(scope: MobileScoreQueueScope) {
-      ensureNative(platform);
-      const parsedScope = scopeSchema.parse(scope);
-      await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
-      await forgetScope(parsedScope);
-    },
-
-    markPendingFailed,
-
-    async markRoundLocked(scope: MobileScoreQueueScope) {
-      return markPendingFailed(scope, {
-        code: "locked",
-        message: "This round is no longer accepting score changes.",
+        return next.length !== items.length;
       });
     },
 
-    async clearUser(userId: string) {
-      ensureNative(platform);
-      const parsedUserId = uuidSchema.parse(userId);
-      const indexKey = mobileScoreQueueIndexKey(parsedUserId);
-      const keys = parseStoredQueueKeys(
-        await storage.getItem(indexKey),
-        parsedUserId,
+    async removeParticipant(
+      scope: MobileScoreQueueScope,
+      participantId: string,
+    ) {
+      return withScopedMutation(scope, async () => {
+        const parsedParticipantId = uuidSchema.parse(participantId);
+        const items = await read(scope);
+        const next = items.filter(
+          (item) => item.participantId !== parsedParticipantId,
+        );
+        if (next.length === items.length) return false;
+        const parsedScope = scopeSchema.parse(scope);
+        if (next.length === 0) {
+          await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
+          await forgetScope(parsedScope);
+        } else {
+          await write(parsedScope, next);
+        }
+        return true;
+      });
+    },
+
+    async clear(scope: MobileScoreQueueScope) {
+      return withScopedMutation(scope, async () => {
+        const parsedScope = scopeSchema.parse(scope);
+        await storage.removeItem(mobileScoreQueueStorageKey(parsedScope));
+        await forgetScope(parsedScope);
+      });
+    },
+
+    markPendingFailed(
+      scope: MobileScoreQueueScope,
+      failure?: MobileScoreQueuePermanentFailure,
+    ) {
+      return withScopedMutation(scope, () => markPendingFailed(scope, failure));
+    },
+
+    markParticipantsPendingFailed(
+      scope: MobileScoreQueueScope,
+      participantIds: readonly string[],
+      failure?: MobileScoreQueuePermanentFailure,
+    ) {
+      return withScopedMutation(scope, () =>
+        markParticipantsPendingFailed(scope, participantIds, failure),
       );
-      await Promise.all(keys.map((key) => storage.removeItem(key)));
-      await storage.removeItem(indexKey);
+    },
+    markParticipantPendingFailed(
+      scope: MobileScoreQueueScope,
+      participantId: string,
+      failure?: MobileScoreQueuePermanentFailure,
+    ) {
+      return withScopedMutation(scope, () =>
+        markParticipantPendingFailed(scope, participantId, failure),
+      );
+    },
+
+    async markRoundLocked(scope: MobileScoreQueueScope) {
+      return withScopedMutation(scope, () =>
+        markPendingFailed(scope, {
+          code: "locked",
+          message: "This round is no longer accepting score changes.",
+        }),
+      );
+    },
+
+    async clearUser(userId: string) {
+      return withUserMutation(userId, async () => {
+        const parsedUserId = uuidSchema.parse(userId);
+        const indexKey = mobileScoreQueueIndexKey(parsedUserId);
+        const keys = parseStoredQueueKeys(
+          await storage.getItem(indexKey),
+          parsedUserId,
+        );
+        await Promise.all(keys.map((key) => storage.removeItem(key)));
+        await storage.removeItem(indexKey);
+      });
     },
 
     async hasPendingUser(userId: string) {
@@ -397,63 +571,111 @@ export function createMobileScoreQueue(
       send: MobileScoreQueueSend,
     ): Promise<MobileScoreQueueDrainResult> {
       ensureNative(platform);
-      let processed = 0;
-      while (true) {
-        const items = await read(scope);
-        const item = items[0];
-        if (!item) {
-          return {
-            processed,
-            status: processed === 0 ? "empty" : "drained",
-          };
-        }
-        if (item.status === "failed") {
-          return { item, processed, status: "permanent" };
-        }
+      const scopeKey = mobileScoreQueueStorageKey(scope);
+      drainingScopes.add(scopeKey);
+      return withScopedMutation<MobileScoreQueueDrainResult>(
+        scope,
+        async (): Promise<MobileScoreQueueDrainResult> => {
+          let processed = 0;
+          while (true) {
+            const items = await read(scope);
+            const item = items[0];
+            if (!item) {
+              return {
+                processed,
+                status: processed === 0 ? "empty" : "drained",
+              };
+            }
+            if (item.status === "failed") {
+              return { item, processed, status: "permanent" };
+            }
 
-        const attempted: MobileScoreQueueItem = {
-          ...item,
-          attempts: item.attempts + 1,
-          updatedAt: now(),
-        };
-        await write(scope, [attempted, ...items.slice(1)]);
+            const attempted: MobileScoreQueueItem = {
+              ...item,
+              attempts: item.attempts + 1,
+              updatedAt: now(),
+            };
+            await write(scope, [attempted, ...items.slice(1)]);
 
-        let result: MobileLiveRoundResult<MobileLiveRoundScoreReceipt>;
-        try {
-          result = await send(attempted);
-        } catch {
-          return { item: attempted, processed, status: "transient" };
-        }
-        if (result.ok) {
-          if (items.length === 1) {
-            await storage.removeItem(mobileScoreQueueStorageKey(scope));
-            await forgetScope(scope);
-          } else {
-            await write(scope, items.slice(1));
+            let result: MobileLiveRoundResult<MobileLiveRoundScoreReceipt>;
+            try {
+              result = await send(attempted);
+            } catch {
+              const currentItems = await read(scope);
+              const currentItem = currentItems.find(
+                (candidate) =>
+                  candidate.deviceOperationId === attempted.deviceOperationId,
+              );
+              if (!currentItem) continue;
+              if (currentItem.status === "failed") {
+                return { item: currentItem, processed, status: "permanent" };
+              }
+              return { item: currentItem, processed, status: "transient" };
+            }
+
+            // A deferred send can overlap a participant lock, discard, sign-out,
+            // or another queue writer. Reconcile by operation ID before applying
+            // the result so a stale pre-send array cannot resurrect removed data.
+            const currentItems = await read(scope);
+            const currentItem = currentItems.find(
+              (candidate) =>
+                candidate.deviceOperationId === attempted.deviceOperationId,
+            );
+            if (!currentItem) continue;
+            if (currentItem.status === "failed") {
+              return { item: currentItem, processed, status: "permanent" };
+            }
+
+            if (result.ok) {
+              const next = currentItems.filter(
+                (candidate) =>
+                  candidate.deviceOperationId !== attempted.deviceOperationId,
+              );
+              if (next.length === 0) {
+                await storage.removeItem(mobileScoreQueueStorageKey(scope));
+                await forgetScope(scope);
+              } else {
+                await write(scope, next);
+              }
+              processed += 1;
+              continue;
+            }
+
+            if (result.code === "unavailable") {
+              return { item: currentItem, processed, status: "transient" };
+            }
+
+            const failed: MobileScoreQueueItem = {
+              ...currentItem,
+              status: "failed",
+              failure: {
+                code: result.code,
+                message: result.message,
+                ...(result.details?.currentScore
+                  ? { currentScore: result.details.currentScore }
+                  : {}),
+              },
+              updatedAt: now(),
+            };
+            await write(
+              scope,
+              currentItems.map((candidate) =>
+                candidate.deviceOperationId === attempted.deviceOperationId
+                  ? failed
+                  : candidate,
+              ),
+            );
+            return { item: failed, processed, status: "permanent" };
           }
-          processed += 1;
-          continue;
-        }
+        },
+      ).finally(() => {
+        drainingScopes.delete(scopeKey);
+      });
+    },
 
-        if (result.code === "unavailable") {
-          return { item: attempted, processed, status: "transient" };
-        }
-
-        const failed: MobileScoreQueueItem = {
-          ...attempted,
-          status: "failed",
-          failure: {
-            code: result.code,
-            message: result.message,
-            ...(result.details?.currentScore
-              ? { currentScore: result.details.currentScore }
-              : {}),
-          },
-          updatedAt: now(),
-        };
-        await write(scope, [failed, ...items.slice(1)]);
-        return { item: failed, processed, status: "permanent" };
-      }
+    isDraining(scope: MobileScoreQueueScope) {
+      ensureNative(platform);
+      return drainingScopes.has(mobileScoreQueueStorageKey(scope));
     },
   };
 }

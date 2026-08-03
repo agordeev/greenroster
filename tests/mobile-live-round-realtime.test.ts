@@ -6,7 +6,10 @@ import {
   MobileLiveRoundRealtimeError,
   parseMobileLiveRoundRealtimePayload,
 } from "../apps/mobile/src/lib/rounds/mobile-live-round-realtime";
-import { createMobileLiveRoundState } from "../apps/mobile/src/lib/rounds/mobile-live-round-state";
+import {
+  createMobileLiveRoundState,
+  markMobileLiveRoundPending,
+} from "../apps/mobile/src/lib/rounds/mobile-live-round-state";
 
 const roundId = "10000000-0000-4000-8000-000000000001";
 const groupId = "20000000-0000-4000-8000-000000000001";
@@ -193,5 +196,49 @@ describe("mobile live round realtime", () => {
       expect.objectContaining({ status: "locked", errorCode: "locked" }),
     );
     expect(onStatus).toBeUndefined();
+  });
+
+  it("keeps local pending metadata when a refetch locks the participant", async () => {
+    const channel = {
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn(),
+      unsubscribe: vi.fn(),
+    };
+    const client = { channel: vi.fn().mockReturnValue(channel) };
+    const lockedParticipant = {
+      ...participant,
+      rsvpStatus: "not_playing" as const,
+      canEdit: false,
+    };
+    const realtime = createMobileLiveRoundRealtime({
+      client,
+      groupId,
+      roundId,
+      initialState: createMobileLiveRoundState({ participants: [participant] }),
+      refetch: vi.fn().mockResolvedValue({ participants: [lockedParticipant] }),
+    });
+    const pending = {
+      participantId,
+      baseVersion: 0,
+      changedFields: { golf_points: 19 },
+      deviceOperationId: "70000000-0000-4000-8000-000000000001",
+      operationId: "70000000-0000-4000-8000-000000000002",
+      correlationId: "70000000-0000-4000-8000-000000000003",
+      clientChangedAt: "2026-08-04T12:00:00.000Z",
+      queuedAt: "2026-08-04T12:00:00.000Z",
+    };
+    const local = markMobileLiveRoundPending(
+      createMobileLiveRoundState({ participants: [participant] }),
+      pending,
+    );
+    realtime.setLocalState(local);
+
+    await realtime.refetch();
+
+    expect(realtime.getView().state?.participants[0]).toMatchObject({
+      syncState: "Locked",
+      pending,
+      failure: { code: "locked" },
+    });
   });
 });

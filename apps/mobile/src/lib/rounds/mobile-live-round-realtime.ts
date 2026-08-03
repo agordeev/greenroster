@@ -293,6 +293,9 @@ export function createMobileLiveRoundRealtime(
     getView(): MobileLiveRoundRealtimeView {
       return { error, errorCode, lastEventAt, state, status };
     },
+    setLocalState(nextState: MobileLiveRoundState | null) {
+      state = nextState;
+    },
     async start() {
       status = "refetching";
       notify();

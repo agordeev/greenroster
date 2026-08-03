@@ -4,12 +4,14 @@ import { applyMobileLiveRoundRealtimeEvent } from "../apps/mobile/src/lib/rounds
 import {
   applyMobileLiveRoundRealtimeScore,
   applyMobileLiveRoundScoreReceipt,
+  clearMobileLiveRoundPending,
   createMobileLiveRoundState,
   markMobileLiveRoundFailed,
   markMobileLiveRoundPending,
   markMobileLiveRoundSyncing,
   mobileLiveRoundOrderIsDeferred,
   mobileLiveRoundVisibleOrder,
+  replaceMobileLiveRoundSnapshot,
   sortMobileLiveRoundParticipants,
 } from "../apps/mobile/src/lib/rounds/mobile-live-round-state";
 
@@ -80,6 +82,78 @@ describe("mobile live round state", () => {
     });
     state = markMobileLiveRoundSyncing(state, participantId);
     expect(state.participants[0]?.syncState).toBe("Syncing");
+  });
+
+  it("locks pending metadata when an authoritative snapshot removes edit access", () => {
+    const second = {
+      ...participant(),
+      participantId: secondParticipantId,
+      firstName: "B",
+      score: { ...participant().score, participantId: secondParticipantId },
+    };
+    const firstPending = {
+      participantId,
+      baseVersion: 0,
+      changedFields: { golf_points: 19 },
+      deviceOperationId: "40000000-0000-4000-8000-000000000001",
+      operationId: "40000000-0000-4000-8000-000000000002",
+      correlationId: "40000000-0000-4000-8000-000000000003",
+      clientChangedAt: "2026-08-04T12:00:00.000Z",
+      queuedAt: "2026-08-04T12:00:00.000Z",
+    };
+    const secondPending = {
+      ...firstPending,
+      participantId: secondParticipantId,
+      deviceOperationId: "40000000-0000-4000-8000-000000000004",
+    };
+    let state = createMobileLiveRoundState({
+      participants: [participant(), second],
+    });
+    state = markMobileLiveRoundPending(state, firstPending);
+    state = markMobileLiveRoundPending(state, secondPending);
+
+    const lockedFirst = {
+      ...participant(),
+      rsvpStatus: "not_playing" as const,
+      canEdit: false,
+    };
+    const replaced = replaceMobileLiveRoundSnapshot(state, {
+      participants: [lockedFirst, second],
+      syncedAt: "2026-08-04T12:00:01.000Z",
+    });
+    expect(replaced.participants).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          participant: expect.objectContaining({ participantId }),
+          syncState: "Locked",
+          pending: firstPending,
+          failure: expect.objectContaining({ code: "locked", permanent: true }),
+        }),
+        expect.objectContaining({
+          participant: expect.objectContaining({
+            participantId: secondParticipantId,
+          }),
+          syncState: "Pending sync",
+          pending: secondPending,
+        }),
+      ]),
+    );
+
+    const discarded = clearMobileLiveRoundPending(
+      replaced,
+      participantId,
+      firstPending.deviceOperationId,
+    );
+    expect(discarded.participants).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          participant: expect.objectContaining({ participantId }),
+          syncState: "Locked",
+          pending: null,
+          failure: null,
+        }),
+      ]),
+    );
   });
 
   it("shows stale current values on permanent rejection and clears on receipt", () => {

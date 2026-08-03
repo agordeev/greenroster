@@ -38,6 +38,9 @@ export type MobileLiveRoundFailure = Readonly<{
   permanent: boolean;
 }>;
 
+export const mobileLiveRoundParticipantLockedMessage =
+  "This participant is no longer eligible for score changes. The pending score was not sent.";
+
 export type MobileLiveRoundParticipantState = Readonly<{
   participant: MobileLiveRoundParticipant;
   confirmed: MobileLiveRoundScore;
@@ -202,6 +205,31 @@ export function replaceMobileLiveRoundSnapshot(
         const prior = priorByParticipant.get(
           participant.participant.participantId,
         );
+        if (isLocked(participant.participant)) {
+          if (prior?.pending) {
+            return {
+              ...participant,
+              syncState: "Locked",
+              pending: prior.pending,
+              failure: {
+                code: "locked",
+                message: mobileLiveRoundParticipantLockedMessage,
+                correlationId: prior.pending.correlationId,
+                permanent: true,
+              },
+              staleCurrentValue: null,
+            };
+          }
+          if (prior?.failure?.code === "locked") {
+            return {
+              ...participant,
+              syncState: "Locked",
+              failure: prior.failure,
+              staleCurrentValue: null,
+            };
+          }
+          return participant;
+        }
         if (prior?.failure?.code === "stale") {
           return {
             ...participant,
@@ -255,7 +283,20 @@ export function markMobileLiveRoundPending(
   pending: MobileLiveRoundPendingScore,
 ): MobileLiveRoundState {
   return updateParticipant(state, pending.participantId, (participant) => {
-    if (isLocked(participant.participant)) return participant;
+    if (isLocked(participant.participant)) {
+      return {
+        ...participant,
+        syncState: "Locked",
+        pending,
+        failure: {
+          code: "locked",
+          message: mobileLiveRoundParticipantLockedMessage,
+          correlationId: pending.correlationId,
+          permanent: true,
+        },
+        staleCurrentValue: null,
+      };
+    }
     return {
       ...participant,
       syncState: "Pending sync",
@@ -320,10 +361,32 @@ export function markMobileLiveRoundFailed(
 ): MobileLiveRoundState {
   return updateParticipant(state, participantId, (participant) => ({
     ...participant,
-    syncState: "Failed",
+    syncState:
+      failure.code === "locked" || isLocked(participant.participant)
+        ? "Locked"
+        : "Failed",
     failure,
     staleCurrentValue: failure.currentScore ?? null,
   }));
+}
+
+export function clearMobileLiveRoundPending(
+  state: MobileLiveRoundState,
+  participantId: string,
+  deviceOperationId: string,
+): MobileLiveRoundState {
+  return updateParticipant(state, participantId, (participant) => {
+    if (participant.pending?.deviceOperationId !== deviceOperationId) {
+      return participant;
+    }
+    return {
+      ...participant,
+      syncState: isLocked(participant.participant) ? "Locked" : "Confirmed",
+      pending: null,
+      failure: null,
+      staleCurrentValue: null,
+    };
+  });
 }
 
 export function lockMobileLiveRoundParticipant(
@@ -333,7 +396,16 @@ export function lockMobileLiveRoundParticipant(
   return updateParticipant(state, participantId, (participant) => ({
     ...participant,
     syncState: "Locked",
-    pending: null,
+    pending: participant.pending,
+    failure: participant.pending
+      ? {
+          code: "locked",
+          message: mobileLiveRoundParticipantLockedMessage,
+          correlationId: participant.pending.correlationId,
+          permanent: true,
+        }
+      : participant.failure,
+    staleCurrentValue: null,
   }));
 }
 
