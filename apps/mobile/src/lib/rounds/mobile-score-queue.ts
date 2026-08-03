@@ -128,6 +128,8 @@ type MobileScoreQueueCoordinator = {
   userMutationTails: Map<string, Promise<void>>;
 };
 
+// Multiple round surfaces can create queue objects over the same storage. Keep
+// their in-memory coordination shared without retaining storage instances.
 const queueCoordinators = new WeakMap<
   MobileScoreQueueStorage,
   MobileScoreQueueCoordinator
