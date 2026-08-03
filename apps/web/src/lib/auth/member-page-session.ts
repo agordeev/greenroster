@@ -16,7 +16,12 @@ type MemberPageSessionResult =
   | Readonly<{ state: "recovery_restricted" }>
   | Readonly<{ state: "role_redirect" }>
   | Readonly<{ state: "unavailable" }>
-  | Readonly<{ state: "ready"; client: MemberPageClient; groupId: string }>;
+  | Readonly<{
+      state: "ready";
+      client: MemberPageClient;
+      groupId: string;
+      userId: string;
+    }>;
 
 type MemberPageSessionDependencies = Readonly<{
   createClient: () => MemberPageClient | Promise<MemberPageClient>;
@@ -72,6 +77,7 @@ export async function resolveMemberPageSession(
       state: "ready",
       client,
       groupId: context.data[0].group_id,
+      userId: user.id,
     };
   } catch {
     return { state: "unavailable" };
