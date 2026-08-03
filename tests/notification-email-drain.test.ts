@@ -40,8 +40,18 @@ describe("notification drain route", () => {
         calls.push("cancelled");
         return { kind: "empty" as const };
       },
+      runRoundDetailsChanged: async () => {
+        calls.push("details-changed");
+        return { kind: "empty" as const };
+      },
     });
-    expect(calls).toEqual(["invitation", "role", "round", "cancelled"]);
+    expect(calls).toEqual([
+      "invitation",
+      "role",
+      "round",
+      "cancelled",
+      "details-changed",
+    ]);
     expect(result).toEqual({
       kind: "sent",
       deliveryId: "60000000-0000-4000-8000-000000000001",
@@ -79,6 +89,7 @@ describe("notification drain route", () => {
         runRoleChange: async () => roleResults[roleCalls++]!,
         runRoundPublished: async () => ({ kind: "empty" as const }),
         runRoundCancelled: async () => ({ kind: "empty" as const }),
+        runRoundDetailsChanged: async () => ({ kind: "empty" as const }),
       },
       5,
     );

@@ -3,6 +3,7 @@ export const mutationErrorCodes = [
   "forbidden",
   "unavailable",
   "validation",
+  "operation_reused",
   "stale_version",
   "locked",
   "rate_limited",
@@ -35,6 +36,8 @@ const safeMessages: Readonly<Record<MutationErrorCode, string>> = {
     "Your access changed or you do not have permission for this action.",
   unavailable: "The requested resource is unavailable.",
   validation: "Review the highlighted fields and try again.",
+  operation_reused:
+    "This operation was already used with different values. Refresh and try again.",
   stale_version: "This information changed. Refresh it before trying again.",
   locked: "This action is not available in the resource's current state.",
   rate_limited: "Too many attempts. Wait a moment and try again.",

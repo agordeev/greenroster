@@ -23,6 +23,14 @@ import {
   executePreviewRoundPublication,
   executePublishRound,
 } from "@/lib/rounds/round-publication-data";
+import {
+  runPreviewPublishedRoundEdit,
+  runUpdatePublishedRoundEdit,
+} from "@/domain/published-round-edit";
+import {
+  executePreviewPublishedRoundEdit,
+  executeUpdatePublishedRoundEdit,
+} from "@/lib/rounds/published-round-edit-data";
 
 export async function createRoundDraftAction(input: unknown) {
   const requestHeaders = await headers();
@@ -85,6 +93,32 @@ export async function cancelRoundAction(input: unknown) {
     },
   );
 }
+
+export async function previewPublishedRoundEditAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runPreviewPublishedRoundEdit(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executePreviewPublishedRoundEdit,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function updatePublishedRoundEditAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runUpdatePublishedRoundEdit(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeUpdatePublishedRoundEdit,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export const applyPublishedRoundEditAction = updatePublishedRoundEditAction;
 
 export async function setRoundRsvpAction(input: unknown) {
   const requestHeaders = await headers();

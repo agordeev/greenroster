@@ -30,6 +30,7 @@ describe("group bootstrap mutation boundary", () => {
       "forbidden",
       "unavailable",
       "validation",
+      "operation_reused",
       "stale_version",
       "locked",
       "rate_limited",

@@ -10,6 +10,7 @@ import { PublicationReviewPanel } from "./publication-review";
 import { RoundCancellationPanel } from "./round-cancellation-panel";
 import { RoundDraftForm } from "./round-draft-form";
 import { RoundReadOnlyDetail } from "./round-read-only-detail";
+import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -58,6 +59,12 @@ export function RoundWorkspace({
         ) : (
           <RoundReadOnlyDetail detail={roundDetail} />
         )}
+
+        {roundId &&
+        state === "published" &&
+        roundDetail?.state === "published" ? (
+          <PublishedRoundEditPanel roundId={roundId} detail={roundDetail} />
+        ) : null}
 
         {roundId && (state === "published" || state === "live") ? (
           <RoundCancellationPanel
