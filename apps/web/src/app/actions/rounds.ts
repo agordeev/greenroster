@@ -28,11 +28,13 @@ import {
   runUpdatePublishedRoundEdit,
 } from "@/domain/published-round-edit";
 import { runRoundScoringMutation } from "@/domain/round-scoring";
+import { runRoundScoreMutation } from "@/domain/round-score";
 import {
   executePreviewPublishedRoundEdit,
   executeUpdatePublishedRoundEdit,
 } from "@/lib/rounds/published-round-edit-data";
 import { executeOpenRoundScoring } from "@/lib/rounds/round-scoring-data";
+import { executeSetRoundParticipantScore } from "@/lib/rounds/round-score-data";
 
 export async function createRoundDraftAction(input: unknown) {
   const requestHeaders = await headers();
@@ -132,6 +134,15 @@ export async function openRoundScoringAction(input: unknown) {
       verifySession: verifyMutationSession,
     },
   );
+}
+
+export async function setRoundParticipantScoreAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundScoreMutation(input, requestHeaders.get("x-correlation-id"), {
+    source: "portal",
+    execute: executeSetRoundParticipantScore,
+    verifySession: verifyMutationSession,
+  });
 }
 
 export async function setRoundRsvpAction(input: unknown) {

@@ -27,6 +27,7 @@ export type MutationResult<T> =
         message: string;
         correlationId: string;
         fieldErrors?: MutationFieldErrors;
+        details?: unknown;
       }>;
     }>;
 
@@ -48,18 +49,21 @@ const safeMessages: Readonly<Record<MutationErrorCode, string>> = {
 export class MutationError extends Error {
   readonly code: MutationErrorCode;
   readonly fieldErrors?: MutationFieldErrors;
+  readonly details?: unknown;
 
   constructor(
     code: MutationErrorCode,
     options?: Readonly<{
       cause?: unknown;
       fieldErrors?: MutationFieldErrors;
+      details?: unknown;
     }>,
   ) {
     super(safeMessages[code], { cause: options?.cause });
     this.name = "MutationError";
     this.code = code;
     this.fieldErrors = options?.fieldErrors;
+    this.details = options?.details;
   }
 }
 
@@ -85,6 +89,9 @@ export function mutationFailure(
       correlationId,
       ...(mutationError.fieldErrors
         ? { fieldErrors: mutationError.fieldErrors }
+        : {}),
+      ...(mutationError.details !== undefined
+        ? { details: mutationError.details }
         : {}),
     },
   };
