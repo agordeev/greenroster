@@ -7,11 +7,11 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 05 — Live round
-- **Active slice:** Authoritative live score reads: tenant-safe roster/projection data, capability exposure, and portal scoreboard wiring.
+- **Active slice:** Mobile live scoring: actor-derived round discovery, server-confirmed scorecard/leaderboard state, durable native queue, Realtime recovery, and portal score entry.
 - **Status:** In progress
-- **Next:** Add authenticated actor-derived mobile read/write wrappers, then build the offline queue and Realtime recovery state.
+- **Next:** Implement the atomic Playing-to-Not Playing workflow and once-per-condition forgotten-round reminder, then verify the Phase 05 exit criteria.
 - **Blockers:**
-  - Local PostgreSQL verification is blocked: `supabase db reset` cannot reach the Docker daemon from this session. Need: local Docker daemon access for the reset and pgTAP run.
+  - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
   - Phase 03 material format, roster, guest, and scoring edits need versioned rule/participant history plus guest/scoring/recipient semantics. The bulk-update allow-list and optional group-profile fields are still unspecified.
   - Phase 04 sponsored guest creation/withdrawal needs the guest-capable participant/revision/score model. Provider delivery, reminders, and deep links remain open.
@@ -25,7 +25,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | [02 — Member onboarding](./phases/02-member-onboarding.md) | Complete | Invitations, membership state, privacy, quota, idempotency, and delivery-failure paths are covered. Commit `93e8308`. |
 | [03 — Round setup and publication](./phases/03-round-setup-and-publication.md) | In progress | Drafts, publication, round detail, RSVP/cancellation, and supported Published detail edits are complete; material edits and member UX await later models. |
 | [04 — RSVP and guests](./phases/04-rsvp-and-guests.md) | In progress | Member Next round/RSVP, guest permission, notification preferences/devices, and the native notification surface are complete; provider delivery and guest creation remain. |
-| [05 — Live round](./phases/05-live-round.md) | In progress | Published → Live transition is complete. Commits `716e7b0` and `4a9aa87` add immutable revisions, current projection, draft field capabilities copied into format-aware snapshots, role/field authority (including portal/member separation), exact replay, stale responses with current values, plus/minus calculation, sponsor guest scoring, and an authoritative live read projection with portal scoreboard wiring. Focused web read tests 5/5, full Vitest 92 files/555 tests, web lint, Prettier, and diff checks pass; local pgTAP verification awaits Docker access. |
+| [05 — Live round](./phases/05-live-round.md) | In progress | Published → Live, immutable revisions, current projection, actor-derived mobile round/read/write boundaries, native offline queue, Realtime recovery, stale current-value handling, server-confirmed mobile scorecard/leaderboard, and portal score entry are complete in commits `716e7b0`, `4a9aa87`, and `2db88cd`. Fresh local verification: pgTAP 46 files/1,779 tests, Vitest 99 files/580 tests, web lint/typecheck/build, mobile typecheck/lint/export, Prettier, diff checks, and auth-gated browser smoke checks. Remaining: atomic Playing → Not Playing and forgotten-round reminder/action-required flow. |
 | [06 — Completion and standings](./phases/06-completion-and-standings.md) | Not started | Begins after Phase 05 exit criteria pass. |
 | [07 — Release hardening](./phases/07-release-hardening.md) | Not started | Begins after Phase 06 exit criteria pass. |
 
@@ -39,7 +39,8 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 3, 2026 | Phase 04 member Next round and RSVP | Commit `e6a7855`; member projection, RSVP receipt/idempotency, focused database tests, and 390px browser proof pass. |
 | August 3, 2026 | Phase 03 publication and detail boundaries | Commits `2dfda55`, `2a3c774`, `c432058`, `0dc885e`, `10f399e`; Draft, publication, detail, RSVP/cancellation, and supported Published-edit contracts pass their documented checks. |
 | August 4, 2026 | Phase 05 score/revision contract | Commit `716e7b0`; focused web tests 13/13 and full Vitest 91 files/550 tests pass. The migration and focused pgTAP cover immutable revisions, current projection, server-derived plus/minus/ranking, exact replay, stale current-value details, portal/member separation, draft capability snapshots, role/field authority, and sponsor guest scoring. PostgreSQL execution is blocked by local Docker daemon access. |
-| August 4, 2026 | Phase 05 live score read projection | Commit `4a9aa87`; service-only tenant-authorized read RPC, authenticated projection policy/Realtime publication, strict web adapter, and coordinator portal live scorecard distinguish missing from confirmed zero and expose only server-confirmed values. Focused read tests 5/5, full Vitest 92 files/555 tests, web lint, Prettier, and diff checks pass. pgTAP remains blocked by local Docker daemon access. |
+| August 4, 2026 | Phase 05 live score read projection | Commit `4a9aa87`; service-only tenant-authorized read RPC, authenticated projection policy/Realtime publication, strict web adapter, and coordinator portal live scorecard distinguish missing from confirmed zero and expose only server-confirmed values. The later pinned local reset and full pgTAP run now cover this migration as part of 46 files/1,779 passing tests. |
+| August 4, 2026 | Phase 05 mobile live scoring surfaces | Commit `2db88cd`; actor-derived mobile round discovery and score boundaries, strict mobile API/state adapters, native encrypted FIFO queue with idempotent replay and sign-out warning, Realtime duplicate/gap/reconnect recovery, cold offline snapshot restoration, deterministic confirmed leaderboard ordering, stale current-value UI, upcoming/completed affordance corrections, and portal score entry with retry-stable mutation fingerprints. Fresh local pgTAP 46/1,779, Vitest 99/580, web build, mobile export, lint/typecheck, formatting, and browser smoke checks pass. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
