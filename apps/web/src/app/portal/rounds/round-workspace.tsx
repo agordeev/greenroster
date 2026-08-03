@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { RoundDraftFormValue, RoundFormat } from "@/domain/round-drafts";
 import type { RoundCoordinatorDetail } from "@/domain/round-detail";
 import type { RoundPublicationReview } from "@/domain/round-publication";
+import type { LiveRoundScoreParticipant } from "@/domain/round-score";
 
 import { PublicationReviewPanel } from "./publication-review";
 import { RoundCancellationPanel } from "./round-cancellation-panel";
@@ -12,6 +13,7 @@ import { RoundDraftForm } from "./round-draft-form";
 import { RoundReadOnlyDetail } from "./round-read-only-detail";
 import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 import { RoundScoringPanel } from "./round-scoring-panel";
+import { LiveRoundScoreboard } from "./live-round-scoreboard";
 
 export function RoundWorkspace({
   identityKey,
@@ -25,6 +27,8 @@ export function RoundWorkspace({
   publicationReviewUnavailable,
   roundDetail,
   roundDetailUnavailable,
+  liveScores,
+  liveScoresUnavailable,
 }: Readonly<{
   identityKey: string;
   initialValue: RoundDraftFormValue;
@@ -37,6 +41,8 @@ export function RoundWorkspace({
   publicationReviewUnavailable: boolean;
   roundDetail: RoundCoordinatorDetail | null;
   roundDetailUnavailable: boolean;
+  liveScores: readonly LiveRoundScoreParticipant[];
+  liveScoresUnavailable: boolean;
 }>) {
   const [draftDirty, setDraftDirty] = useState(false);
 
@@ -69,6 +75,26 @@ export function RoundWorkspace({
             detail={roundDetail}
             onDirtyChange={setDraftDirty}
           />
+        ) : null}
+
+        {roundId && state === "live" ? (
+          liveScoresUnavailable ? (
+            <section
+              className="group-roles-panel"
+              aria-labelledby="live-scoreboard-unavailable-title"
+            >
+              <p className="ledger-kicker">Round-day operations</p>
+              <h2 id="live-scoreboard-unavailable-title">
+                Live scorecard is unavailable
+              </h2>
+              <p>
+                The confirmed score projection could not be loaded. Refresh
+                before relying on the leaderboard or entering a correction.
+              </p>
+            </section>
+          ) : (
+            <LiveRoundScoreboard participants={liveScores} />
+          )
         ) : null}
 
         {roundId &&

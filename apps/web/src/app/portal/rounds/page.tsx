@@ -16,6 +16,7 @@ import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { MutationError } from "@/lib/mutations/result";
 import { executeListRoundDrafts } from "@/lib/rounds/round-drafts-data";
 import { executeReadCoordinatorRoundDetail } from "@/lib/rounds/round-detail-data";
+import { executeReadLiveRoundScores } from "@/lib/rounds/live-round-score-data";
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -124,6 +125,18 @@ export default async function RoundsPage({
       roundDetailUnavailable = true;
     }
   }
+  let liveScores = [] as Awaited<ReturnType<typeof executeReadLiveRoundScores>>;
+  let liveScoresUnavailable = false;
+  if (selectedRound?.state === "live") {
+    try {
+      liveScores = await executeReadLiveRoundScores(
+        session.userId,
+        selectedRound.roundId,
+      );
+    } catch {
+      liveScoresUnavailable = true;
+    }
+  }
   let publicationReview = null;
   let publicationReviewUnavailable = false;
   if (selectedRound?.state === "draft" && selectedRound.format !== null) {
@@ -188,6 +201,8 @@ export default async function RoundsPage({
           publicationReviewUnavailable={publicationReviewUnavailable}
           roundDetail={roundDetail}
           roundDetailUnavailable={roundDetailUnavailable}
+          liveScores={liveScores}
+          liveScoresUnavailable={liveScoresUnavailable}
         />
 
         <section

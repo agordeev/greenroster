@@ -109,6 +109,36 @@ export type RoundScoreReceipt = Readonly<{
   changedAt: string;
 }>;
 
+export type RoundScoreCapabilities = Readonly<{
+  golfPoints: true;
+  grossScore: boolean;
+  netScore: boolean;
+}>;
+
+export type LiveRoundScoreParticipant = Readonly<{
+  roundId: string;
+  groupId: string;
+  format: "individual_net" | "individual_gross";
+  scheduledAt: string | null;
+  groupTimeZone: string;
+  roundVersion: number;
+  participantId: string;
+  participantKind: "member" | "guest";
+  membershipId: string | null;
+  sponsorMembershipId: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  rsvpStatus: "no_response" | "playing" | "not_playing";
+  participantVersion: number;
+  quotaSnapshot: string | null;
+  handicapSnapshot: string | null;
+  teeSnapshot: "pro" | "back" | "middle" | "front" | null;
+  enabledFields: RoundScoreCapabilities;
+  score: RoundScoreCurrentState;
+  canEdit: boolean;
+  canAuthorManualMerit: boolean;
+}>;
+
 export type RoundScoreDependencies = Readonly<{
   source: RoundScoreSource;
   execute: (

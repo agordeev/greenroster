@@ -1929,6 +1929,17 @@ input {
   color: var(--pencil);
   font-size: 0.8125rem;
 }
+.live-scoreboard .round-detail-table-wrap table {
+  min-width: 60rem;
+}
+.live-scoreboard tr[data-score-state="missing"] td:last-child,
+.live-scoreboard tr[data-score-state="locked"] td:last-child {
+  color: var(--flag);
+}
+.live-scoreboard tr[data-score-state="confirmed"] td:last-child {
+  color: var(--bentgrass);
+  font-weight: 700;
+}
 .publication-member-list h3 {
   margin: 0;
   font-family: var(--font-ledger);
