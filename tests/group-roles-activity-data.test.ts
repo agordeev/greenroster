@@ -61,6 +61,7 @@ function summary(overrides: Record<string, unknown> = {}) {
     replacement_membership_id: null,
     band_count: null,
     state: null,
+    changed_fields: null,
     ...overrides,
   };
 }
@@ -166,6 +167,7 @@ function visibleSummary(
     version: null,
     projectionVersion: null,
     settingsVersion: null,
+    changedFields: null,
     ...overrides,
   } as SafeAuditSummary;
 }
@@ -354,5 +356,14 @@ describe("group roles and activity presentation", () => {
         }),
       ),
     ).toBe("Status: active · Role: Coordinator");
+    expect(
+      formatActivitySummary(
+        visibleSummary({
+          kind: "group",
+          groupVersion: 2,
+          changedFields: ["name", "time_zone"],
+        }),
+      ),
+    ).toBe("Changed: name, time_zone");
   });
 });

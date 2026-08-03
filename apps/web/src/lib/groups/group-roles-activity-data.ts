@@ -87,6 +87,7 @@ const safeSummarySchema = z
     replacement_membership_id: nullableUuidSchema,
     band_count: z.number().int().nullable(),
     state: z.string().nullable(),
+    changed_fields: z.array(z.string()).nullable(),
   })
   .strict();
 
@@ -221,6 +222,7 @@ function mapSummary(
     replacementMembershipId: summary.replacement_membership_id,
     bandCount: summary.band_count,
     state: summary.state,
+    changedFields: summary.changed_fields,
   };
 }
 

@@ -74,6 +74,7 @@ export type SafeAuditSummary = Readonly<{
   replacementMembershipId: string | null;
   bandCount: number | null;
   state: string | null;
+  changedFields: readonly string[] | null;
 }>;
 
 export type GroupRoleRow = Readonly<{
@@ -276,5 +277,8 @@ export function formatActivitySummary(
     parts.push(`Projection v${summary.projectionVersion}`);
   if (summary.settingsVersion !== null)
     parts.push(`Settings v${summary.settingsVersion}`);
+  if (summary.changedFields?.length) {
+    parts.push(`Changed: ${summary.changedFields.join(", ")}`);
+  }
   return parts.length > 0 ? parts.join(" · ") : summary.kind;
 }

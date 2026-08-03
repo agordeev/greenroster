@@ -14,6 +14,7 @@ import {
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { executeGroupRolesActivity } from "@/lib/groups/group-roles-activity-data";
+import { GroupProfileForm } from "./group-profile-form";
 import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -153,6 +154,42 @@ export default async function GroupRolesActivityPage({
           are safe to investigate. Role changes remain on the member record;
           this page only links to that detail.
         </p>
+
+        <section
+          className="group-profile-panel"
+          aria-labelledby="profile-title"
+        >
+          <div className="group-panel-heading">
+            <div>
+              <p className="ledger-kicker">Group profile</p>
+              <h2 id="profile-title">Group identity and time zone</h2>
+            </div>
+            <p>Version {projection.group.version}</p>
+          </div>
+          {portalContext.role === "administrator" ? (
+            <GroupProfileForm
+              key={`${projection.group.groupId}:${projection.group.version}`}
+              identityKey={projection.group.groupId}
+              initialValue={{
+                groupId: projection.group.groupId,
+                groupName: projection.group.name,
+                groupTimeZone: projection.group.timeZone,
+                groupVersion: projection.group.version,
+              }}
+            />
+          ) : (
+            <dl className="group-profile-facts">
+              <div>
+                <dt>Group name</dt>
+                <dd>{projection.group.name}</dd>
+              </div>
+              <div>
+                <dt>Group time zone</dt>
+                <dd>{projection.group.timeZone}</dd>
+              </div>
+            </dl>
+          )}
+        </section>
 
         <section className="group-roles-panel" aria-labelledby="roles-title">
           <div className="group-panel-heading">
