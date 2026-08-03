@@ -15,6 +15,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { MutationError } from "@/lib/mutations/result";
 import { executeListRoundDrafts } from "@/lib/rounds/round-drafts-data";
+import { executeReadCoordinatorRoundDetail } from "@/lib/rounds/round-detail-data";
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -111,6 +112,18 @@ export default async function RoundsPage({
   const selectedRound = requestedRound
     ? (rounds.find((round) => round.roundId === requestedRound) ?? null)
     : null;
+  let roundDetail = null;
+  let roundDetailUnavailable = false;
+  if (selectedRound && selectedRound.state !== "draft") {
+    try {
+      roundDetail = await executeReadCoordinatorRoundDetail(
+        session.userId,
+        selectedRound.roundId,
+      );
+    } catch {
+      roundDetailUnavailable = true;
+    }
+  }
   let publicationReview = null;
   let publicationReviewUnavailable = false;
   if (selectedRound?.state === "draft" && selectedRound.format !== null) {
@@ -173,6 +186,8 @@ export default async function RoundsPage({
           version={selectedRound?.version ?? 1}
           publicationReview={publicationReview}
           publicationReviewUnavailable={publicationReviewUnavailable}
+          roundDetail={roundDetail}
+          roundDetailUnavailable={roundDetailUnavailable}
         />
 
         <section
