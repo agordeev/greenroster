@@ -43,7 +43,12 @@ type EditErrors = Partial<Record<EditField, string>>;
 export function PublishedRoundEditPanel({
   roundId,
   detail,
-}: Readonly<{ roundId: string; detail: RoundCoordinatorDetail }>) {
+  onDirtyChange,
+}: Readonly<{
+  roundId: string;
+  detail: RoundCoordinatorDetail;
+  onDirtyChange?: (dirty: boolean) => void;
+}>) {
   const router = useRouter();
   const [values, setValues] = useState<EditValues>(() =>
     valuesFromDetail(detail),
@@ -63,6 +68,11 @@ export function PublishedRoundEditPanel({
   const operationId = useRef<string | null>(null);
   const initialValues = valuesFromDetail(detail);
   const dirty = JSON.stringify(values) !== JSON.stringify(initialValues);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (!dirty) return;

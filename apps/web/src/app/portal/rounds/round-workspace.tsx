@@ -11,6 +11,7 @@ import { RoundCancellationPanel } from "./round-cancellation-panel";
 import { RoundDraftForm } from "./round-draft-form";
 import { RoundReadOnlyDetail } from "./round-read-only-detail";
 import { PublishedRoundEditPanel } from "./published-round-edit-panel";
+import { RoundScoringPanel } from "./round-scoring-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -63,7 +64,22 @@ export function RoundWorkspace({
         {roundId &&
         state === "published" &&
         roundDetail?.state === "published" ? (
-          <PublishedRoundEditPanel roundId={roundId} detail={roundDetail} />
+          <PublishedRoundEditPanel
+            roundId={roundId}
+            detail={roundDetail}
+            onDirtyChange={setDraftDirty}
+          />
+        ) : null}
+
+        {roundId &&
+        state === "published" &&
+        roundDetail?.state === "published" ? (
+          <RoundScoringPanel
+            description={description}
+            draftDirty={draftDirty}
+            roundId={roundId}
+            version={version}
+          />
         ) : null}
 
         {roundId && (state === "published" || state === "live") ? (
@@ -72,7 +88,7 @@ export function RoundWorkspace({
             description={description}
             state={state}
             version={version}
-            draftDirty={false}
+            draftDirty={draftDirty}
           />
         ) : null}
       </>
