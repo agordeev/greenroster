@@ -15,6 +15,7 @@ import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 import { RoundScoringPanel } from "./round-scoring-panel";
 import { LiveRoundScoreboard } from "./live-round-scoreboard";
 import { LiveRoundScoreEntryPanel } from "./live-round-score-entry-panel";
+import { LiveRoundParticipantRsvpCorrectionPanel } from "./live-round-participant-rsvp-correction-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -97,6 +98,10 @@ export function RoundWorkspace({
             <>
               <LiveRoundScoreboard participants={liveScores} />
               <LiveRoundScoreEntryPanel participants={liveScores} />
+              <LiveRoundParticipantRsvpCorrectionPanel
+                roundId={roundId}
+                participants={liveScores}
+              />
             </>
           )
         ) : null}
