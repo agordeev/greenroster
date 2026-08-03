@@ -6,7 +6,7 @@ import {
   memberRosterRpcArgs,
   parseMemberRosterQuery,
   sortDirectionFor,
-  visibleMemberRosterSelection,
+  requestedMemberRosterSelection,
 } from "../apps/web/src/domain/member-roster-query";
 import {
   formatMemberRosterInitialQuotaUsage,
@@ -97,17 +97,14 @@ describe("member roster query boundary", () => {
     expect(sortDirectionFor(query, "quota")).toBe("asc");
   });
 
-  it("opens detail only for a membership on the visible roster page", () => {
+  it("preserves valid copied member-detail identifiers across roster pages", () => {
     const visible = "60000000-0000-4000-8000-000000000001";
-    expect(visibleMemberRosterSelection(visible, [visible])).toBe(visible);
+    expect(requestedMemberRosterSelection(visible)).toBe(visible);
     expect(
-      visibleMemberRosterSelection("60000000-0000-4000-8000-000000000002", [
-        visible,
-      ]),
-    ).toBeNull();
-    expect(visibleMemberRosterSelection([visible, "ignored"], [visible])).toBe(
-      visible,
-    );
+      requestedMemberRosterSelection("60000000-0000-4000-8000-000000000002"),
+    ).toBe("60000000-0000-4000-8000-000000000002");
+    expect(requestedMemberRosterSelection([visible, "ignored"])).toBe(visible);
+    expect(requestedMemberRosterSelection("not-a-membership-id")).toBeNull();
   });
 
   it("distinguishes a roster with records but no active members", () => {

@@ -359,7 +359,12 @@ select throws_ok(
   null,
   'administrator cannot read raw membership rows outside a server-filtered projection'
 );
-select is((select count(*) from public.audit_events), 1::bigint, 'administrator reads audit events only inside the active group');
+select throws_ok(
+  $$ select * from public.audit_events $$,
+  '42501',
+  null,
+  'administrator cannot read raw audit rows outside the service projection'
+);
 select results_eq(
   $$ select group_id, role from public.resolve_identity_context() $$,
   $$ select created_group_id, 'administrator'::public.membership_role from bootstrap_a $$,
@@ -378,7 +383,12 @@ select is(
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 select is((select count(*) from public.groups), 1::bigint, 'member reads only the active membership group');
-select is((select count(*) from public.audit_events), 0::bigint, 'member cannot read administrator audit records');
+select throws_ok(
+  $$ select * from public.audit_events $$,
+  '42501',
+  null,
+  'member cannot read raw audit rows'
+);
 select is(
   (select role from public.resolve_identity_context()),
   'member'::public.membership_role,
@@ -392,7 +402,12 @@ select is(
 
 select pg_catalog.set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000004', true);
 select is((select count(*) from public.groups), 1::bigint, 'coordinator reads only the active membership group');
-select is((select count(*) from public.audit_events), 0::bigint, 'coordinator has no unfiltered audit access');
+select throws_ok(
+  $$ select * from public.audit_events $$,
+  '42501',
+  null,
+  'coordinator cannot read raw audit rows'
+);
 select is(
   (select role from public.resolve_identity_context()),
   'coordinator'::public.membership_role,

@@ -50,15 +50,18 @@ function firstValue(value: QueryValue) {
 }
 
 /**
- * A membership detail link is actionable only when its record is present in
- * the currently loaded, authorized roster page.
+ * A copied member-detail link may point outside the current roster page. This
+ * validates only the identifier shape; the detail RPC remains the tenant and
+ * role authorization boundary.
  */
-export function visibleMemberRosterSelection(
+export function requestedMemberRosterSelection(
   requestedMembership: QueryValue,
-  visibleMembershipIds: readonly string[],
 ) {
   const requested = firstValue(requestedMembership);
-  return requested && visibleMembershipIds.includes(requested)
+  return requested &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+      requested,
+    )
     ? requested
     : null;
 }

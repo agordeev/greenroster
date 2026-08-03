@@ -96,11 +96,13 @@ select throws_ok(
   'profile_names_required',
   'blank names are rejected by the server'
 );
+set local role postgres;
 select is(
   (select count(*) from public.audit_events where action = 'profile.first_run_completed'),
   0::bigint,
   'a rejected completion writes no audit event'
 );
+set local role authenticated;
 select throws_ok(
   $$ select * from public.complete_mobile_first_run('Alice', 'Admin', 'stale-terms-v0', 'synthetic-privacy-v1', '21000000-0000-4000-8000-000000000005', '31000000-0000-4000-8000-000000000005') $$,
   '40001',
@@ -149,6 +151,7 @@ select is(
   true,
   'the stored profile satisfies the current first-run contract'
 );
+set local role postgres;
 select is(
   (select correlation_id from public.audit_events where action = 'profile.first_run_completed'),
   '21000000-0000-4000-8000-000000000002'::uuid,
@@ -168,15 +171,18 @@ select ok(
   (select not (after_state ? 'first_name') and not (after_state ? 'last_name') from public.audit_events where action = 'profile.first_run_completed'),
   'the audit does not duplicate profile names'
 );
+set local role authenticated;
 select lives_ok(
   $$ select * from public.complete_mobile_first_run('Ignored', 'Retry', 'stale-terms', 'stale-privacy', '21000000-0000-4000-8000-000000000099', '31000000-0000-4000-8000-000000000002') $$,
   'a lost completion response is safe to retry'
 );
+set local role postgres;
 select is(
   (select count(*) from public.audit_events where action = 'profile.first_run_completed'),
   1::bigint,
   'an idempotent retry writes no duplicate audit event'
 );
+set local role authenticated;
 select is(
   (select first_name from public.user_profiles where user_id = '11000000-0000-4000-8000-000000000001'),
   'Alice'::text,

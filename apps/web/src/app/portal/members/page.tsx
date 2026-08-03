@@ -7,7 +7,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {
   parseMemberRosterQuery,
-  visibleMemberRosterSelection,
+  requestedMemberRosterSelection,
 } from "@/domain/member-roster-query";
 import { executeGetMemberDetailProjection } from "@/lib/memberships/member-detail-data";
 import {
@@ -88,10 +88,7 @@ export default async function MemberManagementPage({
     return renderError(error, portalContext);
   }
 
-  const selectedId = visibleMemberRosterSelection(
-    query.membership,
-    roster.members.map((member) => member.membershipId),
-  );
+  const selectedId = requestedMemberRosterSelection(query.membership);
 
   let selectedMember = null;
   let privateContact = null;
