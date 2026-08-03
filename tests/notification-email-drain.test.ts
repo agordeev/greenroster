@@ -32,8 +32,12 @@ describe("notification drain route", () => {
           providerMessageId: "provider-role-1",
         };
       },
+      runRoundPublished: async () => {
+        calls.push("round");
+        return { kind: "empty" as const };
+      },
     });
-    expect(calls).toEqual(["invitation", "role"]);
+    expect(calls).toEqual(["invitation", "role", "round"]);
     expect(result).toEqual({
       kind: "sent",
       deliveryId: "60000000-0000-4000-8000-000000000001",
@@ -69,6 +73,7 @@ describe("notification drain route", () => {
       {
         runInvitation: async () => invitationResults[invitationCalls++]!,
         runRoleChange: async () => roleResults[roleCalls++]!,
+        runRoundPublished: async () => ({ kind: "empty" as const }),
       },
       5,
     );

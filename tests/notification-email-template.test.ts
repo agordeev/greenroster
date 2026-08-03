@@ -5,6 +5,10 @@ import {
   renderMembershipInvitationEmail,
 } from "../apps/web/src/emails/membership-invitation";
 import { renderMembershipRoleChangeEmail } from "../apps/web/src/emails/membership-role-change";
+import {
+  buildRoundPublishedEmail,
+  renderRoundPublishedEmail,
+} from "../apps/web/src/emails/round-published";
 
 const input = {
   acceptanceUrl:
@@ -69,5 +73,40 @@ describe("membership role change email", () => {
     expect(email.text).toContain(
       "Open GreenRoster: https://greenroster.example/portal/members?membership=60000000-0000-4000-8000-000000000001",
     );
+  });
+});
+
+describe("round published email", () => {
+  it("includes the round details in accessible HTML and plain text", async () => {
+    const email = await renderRoundPublishedEmail({
+      description: "<August Championship>",
+      format: "individual_net",
+      groupName: "<Saturday League>",
+      groupTimeZone: "America/New_York",
+      scheduledAt: "2026-08-15T09:00:00.000Z",
+    });
+
+    expect(email.subject).toContain("Saturday League");
+    expect(email.html).toContain("August Championship");
+    expect(email.html).toContain("Individual Net");
+    expect(email.html).toContain("&lt;Saturday League&gt;");
+    expect(email.html).not.toContain("<img");
+    expect(email.text).toContain("Format: Individual Net");
+    expect(email.text).toContain("Scheduled for: Aug 15, 2026, 5:00 AM EDT");
+  });
+
+  it("normalizes invalid scheduled-at display input", () => {
+    const email = buildRoundPublishedEmail({
+      description: "August Championship",
+      format: "individual_gross",
+      groupName: "Saturday League",
+      groupTimeZone: "America/New_York",
+      scheduledAt: "scheduled time supplied by the server",
+    });
+
+    expect(email.text).toContain(
+      "Scheduled for: scheduled time supplied by the server",
+    );
+    expect(email.text).toContain("Format: Individual Gross");
   });
 });

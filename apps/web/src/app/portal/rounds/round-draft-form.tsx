@@ -53,9 +53,11 @@ const blankForm: RoundDraftFormValue = {
 export function RoundDraftForm({
   identityKey,
   initialValue,
+  onDirtyChange,
 }: Readonly<{
   identityKey: string;
   initialValue?: RoundDraftFormValue;
+  onDirtyChange?: (dirty: boolean) => void;
 }>) {
   const router = useRouter();
   const isEdit = Boolean(initialValue?.roundId);
@@ -108,6 +110,11 @@ export function RoundDraftForm({
       !notesVisibleToPlayers ||
       rsvpDeadlineLocal.trim() !== "" ||
       format !== "individual_net";
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (!dirty) return;

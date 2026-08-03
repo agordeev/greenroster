@@ -3,6 +3,7 @@ import {
   type InvitationEmailWorkerResult,
 } from "../../../../../lib/notifications/invitation-email-worker";
 import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notifications/membership-role-change-email-worker";
+import { runRoundPublishedEmailWorker } from "../../../../../lib/notifications/round-published-email-worker";
 import { cronBearerMatches } from "../../../../../lib/jobs/cron-auth";
 
 export type NotificationDrainRouteDependencies = Readonly<{
@@ -21,6 +22,7 @@ const defaultDependencies: NotificationDrainRouteDependencies = {
 export type NotificationEmailWorkerRunners = Readonly<{
   runInvitation: () => Promise<InvitationEmailWorkerResult>;
   runRoleChange: () => Promise<InvitationEmailWorkerResult>;
+  runRoundPublished: () => Promise<InvitationEmailWorkerResult>;
 }>;
 
 export async function runNotificationEmailWorkers(
@@ -29,11 +31,13 @@ export async function runNotificationEmailWorkers(
   const runners: NotificationEmailWorkerRunners = {
     runInvitation: runInvitationEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
+    runRoundPublished: runRoundPublishedEmailWorker,
     ...overrides,
   };
   const results = await Promise.all([
     runners.runInvitation(),
     runners.runRoleChange(),
+    runners.runRoundPublished(),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;
@@ -61,11 +65,13 @@ export async function runNotificationEmailDrain(
   const runners: NotificationEmailWorkerRunners = {
     runInvitation: runInvitationEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
+    runRoundPublished: runRoundPublishedEmailWorker,
     ...overrides,
   };
   const results = await Promise.all([
     drainWorker(runners.runInvitation, maxDeliveriesPerCategory),
     drainWorker(runners.runRoleChange, maxDeliveriesPerCategory),
+    drainWorker(runners.runRoundPublished, maxDeliveriesPerCategory),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;

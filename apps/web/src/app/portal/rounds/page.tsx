@@ -10,14 +10,16 @@ import {
   roundDraftFormValue,
   type RoundDraft,
 } from "@/domain/round-drafts";
+import { roundPublicationReviewKey } from "@/domain/round-publication";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { MutationError } from "@/lib/mutations/result";
 import { executeListRoundDrafts } from "@/lib/rounds/round-drafts-data";
+import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { PortalShell } from "../portal-shell";
-import { RoundDraftForm } from "./round-draft-form";
+import { RoundWorkspace } from "./round-workspace";
 
 const contextSchema = z
   .array(
@@ -109,6 +111,18 @@ export default async function RoundsPage({
   const selectedRound = requestedRound
     ? (rounds.find((round) => round.roundId === requestedRound) ?? null)
     : null;
+  let publicationReview = null;
+  let publicationReviewUnavailable = false;
+  if (selectedRound?.state === "draft" && selectedRound.format !== null) {
+    try {
+      publicationReview = await executePreviewRoundPublication(session.userId, {
+        roundId: selectedRound.roundId,
+        excludedMembershipIds: [],
+      });
+    } catch {
+      publicationReviewUnavailable = true;
+    }
+  }
   const newRound: RoundDraft = {
     roundId: "",
     groupId: portalContext.groupId,
@@ -146,10 +160,18 @@ export default async function RoundsPage({
           use the group time zone, <strong>{portalContext.timeZone}</strong>.
         </p>
 
-        <RoundDraftForm
-          key={`${selectedRound?.roundId ?? "new"}:${selectedRound?.version ?? 0}`}
+        <RoundWorkspace
+          key={`round-workspace:${selectedRound?.roundId ?? "new"}:${selectedRound?.version ?? 0}:${publicationReview ? roundPublicationReviewKey(publicationReview) : "unavailable"}`}
           identityKey={`${portalContext.groupId}:${selectedRound?.roundId ?? "new"}`}
           initialValue={roundDraftFormValue(selectedRound ?? newRound)}
+          roundId={
+            selectedRound?.state === "draft" ? selectedRound.roundId : null
+          }
+          format={
+            selectedRound?.state === "draft" ? selectedRound.format : null
+          }
+          publicationReview={publicationReview}
+          publicationReviewUnavailable={publicationReviewUnavailable}
         />
 
         <section
