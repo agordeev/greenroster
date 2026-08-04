@@ -7,9 +7,9 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 06 — Completion and standings
-- **Active slice:** Phase 06 result delivery claim/send boundaries and standings/history read projections.
+- **Active slice:** Phase 06 result provider workers and standings/history read projections.
 - **Status:** In progress
-- **Next:** Add claim-time identity/device/preference revalidation and provider workers for result email/push, then expose standings and personal quota/history reads on web and mobile.
+- **Next:** Integrate the result e-mail/push provider workers with the authenticated drain, then expose completed results, standings, and personal quota/history reads on web and mobile.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
@@ -61,6 +61,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 06 official results read boundary | Commit `bb8d9e7`; service-only and authenticated mobile result reads expose the current official completion with immutable ranking, tie, score-revision, quota, and merit provenance, enforce participant/sponsor/coordinator access, and return no results after Reopen. Full pinned reset and pgTAP pass 59 files/2,115 tests; focused official-results checks pass 21/21; database lint reports only the existing scoring warnings. |
 | August 4, 2026 | Phase 06 official-results member ACL correction | Commit `660f5cb`; the result read boundary now follows the permission matrix and allows any active verified member of the round's group to read the current official result, with a focused nonparticipant fixture; cross-tenant denial and reopened-result withdrawal remain covered. Focused official-results checks pass 21/21. |
 | August 4, 2026 | Phase 06 recipient-scoped results notification fan-out | Commit `f305360`; completion atomically fans out enabled result e-mail rows and per-device push rows for permanent participants, excludes guests/inactive/disabled recipients, honors optional channel settings and e-mail suppression, retains no raw Expo token, defers optional push during group quiet hours, and Reopen cancels queued/retryable push children while recompletion creates a fresh delivery root. Focused fan-out/completion/reopen checks pass 20/38/50; full pinned reset and pgTAP pass 60 files/2,143 tests; database lint reports only the existing scoring warnings. |
+| August 4, 2026 | Phase 06 result notification claim/send boundaries | Commit `5a1ea5c`; service-only result e-mail and per-device push claims revalidate the current official completion, completed round, active identity, device ownership, preferences, suppression, and quiet hours before exposing provider data. Child-aware finalizers keep aggregate state open until every child is terminal, preserve provider success history across Reopen, cancel withdrawn failures and stale leases safely, and retain retry reasons through quiet-hour deferral. Focused fan-out/reopen/official-result checks pass 40/59/21; full pinned reset and pgTAP pass 60 files/2,172 tests; database lint reports only the existing scoring warnings. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
