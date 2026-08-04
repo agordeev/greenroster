@@ -117,6 +117,30 @@ begin
     raise exception 'privacy_identity_not_found' using errcode = 'P0002';
   end if;
 
+  -- A second receipt read is required after the identity lock. Two concurrent
+  -- retries can both miss the first read; the waiter must return the committed
+  -- receipt instead of entering the legacy operation a second time.
+  select event.after_state
+  into prior_state
+  from public.identity_security_audit_events as event
+  where event.user_id = p_user_id
+    and event.action = 'privacy.account_anonymized'
+    and event.operation_id = p_operation_id
+  order by event.occurred_at desc, event.id desc
+  limit 1;
+
+  if prior_state is not null then
+    return query
+    select
+      p_user_id,
+      coalesce((prior_state ->> 'membership_count')::bigint, 0),
+      coalesce((prior_state ->> 'invitation_count')::bigint, 0),
+      coalesce((prior_state ->> 'email_delivery_count')::bigint, 0),
+      coalesce((prior_state ->> 'push_device_count')::bigint, 0),
+      (prior_state ->> 'anonymized_at')::timestamptz::app.utc_instant;
+    return;
+  end if;
+
   select coalesce(
     pg_catalog.array_agg(membership.id order by membership.id),
     '{}'::uuid[]
@@ -155,6 +179,24 @@ begin
     p_correlation_id::text,
     true
   );
+
+  -- Auth recovery markers and provider flow state are short-lived credentials,
+  -- not historical identity data. Clear them before the legacy body changes
+  -- encrypted_password so its recovery trigger cannot consume a stale claim or
+  -- abort the privacy transaction. The transaction-local rollback restores all
+  -- state if the operation fails validation.
+  update auth.users as identity
+  set raw_app_meta_data = '{}'::jsonb,
+      email_change_token_current = null,
+      email_change_confirm_status = 0,
+      updated_at = pg_catalog.clock_timestamp()
+  where identity.id = p_user_id;
+
+  delete from public.password_recovery_sessions
+  where user_id = p_user_id;
+
+  delete from auth.flow_state
+  where user_id = p_user_id;
 
   -- The legacy body validates the last administrator, locks the identity, and
   -- performs all tenant-scoped redaction. Its free-form reason is replaced by

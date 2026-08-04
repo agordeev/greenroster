@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(34);
+select plan(36);
 
 select has_function(
   'public',
@@ -69,6 +69,42 @@ values
   ('b8050000-0000-4000-8000-000000000001', 'b8000000-0000-4000-8000-000000000001', now(), now()),
   ('b8050000-0000-4000-8000-000000000002', 'b8000000-0000-4000-8000-000000000002', now(), now()),
   ('b8050000-0000-4000-8000-000000000004', 'b8000000-0000-4000-8000-000000000004', now(), now());
+
+insert into public.password_recovery_sessions (
+  session_id, user_id, expires_at, claim_id, claimed_at, reset_operation_id
+)
+values (
+  'b8050000-0000-4000-8000-000000000011',
+  'b8000000-0000-4000-8000-000000000001',
+  now() + interval '10 minutes',
+  'b8060000-0000-4000-8000-000000000001',
+  now(),
+  'b8070000-0000-4000-8000-000000000001'
+);
+
+update auth.users
+set raw_app_meta_data = jsonb_build_object(
+      'greenroster_password_recovery', jsonb_build_object(
+        'session_id', 'b8050000-0000-4000-8000-000000000011',
+        'claim_id', 'b8060000-0000-4000-8000-000000000001',
+        'operation_id', 'b8070000-0000-4000-8000-000000000001'
+      ),
+      'provider_metadata', 'private'
+    ),
+    email_change_token_current = 'current-email-token',
+    email_change_confirm_status = 1
+where id = 'b8000000-0000-4000-8000-000000000001';
+
+insert into auth.flow_state (
+  id, user_id, provider_type, provider_access_token,
+  provider_refresh_token, authentication_method, created_at, updated_at
+)
+values (
+  'b8080000-0000-4000-8000-000000000001',
+  'b8000000-0000-4000-8000-000000000001',
+  'google', 'provider-access-token', 'provider-refresh-token',
+  'oauth', now(), now()
+);
 
 insert into auth.refresh_tokens (
   token, user_id, session_id, revoked, created_at, updated_at
@@ -250,6 +286,24 @@ select ok(
   (select deleted_at is not null and encrypted_password is null and raw_user_meta_data = '{}'::jsonb and banned_until = 'infinity'::timestamptz
    from auth.users where id = 'b8000000-0000-4000-8000-000000000001'),
   'Auth credentials and metadata are disabled and cleared'
+);
+select ok(
+  (select raw_app_meta_data = '{}'::jsonb
+      and email_change_token_current is null
+      and email_change_confirm_status = 0
+   from auth.users where id = 'b8000000-0000-4000-8000-000000000001'),
+  'Auth recovery metadata and pending e-mail-change state are cleared'
+);
+select ok(
+  not exists (
+    select 1 from public.password_recovery_sessions
+    where user_id = 'b8000000-0000-4000-8000-000000000001'
+  )
+  and not exists (
+    select 1 from auth.flow_state
+    where user_id = 'b8000000-0000-4000-8000-000000000001'
+  ),
+  'recovery sessions and provider flow credentials are removed'
 );
 select ok(
   (select status = 'inactive'::public.membership_status and user_id = 'b8000000-0000-4000-8000-000000000001'::uuid and inactivated_at is not null
