@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(47);
+select plan(50);
 
 select has_function(
   'public',
@@ -53,6 +53,16 @@ insert into public.memberships (
 values
   ('e3000000-0000-4000-8000-000000000001', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000001', 'administrator', 'active', now(), null, false, null),
   ('e3000000-0000-4000-8000-000000000002', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000002', 'member', 'active', now(), 20, true, 'member_bootstrap');
+
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values (
+  'e3100000-0000-4000-8000-000000000001',
+  'e1000000-0000-4000-8000-000000000002',
+  'ExponentPushToken[reopen-member-device]',
+  'ios', now()
+);
 
 insert into public.group_quota_settings (
   group_id, method, moving_average_history_length, precision, rounding_rule,
@@ -152,6 +162,8 @@ select is((select state from public.round_completion_runs where id = (select com
 select is((select reopen_reason from public.round_completion_runs where id = (select completion_id from reopened)), 'Correct a published score', 'the reason is retained on the completion run');
 select is((select count(*) from public.round_completion_runs where round_id = 'e4000000-0000-4000-8000-000000000001' and state = 'official'), 0::bigint, 'no official run remains while the round is reopened');
 select is((select state from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened)), 'cancelled'::public.notification_outbox_job_state, 'withdrawn results outbox work is terminalized');
+select is((select state from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened))), 'cancelled'::public.notification_delivery_state, 'withdrawn result push work is terminalized');
+select is((select failure_reason from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened))), 'round_reopened', 'withdrawn push work records the safe reopen reason');
 select is((select count(*) from public.round_official_results where completion_id = (select completion_id from reopened)), 1::bigint, 'the prior result snapshot remains for investigation');
 select is((select generated_merit::numeric from public.round_official_results where completion_id = (select completion_id from reopened)), 12::numeric, 'generated merit is retained as historical evidence');
 select is((select manual_merit::numeric from public.round_official_results where completion_id = (select completion_id from reopened)), 1::numeric, 'manual merit survives the reopen');
@@ -277,6 +289,7 @@ select is((select merit_total from public.membership_standings_projections where
 select is((select rounds_played from public.membership_standings_projections where membership_id = 'e3000000-0000-4000-8000-000000000002'), 1::bigint, 'recompletion restores one eligible round');
 select is((select count(*) from public.notification_outbox_jobs where event_type = 'results_published'), 2::bigint, 'recompletion queues a second results notification');
 select is((select count(distinct idempotency_key) from public.notification_outbox_jobs where event_type = 'results_published'), 2::bigint, 'recompletion notification is keyed to its new completion run');
+select is((select count(*) from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_id = (select completion_id from recompleted))), 1::bigint, 'recompletion creates a fresh push delivery for the new official run');
 select is((select count(*) from public.audit_events where action = 'round.completed' and target_id = 'e4000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion writes a second completion audit');
 select is((select count(*) from public.score_revisions where participant_id = 'e5000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion preserves both score revisions');
 

@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(33);
+select plan(38);
 
 select has_table(
   'public',
@@ -76,6 +76,25 @@ values (
 
 insert into public.placement_merit_rows (group_id, rank, merit_points)
 values ('d2000000-0000-4000-8000-000000000001', 1, 10);
+
+insert into public.notification_preferences (
+  membership_id, group_id, category, email_enabled, push_enabled
+)
+values (
+  'd3000000-0000-4000-8000-000000000002',
+  'd2000000-0000-4000-8000-000000000001',
+  'results_published', true, true
+);
+
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values (
+  'd3100000-0000-4000-8000-000000000001',
+  'd1000000-0000-4000-8000-000000000002',
+  'ExponentPushToken[completion-member-device]',
+  'ios', now()
+);
 
 insert into public.membership_quota_seed_totals (membership_id, group_id, position, point_total)
 values
@@ -156,6 +175,11 @@ select is((select rounds_played from public.membership_standings_projections whe
 select is((select standing_rank from public.membership_standings_projections where membership_id = 'd3000000-0000-4000-8000-000000000002'), 1::bigint, 'standings projection assigns the competition rank');
 select is((select count(*) from public.notification_outbox_jobs where event_type = 'results_published'), 1::bigint, 'completion queues one results-published outbox job');
 select is((select idempotency_key from public.notification_outbox_jobs where event_type = 'results_published'), 'results_published:' || (select completion_id::text from completion_result), 'results outbox is keyed by the completion run');
+select is((select count(*) from public.notification_deliveries where channel = 'email' and outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published')), 1::bigint, 'completion fans out one enabled participant e-mail');
+select is((select recipient_membership_id from public.notification_deliveries where channel = 'email' and outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published')), 'd3000000-0000-4000-8000-000000000002'::app.entity_id, 'results e-mail targets the permanent participant');
+select is((select count(*) from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published')), 1::bigint, 'completion fans out one active participant device');
+select is((select recipient_membership_id from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published')), 'd3000000-0000-4000-8000-000000000002'::app.entity_id, 'results push targets the permanent participant');
+select is((select count(*) from public.notification_deliveries where recipient_membership_id is null and outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published')), 0::bigint, 'guests never receive result e-mail deliveries');
 select is((select count(*) from public.audit_events where action = 'round.completed' and target_id = 'd4000000-0000-4000-8000-000000000001'), 1::bigint, 'completion writes one audited lifecycle event');
 
 create temporary table completion_replay as
