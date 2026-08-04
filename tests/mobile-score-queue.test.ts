@@ -137,6 +137,36 @@ describe("mobile score queue", () => {
     });
   });
 
+  it("returns authoritative receipts only for successfully drained items", async () => {
+    const secure = storage();
+    const queue = createMobileScoreQueue({ platform: "ios", storage: secure });
+    await queue.enqueue(input("70000000-0000-4000-8000-000000000017", 19));
+
+    const receipt = {
+      participantId,
+      roundId: scope.roundId,
+      groupId: scope.groupId,
+      version: 1,
+      revisionId: "80000000-0000-4000-8000-000000000003",
+      grossScore: null,
+      netScore: null,
+      golfPoints: "19.00",
+      manualMerit: null,
+      plusMinus: "6.70",
+      rankingValue: "6.70",
+      changedAt: "2026-08-04T12:00:01.000Z",
+    } as const;
+
+    await expect(
+      queue.drain(scope, async () => ({ ok: true, data: receipt })),
+    ).resolves.toMatchObject({
+      status: "drained",
+      processed: 1,
+      receipts: [receipt],
+    });
+    expect(await queue.list(scope)).toEqual([]);
+  });
+
   it("marks pending items permanently locked without purging the scoped queue", async () => {
     const secure = storage();
     const queue = createMobileScoreQueue({ platform: "ios", storage: secure });

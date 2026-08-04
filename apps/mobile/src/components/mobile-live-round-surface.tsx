@@ -509,6 +509,30 @@ export function MobileLiveRoundSurface({
               .catch(() => undefined);
           }
         }
+        if (
+          active &&
+          drained.status === "drained" &&
+          drained.receipts.length > 0
+        ) {
+          const remaining = await queue.list(scope).catch(() => null);
+          if (remaining && remaining.length === 0) {
+            const acknowledgements = await Promise.all(
+              drained.receipts.map((receipt) =>
+                mobileLiveRoundApi.acknowledgeSync({
+                  participantId: receipt.participantId,
+                  scoreRevisionId: receipt.revisionId,
+                }),
+              ),
+            );
+            if (
+              acknowledgements.some((acknowledgement) => !acknowledgement.ok)
+            ) {
+              setScoreMessage(
+                "Scores reached the server, but completion confirmation is still pending.",
+              );
+            }
+          }
+        }
       }
     }
 

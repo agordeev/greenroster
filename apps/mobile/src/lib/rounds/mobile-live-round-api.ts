@@ -127,6 +127,17 @@ const scoreReceiptRowSchema = z
   })
   .strict();
 
+const syncReceiptRowSchema = z
+  .object({
+    round_id: uuidSchema,
+    group_id: uuidSchema,
+    participant_id: uuidSchema,
+    score_revision_id: uuidSchema,
+    receipt_version: positiveIntegerSchema,
+    received_at: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
 export type MobileLiveRoundCapabilities = Readonly<{
   golfPoints: true;
   grossScore: boolean;
@@ -185,6 +196,15 @@ export type MobileLiveRoundScoreReceipt = Readonly<{
   plusMinus: string | null;
   rankingValue: string | null;
   changedAt: string;
+}>;
+
+export type MobileLiveRoundSyncReceipt = Readonly<{
+  roundId: string;
+  groupId: string;
+  participantId: string;
+  scoreRevisionId: string;
+  receiptVersion: number;
+  receivedAt: string;
 }>;
 
 export type MobileLiveRoundStaleDetails = Readonly<{
@@ -281,6 +301,17 @@ function mapReceipt(row: z.infer<typeof scoreReceiptRowSchema>) {
     rankingValue: row.ranking_value,
     changedAt: row.changed_at,
   } satisfies MobileLiveRoundScoreReceipt;
+}
+
+function mapSyncReceipt(row: z.infer<typeof syncReceiptRowSchema>) {
+  return {
+    roundId: row.round_id,
+    groupId: row.group_id,
+    participantId: row.participant_id,
+    scoreRevisionId: row.score_revision_id,
+    receiptVersion: row.receipt_version,
+    receivedAt: row.received_at,
+  } satisfies MobileLiveRoundSyncReceipt;
 }
 
 function parseStaleDetails(error: Readonly<{ details?: string }>) {
@@ -423,6 +454,13 @@ const scoreInputSchema = z
   })
   .strict();
 
+const syncInputSchema = z
+  .object({
+    participantId: uuidSchema,
+    scoreRevisionId: uuidSchema,
+  })
+  .strict();
+
 export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
   const api = {
     async read(
@@ -501,6 +539,51 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
         );
       }
     },
+
+    async acknowledgeSync(
+      rawInput: Readonly<{
+        participantId: string;
+        scoreRevisionId: string;
+      }>,
+      operationContext: MobileLiveRoundOperationContext = contextDefaults(),
+    ): Promise<MobileLiveRoundResult<MobileLiveRoundSyncReceipt>> {
+      const parsedInput = syncInputSchema.safeParse(rawInput);
+      if (!parsedInput.success) {
+        return {
+          code: "validation",
+          correlationId: operationContext.correlationId,
+          message: "The score synchronization receipt is invalid.",
+          ok: false,
+        };
+      }
+      try {
+        const { data, error } = await client.rpc(
+          "acknowledge_mobile_round_score_sync",
+          {
+            p_participant_id: parsedInput.data.participantId,
+            p_score_revision_id: parsedInput.data.scoreRevisionId,
+            p_correlation_id: operationContext.correlationId,
+            p_operation_id: operationContext.operationId,
+          },
+        );
+        if (error) return mapError(error, operationContext.correlationId);
+        const parsed = z.array(syncReceiptRowSchema).safeParse(data);
+        if (!parsed.success || !parsed.data[0]) {
+          return {
+            code: "unavailable",
+            correlationId: operationContext.correlationId,
+            message: "GreenRoster returned an invalid synchronization receipt.",
+            ok: false,
+          };
+        }
+        return { data: mapSyncReceipt(parsed.data[0]), ok: true };
+      } catch {
+        return mapError(
+          { message: "network_unavailable" },
+          operationContext.correlationId,
+        );
+      }
+    },
   };
   return {
     ...api,
@@ -509,6 +592,7 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
     resolve: api.read,
     setParticipantScore: api.setScore,
     updateScore: api.setScore,
+    acknowledgeMobileSync: api.acknowledgeSync,
   };
 }
 
@@ -516,3 +600,4 @@ export const mobileLiveRoundApi = createMobileLiveRoundApi(mobileSupabase);
 
 export const mobileLiveRoundScoreRowSchema = liveRoundScoreRowSchema;
 export const mobileLiveRoundScoreReceiptSchema = scoreReceiptRowSchema;
+export const mobileLiveRoundSyncReceiptSchema = syncReceiptRowSchema;

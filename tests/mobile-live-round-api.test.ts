@@ -200,6 +200,56 @@ describe("mobile live round API", () => {
     ).resolves.toMatchObject({ code: "locked", ok: false });
   });
 
+  it("acknowledges a server-visible mobile synchronization receipt", async () => {
+    rpc.mockResolvedValue({
+      data: [
+        {
+          round_id: roundId,
+          group_id: groupId,
+          participant_id: participantId,
+          score_revision_id: revisionId,
+          receipt_version: "1",
+          received_at: "2026-08-04T12:00:02.000Z",
+        },
+      ],
+      error: null,
+    });
+    const api = createMobileLiveRoundApi({ rpc });
+
+    await expect(
+      api.acknowledgeSync(
+        { participantId, scoreRevisionId: revisionId },
+        {
+          correlationId: "70000000-0000-4000-8000-000000000002",
+          operationId: "80000000-0000-4000-8000-000000000002",
+        },
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      data: {
+        roundId,
+        groupId,
+        participantId,
+        scoreRevisionId: revisionId,
+        receiptVersion: 1,
+      },
+    });
+    expect(rpc).toHaveBeenCalledWith("acknowledge_mobile_round_score_sync", {
+      p_participant_id: participantId,
+      p_score_revision_id: revisionId,
+      p_correlation_id: "70000000-0000-4000-8000-000000000002",
+      p_operation_id: "80000000-0000-4000-8000-000000000002",
+    });
+  });
+
+  it("rejects an invalid synchronization receipt before calling the RPC", async () => {
+    const api = createMobileLiveRoundApi({ rpc });
+    await expect(
+      api.acknowledgeSync({ participantId, scoreRevisionId: "not-a-uuid" }),
+    ).resolves.toMatchObject({ code: "validation", ok: false });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("treats a missing or revoked live round as definitive access loss", async () => {
     rpc.mockResolvedValue({
       data: null,

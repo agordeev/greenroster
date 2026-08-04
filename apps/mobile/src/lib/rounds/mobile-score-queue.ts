@@ -104,6 +104,7 @@ export type MobileScoreQueueSend = (
 export type MobileScoreQueueDrainResult = Readonly<{
   status: "drained" | "empty" | "transient" | "permanent" | "unsupported";
   processed: number;
+  receipts: readonly MobileLiveRoundScoreReceipt[];
   item?: MobileScoreQueueItem;
   receipt?: MobileLiveRoundScoreReceipt;
 }>;
@@ -579,17 +580,19 @@ export function createMobileScoreQueue(
         scope,
         async (): Promise<MobileScoreQueueDrainResult> => {
           let processed = 0;
+          const receipts: MobileLiveRoundScoreReceipt[] = [];
           while (true) {
             const items = await read(scope);
             const item = items[0];
             if (!item) {
               return {
                 processed,
+                receipts,
                 status: processed === 0 ? "empty" : "drained",
               };
             }
             if (item.status === "failed") {
-              return { item, processed, status: "permanent" };
+              return { item, processed, receipts, status: "permanent" };
             }
 
             const attempted: MobileScoreQueueItem = {
@@ -610,9 +613,19 @@ export function createMobileScoreQueue(
               );
               if (!currentItem) continue;
               if (currentItem.status === "failed") {
-                return { item: currentItem, processed, status: "permanent" };
+                return {
+                  item: currentItem,
+                  processed,
+                  receipts,
+                  status: "permanent",
+                };
               }
-              return { item: currentItem, processed, status: "transient" };
+              return {
+                item: currentItem,
+                processed,
+                receipts,
+                status: "transient",
+              };
             }
 
             // A deferred send can overlap a participant lock, discard, sign-out,
@@ -625,7 +638,12 @@ export function createMobileScoreQueue(
             );
             if (!currentItem) continue;
             if (currentItem.status === "failed") {
-              return { item: currentItem, processed, status: "permanent" };
+              return {
+                item: currentItem,
+                processed,
+                receipts,
+                status: "permanent",
+              };
             }
 
             if (result.ok) {
@@ -639,12 +657,18 @@ export function createMobileScoreQueue(
               } else {
                 await write(scope, next);
               }
+              receipts.push(result.data);
               processed += 1;
               continue;
             }
 
             if (result.code === "unavailable") {
-              return { item: currentItem, processed, status: "transient" };
+              return {
+                item: currentItem,
+                processed,
+                receipts,
+                status: "transient",
+              };
             }
 
             const failed: MobileScoreQueueItem = {
@@ -667,7 +691,7 @@ export function createMobileScoreQueue(
                   : candidate,
               ),
             );
-            return { item: failed, processed, status: "permanent" };
+            return { item: failed, processed, receipts, status: "permanent" };
           }
         },
       ).finally(() => {
