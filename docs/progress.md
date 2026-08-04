@@ -7,9 +7,9 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 06 — Completion and standings
-- **Active slice:** Phase 06 recipient-scoped result notifications and standings/history read projections.
+- **Active slice:** Phase 06 result delivery claim/send boundaries and standings/history read projections.
 - **Status:** In progress
-- **Next:** Fan out each official result event to enabled member email/push recipients, cancel pending work on Reopen, then expose standings and personal quota/history reads on web and mobile.
+- **Next:** Add claim-time identity/device/preference revalidation and provider workers for result email/push, then expose standings and personal quota/history reads on web and mobile.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
@@ -59,6 +59,8 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 06 mobile receipt lock ordering | Commit `fe82524`; the authenticated mobile synchronization receipt now serializes tenant, actor membership, participant, score projection, revision, receipt, and round in the same deterministic order as completion/Reopen. Structural lock-order checks pass 4/4, receipt/completion/reopen focused checks pass 107/107, and the migration preserves the existing receipt authorization/idempotency contract. |
 | August 4, 2026 | Phase 06 snapshot-consistent quota provenance | Commit `acbdb40`; candidate quota calculation now consumes the immutable published round method, history length, precision, rounding rule, settings version, and Method C bands instead of relabeling prospective live settings. Snapshot-change checks pass 9/9; quota/completion/reopen focused checks pass 102/102; database lint reports only the existing scoring warnings. |
 | August 4, 2026 | Phase 06 official results read boundary | Commit `bb8d9e7`; service-only and authenticated mobile result reads expose the current official completion with immutable ranking, tie, score-revision, quota, and merit provenance, enforce participant/sponsor/coordinator access, and return no results after Reopen. Full pinned reset and pgTAP pass 59 files/2,115 tests; focused official-results checks pass 21/21; database lint reports only the existing scoring warnings. |
+| August 4, 2026 | Phase 06 official-results member ACL correction | Commit `660f5cb`; the result read boundary now follows the permission matrix and allows any active verified member of the round's group to read the current official result, with a focused nonparticipant fixture; cross-tenant denial and reopened-result withdrawal remain covered. Focused official-results checks pass 21/21. |
+| August 4, 2026 | Phase 06 recipient-scoped results notification fan-out | Commit `f305360`; completion atomically fans out enabled result e-mail rows and per-device push rows for permanent participants, excludes guests/inactive/disabled recipients, honors optional channel settings and e-mail suppression, retains no raw Expo token, defers optional push during group quiet hours, and Reopen cancels queued/retryable push children while recompletion creates a fresh delivery root. Focused fan-out/completion/reopen checks pass 20/38/50; full pinned reset and pgTAP pass 60 files/2,143 tests; database lint reports only the existing scoring warnings. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
