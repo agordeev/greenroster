@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(43);
+select plan(51);
 
 select has_type(
   'public',
@@ -441,6 +441,135 @@ reset role;
 select is((select state from public.notification_push_receipts where id = (select receipt_id from reopened_receipt)), 'cancelled'::public.notification_push_receipt_state, 'withdrawn receipt is terminally cancelled');
 select is((select failure_reason from public.notification_push_receipts where id = (select receipt_id from reopened_receipt)), 'round_reopened', 'withdrawn receipt records the safe reopen reason');
 select is((select state from public.notification_push_deliveries where outbox_job_id = 'a6000000-0000-4000-8000-000000000001' and device_id = 'a6100000-0000-4000-8000-000000000002'), 'sent'::public.notification_delivery_state, 'receipt reopen cancellation preserves the sent delivery');
+
+-- Provider retention is bounded independently of the normal retry cadence. A
+-- queued, retryable, and sending ticket older than twenty-four hours is
+-- terminalized before a provider request; the sent delivery itself remains
+-- historical evidence. The fixture stays official so expiry is not confused
+-- with the separate Reopen cancellation path above.
+update public.round_completion_runs
+set state = 'official'::public.round_completion_run_state,
+    reopened_at = null,
+    reopened_by = null,
+    reopen_reason = null
+where id = 'a4100000-0000-4000-8000-000000000001';
+update public.notification_outbox_jobs
+set state = 'queued'::public.notification_outbox_job_state,
+    safe_error = null,
+    claimed_at = null,
+    finished_at = null,
+    next_attempt_at = now()
+where id = 'a6000000-0000-4000-8000-000000000001';
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values
+  ('a6100000-0000-4000-8000-000000000004', 'a1000000-0000-4000-8000-000000000001', 'ExponentPushToken[receipt-four]', 'ios', now()),
+  ('a6100000-0000-4000-8000-000000000005', 'a1000000-0000-4000-8000-000000000001', 'ExponentPushToken[receipt-five]', 'android', now()),
+  ('a6100000-0000-4000-8000-000000000006', 'a1000000-0000-4000-8000-000000000001', 'ExponentPushToken[receipt-six]', 'ios', now());
+
+insert into public.notification_push_deliveries (
+  id, group_id, outbox_job_id, recipient_membership_id, recipient_user_id,
+  device_id, provider_message_id, state, sent_at
+)
+values
+  ('a7600000-0000-4000-8000-000000000004', 'a2000000-0000-4000-8000-000000000001', 'a6000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'a6100000-0000-4000-8000-000000000004', 'expo-expired-ticket-four', 'sent', now()),
+  ('a7600000-0000-4000-8000-000000000005', 'a2000000-0000-4000-8000-000000000001', 'a6000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'a6100000-0000-4000-8000-000000000005', 'expo-expired-ticket-five', 'sent', now()),
+  ('a7600000-0000-4000-8000-000000000006', 'a2000000-0000-4000-8000-000000000001', 'a6000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'a6100000-0000-4000-8000-000000000006', 'expo-expired-ticket-six', 'sent', now());
+
+update public.notification_push_receipts
+set created_at = now() - interval '25 hours',
+    next_attempt_at = now(),
+    state = case provider_message_id
+      when 'expo-expired-ticket-four' then 'queued'::public.notification_push_receipt_state
+      when 'expo-expired-ticket-five' then 'retryable'::public.notification_push_receipt_state
+      else 'sending'::public.notification_push_receipt_state
+    end,
+    claim_token = case
+      when provider_message_id = 'expo-expired-ticket-six' then 'a7700000-0000-4000-8000-000000000006'::uuid
+      else null
+    end,
+    claimed_at = case
+      when provider_message_id = 'expo-expired-ticket-six' then now() - interval '2 hours'
+      else null
+    end
+where provider_message_id in (
+  'expo-expired-ticket-four',
+  'expo-expired-ticket-five',
+  'expo-expired-ticket-six'
+);
+
+set local role service_role;
+create temporary table expired_receipts as
+select *
+from public.claim_results_push_receipt(
+  'a7800000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+reset role;
+select is((select count(*) from expired_receipts), 0::bigint, 'expired provider tickets are never leased');
+select is(
+  (select count(*) from public.notification_push_receipts
+   where provider_message_id in ('expo-expired-ticket-four', 'expo-expired-ticket-five', 'expo-expired-ticket-six')
+     and state = 'failed_permanent'::public.notification_push_receipt_state),
+  3::bigint,
+  'queued, retryable, and sending tickets expire to permanent failure'
+);
+select is(
+  (select count(*) from public.notification_push_receipts
+   where provider_message_id in ('expo-expired-ticket-four', 'expo-expired-ticket-five', 'expo-expired-ticket-six')
+     and failure_reason = 'provider_receipt_expired'),
+  3::bigint,
+  'expired tickets retain one safe provider-retention reason'
+);
+select ok(
+  (select bool_and(resolved_at is not null)
+   from public.notification_push_receipts
+   where provider_message_id in ('expo-expired-ticket-four', 'expo-expired-ticket-five', 'expo-expired-ticket-six')),
+  'expired tickets record terminal resolution time'
+);
+select is(
+  (select count(*) from public.notification_push_deliveries
+   where id in ('a7600000-0000-4000-8000-000000000004', 'a7600000-0000-4000-8000-000000000005', 'a7600000-0000-4000-8000-000000000006')
+     and state = 'sent'::public.notification_delivery_state),
+  3::bigint,
+  'receipt expiry preserves the sent delivery history'
+);
+
+-- An aged receipt is cancelled, rather than permanently failed, when its
+-- result run has been withdrawn. This is the explicit cancellation precedence
+-- over the provider retention boundary.
+update public.round_completion_runs
+set state = 'reopened'::public.round_completion_run_state,
+    reopened_at = now(),
+    reopened_by = 'a1000000-0000-4000-8000-000000000001',
+    reopen_reason = 'receipt aged withdrawal precedence'
+where id = 'a4100000-0000-4000-8000-000000000001';
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values ('a6100000-0000-4000-8000-000000000007', 'a1000000-0000-4000-8000-000000000001', 'ExponentPushToken[receipt-seven]', 'ios', now());
+insert into public.notification_push_deliveries (
+  id, group_id, outbox_job_id, recipient_membership_id, recipient_user_id,
+  device_id, provider_message_id, state, sent_at
+)
+values (
+  'a7600000-0000-4000-8000-000000000007', 'a2000000-0000-4000-8000-000000000001', 'a6000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'a6100000-0000-4000-8000-000000000007', 'expo-withdrawn-expired-ticket', 'sent', now()
+);
+update public.notification_push_receipts
+set created_at = now() - interval '25 hours', next_attempt_at = now()
+where provider_message_id = 'expo-withdrawn-expired-ticket';
+set local role service_role;
+create temporary table withdrawn_expired_receipt as
+select *
+from public.claim_results_push_receipt(
+  'a7800000-0000-0000-8000-000000000002',
+  now() - interval '1 hour'
+);
+reset role;
+select is((select count(*) from withdrawn_expired_receipt), 0::bigint, 'withdrawn expired tickets are not leased');
+select is((select state from public.notification_push_receipts where provider_message_id = 'expo-withdrawn-expired-ticket'), 'cancelled'::public.notification_push_receipt_state, 'withdrawn expired tickets cancel before provider expiry');
+select is((select failure_reason from public.notification_push_receipts where provider_message_id = 'expo-withdrawn-expired-ticket'), 'round_reopened', 'withdrawn expiry keeps the reopen reason');
 
 select * from finish();
 

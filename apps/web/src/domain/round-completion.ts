@@ -56,16 +56,24 @@ export type RoundCompletionReadiness = Readonly<{
 export type RoundCompletionParticipant = Readonly<{
   participantId: string;
   participantKind: "member" | "guest";
+  participantName: string;
   membershipId: string | null;
   sponsorMembershipId: string | null;
   rankingValue: string | null;
   competitionRank: number | null;
+  isWinner: boolean;
+  winnerTieSize: number;
   golfPoints: string | null;
   grossScore: string | null;
   netScore: string | null;
   quotaSnapshot: string | null;
+  quotaBefore: string | null;
+  quotaAfter: string | null;
   plusMinus: string | null;
   scoreRevisionId: string | null;
+  standingBefore: number | null;
+  standingAfter: number | null;
+  standingDelta: number | null;
   merit: Readonly<{
     participation: string;
     placement: string;
@@ -73,6 +81,14 @@ export type RoundCompletionParticipant = Readonly<{
     generated: string;
     total: string;
   }>;
+}>;
+
+export type RoundCompletionConsequences = Readonly<{
+  winnerCount: number;
+  winnerIsTie: boolean;
+  participantCount: number;
+  memberQuotaImpactCount: number;
+  standingImpactCount: number;
 }>;
 
 export type RoundCompletionPreview = Readonly<{
@@ -87,6 +103,7 @@ export type RoundCompletionPreview = Readonly<{
   mobileSyncCheck: "complete" | "blocked" | "unavailable";
   completionHandshakeRequired: boolean;
   completionAllowed: boolean;
+  consequences: RoundCompletionConsequences;
   participants: readonly RoundCompletionParticipant[];
 }>;
 

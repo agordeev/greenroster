@@ -102,6 +102,7 @@ export function RoundWorkspace({
             version={version}
             preview={completionPreview}
             unavailable={completionPreviewUnavailable}
+            officialResults={officialResults}
           />
         ) : null}
 

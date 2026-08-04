@@ -16,6 +16,14 @@ import {
   type MobileOfficialRoundResult,
 } from "@/lib/rounds/mobile-official-results-api";
 import type { MobileRoundSummary } from "@/lib/rounds/mobile-rounds-api";
+import {
+  buildOfficialResultAccessibilityLabel,
+  formatParticipantName,
+  formatRsvp,
+  formatRsvpChangedAt,
+  formatValue,
+  OFFICIAL_RESULTS_REFRESH_INTERVAL_MS,
+} from "@/lib/rounds/mobile-official-result-presentation";
 
 export function MobileOfficialRoundResultSurface({
   round,
@@ -68,6 +76,14 @@ export function MobileOfficialRoundResultSurface({
     return () => subscription.remove();
   }, [loadResults]);
 
+  useEffect(() => {
+    const interval = setInterval(
+      () => void loadResults(),
+      OFFICIAL_RESULTS_REFRESH_INTERVAL_MS,
+    );
+    return () => clearInterval(interval);
+  }, [loadResults]);
+
   const publishedAt = results[0]?.completedAt ?? null;
   const isLoading = status === "loading";
   const isError = status === "error";
@@ -109,6 +125,18 @@ export function MobileOfficialRoundResultSurface({
       >
         <ThemedText type="smallBold" themeColor="accent">
           Back to rounds
+        </ThemedText>
+      </Pressable>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Refresh official results"
+        disabled={isLoading}
+        onPress={() => void loadResults()}
+        style={[styles.secondaryButton, { borderColor: theme.separator }]}
+      >
+        <ThemedText type="smallBold" themeColor="accent">
+          {isLoading ? "Refreshing…" : "Refresh results"}
         </ThemedText>
       </Pressable>
 
@@ -205,22 +233,11 @@ function OfficialResultRow({
       accessible
       focusable
       accessibilityRole="text"
-      accessibilityLabel={[
-        `${rank}, ${displayName}`,
-        result.participantKind === "guest" ? "Guest" : "Member",
-        `RSVP ${formatRsvp(result.rsvpStatus)}`,
-        `RSVP changed ${formatRsvpChangedAt(result.rsvpChangedAt, groupTimeZone)}`,
-        `${primaryLabel} ${formatValue(primaryValue)}`,
-        `Golf points ${formatValue(result.golfPoints)}`,
-        `Gross ${formatValue(result.grossScore)}`,
-        `Net ${formatValue(result.netScore)}`,
-        `Quota ${formatValue(result.quotaSnapshot)}`,
-        `Participation merit ${formatValue(result.participationMerit)}`,
-        `Placement merit ${formatValue(result.placementMerit)}`,
-        `Total merit ${formatValue(result.totalMerit)}`,
-        `Generated merit ${formatValue(result.generatedMerit)}`,
-        `Manual merit ${formatValue(result.manualMerit)}`,
-      ].join(", ")}
+      accessibilityLabel={buildOfficialResultAccessibilityLabel(
+        format,
+        groupTimeZone,
+        result,
+      )}
       style={[styles.resultRow, { borderColor: theme.separator }]}
     >
       <View style={styles.resultHeading}>
@@ -266,44 +283,8 @@ function OfficialResultRow({
   );
 }
 
-function formatParticipantName(result: MobileOfficialRoundResult) {
-  const name = [result.firstName, result.lastName]
-    .filter((part): part is string => Boolean(part))
-    .join(" ")
-    .trim();
-  return name || "Unnamed player";
-}
-
-function formatRsvp(status: MobileOfficialRoundResult["rsvpStatus"]) {
-  switch (status) {
-    case "playing":
-      return "Playing";
-    case "not_playing":
-      return "Not Playing";
-    default:
-      return "No response";
-  }
-}
-
-function formatRsvpChangedAt(value: string | null, timeZone: string): string {
-  if (!value) return "timestamp unavailable";
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone,
-    }).format(new Date(value));
-  } catch {
-    return "timestamp unavailable";
-  }
-}
-
 function formatRoundFormat(format: MobileRoundSummary["format"]) {
   return format === "individual_net" ? "Individual Net" : "Individual Gross";
-}
-
-function formatValue(value: string | null) {
-  return value ?? "Not applicable";
 }
 
 function formatPublicationTime(value: string, timeZone: string) {

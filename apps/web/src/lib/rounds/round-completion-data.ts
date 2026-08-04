@@ -61,17 +61,35 @@ const participantSchema = z
   .object({
     participant_id: z.uuid(),
     participant_kind: participantKindSchema,
+    participant_name: z.string(),
     membership_id: z.uuid().nullable(),
     sponsor_membership_id: z.uuid().nullable(),
     ranking_value: numericValueSchema,
     competition_rank: positiveIntegerSchema.nullable(),
+    is_winner: z.boolean(),
+    winner_tie_size: nonNegativeIntegerSchema,
     golf_points: numericValueSchema,
     gross_score: numericValueSchema,
     net_score: numericValueSchema,
     quota_snapshot: numericValueSchema,
+    quota_before: numericValueSchema,
+    quota_after: numericValueSchema,
     plus_minus: numericValueSchema,
     score_revision_id: z.uuid().nullable(),
+    standing_before: positiveIntegerSchema.nullable(),
+    standing_after: positiveIntegerSchema.nullable(),
+    standing_delta: z.number().int().nullable(),
     merit: meritSchema,
+  })
+  .strict();
+
+const consequenceSchema = z
+  .object({
+    winner_count: nonNegativeIntegerSchema,
+    winner_is_tie: z.boolean(),
+    participant_count: nonNegativeIntegerSchema,
+    member_quota_impact_count: nonNegativeIntegerSchema,
+    standing_impact_count: nonNegativeIntegerSchema,
   })
   .strict();
 
@@ -88,6 +106,7 @@ const previewEnvelopeSchema = z
     mobile_sync_check: z.enum(["complete", "blocked", "unavailable"]),
     completion_handshake_required: z.boolean(),
     completion_allowed: z.boolean(),
+    consequences: consequenceSchema,
     participants: z.array(participantSchema),
   })
   .strict();
@@ -200,16 +219,24 @@ function previewParticipantFromRow(
   return {
     participantId: row.participant_id,
     participantKind: row.participant_kind,
+    participantName: row.participant_name,
     membershipId: row.membership_id,
     sponsorMembershipId: row.sponsor_membership_id,
     rankingValue: row.ranking_value,
     competitionRank: row.competition_rank,
+    isWinner: row.is_winner,
+    winnerTieSize: row.winner_tie_size,
     golfPoints: row.golf_points,
     grossScore: row.gross_score,
     netScore: row.net_score,
     quotaSnapshot: row.quota_snapshot,
+    quotaBefore: row.quota_before,
+    quotaAfter: row.quota_after,
     plusMinus: row.plus_minus,
     scoreRevisionId: row.score_revision_id,
+    standingBefore: row.standing_before,
+    standingAfter: row.standing_after,
+    standingDelta: row.standing_delta,
     merit: {
       participation: row.merit.participation ?? "0",
       placement: row.merit.placement ?? "0",
@@ -242,6 +269,13 @@ function previewFromEnvelope(
     mobileSyncCheck: value.mobile_sync_check,
     completionHandshakeRequired: value.completion_handshake_required,
     completionAllowed: value.completion_allowed,
+    consequences: {
+      winnerCount: value.consequences.winner_count,
+      winnerIsTie: value.consequences.winner_is_tie,
+      participantCount: value.consequences.participant_count,
+      memberQuotaImpactCount: value.consequences.member_quota_impact_count,
+      standingImpactCount: value.consequences.standing_impact_count,
+    },
     participants: value.participants.map(previewParticipantFromRow),
   };
 }

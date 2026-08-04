@@ -12,6 +12,10 @@ import {
   roundReopenInputSchema,
   type RoundCompletionPreview,
 } from "@/domain/round-completion";
+import type {
+  MemberOfficialResult,
+  MemberOfficialRound,
+} from "@/lib/rounds/member-results-data";
 
 export function RoundCompletionPanel({
   roundId,
@@ -20,6 +24,7 @@ export function RoundCompletionPanel({
   version,
   preview,
   unavailable,
+  officialResults,
 }: Readonly<{
   roundId: string;
   description: string;
@@ -27,6 +32,10 @@ export function RoundCompletionPanel({
   version: number;
   preview: RoundCompletionPreview | null;
   unavailable: boolean;
+  officialResults: Readonly<{
+    round: MemberOfficialRound;
+    results: readonly MemberOfficialResult[];
+  }> | null;
 }>) {
   if (state === "completed") {
     return (
@@ -34,6 +43,7 @@ export function RoundCompletionPanel({
         roundId={roundId}
         description={description}
         version={version}
+        officialResults={officialResults}
       />
     );
   }
@@ -182,6 +192,27 @@ function RoundCompletePanel({
           {warnings.length === 1 ? "" : "s"}
         </span>
       </div>
+      <aside
+        className="member-results-winner"
+        aria-labelledby="round-completion-consequences-title"
+      >
+        <p className="ledger-kicker">Before confirmation</p>
+        <h3 id="round-completion-consequences-title">
+          {preview.consequences.winnerCount > 0
+            ? `${preview.consequences.winnerCount} winner${preview.consequences.winnerCount === 1 ? "" : "s"}${preview.consequences.winnerIsTie ? " (tied)" : ""}`
+            : "No ranked winner yet"}
+        </h3>
+        <p>
+          Server projection: {preview.consequences.memberQuotaImpactCount}{" "}
+          member quota change
+          {preview.consequences.memberQuotaImpactCount === 1
+            ? ""
+            : "s"} and {preview.consequences.standingImpactCount} standing
+          change
+          {preview.consequences.standingImpactCount === 1 ? "" : "s"}. Review
+          each participant below before confirming.
+        </p>
+      </aside>
       {blockers.length > 0 ? (
         <ReadinessList title="Resolve blockers" rows={blockers} tone="error" />
       ) : null}
@@ -205,6 +236,8 @@ function RoundCompletePanel({
               <th scope="col">Participant</th>
               <th scope="col">Points</th>
               <th scope="col">Plus/minus</th>
+              <th scope="col">Quota effect</th>
+              <th scope="col">Standing effect</th>
               <th scope="col">Generated merit</th>
             </tr>
           </thead>
@@ -213,11 +246,34 @@ function RoundCompletePanel({
               <tr key={participant.participantId}>
                 <th scope="row">{participant.competitionRank ?? "—"}</th>
                 <td>
-                  {participant.participantKind === "guest" ? "Guest" : "Member"}{" "}
-                  · {participant.participantId}
+                  <strong>
+                    {participant.participantName || "Unnamed participant"}
+                  </strong>
+                  {participant.participantKind === "guest" ? (
+                    <span className="member-results-guest">Guest</span>
+                  ) : null}
+                  {participant.isWinner ? (
+                    <small className="member-results-meta">
+                      {participant.winnerTieSize > 1 ? "Tied winner" : "Winner"}
+                    </small>
+                  ) : null}
                 </td>
                 <td>{participant.golfPoints ?? "Missing"}</td>
                 <td>{participant.plusMinus ?? "Not applicable"}</td>
+                <td>
+                  {participant.participantKind === "guest"
+                    ? "Not applicable"
+                    : `${participant.quotaBefore ?? "—"} → ${participant.quotaAfter ?? "—"}`}
+                </td>
+                <td>
+                  {participant.participantKind === "guest"
+                    ? "Not applicable"
+                    : formatStandingEffect(
+                        participant.standingBefore,
+                        participant.standingAfter,
+                        participant.standingDelta,
+                      )}
+                </td>
                 <td>{participant.merit.generated}</td>
               </tr>
             ))}
@@ -245,10 +301,15 @@ function RoundReopenPanel({
   roundId,
   description,
   version,
+  officialResults,
 }: Readonly<{
   roundId: string;
   description: string;
   version: number;
+  officialResults: Readonly<{
+    round: MemberOfficialRound;
+    results: readonly MemberOfficialResult[];
+  }> | null;
 }>) {
   const router = useRouter();
   const operationId = useRef<string | null>(null);
@@ -256,6 +317,16 @@ function RoundReopenPanel({
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"error" | "success" | "">("");
   const [pending, startTransition] = useTransition();
+  const memberResultCount =
+    officialResults?.results.filter((result) => result.membership_id !== null)
+      .length ?? 0;
+  const guestResultCount =
+    officialResults?.results.filter((result) => result.membership_id === null)
+      .length ?? 0;
+  const winners =
+    officialResults?.results.filter(
+      (result) => result.competition_rank === 1,
+    ) ?? [];
 
   function reopen(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -334,6 +405,26 @@ function RoundReopenPanel({
         Reopen returns the round to Live for audited correction. Prior score
         revisions and official history remain available for investigation.
       </p>
+      <aside
+        className="member-results-winner"
+        aria-labelledby="round-reopen-consequences-title"
+      >
+        <p className="ledger-kicker">Before confirmation</p>
+        <h3 id="round-reopen-consequences-title">
+          {winners.length > 0
+            ? `${winners.map(displayName).join(" and ")} — ${winners.length > 1 ? "tied " : ""}winner at rank 1`
+            : "No ranked winner in the current snapshot"}
+        </h3>
+        <p>
+          This withdraws {officialResults?.results.length ?? "the current"}{" "}
+          official result row
+          {officialResults?.results.length === 1 ? "" : "s"}, removes{" "}
+          {memberResultCount} member quota history row
+          {memberResultCount === 1 ? "" : "s"}, and recalculates standings.
+          Guest rows withdrawn: {guestResultCount}. Queued result notifications
+          are cancelled by the server; prior audit/history remains available.
+        </p>
+      </aside>
       <form
         className="group-profile-form"
         onSubmit={reopen}
@@ -366,6 +457,28 @@ function RoundReopenPanel({
         </button>
       </form>
     </section>
+  );
+}
+
+function formatStandingEffect(
+  before: number | null,
+  after: number | null,
+  delta: number | null,
+) {
+  if (before === null && after === null) return "Unranked";
+  if (before === null) return `Unranked → ${after}`;
+  if (after === null) return `${before} → Unranked`;
+  if (delta === null) return `${before} → ${after}`;
+  if (delta === 0) return `${before} → ${after} (unchanged)`;
+  return `${before} → ${after} (${delta > 0 ? "up" : "down"} ${Math.abs(delta)})`;
+}
+
+function displayName(result: MemberOfficialResult) {
+  return (
+    [result.first_name, result.last_name]
+      .filter((value): value is string => Boolean(value?.trim()))
+      .join(" ")
+      .trim() || "Unnamed participant"
   );
 }
 

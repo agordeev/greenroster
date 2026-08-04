@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(34);
 
 select has_function(
   'public',
@@ -154,6 +154,14 @@ select is((select (payload -> 'participants' -> 2 -> 'merit' ->> 'placement') fr
 select is((select (payload -> 'participants' -> 3 ->> 'participant_kind') from net_preview), 'guest', 'guest remains a round-scoped result participant');
 select is((select (payload -> 'participants' -> 3 -> 'merit' ->> 'total') from net_preview), '0', 'guests receive no merit even when a projection contains manual merit');
 select ok((select (payload -> 'participants' -> 0 ->> 'score_revision_id') is not null from net_preview), 'preview carries authoritative score revision provenance');
+select ok((select payload ? 'consequences' from net_preview), 'preview includes an explicit consequence summary');
+select is((select payload -> 'consequences' ->> 'winner_count' from net_preview), '2', 'consequence summary counts tied winners');
+select is((select payload -> 'consequences' ->> 'winner_is_tie' from net_preview), 'true', 'consequence summary marks a winner tie');
+select is((select payload -> 'consequences' ->> 'participant_count' from net_preview), '4', 'consequence summary counts every Playing participant');
+select is((select payload -> 'participants' -> 0 ->> 'winner_tie_size' from net_preview), '2', 'winner rows carry the server-computed tie size');
+select ok((select (payload -> 'participants' -> 0) ? 'participant_name' from net_preview), 'participant rows carry a display-name field');
+select ok((select (payload -> 'participants' -> 0) ? 'quota_after' from net_preview), 'participant rows carry server-computed quota impact');
+select ok((select (payload -> 'participants' -> 0) ? 'standing_after' from net_preview), 'participant rows carry server-computed standing impact');
 
 select is(
   (select (public.preview_live_round_completion(
