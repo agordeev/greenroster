@@ -149,6 +149,7 @@ export function RoundReadOnlyDetail({
               <thead>
                 <tr>
                   <th scope="col">Player</th>
+                  <th scope="col">Type</th>
                   <th scope="col">RSVP</th>
                   <th scope="col">Quota snapshot</th>
                   <th scope="col">Handicap snapshot</th>
@@ -205,6 +206,7 @@ function PlayerRow({
   return (
     <tr>
       <th scope="row">{participantDisplayName(participant)}</th>
+      <td>{participant.participantKind === "guest" ? "Guest" : "Member"}</td>
       <td>{formatParticipantRsvp(participant.rsvpStatus)}</td>
       <td>{formatSnapshotValue(participant.quotaSnapshot)}</td>
       <td>{formatSnapshotValue(participant.handicapSnapshot)}</td>

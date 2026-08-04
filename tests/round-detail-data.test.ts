@@ -48,7 +48,9 @@ const envelope = {
       round_id: roundId,
       participant_id: participantId,
       group_id: groupId,
+      participant_kind: "member" as const,
       membership_id: membershipId,
+      sponsor_membership_id: null,
       first_name: "Alex",
       last_name: "Golfer",
       rsvp_status: "playing" as const,
@@ -87,6 +89,7 @@ describe("coordinator round detail adapter", () => {
         participants: [
           expect.objectContaining({
             version: 4,
+            participantKind: "member",
             quotaSnapshot: "12.5",
             handicapSnapshot: "8.25",
           }),
@@ -140,6 +143,49 @@ describe("coordinator round detail adapter", () => {
       format: null,
       ruleSnapshot: null,
       participants: [],
+    });
+  });
+
+  it("maps a round-scoped guest without inventing a permanent membership", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: {
+        ...envelope,
+        participants: [
+          {
+            ...envelope.participants[0],
+            participant_kind: "guest" as const,
+            membership_id: null,
+            sponsor_membership_id: "70000000-0000-4000-8000-000000000002",
+            first_name: "Sponsored",
+            last_name: "Guest",
+          },
+        ],
+        counts: {
+          playing_count: 1,
+          not_playing_count: 0,
+          no_response_count: 0,
+          guest_count: 1,
+        },
+      },
+      error: null,
+    });
+
+    await expect(
+      executeReadCoordinatorRoundDetail(
+        "10000000-0000-4000-8000-000000000001",
+        roundId,
+      ),
+    ).resolves.toMatchObject({
+      participants: [
+        expect.objectContaining({
+          participantKind: "guest",
+          membershipId: null,
+          sponsorMembershipId: "70000000-0000-4000-8000-000000000002",
+          firstName: "Sponsored",
+          lastName: "Guest",
+        }),
+      ],
+      counts: { guests: 1 },
     });
   });
 

@@ -33,7 +33,9 @@ export type RoundParticipantRead = Readonly<{
   roundId: string;
   participantId: string;
   groupId: string;
-  membershipId: string;
+  participantKind: "member" | "guest";
+  membershipId: string | null;
+  sponsorMembershipId: string | null;
   firstName: string | null;
   lastName: string | null;
   rsvpStatus: "no_response" | "playing" | "not_playing";

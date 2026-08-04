@@ -166,6 +166,26 @@ values
     10.5, '{"method":"moving_average"}'::jsonb, null, null, null, 'front'
   );
 
+insert into public.round_participants (
+  id, round_id, group_id, participant_kind, sponsor_membership_id,
+  guest_first_name, guest_last_name, rsvp_status, version
+)
+values
+  (
+    '21000000-0000-4000-8000-000000000004',
+    '20000000-0000-4000-8000-000000000001',
+    '1e000000-0000-4000-8000-000000000001',
+    'guest', '1f000000-0000-4000-8000-000000000003',
+    'Sponsored', 'Guest', 'playing', 1
+  ),
+  (
+    '21000000-0000-4000-8000-000000000005',
+    '20000000-0000-4000-8000-000000000001',
+    '1e000000-0000-4000-8000-000000000001',
+    'guest', '1f000000-0000-4000-8000-000000000002',
+    'Other', 'Guest', 'playing', 1
+  );
+
 create temporary table coordinator_detail as
 select public.read_coordinator_round_detail(
   '1d000000-0000-4000-8000-000000000002',
@@ -214,8 +234,19 @@ select is(
 );
 select is(
   (select jsonb_array_length(payload -> 'participants') from coordinator_detail),
-  3,
-  'coordinator receives every member participant row'
+  5,
+  'coordinator receives member and existing guest participant rows'
+);
+select ok(
+  exists (
+    select 1
+    from jsonb_array_elements((select payload -> 'participants' from coordinator_detail)) as participant(item)
+    where participant.item ->> 'participant_kind' = 'guest'
+      and participant.item ->> 'first_name' = 'Sponsored'
+      and participant.item ->> 'last_name' = 'Guest'
+      and participant.item ->> 'sponsor_membership_id' = '1f000000-0000-4000-8000-000000000003'
+  ),
+  'guest kind, name, and sponsor are explicit in the coordinator projection'
 );
 select is(
   (select payload -> 'participants' -> 0 ->> 'quota_snapshot' from coordinator_detail),
@@ -234,8 +265,8 @@ select is(
 );
 select is(
   (select payload -> 'counts' from coordinator_detail),
-  '{"guest_count": 0, "playing_count": 1, "no_response_count": 1, "not_playing_count": 1}'::jsonb,
-  'counts are server-derived and guests are explicitly zero until guest rows exist'
+  '{"guest_count": 2, "playing_count": 3, "no_response_count": 1, "not_playing_count": 1}'::jsonb,
+  'counts are server-derived and include existing round-scoped guests'
 );
 
 create temporary table administrator_detail as
@@ -247,6 +278,45 @@ select is(
   (select payload from administrator_detail),
   (select payload from coordinator_detail),
   'same-tenant administrator receives the same complete detail envelope'
+);
+
+create temporary table sponsored_member_read as
+select *
+from public.read_round_participants(
+  '1d000000-0000-4000-8000-000000000003',
+  '20000000-0000-4000-8000-000000000001'
+);
+select is(
+  (select count(*) from sponsored_member_read),
+  2::bigint,
+  'a member reads their own participant and the guest they sponsor'
+);
+select is(
+  (select count(*) from sponsored_member_read where participant_kind = 'guest'),
+  1::bigint,
+  'a member cannot read another member guest'
+);
+select is(
+  (select sponsor_membership_id::uuid from sponsored_member_read where participant_kind = 'guest'),
+  '1f000000-0000-4000-8000-000000000003'::uuid,
+  'sponsored guest read preserves the sponsor membership id'
+);
+
+create temporary table coordinator_participant_read as
+select *
+from public.read_round_participants(
+  '1d000000-0000-4000-8000-000000000002',
+  '20000000-0000-4000-8000-000000000001'
+);
+select is(
+  (select count(*) from coordinator_participant_read),
+  5::bigint,
+  'a coordinator receives the complete member and guest roster'
+);
+select is(
+  (select count(*) from coordinator_participant_read where participant_kind = 'guest'),
+  2::bigint,
+  'coordinator participant reads retain both guest rows'
 );
 
 select throws_ok(

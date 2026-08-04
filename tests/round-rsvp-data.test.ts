@@ -29,7 +29,9 @@ describe("round RSVP RPC adapter", () => {
           round_id: roundId,
           participant_id: "80000000-0000-4000-8000-000000000001",
           group_id: groupId,
+          participant_kind: "member",
           membership_id: "40000000-0000-4000-8000-000000000001",
+          sponsor_membership_id: null,
           first_name: "Member",
           last_name: "Ready",
           rsvp_status: "playing",
@@ -111,7 +113,9 @@ describe("round RSVP RPC adapter", () => {
           round_id: roundId,
           participant_id: "80000000-0000-4000-8000-000000000002",
           group_id: groupId,
+          participant_kind: "member",
           membership_id: "40000000-0000-4000-8000-000000000002",
+          sponsor_membership_id: null,
           first_name: "Member",
           last_name: "Numeric",
           rsvp_status: "no_response",
@@ -136,6 +140,47 @@ describe("round RSVP RPC adapter", () => {
       {
         quotaSnapshot: "13.4",
         handicapSnapshot: "8.7",
+      },
+    ]);
+  });
+
+  it("accepts a sponsored guest row without inventing a membership id", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          round_id: roundId,
+          participant_id: "80000000-0000-4000-8000-000000000003",
+          group_id: groupId,
+          participant_kind: "guest",
+          membership_id: null,
+          sponsor_membership_id: "40000000-0000-4000-8000-000000000003",
+          first_name: "Sponsored",
+          last_name: "Guest",
+          rsvp_status: "playing",
+          version: 1,
+          quota_snapshot: null,
+          quota_snapshot_source: null,
+          handicap_snapshot: null,
+          handicap_snapshot_source: null,
+          handicap_snapshot_as_of: null,
+          tee_snapshot: null,
+        },
+      ],
+      error: null,
+    });
+
+    await expect(
+      executeReadRoundParticipants(
+        "10000000-0000-4000-8000-000000000001",
+        roundId,
+      ),
+    ).resolves.toMatchObject([
+      {
+        participantKind: "guest",
+        membershipId: null,
+        sponsorMembershipId: "40000000-0000-4000-8000-000000000003",
+        firstName: "Sponsored",
+        lastName: "Guest",
       },
     ]);
   });
