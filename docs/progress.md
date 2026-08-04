@@ -7,9 +7,9 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 06 — Completion and standings
-- **Active slice:** Phase 06 audited Reopen/recompletion with generated-merit reversal, quota/standings recomputation, and result read projections.
+- **Active slice:** Phase 06 snapshot-consistent quota provenance, notification fan-out, and official result read projections.
 - **Status:** In progress
-- **Next:** Add the Reopen/recompletion transaction, then expose stable official results, standings, personal history, and quota history to admin, member web, and mobile surfaces.
+- **Next:** Normalize mobile receipt lock ordering, make completion quota calculations consume immutable round settings, then expose official results/standings/history with recipient-scoped result notifications.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
@@ -55,6 +55,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 06 official result snapshot contract | Commit `aff670a`; append-only completion runs and participant result snapshots preserve immutable ranking/tie order, revision provenance, played quota, guest exclusion from merit, and participation/placement/manual/generated/total merit components. The private calculator and force-RLS/immutable table boundaries are covered by 17 focused assertions; fresh reset and full pgTAP pass 53 files/1,979 tests, with database lint showing only the existing scoring warnings. |
 | August 4, 2026 | Phase 06 quota history projection | Commits `a6f82dd`, `0b42a18`; force-RLS append-only quota history and a service-only projection helper implement moving-average, best-10-of-20, and previous-plus-minus methods over seed totals plus active official completion history, with exact snapshot rounding/band provenance, selected source-round IDs, composite completion/round tenant integrity, and reopened-history exclusion. Focused quota checks pass 22/22; fresh reset and full pgTAP pass 54 files/1,997 tests; database lint reports only the existing scoring warnings. |
 | August 4, 2026 | Phase 06 atomic completion transaction | Commit `ae43162`; service-only completion consumes server readiness plus mobile receipts, preserves immutable official member/guest result snapshots, appends candidate-aware quota history, updates current quota and standings projections, locks scoring, writes a redacted audit event, and queues one completion-scoped results outbox job. Focused completion checks pass 33/33; fresh reset and full pgTAP pass 55 files/2,034 tests; database lint reports only the existing scoring warnings. Reopen/recompletion and result read surfaces remain the next slice. |
+| August 4, 2026 | Phase 06 audited Reopen and recompletion | Commit `05cfb1c`; service-only Reopen requires a reason, confirmation, current completed version, and coordinator/administrator authority, withdraws the official run, terminalizes queued/retryable result work, preserves immutable results/manual merit/revisions, recomputes affected quota and standings projections, and records an append-only audit. Recompletion uses the latest score revision, retains both runs, restores active quota/standings, and queues a distinct completion-scoped result job. Focused reopen checks pass 47/47; fresh reset and full pgTAP pass 56 files/2,081 tests. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
