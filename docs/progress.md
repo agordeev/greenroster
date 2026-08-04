@@ -7,16 +7,16 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 06 — Completion and standings
-- **Active slice:** Phase 06 server-visible mobile score synchronization receipts for completion gating.
+- **Active slice:** Phase 06 completion readiness and preview consuming server-visible mobile synchronization receipts.
 - **Status:** In progress
-- **Next:** Verify receipt authorization, idempotency, and current-revision matching, then integrate the mobile queue drain/preview gate before adding official-result snapshots and quota-history inputs.
+- **Next:** Add the receipt status to readiness and preview, verify that every Playing mobile revision blocks until acknowledged, then add official-result snapshots and quota-history inputs.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
   - Phase 03 material format, roster, guest, and scoring edits need versioned rule/participant history plus guest/scoring/recipient semantics. The bulk-update allow-list and optional group-profile fields are still unspecified.
   - Phase 04 sponsored guest creation/withdrawal needs the guest-capable participant/revision/score model. Provider delivery, reminders, and deep links remain open.
   - Blocked: forgotten Live-round reminder timing and lifecycle. Need: an approved grace interval for “well past start,” completion/reopen state-transition semantics, and the mandatory push/outbox delivery contract so the once-per-condition flag can clear only on completion or cancellation.
-  - Blocked: Phase 06 completion does not yet consume the mobile synchronization handshake. Need: integrate native queue drain with the receipt RPC and require every Playing mobile-sourced revision to be acknowledged before official completion; the receipt helper now exists, but readiness and completion do not yet gate on it.
+  - Blocked: Phase 06 completion does not yet consume the mobile synchronization handshake. Need: make readiness and preview consume the receipt helper and require every Playing mobile-sourced revision to be acknowledged before official completion; native queue drain now records receipts only after the scoped queue is empty.
 
 ## Phase status
 
@@ -51,6 +51,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 06 completion readiness | Commit `12046b4`; private service-only readiness helper reports required Net/Gross inputs, guest participation, immutable snapshot absence/mismatch, score-revision provenance, formula and ranking consistency, Method C band and next-quota outcomes, non-live state, and optional score warnings. `server_ready` explicitly carries `mobile_sync_check=unavailable` and `completion_handshake_required=true`, so the native queue is never treated as synchronized by inference. Fresh seeded reset and pgTAP pass 50 files/1,909 tests, including 26 focused readiness checks; Vitest 102/610, database lint (pre-existing warnings only), formatting, and diff checks pass. |
 | August 4, 2026 | Phase 06 deterministic completion preview | Commit `f3d9177`; service-only stable preview packages readiness rows, immutable Net/Gross ranking, score-revision provenance, participation/placement/manual merit components, explicit guest zero-merit behavior, and deterministic ordering. It reports `server_checks_passed` separately from `completion_allowed=false`, with `mobile_sync_check=unavailable` and an explicit handshake requirement; it never mutates round state. Fresh seeded reset and pgTAP pass 51 files/1,935 tests, including 26 focused preview checks; database lint reports only the existing scoring warnings and diff checks pass. |
 | August 4, 2026 | Phase 06 mobile synchronization receipt | Commit `10d0e2f`; authenticated actor-derived receipt RPC accepts only the current mobile score revision for an authorized member, guest sponsor, coordinator, or administrator, records an idempotent audit event, and rejects stale, portal, locked, and cross-tenant acknowledgements. A private helper classifies Playing participants as server-confirmed, mobile-confirmed, receipt-missing, or score-missing. Fresh seeded reset and pgTAP pass 52 files/1,956 tests, including 21 focused receipt checks; database lint reports only the existing scoring warnings and diff checks pass. The native queue and completion readiness still need integration with this marker. |
+| August 4, 2026 | Phase 06 native mobile sync receipt integration | Commit `b02d955`; the native queue returns authoritative receipts only for successful sends, the live-round surface acknowledges them only after the scoped queue is empty, and the strict mobile adapter validates/maps the receipt RPC with correlation IDs. Focused mobile tests pass 19/19; full Vitest passes 102 files/613 tests; mobile lint/typecheck, Prettier, diff checks, and Expo export pass. Readiness and preview still need to consume the receipt helper. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
