@@ -9,6 +9,10 @@ import { executeListRoundDrafts } from "../rounds/round-drafts-data";
 import type { RoundDraft } from "../../domain/round-drafts";
 import { executeReadMemberStandings } from "../rounds/member-results-data";
 import {
+  executeReadNotificationDeliveryHealth,
+  type NotificationDeliveryHealth,
+} from "../notifications/notification-health-data";
+import {
   buildPortalDashboardSummary,
   type PortalDashboardSummary,
 } from "../../domain/portal-dashboard";
@@ -33,6 +37,9 @@ export type PortalDashboardDataDependencies = Readonly<{
   readStandings: (
     actorUserId: string,
   ) => ReturnType<typeof executeReadMemberStandings>;
+  readNotificationHealth: (
+    actorUserId: string,
+  ) => Promise<NotificationDeliveryHealth>;
 }>;
 
 const defaultDependencies: PortalDashboardDataDependencies = {
@@ -43,12 +50,15 @@ const defaultDependencies: PortalDashboardDataDependencies = {
   readOfficialResults: (actorUserId, roundId) =>
     executeReadMemberOfficialResults(actorUserId, roundId),
   readStandings: (actorUserId) => executeReadMemberStandings(actorUserId),
+  readNotificationHealth: (actorUserId) =>
+    executeReadNotificationDeliveryHealth(actorUserId),
 };
 
 export async function executePortalDashboardData(
   actorUserId: string,
   overrides?: Partial<PortalDashboardDataDependencies> & {
     loadPhase06?: boolean;
+    loadPhase07?: boolean;
   },
 ): Promise<PortalDashboardSummary> {
   const dependencies = { ...defaultDependencies, ...overrides };
@@ -79,7 +89,14 @@ export async function executePortalDashboardData(
       )
     : null;
 
-  return buildPortalDashboardSummary(members, invitations, {
+  const loadPhase07 =
+    overrides?.loadPhase07 ??
+    (overrides === undefined || "readNotificationHealth" in overrides);
+  const notificationHealth = loadPhase07
+    ? await dependencies.readNotificationHealth(actorUserId)
+    : null;
+
+  const phase06Input = {
     completedRound: completedRound
       ? {
           roundId: completedRound.roundId,
@@ -103,7 +120,28 @@ export async function executePortalDashboardData(
       standingRank: standing.standing_rank,
     })),
     standingsResetDate: standings[0]?.standings_reset_date ?? null,
-  });
+  };
+
+  return buildPortalDashboardSummary(
+    members,
+    invitations,
+    phase06Input,
+    notificationHealth
+      ? {
+          health: {
+            outboxQueued: notificationHealth.outboxQueued,
+            outboxProcessing: notificationHealth.outboxProcessing,
+            outboxRetryable: notificationHealth.outboxRetryable,
+            outboxOldestAt: notificationHealth.outboxOldestAt,
+            emailFailedPermanent: notificationHealth.emailFailedPermanent,
+            emailSuppressed: notificationHealth.emailSuppressed,
+            pushFailedPermanent: notificationHealth.pushFailedPermanent,
+            pushReceiptFailed: notificationHealth.pushReceiptFailed,
+            sampledAt: notificationHealth.sampledAt,
+          },
+        }
+      : undefined,
+  );
 }
 
 function selectMostRecentCompletedRound(

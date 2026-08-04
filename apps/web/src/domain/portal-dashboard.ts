@@ -15,6 +15,16 @@ export type PortalDashboardSummary = Readonly<{
   }>;
   completedResult?: PortalDashboardCompletedResultSummary | null;
   standingsSummary?: PortalDashboardStandingsSummary;
+  notificationHealth?: PortalDashboardNotificationHealth;
+}>;
+
+export type PortalDashboardNotificationHealth = Readonly<{
+  queueDepth: number;
+  oldestQueuedAt: string | null;
+  emailFailures: number;
+  pushFailures: number;
+  receiptFailures: number;
+  sampledAt: string;
 }>;
 
 export type PortalDashboardCompletedRoundInput = Readonly<{
@@ -69,6 +79,20 @@ export type PortalDashboardPhase06Input = Readonly<{
   standingsResetDate: string | null;
 }>;
 
+export type PortalDashboardPhase07Input = Readonly<{
+  health: Readonly<{
+    outboxQueued: number;
+    outboxProcessing: number;
+    outboxRetryable: number;
+    outboxOldestAt: string | null;
+    emailFailedPermanent: number;
+    emailSuppressed: number;
+    pushFailedPermanent: number;
+    pushReceiptFailed: number;
+    sampledAt: string;
+  }>;
+}>;
+
 export function buildPortalDashboardSummary(
   members: readonly Pick<ManageableMember, "status">[],
   invitations: readonly Pick<
@@ -76,6 +100,7 @@ export function buildPortalDashboardSummary(
     "deliveryState" | "deliveryActionRequired"
   >[],
   phase06?: PortalDashboardPhase06Input,
+  phase07?: PortalDashboardPhase07Input,
 ): PortalDashboardSummary {
   const membershipCounts = {
     pending: 0,
@@ -107,9 +132,17 @@ export function buildPortalDashboardSummary(
     },
   };
 
-  if (!phase06) return summary;
+  if (!phase06 && !phase07) return summary;
 
-  return {
+  if (!phase06) {
+    if (!phase07) return summary;
+    return {
+      ...summary,
+      notificationHealth: buildNotificationHealthSummary(phase07),
+    };
+  }
+
+  const phase06Summary: PortalDashboardSummary = {
     ...summary,
     completedResult: buildCompletedResultSummary(
       phase06.completedRound,
@@ -119,6 +152,28 @@ export function buildPortalDashboardSummary(
       phase06.standings,
       phase06.standingsResetDate,
     ),
+  };
+
+  return phase07
+    ? {
+        ...phase06Summary,
+        notificationHealth: buildNotificationHealthSummary(phase07),
+      }
+    : phase06Summary;
+}
+
+function buildNotificationHealthSummary(
+  phase07: PortalDashboardPhase07Input,
+): PortalDashboardNotificationHealth {
+  const { health } = phase07;
+  return {
+    queueDepth:
+      health.outboxQueued + health.outboxProcessing + health.outboxRetryable,
+    oldestQueuedAt: health.outboxOldestAt,
+    emailFailures: health.emailFailedPermanent + health.emailSuppressed,
+    pushFailures: health.pushFailedPermanent,
+    receiptFailures: health.pushReceiptFailed,
+    sampledAt: health.sampledAt,
   };
 }
 

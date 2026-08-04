@@ -509,6 +509,53 @@ function PortalDashboardSummaryCard({
             </span>
             <strong>{summary.actionRequiredInvitations.total}</strong>
           </Link>
+          {summary.notificationHealth ? (
+            <section
+              className="dashboard-notification-health"
+              aria-labelledby="dashboard-notification-health-title"
+            >
+              <div className="dashboard-summary-heading">
+                <div>
+                  <p className="ledger-kicker">Provider monitoring</p>
+                  <h3 id="dashboard-notification-health-title">
+                    Notification delivery health
+                  </h3>
+                </div>
+                <p>Aggregate counts only · no recipient data</p>
+              </div>
+              <div className="dashboard-summary-grid">
+                <div className="dashboard-summary-card">
+                  <span>Pending queue</span>
+                  <strong>{summary.notificationHealth.queueDepth}</strong>
+                  <small>
+                    {summary.notificationHealth.oldestQueuedAt
+                      ? `Oldest ${formatHealthTimestamp(summary.notificationHealth.oldestQueuedAt)}`
+                      : "No queued work"}
+                  </small>
+                </div>
+                <div className="dashboard-summary-card">
+                  <span>E-mail failures</span>
+                  <strong>{summary.notificationHealth.emailFailures}</strong>
+                  <small>Permanent failures or provider suppression</small>
+                </div>
+                <div className="dashboard-summary-card">
+                  <span>Push failures</span>
+                  <strong>{summary.notificationHealth.pushFailures}</strong>
+                  <small>Permanent delivery failures</small>
+                </div>
+                <div className="dashboard-summary-card">
+                  <span>Receipt failures</span>
+                  <strong>{summary.notificationHealth.receiptFailures}</strong>
+                  <small>
+                    Sampled{" "}
+                    {formatHealthTimestamp(
+                      summary.notificationHealth.sampledAt,
+                    )}
+                  </small>
+                </div>
+              </div>
+            </section>
+          ) : null}
           {summary.completedResult !== undefined || summary.standingsSummary ? (
             <div className="dashboard-summary-grid">
               <Link
@@ -567,6 +614,18 @@ function formatDashboardDate(value: string | null, timeZone: string) {
     }).format(new Date(value));
   } catch {
     return "date unavailable";
+  }
+}
+
+function formatHealthTimestamp(value: string) {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    }).format(new Date(value));
+  } catch {
+    return "time unavailable";
   }
 }
 

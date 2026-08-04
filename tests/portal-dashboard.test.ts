@@ -51,6 +51,32 @@ describe("portal dashboard summary", () => {
     });
   });
 
+  it("keeps provider health aggregate and privacy-safe", () => {
+    expect(
+      buildPortalDashboardSummary([], [], undefined, {
+        health: {
+          outboxQueued: 2,
+          outboxProcessing: 1,
+          outboxRetryable: 3,
+          outboxOldestAt: "2026-08-04T10:00:00.000Z",
+          emailFailedPermanent: 4,
+          emailSuppressed: 1,
+          pushFailedPermanent: 2,
+          pushReceiptFailed: 1,
+          sampledAt: "2026-08-04T12:00:00.000Z",
+        },
+      }),
+    ).toMatchObject({
+      notificationHealth: {
+        queueDepth: 6,
+        emailFailures: 5,
+        pushFailures: 2,
+        receiptFailures: 1,
+        oldestQueuedAt: "2026-08-04T10:00:00.000Z",
+      },
+    });
+  });
+
   it("derives the recent winner and current standings leader", () => {
     const summary = buildPortalDashboardSummary([], [], {
       completedRound: {
