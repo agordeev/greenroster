@@ -9,14 +9,14 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 - **Phase:** 06 — Completion and standings
 - **Active slice:** Phase 06 idempotent completion transaction with quota history and results notification outbox.
 - **Status:** In progress
-- **Next:** Persist completion runs/results atomically, recompute eligible member quota history, and add audited Reopen/recompletion before wiring result views.
+- **Next:** Persist completion runs/results atomically through the readiness/preview/mobile gate, append eligible quota history, and add audited Reopen/recompletion before wiring result views.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
   - Phase 03 material format, roster, guest, and scoring edits need versioned rule/participant history plus guest/scoring/recipient semantics. The bulk-update allow-list and optional group-profile fields are still unspecified.
   - Phase 04 sponsored guest creation/withdrawal needs the guest-capable participant/revision/score model. Provider delivery, reminders, and deep links remain open.
   - Blocked: forgotten Live-round reminder timing and lifecycle. Need: an approved grace interval for “well past start,” completion/reopen state-transition semantics, and the mandatory push/outbox delivery contract so the once-per-condition flag can clear only on completion or cancellation.
-  - Blocked: Phase 06 official completion is not yet implemented. Need: an idempotent service-only transaction that consumes the verified readiness/preview, persists official results, updates eligible quota/standings history, locks the round, and queues results-published notifications; the immutable run/result snapshot contract now exists.
+  - Blocked: Phase 06 official completion is not yet implemented. Need: an idempotent service-only transaction that consumes the verified readiness/preview/mobile gate, persists official results, appends the new quota-history projection, locks the round, and queues results-published notifications; the immutable run/result and quota-history contracts now exist.
 
 ## Phase status
 
@@ -54,6 +54,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 | August 4, 2026 | Phase 06 native mobile sync receipt integration | Commit `b02d955`; the native queue returns authoritative receipts only for successful sends, the live-round surface acknowledges them only after the scoped queue is empty, and the strict mobile adapter validates/maps the receipt RPC with correlation IDs. Focused mobile tests pass 19/19; full Vitest passes 102 files/613 tests; mobile lint/typecheck, Prettier, diff checks, and Expo export pass. Readiness and preview still need to consume the receipt helper. |
 | August 4, 2026 | Phase 06 completion mobile gate | Commit `95865d1`; readiness now consumes the private mobile-sync helper and returns an explicit `mobile_sync_receipt_missing` blocker, while the read-only preview reports `mobile_sync_check=blocked` until every current mobile revision is acknowledged. Fresh reset and full pgTAP pass 52 files/1,962 tests; focused readiness/preview/receipt checks pass 79/79; database lint reports only the existing scoring warnings. |
 | August 4, 2026 | Phase 06 official result snapshot contract | Commit `aff670a`; append-only completion runs and participant result snapshots preserve immutable ranking/tie order, revision provenance, played quota, guest exclusion from merit, and participation/placement/manual/generated/total merit components. The private calculator and force-RLS/immutable table boundaries are covered by 17 focused assertions; fresh reset and full pgTAP pass 53 files/1,979 tests, with database lint showing only the existing scoring warnings. |
+| August 4, 2026 | Phase 06 quota history projection | Commit `a6f82dd`; force-RLS append-only quota history and a service-only projection helper implement moving-average, best-10-of-20, and previous-plus-minus methods over seed totals plus active official completion history, with exact snapshot rounding/band provenance and reopened-history exclusion. Focused quota checks pass 18/18; fresh reset and full pgTAP pass 54 files/1,997 tests; database lint reports only the existing scoring warnings. |
 
 Older implementation logs are intentionally omitted; use the linked phase documents and git history for detail.
 
