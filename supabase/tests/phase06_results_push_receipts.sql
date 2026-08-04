@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(42);
+select plan(43);
 
 select has_type(
   'public',
@@ -250,17 +250,14 @@ where outbox_job_id = 'a6000000-0000-4000-8000-000000000001'
     'a6100000-0000-4000-8000-000000000003'
   );
 
-update public.notification_push_receipts
-set next_attempt_at = case provider_message_id
-  when 'expo-receipt-ticket-one' then now() - interval '3 seconds'
-  when 'expo-receipt-ticket-two' then now() - interval '2 seconds'
-  else now() - interval '1 second'
-end;
-
 select is(
   (select count(*) from public.notification_push_receipts),
   3::bigint,
   'sent transitions enqueue one receipt per push delivery'
+);
+select ok(
+  (select min(next_attempt_at) > now() from public.notification_push_receipts),
+  'new receipts wait for the provider recommendation before the first poll'
 );
 select is(
   (select count(*) from public.notification_push_receipts
@@ -268,6 +265,13 @@ select is(
   1::bigint,
   'receipt retains the provider ticket identifier'
 );
+
+update public.notification_push_receipts
+set next_attempt_at = case provider_message_id
+  when 'expo-receipt-ticket-one' then now() - interval '3 seconds'
+  when 'expo-receipt-ticket-two' then now() - interval '2 seconds'
+  else now() - interval '1 second'
+end;
 
 -- Replay the sent update.  The delivery uniqueness key keeps receipt enqueue
 -- idempotent even if a provider finalization is retried.

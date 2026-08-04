@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(21);
+select plan(22);
 
 select has_function(
   'public',
@@ -92,6 +92,23 @@ values
   ('ea000000-0000-4000-8000-000000000001', 'e4000000-0000-4000-8000-000000000001', 'e2000000-0000-4000-8000-000000000001', 'e5000000-0000-4000-8000-000000000001', 'member', 'e3000000-0000-4000-8000-000000000002', null, 'e6000000-0000-4000-8000-000000000001', 40, 20, 20, 20, 1, 2, 10, 1, 12, 13),
   ('ea000000-0000-4000-8000-000000000001', 'e4000000-0000-4000-8000-000000000001', 'e2000000-0000-4000-8000-000000000001', 'e5000000-0000-4000-8000-000000000002', 'guest', null, 'e3000000-0000-4000-8000-000000000001', 'e6000000-0000-4000-8000-000000000002', 40, 5, 35, 20, 1, 0, 0, 0, 0, 0);
 
+insert into public.audit_events (
+  group_id, actor_user_id, action, target_type, target_id, target_version,
+  after_state, source, correlation_id, operation_id
+)
+values (
+  'e2000000-0000-4000-8000-000000000001',
+  'e1000000-0000-4000-8000-000000000002',
+  'round.participant_rsvp_changed',
+  'round_participant',
+  'e5000000-0000-4000-8000-000000000001',
+  2,
+  '{"changed_at":"2026-08-01T10:00:00Z","rsvp_status":"playing"}',
+  'member_web',
+  'ed000000-0000-4000-8000-000000000001',
+  'ee000000-0000-4000-8000-000000000001'
+);
+
 create temporary table admin_results as
 select * from public.read_official_round_results(
   'e1000000-0000-4000-8000-000000000001',
@@ -109,6 +126,7 @@ select is((select total_merit from admin_results where participant_kind = 'guest
 select is((select membership_id::uuid from admin_results where participant_kind = 'guest'), null::uuid, 'guest result has no permanent membership');
 select is((select quota_snapshot::numeric from admin_results where participant_kind = 'member'), 20::numeric, 'result exposes the round quota snapshot');
 select is((select plus_minus::numeric from admin_results where participant_kind = 'member'), 20::numeric, 'result exposes server plus-minus');
+select is((select rsvp_changed_at from admin_results where participant_kind = 'member'), '2026-08-01T10:00:00Z'::app.utc_instant, 'result exposes the immutable RSVP change timestamp');
 select is((select score_revision_id::uuid from admin_results where participant_kind = 'member'), 'e6000000-0000-4000-8000-000000000001'::uuid, 'result preserves score revision provenance');
 create temporary table nonparticipant_results as
 select * from public.read_official_round_results(
