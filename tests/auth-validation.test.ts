@@ -100,6 +100,7 @@ describe("authentication input contracts", () => {
     );
     expect(resolveSafeReturnPath("/member/home/extra")).toBe("/portal");
     expect(resolveSafeReturnPath("/account")).toBe("/account");
+    expect(resolveSafeReturnPath("/account/privacy")).toBe("/account/privacy");
     expect(resolveSafeReturnPath("/account?admin=true")).toBe("/portal");
   });
 

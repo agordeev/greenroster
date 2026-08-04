@@ -1306,6 +1306,7 @@ const profileAboutLinks = [
   ["Contact support", "/support"],
   ["Send feedback", "/feedback"],
   ["Privacy Policy", "/privacy"],
+  ["Privacy requests", "/account/privacy"],
   ["Terms of Use", "/terms"],
 ] as const;
 

@@ -36,7 +36,7 @@ set search_path = ''
 as $$
 declare
   actor_group_id app.entity_id;
-  sampled_at_value timestamptz := pg_catalog.clock_timestamp();
+  sampled_at_value timestamptz := pg_catalog.statement_timestamp();
 begin
   select actor.group_id
   into actor_group_id

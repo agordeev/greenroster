@@ -9,11 +9,13 @@ const cleanMemberPaths = new Set([
   "/member/standings",
 ]);
 const cleanAccountPath = "/account";
+const cleanPrivacyRequestsPath = "/account/privacy";
 
 export function resolveSafeReturnPath(value: unknown): string {
   if (typeof value !== "string") return "/portal";
   if (value === cleanInvitationAcceptancePath) return value;
   if (value === cleanAccountPath) return value;
+  if (value === cleanPrivacyRequestsPath) return value;
   if (cleanMemberPaths.has(value)) return value;
   if (protectedMemberResultsPath.test(value)) return value;
   return protectedPortalPath.test(value) ? value : "/portal";

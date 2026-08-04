@@ -16,6 +16,7 @@ const user = {
   id: "10000000-0000-4000-8000-000000000001",
   email: "member@example.test",
   email_confirmed_at: "2026-07-27T00:00:00.000Z",
+  last_sign_in_at: "2026-08-04T12:00:00.000Z",
 };
 const claims = { session_id: "session-1", sub: user.id };
 
@@ -50,7 +51,11 @@ describe("account page session boundary", () => {
       resolveRecoveryState: vi.fn().mockResolvedValue("none"),
     });
 
-    expect(result).toEqual({ state: "ready", email: user.email });
+    expect(result).toEqual({
+      state: "ready",
+      email: user.email,
+      lastSignInAt: user.last_sign_in_at,
+    });
   });
 
   it("fails closed when verified claims do not match the Auth user", async () => {

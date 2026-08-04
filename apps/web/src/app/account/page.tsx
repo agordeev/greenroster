@@ -32,6 +32,9 @@ export default async function AccountPage() {
           <Link className="secondary-link" href="/portal">
             Return to GreenRoster
           </Link>
+          <Link className="secondary-link" href="/account/privacy">
+            Privacy requests
+          </Link>
           <form action={signOutAction}>
             <button className="text-button" type="submit">
               Sign out

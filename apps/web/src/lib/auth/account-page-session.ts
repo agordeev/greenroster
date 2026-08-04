@@ -11,7 +11,11 @@ type AccountPageSessionResult =
   | Readonly<{ state: "recovery_active" }>
   | Readonly<{ state: "recovery_restricted" }>
   | Readonly<{ state: "unavailable" }>
-  | Readonly<{ state: "ready"; email: string }>;
+  | Readonly<{
+      state: "ready";
+      email: string;
+      lastSignInAt: string | null;
+    }>;
 
 type AccountPageSessionDependencies = Readonly<{
   createClient: typeof createServerComponentSupabaseClient;
@@ -53,7 +57,11 @@ export async function resolveAccountPageSession(
     if (recoveryState === "unavailable") return { state: "unavailable" };
     if (recoveryState !== "none") return { state: "recovery_restricted" };
 
-    return { state: "ready", email: user.email };
+    return {
+      state: "ready",
+      email: user.email,
+      lastSignInAt: user.last_sign_in_at ?? null,
+    };
   } catch {
     return { state: "unavailable" };
   }

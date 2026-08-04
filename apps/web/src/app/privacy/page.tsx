@@ -1,4 +1,5 @@
 import { InformationShell } from "@/app/information-shell";
+import Link from "next/link";
 
 export default function PrivacyPage() {
   return (
@@ -13,6 +14,14 @@ export default function PrivacyPage() {
           production release. Account acceptance is stored with that exact
           version and a server timestamp; this page does not record acceptance.
         </p>
+        <p>
+          Authenticated users can request data access or account deletion from
+          the protected privacy request page. The named privacy owner handles
+          requests through the support process.
+        </p>
+        <Link className="primary-link" href="/account/privacy">
+          Open privacy requests
+        </Link>
       </div>
     </InformationShell>
   );
