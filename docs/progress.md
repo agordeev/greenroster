@@ -19,7 +19,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
   - Blocked: acceptance scenario 18 requires a result e-mail link that signs a member into the member web view, but no magic-link flow or application rate-limit policy is approved. Need: confirmation of the Supabase magic-link/Admin-link design, redirect and expiry contract, and per-operation limiter policy.
   - Blocked: Phase 07 storage isolation is not implementable from the current contract. Need: confirmation that v1 file storage remains in scope plus the tenant-scoped bucket/path, upload/download/removal, and retention rules.
   - Blocked: app-level rate limits for invitations and sensitive mutations are not defined beyond Supabase Auth defaults. Need: the chosen shared limiter and per-operation thresholds/response policy.
-  - Blocked: hosted Supabase schema is behind the verified local migrations and production release evidence is not yet recorded. Need: approved deployment/apply of local migrations plus rollback/restore rehearsal evidence.
+  - Blocked: hosted Supabase schema is behind the verified local migrations (hosted through `20260803061434_group_profile_update`; local verified through `20260804361000_phase07_privacy_retention_hardening`) and production release evidence is not yet recorded. Need: approved deployment/apply of local migrations plus rollback/restore rehearsal evidence.
   - Blocked: production SPF/DKIM/DMARC, operational alert routing, and Apple/Google privacy/legal evidence. Need: exported provider/host/store evidence and approval from the named operational and legal owners.
 
 ## Phase status
