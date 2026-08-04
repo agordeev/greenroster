@@ -182,6 +182,19 @@ describe("mobile rounds API", () => {
     });
   });
 
+  it("rejects detail rows with unrecognized fields", async () => {
+    rpc.mockResolvedValue({
+      data: [{ ...detailRow, unexpected: true }],
+      error: null,
+    });
+    const api = createMobileRoundsApi({ rpc });
+
+    await expect(api.readDetail(roundId)).resolves.toMatchObject({
+      code: "unavailable",
+      ok: false,
+    });
+  });
+
   it("sends an actor-derived RSVP with versions and operation context", async () => {
     rpc.mockResolvedValue({
       data: [

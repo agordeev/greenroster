@@ -77,10 +77,10 @@ select ok(
   'mobile clients cannot bypass detail, RSVP, or audit boundaries through raw tables'
 );
 select ok(
-  (select proconfig @> array['search_path=']::text[]
+  (select proconfig @> array['search_path=""']::text[]
    from pg_catalog.pg_proc
    where oid = 'public.read_mobile_round_detail(uuid)'::regprocedure)
-  and (select proconfig @> array['search_path=']::text[]
+  and (select proconfig @> array['search_path=""']::text[]
    from pg_catalog.pg_proc
    where oid = 'public.set_mobile_round_participant_rsvp(uuid,public.round_rsvp_status,bigint,uuid,uuid)'::regprocedure),
   'mobile boundaries pin an empty search path'
