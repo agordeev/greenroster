@@ -19,6 +19,7 @@ import {
 
 import { MemberDestinationScreen } from "@/components/member-destination-screen";
 import { MobileOfficialRoundResultSurface } from "@/components/mobile-official-round-result-surface";
+import { MobileUpcomingRoundSurface } from "@/components/mobile-upcoming-round-surface";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -594,6 +595,15 @@ export function MobileLiveRoundSurface({
     );
   }
 
+  if (requestedRoundId && selectedRound?.state === "published") {
+    return (
+      <MobileUpcomingRoundSurface
+        round={selectedRound}
+        onBack={clearSelectedRound}
+      />
+    );
+  }
+
   if (
     requestedRoundId &&
     roundStatus === "ready" &&
@@ -739,7 +749,7 @@ export function MobileLiveRoundSurface({
           rounds={upcomingRounds}
           onOpen={openRound}
           theme={theme}
-          interactive={false}
+          interactive
         />
       ) : null}
       {mode === "scorecard" ? (

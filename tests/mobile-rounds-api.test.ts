@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../apps/mobile/src/lib/auth/mobile-supabase", () => ({
   mobileSupabase: { rpc: vi.fn() },
 }));
+vi.mock("../apps/mobile/src/lib/mobile-operation-id", () => ({
+  createMobileOperationId: vi.fn(() => "40000000-0000-4000-8000-000000000001"),
+}));
 
 import { createMobileRoundsApi } from "../apps/mobile/src/lib/rounds/mobile-rounds-api";
 
@@ -24,6 +27,17 @@ const row = {
   participant_count: "3",
   playing_count: "2",
   updated_at: "2026-08-04T12:00:00.000Z",
+};
+
+const detailRow = {
+  ...row,
+  state: "published",
+  round_url: "https://greenroster.example/rounds/saturday",
+  notes: "Bring carts by 8:30.",
+  rsvp_deadline_at: "2026-08-08T10:00:00.000Z",
+  rsvp_changed_at: "2026-08-04T12:01:00.000Z",
+  cancelled_at: null,
+  cancellation_reason: null,
 };
 
 describe("mobile rounds API", () => {
@@ -143,6 +157,103 @@ describe("mobile rounds API", () => {
 
     rpc.mockResolvedValue({ data: [], error: null });
     await expect(api.read(roundId)).resolves.toMatchObject({
+      code: "unavailable",
+      ok: false,
+    });
+  });
+
+  it("reads strict upcoming detail with player-visible notes and RSVP timing", async () => {
+    rpc.mockResolvedValue({ data: [detailRow], error: null });
+    const api = createMobileRoundsApi({ rpc });
+
+    await expect(api.readDetail(roundId)).resolves.toMatchObject({
+      ok: true,
+      data: {
+        roundId,
+        state: "published",
+        roundUrl: "https://greenroster.example/rounds/saturday",
+        notes: "Bring carts by 8:30.",
+        rsvpDeadlineAt: "2026-08-08T10:00:00.000Z",
+        rsvpChangedAt: "2026-08-04T12:01:00.000Z",
+      },
+    });
+    expect(rpc).toHaveBeenCalledWith("read_mobile_round_detail", {
+      p_round_id: roundId,
+    });
+  });
+
+  it("sends an actor-derived RSVP with versions and operation context", async () => {
+    rpc.mockResolvedValue({
+      data: [
+        {
+          round_id: roundId,
+          group_id: groupId,
+          participant_id: "30000000-0000-4000-8000-000000000001",
+          membership_id: "60000000-0000-4000-8000-000000000001",
+          rsvp_status: "playing",
+          version: "3",
+          changed_at: "2026-08-04T12:02:00.000Z",
+        },
+      ],
+      error: null,
+    });
+    const api = createMobileRoundsApi({ rpc });
+
+    await expect(
+      api.setRsvp(
+        {
+          roundId,
+          rsvpStatus: "playing",
+          expectedParticipantVersion: 2,
+        },
+        {
+          correlationId: "70000000-0000-4000-8000-000000000001",
+          operationId: "80000000-0000-4000-8000-000000000001",
+        },
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      data: {
+        roundId,
+        rsvpStatus: "playing",
+        version: 3,
+      },
+    });
+    expect(rpc).toHaveBeenCalledWith("set_mobile_round_participant_rsvp", {
+      p_round_id: roundId,
+      p_rsvp_status: "playing",
+      p_expected_participant_version: 2,
+      p_correlation_id: "70000000-0000-4000-8000-000000000001",
+      p_operation_id: "80000000-0000-4000-8000-000000000001",
+    });
+  });
+
+  it("rolls RSVP failures into safe stale, closed, and transport states", async () => {
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "40001", message: "participant_version_changed" },
+    });
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "P0001", message: "round_rsvp_closed" },
+    });
+    rpc.mockRejectedValueOnce(new Error("offline"));
+    const api = createMobileRoundsApi({ rpc });
+    const input = {
+      roundId,
+      rsvpStatus: "not_playing" as const,
+      expectedParticipantVersion: 2,
+    };
+
+    await expect(api.setRsvp(input)).resolves.toMatchObject({
+      code: "stale",
+      ok: false,
+    });
+    await expect(api.setRsvp(input)).resolves.toMatchObject({
+      code: "locked",
+      ok: false,
+    });
+    await expect(api.setRsvp(input)).resolves.toMatchObject({
       code: "unavailable",
       ok: false,
     });
