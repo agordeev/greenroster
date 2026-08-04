@@ -19,6 +19,7 @@ const user = {
   last_sign_in_at: "2026-08-04T12:00:00.000Z",
 };
 const claims = { session_id: "session-1", sub: user.id };
+const resolveSessionStartedAt = vi.fn().mockResolvedValue(user.last_sign_in_at);
 
 function client() {
   return {
@@ -36,6 +37,7 @@ describe("account page session boundary", () => {
         createClient: vi.fn().mockResolvedValue(client()) as never,
         resolveClaims: vi.fn().mockResolvedValue(claims),
         resolveRecoveryState: vi.fn().mockResolvedValue(recoveryState),
+        resolveSessionStartedAt,
       });
 
       expect(result.state).toBe(
@@ -49,12 +51,13 @@ describe("account page session boundary", () => {
       createClient: vi.fn().mockResolvedValue(client()) as never,
       resolveClaims: vi.fn().mockResolvedValue(claims),
       resolveRecoveryState: vi.fn().mockResolvedValue("none"),
+      resolveSessionStartedAt,
     });
 
     expect(result).toEqual({
       state: "ready",
       email: user.email,
-      lastSignInAt: user.last_sign_in_at,
+      sessionStartedAt: user.last_sign_in_at,
     });
   });
 
@@ -65,6 +68,7 @@ describe("account page session boundary", () => {
         .fn()
         .mockResolvedValue({ ...claims, sub: "other-user" }),
       resolveRecoveryState: vi.fn(),
+      resolveSessionStartedAt,
     });
 
     expect(result).toEqual({ state: "unavailable" });

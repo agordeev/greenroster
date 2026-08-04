@@ -1,12 +1,12 @@
 export const PRIVACY_REQUEST_RECENT_AUTH_WINDOW_MS = 15 * 60 * 1000;
 
 export function hasRecentPrivacyAuthentication(
-  lastSignInAt: string | null,
+  sessionStartedAt: string | null,
   now = Date.now(),
 ): boolean {
-  if (!lastSignInAt) return false;
+  if (!sessionStartedAt) return false;
 
-  const signedInAt = Date.parse(lastSignInAt);
+  const signedInAt = Date.parse(sessionStartedAt);
   if (!Number.isFinite(signedInAt)) return false;
 
   const age = now - signedInAt;

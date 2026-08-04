@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(25);
+select plan(28);
 
 select has_function(
   'public',
@@ -73,6 +73,15 @@ values
     'expired-recent@example.test', 'expired-recent@example.test', 'member', repeat('b', 64), 1,
     'expired', now() - interval '10 days', now() - interval '9 days', now() - interval '5 days',
     'b9000000-0000-4000-8000-000000000001'
+  ),
+  (
+    'b9300000-0000-4000-8000-000000000003',
+    'b9100000-0000-4000-8000-000000000001',
+    'b9200000-0000-4000-8000-000000000001',
+    'pending-naturally-expired@example.test', 'pending-naturally-expired@example.test',
+    'member', repeat('c', 64), 1,
+    'pending', now() - interval '40 days', now() - interval '35 days', null,
+    'b9000000-0000-4000-8000-000000000001'
   );
 
 insert into public.notification_outbox_jobs (
@@ -86,6 +95,14 @@ select
   'retention:' || value::text,
   'succeeded', now() - interval '100 days', now() - interval '100 days'
 from generate_series(1, 8) as value;
+
+update public.notification_outbox_jobs
+set event_type = 'membership.invitation',
+    aggregate_type = 'membership_invitation',
+    aggregate_id = 'b9300000-0000-4000-8000-000000000003',
+    state = 'processing',
+    claimed_at = now() - interval '100 days'
+where id = 'b9400000-0000-4000-8000-000000000008';
 
 insert into public.notification_deliveries (
   id, group_id, outbox_job_id, recipient_membership_id, recipient_address,
@@ -116,7 +133,20 @@ values
     'b9400000-0000-4000-8000-000000000004', 'b9200000-0000-4000-8000-000000000001',
     'queued-old@example.test', 'queued-old@example.test', 'email', 'queued', null,
     now() - interval '100 days', now() - interval '100 days', null
+  ),
+  (
+    'b9500000-0000-4000-8000-000000000005', 'b9100000-0000-4000-8000-000000000001',
+    'b9400000-0000-4000-8000-000000000008', 'b9200000-0000-4000-8000-000000000001',
+    'pending-naturally-expired@example.test', 'pending-naturally-expired@example.test',
+    'email', 'queued', null,
+    now() - interval '100 days', now() - interval '100 days', null
   );
+
+update public.notification_deliveries
+set state = 'sending',
+    claim_token = 'b9550000-0000-4000-8000-000000000005',
+    claimed_at = now() - interval '100 days'
+where id = 'b9500000-0000-4000-8000-000000000005';
 
 insert into public.notification_provider_events (
   event_id, event_type, provider_message_id, group_id, delivery_id, occurred_at
@@ -171,7 +201,7 @@ into temporary table pruned
 from public.prune_privacy_retention();
 reset role;
 
-select is((select expired_invitation_count from pruned), 1::bigint, 'only invitations expired over 30 days are removed');
+select is((select expired_invitation_count from pruned), 2::bigint, 'persisted and naturally expired invitations over 30 days are removed');
 select is((select email_provider_event_count from pruned), 1::bigint, 'provider events for old e-mail deliveries are removed');
 select is((select email_delivery_count from pruned), 2::bigint, 'old terminal e-mail deliveries are removed');
 select is((select push_receipt_count from pruned), 1::bigint, 'receipts for old push deliveries are removed');
@@ -179,6 +209,26 @@ select is((select push_delivery_count from pruned), 2::bigint, 'old terminal pus
 select ok((select pruned_at is not null from pruned), 'result includes server prune time');
 select ok(not exists (select 1 from public.membership_invitations where id = 'b9300000-0000-4000-8000-000000000001'), 'old expired invitation is deleted');
 select ok(exists (select 1 from public.membership_invitations where id = 'b9300000-0000-4000-8000-000000000002'), 'recent expired invitation is retained');
+select ok(not exists (select 1 from public.membership_invitations where id = 'b9300000-0000-4000-8000-000000000003'), 'naturally expired pending invitation is deleted');
+select ok(
+  (select state = 'cancelled'::public.notification_delivery_state
+      and claim_token is null
+      and claimed_at is null
+      and failure_reason = 'invitation_expired'
+      and recipient_address like 'deleted+%@invalid.greenroster.local'
+   from public.notification_deliveries
+   where id = 'b9500000-0000-4000-8000-000000000005'),
+  'expired invitation delivery is terminalized, unclaimed, and redacted before invitation deletion'
+);
+select ok(
+  (select state = 'cancelled'::public.notification_outbox_job_state
+      and claimed_at is null
+      and safe_error = 'invitation_expired'
+      and finished_at is not null
+   from public.notification_outbox_jobs
+   where id = 'b9400000-0000-4000-8000-000000000008'),
+  'expired invitation outbox work is terminalized before invitation deletion'
+);
 select ok(not exists (select 1 from public.notification_provider_events where event_id = 'retention-provider-event-old'), 'old provider event is deleted');
 select ok(not exists (select 1 from public.notification_deliveries where id in ('b9500000-0000-4000-8000-000000000001', 'b9500000-0000-4000-8000-000000000002')), 'old terminal e-mail deliveries are deleted');
 select ok(exists (select 1 from public.notification_deliveries where id = 'b9500000-0000-4000-8000-000000000003'), 'recent terminal e-mail delivery is retained');

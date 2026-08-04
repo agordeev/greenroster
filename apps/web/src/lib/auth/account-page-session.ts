@@ -14,19 +14,50 @@ type AccountPageSessionResult =
   | Readonly<{
       state: "ready";
       email: string;
-      lastSignInAt: string | null;
+      sessionStartedAt: string;
     }>;
+
+type AccountPageSupabaseClient = Awaited<
+  ReturnType<typeof createServerComponentSupabaseClient>
+>;
+
+type ResolveSessionStartedAt = (
+  client: AccountPageSupabaseClient,
+  userId: string,
+  sessionId: string,
+) => Promise<string | null>;
 
 type AccountPageSessionDependencies = Readonly<{
   createClient: typeof createServerComponentSupabaseClient;
   resolveClaims: typeof resolveVerifiedSessionClaims;
   resolveRecoveryState: typeof resolvePasswordRecoveryState;
+  resolveSessionStartedAt: ResolveSessionStartedAt;
 }>;
+
+const resolveSessionStartedAt: ResolveSessionStartedAt = async (
+  _client,
+  userId,
+  sessionId,
+) => {
+  try {
+    const { createSupabaseServiceClient } =
+      await import("../supabase/service-client");
+    const serviceClient = createSupabaseServiceClient();
+    const { data, error } = await serviceClient.rpc(
+      "read_privacy_session_started_at",
+      { p_user_id: userId, p_session_id: sessionId },
+    );
+    return error || typeof data !== "string" ? null : data;
+  } catch {
+    return null;
+  }
+};
 
 const defaultDependencies: AccountPageSessionDependencies = {
   createClient: createServerComponentSupabaseClient,
   resolveClaims: resolveVerifiedSessionClaims,
   resolveRecoveryState: resolvePasswordRecoveryState,
+  resolveSessionStartedAt,
 };
 
 export async function resolveAccountPageSession(
@@ -57,10 +88,17 @@ export async function resolveAccountPageSession(
     if (recoveryState === "unavailable") return { state: "unavailable" };
     if (recoveryState !== "none") return { state: "recovery_restricted" };
 
+    const sessionStartedAt = await dependencies.resolveSessionStartedAt(
+      client,
+      user.id,
+      claims.session_id,
+    );
+    if (!sessionStartedAt) return { state: "unavailable" };
+
     return {
       state: "ready",
       email: user.email,
-      lastSignInAt: user.last_sign_in_at ?? null,
+      sessionStartedAt,
     };
   } catch {
     return { state: "unavailable" };

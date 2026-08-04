@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(34);
 
 select has_function(
   'public',
@@ -37,13 +37,53 @@ insert into auth.users (
 values
   ('b8000000-0000-4000-8000-000000000001', 'privacy-target@example.test', 'hash', now(), false, false, '{"name":"Private Target"}', now(), now()),
   ('b8000000-0000-4000-8000-000000000002', 'privacy-admin@example.test', 'hash', now(), false, false, '{}', now(), now()),
-  ('b8000000-0000-4000-8000-000000000003', 'privacy-last-admin@example.test', 'hash', now(), false, false, '{}', now(), now());
+  ('b8000000-0000-4000-8000-000000000003', 'privacy-last-admin@example.test', 'hash', now(), false, false, '{}', now(), now()),
+  ('b8000000-0000-4000-8000-000000000004', 'privacy-unaffiliated@example.test', 'hash', now(), false, false, '{"name":"Unaffiliated Target"}', now(), now());
+
+insert into auth.identities (
+  provider_id, user_id, identity_data, provider, last_sign_in_at,
+  created_at, updated_at
+)
+values
+  (
+    'privacy-target@example.test',
+    'b8000000-0000-4000-8000-000000000001',
+    '{"sub":"b8000000-0000-4000-8000-000000000001","email":"privacy-target@example.test","full_name":"Private Target"}',
+    'email', now(), now(), now()
+  ),
+  (
+    'privacy-admin@example.test',
+    'b8000000-0000-4000-8000-000000000002',
+    '{"sub":"b8000000-0000-4000-8000-000000000002","email":"privacy-admin@example.test"}',
+    'email', now(), now(), now()
+  ),
+  (
+    'privacy-unaffiliated@example.test',
+    'b8000000-0000-4000-8000-000000000004',
+    '{"sub":"b8000000-0000-4000-8000-000000000004","email":"privacy-unaffiliated@example.test","full_name":"Unaffiliated Target"}',
+    'email', now(), now(), now()
+  );
+
+insert into auth.sessions (id, user_id, created_at, updated_at)
+values
+  ('b8050000-0000-4000-8000-000000000001', 'b8000000-0000-4000-8000-000000000001', now(), now()),
+  ('b8050000-0000-4000-8000-000000000002', 'b8000000-0000-4000-8000-000000000002', now(), now()),
+  ('b8050000-0000-4000-8000-000000000004', 'b8000000-0000-4000-8000-000000000004', now(), now());
+
+insert into auth.refresh_tokens (
+  token, user_id, session_id, revoked, created_at, updated_at
+)
+values
+  ('privacy-refresh-target', 'b8000000-0000-4000-8000-000000000001', 'b8050000-0000-4000-8000-000000000001', false, now(), now()),
+  ('privacy-refresh-admin', 'b8000000-0000-4000-8000-000000000002', 'b8050000-0000-4000-8000-000000000002', false, now(), now()),
+  ('privacy-refresh-unaffiliated', 'b8000000-0000-4000-8000-000000000004', 'b8050000-0000-4000-8000-000000000004', false, now(), now());
 
 insert into public.user_profiles (user_id, display_name, first_name, last_name)
 values
   ('b8000000-0000-4000-8000-000000000001', 'Private Target', 'Private', 'Target'),
   ('b8000000-0000-4000-8000-000000000002', 'Privacy Admin', 'Privacy', 'Admin'),
-  ('b8000000-0000-4000-8000-000000000003', 'Last Admin', 'Last', 'Admin');
+  ('b8000000-0000-4000-8000-000000000003', 'Last Admin', 'Last', 'Admin'),
+  ('b8000000-0000-4000-8000-000000000004', 'Unaffiliated Target', 'Unaffiliated', 'Target');
 
 insert into public.groups (id, name, time_zone)
 values
@@ -56,16 +96,23 @@ insert into public.memberships (
 values
   ('b8200000-0000-4000-8000-000000000001', 'b8100000-0000-4000-8000-000000000001', 'b8000000-0000-4000-8000-000000000001', 'member', 'active', now()),
   ('b8200000-0000-4000-8000-000000000002', 'b8100000-0000-4000-8000-000000000001', 'b8000000-0000-4000-8000-000000000002', 'administrator', 'active', now()),
-  ('b8200000-0000-4000-8000-000000000003', 'b8100000-0000-4000-8000-000000000002', 'b8000000-0000-4000-8000-000000000003', 'administrator', 'active', now());
+  ('b8200000-0000-4000-8000-000000000003', 'b8100000-0000-4000-8000-000000000002', 'b8000000-0000-4000-8000-000000000003', 'administrator', 'active', now()),
+  ('b8200000-0000-4000-8000-000000000004', 'b8100000-0000-4000-8000-000000000001', null, 'member', 'pending', null);
 
 insert into public.membership_golfer_profiles (
   membership_id, group_id, first_name, last_name, spouse_first_name, spouse_last_name
 )
-values (
-  'b8200000-0000-4000-8000-000000000001',
-  'b8100000-0000-4000-8000-000000000001',
-  'Private', 'Target', 'Spouse', 'Target'
-);
+values
+  (
+    'b8200000-0000-4000-8000-000000000001',
+    'b8100000-0000-4000-8000-000000000001',
+    'Private', 'Target', 'Spouse', 'Target'
+  ),
+  (
+    'b8200000-0000-4000-8000-000000000004',
+    'b8100000-0000-4000-8000-000000000001',
+    'Other', 'Recipient', null, null
+  );
 
 insert into public.membership_private_contacts (
   membership_id, group_id, secondary_email, home_phone_display,
@@ -84,13 +131,59 @@ insert into public.membership_invitations (
   role, token_digest_sha256, token_key_version, status, issued_at, expires_at,
   inviter_user_id
 )
+values
+  (
+    'b8300000-0000-4000-8000-000000000001',
+    'b8100000-0000-4000-8000-000000000001',
+    'b8200000-0000-4000-8000-000000000001',
+    'privacy-target@example.test', 'privacy-target@example.test', 'member',
+    repeat('a', 64), 1, 'pending', now(), now() + interval '1 day',
+    'b8000000-0000-4000-8000-000000000002'
+  ),
+  (
+    'b8300000-0000-4000-8000-000000000002',
+    'b8100000-0000-4000-8000-000000000001',
+    'b8200000-0000-4000-8000-000000000004',
+    'other-recipient@example.test', 'other-recipient@example.test', 'member',
+    repeat('b', 64), 1, 'pending', now(), now() + interval '1 day',
+    'b8000000-0000-4000-8000-000000000001'
+  );
+
+insert into public.member_csv_import_jobs (
+  id, group_id, source_fingerprint, state, actor_user_id, actor_role
+)
 values (
-  'b8300000-0000-4000-8000-000000000001',
+  'b8350000-0000-4000-8000-000000000001',
   'b8100000-0000-4000-8000-000000000001',
+  repeat('c', 64), 'completed',
+  'b8000000-0000-4000-8000-000000000002', 'administrator'
+);
+
+insert into public.member_csv_import_rows (
+  id, import_job_id, group_id, row_number, raw_payload, row_state,
+  first_name, last_name, invited_email, invited_email_normalized,
+  handicap_id, handicap, handicap_as_of, membership_id, invitation_id
+)
+values (
+  'b8360000-0000-4000-8000-000000000001',
+  'b8350000-0000-4000-8000-000000000001',
+  'b8100000-0000-4000-8000-000000000001',
+  2,
+  '{"first_name":"Private","last_name":"Target","invited_email":"privacy-target@example.test","handicap_id":"GHIN-PRIVATE"}',
+  'applied', 'Private', 'Target',
+  'privacy-target@example.test', 'privacy-target@example.test',
+  'GHIN-PRIVATE', 12.4, current_date,
   'b8200000-0000-4000-8000-000000000001',
-  'privacy-target@example.test', 'privacy-target@example.test', 'member',
-  repeat('a', 64), 1, 'pending', now(), now() + interval '1 day',
-  'b8000000-0000-4000-8000-000000000002'
+  'b8300000-0000-4000-8000-000000000001'
+);
+
+insert into public.membership_handicap_records (
+  membership_id, group_id, handicap_id, handicap, source, as_of
+)
+values (
+  'b8200000-0000-4000-8000-000000000001',
+  'b8100000-0000-4000-8000-000000000001',
+  'GHIN-PRIVATE', 12.4, 'manual', current_date
 );
 
 insert into public.notification_outbox_jobs (
@@ -190,10 +283,58 @@ select ok(
 );
 select ok(
   (select not active and expo_push_token like 'redacted:%' and retirement_reason = 'membership_inactive'
+      and retirement_correlation_id = 'b8800000-0000-4000-8000-000000000001'::uuid
    from public.push_devices where device_id = 'b8600000-0000-4000-8000-000000000001'),
-  'push credentials are retired and replaced'
+  'push credentials are retired and replaced under the privacy correlation'
 );
 select is((select normalized_address from public.email_suppressions where normalized_address like 'deleted+%@invalid.greenroster.local'), 'deleted+b8000000000040008000000000000001@invalid.greenroster.local', 'e-mail suppression is redacted');
+select ok(
+  not exists (
+    select 1 from auth.identities
+    where user_id = 'b8000000-0000-4000-8000-000000000001'
+  )
+  and exists (
+    select 1 from auth.identities
+    where user_id = 'b8000000-0000-4000-8000-000000000002'
+      and email = 'privacy-admin@example.test'
+  ),
+  'target Auth identity PII is removed without changing another identity'
+);
+select ok(
+  not exists (
+    select 1 from auth.sessions
+    where user_id = 'b8000000-0000-4000-8000-000000000001'
+  )
+  and not exists (
+    select 1 from auth.refresh_tokens
+    where user_id = 'b8000000-0000-4000-8000-000000000001'::text
+  )
+  and exists (
+    select 1 from auth.sessions
+    where user_id = 'b8000000-0000-4000-8000-000000000002'
+  ),
+  'target Auth sessions and refresh tokens are removed without affecting another user'
+);
+select ok(
+  (select handicap_id is null and raw_payload = '{"reason":"account_anonymized","redacted":true}'::jsonb
+   from public.member_csv_import_rows
+   where id = 'b8360000-0000-4000-8000-000000000001'),
+  'import staging removes the external handicap identifier and raw direct data'
+);
+select ok(
+  (select handicap_id is null and handicap = 12.4::numeric
+   from public.membership_handicap_records
+   where membership_id = 'b8200000-0000-4000-8000-000000000001'),
+  'handicap history removes the external identifier and retains sporting value'
+);
+select ok(
+  (select status = 'pending'::public.membership_invitation_status
+      and invited_email = 'other-recipient@example.test'
+      and inviter_user_id = 'b8000000-0000-4000-8000-000000000001'::uuid
+   from public.membership_invitations
+   where id = 'b8300000-0000-4000-8000-000000000002'),
+  'an invitation merely created by the target remains available to its recipient'
+);
 select ok(
   exists (
     select 1 from public.audit_events
@@ -211,6 +352,73 @@ select ok(
       and (before_state::text like '%@example.test%' or after_state::text like '%@example.test%')
   ),
   'privacy audit state never copies direct contact data'
+);
+
+set local role service_role;
+select *
+into temporary table unaffiliated_anonymized
+from public.anonymize_account_for_privacy(
+  'b8000000-0000-4000-8000-000000000004',
+  'b8800000-0000-4000-8000-000000000004',
+  'Approved request PRIV-004'
+);
+reset role;
+
+select is(
+  (select membership_count from unaffiliated_anonymized),
+  0::bigint,
+  'an unaffiliated identity can be anonymized without inventing a membership'
+);
+select ok(
+  exists (
+    select 1
+    from public.identity_security_audit_events
+    where user_id = 'b8000000-0000-4000-8000-000000000004'
+      and action = 'privacy.account_anonymized'
+      and correlation_id = 'b8800000-0000-4000-8000-000000000004'
+      and after_state @> '{"account_state":"anonymized","direct_identifiers_removed":true,"membership_count":0}'::jsonb
+  ),
+  'an unaffiliated anonymization writes a redacted identity-security audit event'
+);
+select ok(
+  not exists (
+    select 1 from auth.identities
+    where user_id = 'b8000000-0000-4000-8000-000000000004'
+  )
+  and not exists (
+    select 1 from auth.sessions
+    where user_id = 'b8000000-0000-4000-8000-000000000004'
+  )
+  and not exists (
+    select 1 from auth.refresh_tokens
+    where user_id = 'b8000000-0000-4000-8000-000000000004'::text
+  ),
+  'unaffiliated Auth identity and session credentials are removed'
+);
+
+set local role service_role;
+select *
+into temporary table unaffiliated_replay
+from public.anonymize_account_for_privacy(
+  'b8000000-0000-4000-8000-000000000004',
+  'b8800000-0000-4000-8000-000000000014',
+  'retry with the same operation',
+  'b8800000-0000-4000-8000-000000000004'
+);
+reset role;
+
+select is(
+  (select membership_count from unaffiliated_replay),
+  0::bigint,
+  'the same opaque operation id returns the prior anonymization result'
+);
+select is(
+  (select count(*) from public.identity_security_audit_events
+   where user_id = 'b8000000-0000-4000-8000-000000000004'
+     and action = 'privacy.account_anonymized'
+     and operation_id = 'b8800000-0000-4000-8000-000000000004'),
+  1::bigint,
+  'an anonymization retry does not append a second operation receipt'
 );
 
 set local role service_role;

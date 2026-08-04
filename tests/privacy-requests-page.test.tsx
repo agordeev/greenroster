@@ -18,7 +18,7 @@ describe("privacy requests page", () => {
     mocks.resolveSession.mockResolvedValueOnce({
       state: "ready",
       email: "member@example.test",
-      lastSignInAt: new Date(Date.now() - 60_000).toISOString(),
+      sessionStartedAt: new Date(Date.now() - 60_000).toISOString(),
     });
 
     const page = await PrivacyRequestsPage();

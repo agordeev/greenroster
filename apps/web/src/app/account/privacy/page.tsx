@@ -16,7 +16,7 @@ export default async function PrivacyRequestsPage() {
   if (session.state === "recovery_restricted")
     return <RecoverySessionRestricted />;
   if (session.state === "unavailable") return <PrivacyUnavailable />;
-  if (!hasRecentPrivacyAuthentication(session.lastSignInAt)) {
+  if (!hasRecentPrivacyAuthentication(session.sessionStartedAt)) {
     return <RecentAuthenticationRequired />;
   }
 
