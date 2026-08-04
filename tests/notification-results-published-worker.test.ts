@@ -157,6 +157,44 @@ describe("results-published notification worker", () => {
     });
   });
 
+  it("records provider HTTP 5xx responses as retryable outages", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.name).toBe("record_results_email_send_failure");
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+  });
+
+  it("records thrown provider network errors as retryable outages", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            throw new TypeError("fetch failed");
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.name).toBe("record_results_email_send_failure");
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+  });
+
   it("records permanent provider rejections", async () => {
     const { calls, rpc } = successRpc();
     const result = await runResultsPublishedEmailWorker(
