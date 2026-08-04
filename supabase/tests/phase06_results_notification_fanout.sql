@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(40);
+select plan(44);
 
 select has_table(
   'public',
@@ -19,6 +19,25 @@ select ok(
   has_table_privilege('service_role', 'public.notification_push_deliveries', 'select')
   and not has_table_privilege('authenticated', 'public.notification_push_deliveries', 'select'),
   'push delivery rows remain service-only through table grants'
+);
+select has_function(
+  'public',
+  'record_results_push_invalid_device',
+  array['uuid', 'uuid', 'uuid', 'uuid', 'uuid', 'uuid'],
+  'atomic provider-invalid push boundary exists'
+);
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.record_results_push_invalid_device(uuid,uuid,uuid,uuid,uuid,uuid)',
+    'execute'
+  )
+  and not has_function_privilege(
+    'authenticated',
+    'public.record_results_push_invalid_device(uuid,uuid,uuid,uuid,uuid,uuid)',
+    'execute'
+  ),
+  'atomic provider-invalid push boundary is service-only'
 );
 
 insert into auth.users (
@@ -206,13 +225,18 @@ select is((select count(*) from claimed_push_one), 1::bigint, 'result push claim
 select is((select expo_push_token from claimed_push_one), 'ExponentPushToken[fanout-member-one]', 'push claim resolves the current token only to the trusted worker');
 select is((select state from public.notification_push_deliveries where id = (select delivery_id from claimed_push_one)), 'sending'::public.notification_delivery_state, 'claimed push is sending');
 select lives_ok(
-  $$ select public.record_results_push_send_success(
+  $$ select public.record_results_push_invalid_device(
        (select delivery_id from claimed_push_one),
        'f7100000-0000-4000-8000-000000000001',
-       'expo-ticket-1'
+       'f3100000-0000-4000-8000-000000000001',
+       'f2000000-0000-4000-8000-000000000001',
+       'f7400000-0000-4000-8000-000000000001',
+       'f7500000-0000-4000-8000-000000000001'
      ) $$,
-  'result push success finalizes one device child'
+  'provider-invalid push finalizes and retires atomically'
 );
+select is((select state from public.notification_push_deliveries where id = (select delivery_id from claimed_push_one)), 'failed_permanent'::public.notification_delivery_state, 'provider-invalid child is terminally failed');
+select is((select active from public.push_devices where device_id = 'f3100000-0000-4000-8000-000000000001'), false, 'provider-invalid feedback retires the device in the same transaction');
 select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'retryable'::public.notification_outbox_job_state, 'parent remains retryable while another push device is pending');
 
 create temporary table claimed_push_two as
@@ -230,7 +254,7 @@ select lives_ok(
      ) $$,
   'second result push success finalizes the final child'
 );
-select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'succeeded'::public.notification_outbox_job_state, 'parent succeeds only after every child is terminal');
+select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'abandoned'::public.notification_outbox_job_state, 'parent abandons when a child has a permanent provider failure');
 select is((select count(*) from public.claim_results_published_email('f7300000-0000-4000-8000-000000000001', now() - interval '1 hour')), 0::bigint, 'terminal result parent has no further e-mail claim');
 
 insert into public.notification_outbox_jobs (
