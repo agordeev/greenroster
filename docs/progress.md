@@ -7,9 +7,9 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 07 — Release hardening
-- **Active slice:** Phase 07 privacy request/anonymization and release verification, followed by the unblocked native RSVP/detail slice.
+- **Active slice:** Phase 07 retention pruning and protected scheduling, followed by the unblocked native RSVP/detail slice.
 - **Status:** In progress
-- **Next:** Verify the privacy retention operation in the full matrix, then complete native mobile upcoming-round RSVP/detail before returning to hosted recovery and provider evidence.
+- **Next:** Verify retention pruning and the protected daily job route, then complete native mobile upcoming-round RSVP/detail before returning to hosted recovery and provider evidence.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.

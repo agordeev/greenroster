@@ -7,6 +7,10 @@
     {
       "path": "/api/jobs/member-imports/drain",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/privacy/retention",
+      "schedule": "0 3 * * *"
     }
   ]
 }
