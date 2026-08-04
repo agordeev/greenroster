@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(21);
+select plan(27);
 
 select has_table('public', 'round_score_sync_receipts', 'mobile sync receipt table exists');
 select has_function(
@@ -290,6 +290,84 @@ select is(
   'trusted service role can read tenant-scoped sync readiness'
 );
 reset role;
+
+insert into public.round_rule_snapshots (
+  round_id, group_id, format, quota_method, moving_average_history_length,
+  quota_precision, quota_rounding_rule, adjustment_bands, settings_version
+)
+values (
+  '9d000000-0000-4000-8000-000000000001',
+  '9b000000-0000-4000-8000-000000000001',
+  'individual_gross',
+  'moving_average',
+  4,
+  2,
+  'half_away_from_zero',
+  '[]',
+  1
+);
+
+create temporary table synced_completion_readiness as
+select *
+from app.round_completion_readiness(
+  '9d000000-0000-4000-8000-000000000001',
+  '9b000000-0000-4000-8000-000000000001'
+);
+select is(
+  (select readiness_status from synced_completion_readiness),
+  'server_ready',
+  'all current mobile revisions acknowledged by a receipt are server-ready'
+);
+select is(
+  (select details ->> 'mobile_sync_check' from synced_completion_readiness),
+  'complete',
+  'readiness reports a complete mobile synchronization check'
+);
+
+delete from public.round_score_sync_receipts
+where participant_id = '9e000000-0000-4000-8000-000000000002';
+
+create temporary table pending_completion_readiness as
+select *
+from app.round_completion_readiness(
+  '9d000000-0000-4000-8000-000000000001',
+  '9b000000-0000-4000-8000-000000000001'
+);
+select ok(
+  exists (
+    select 1
+    from pending_completion_readiness
+    where blocker_code = 'mobile_sync_receipt_missing'
+      and participant_id = '9e000000-0000-4000-8000-000000000002'
+      and details ->> 'score_revision_id' = '9f000000-0000-4000-8000-000000000002'
+  ),
+  'an unacknowledged current mobile revision blocks readiness with provenance'
+);
+select is(
+  (select count(*) from pending_completion_readiness where readiness_status = 'server_ready'),
+  0::bigint,
+  'a missing mobile receipt suppresses the server-ready sentinel'
+);
+select is(
+  (
+    public.preview_live_round_completion(
+      '9d000000-0000-4000-8000-000000000001',
+      '9b000000-0000-4000-8000-000000000001'
+    ) ->> 'mobile_sync_check'
+  ),
+  'blocked',
+  'preview exposes a missing mobile receipt as blocked'
+);
+select is(
+  (
+    public.preview_live_round_completion(
+      '9d000000-0000-4000-8000-000000000001',
+      '9b000000-0000-4000-8000-000000000001'
+    ) ->> 'server_checks_passed'
+  ),
+  'false',
+  'preview cannot pass server checks while a mobile receipt is missing'
+);
 
 select * from finish();
 

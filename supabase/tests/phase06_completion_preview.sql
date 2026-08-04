@@ -140,7 +140,7 @@ select public.preview_live_round_completion(
 ) as payload;
 
 select is((select payload ->> 'format' from net_preview), 'individual_net', 'Net preview uses the immutable round format');
-select is((select payload ->> 'mobile_sync_check' from net_preview), 'unavailable', 'preview never infers native queue synchronization');
+select is((select payload ->> 'mobile_sync_check' from net_preview), 'complete', 'preview reports no missing mobile receipts when all current revisions are server-confirmed');
 select is((select payload ->> 'completion_handshake_required' from net_preview), 'true', 'preview requires an explicit completion handshake');
 select is((select payload ->> 'completion_allowed' from net_preview), 'false', 'preview cannot claim official completion');
 select is((select payload ->> 'server_checks_passed' from net_preview), 'true', 'complete server inputs pass readiness');
