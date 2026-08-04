@@ -37,6 +37,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run security:audit
       - run: pnpm check
       - run: pnpm db:start
       - run: pnpm db:reset
