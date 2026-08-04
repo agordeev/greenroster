@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(50);
+select plan(59);
 
 select has_function(
   'public',
@@ -142,6 +142,48 @@ select is((select projected_quota::numeric from public.membership_quota_projecti
 select is((select total_merit from public.round_official_results where participant_id = 'e5000000-0000-4000-8000-000000000001'), 13::numeric, 'fixture result contains generated and manual merit');
 select is((select count(*) from public.score_revisions where participant_id = 'e5000000-0000-4000-8000-000000000001'), 1::bigint, 'fixture starts with one immutable score revision');
 
+-- Claim one result push before Reopen so the lifecycle test exercises an
+-- in-flight provider lease rather than only queued cancellation.
+update public.rounds
+set group_time_zone = case
+  when extract(hour from (now() at time zone 'UTC')) < 7 then 'Etc/GMT+12'
+  when extract(hour from (now() at time zone 'UTC')) >= 21 then 'Etc/GMT-12'
+  else 'UTC'
+end
+where id = 'e4000000-0000-4000-8000-000000000001';
+update public.notification_push_deliveries
+set next_attempt_at = now()
+where outbox_job_id = (
+  select id
+  from public.notification_outbox_jobs
+  where event_type = 'results_published'
+    and aggregate_type = 'round_completion'
+    and aggregate_id = (
+      select id
+      from public.round_completion_runs
+      where round_id = 'e4000000-0000-4000-8000-000000000001'
+        and state = 'official'
+    )
+);
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where event_type = 'results_published'
+  and aggregate_type = 'round_completion'
+  and aggregate_id = (
+    select id
+    from public.round_completion_runs
+    where round_id = 'e4000000-0000-4000-8000-000000000001'
+      and state = 'official'
+  );
+create temporary table inflight_push as
+select *
+from public.claim_results_published_push(
+  'e7100000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from inflight_push), 1::bigint, 'reopen fixture leases one result push before withdrawal');
+select is((select state from public.notification_push_deliveries where id = (select delivery_id from inflight_push)), 'sending'::public.notification_delivery_state, 'reopen fixture push is in flight before withdrawal');
+
 create temporary table reopened as
 select *
 from public.reopen_completed_round(
@@ -162,7 +204,17 @@ select is((select state from public.round_completion_runs where id = (select com
 select is((select reopen_reason from public.round_completion_runs where id = (select completion_id from reopened)), 'Correct a published score', 'the reason is retained on the completion run');
 select is((select count(*) from public.round_completion_runs where round_id = 'e4000000-0000-4000-8000-000000000001' and state = 'official'), 0::bigint, 'no official run remains while the round is reopened');
 select is((select state from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened)), 'cancelled'::public.notification_outbox_job_state, 'withdrawn results outbox work is terminalized');
-select is((select state from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened))), 'cancelled'::public.notification_delivery_state, 'withdrawn result push work is terminalized');
+select is((select state from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened))), 'sending'::public.notification_delivery_state, 'withdrawn result push lease remains in flight until the provider callback or lease expiry');
+select lives_ok(
+  $$ select public.record_results_push_send_failure(
+       (select delivery_id from inflight_push),
+       'e7100000-0000-4000-8000-000000000001',
+       'provider_unavailable',
+       now() + interval '5 minutes'
+     ) $$,
+  'withdrawn result push failure callback terminalizes the in-flight child'
+);
+select is((select state from public.notification_push_deliveries where id = (select delivery_id from inflight_push)), 'cancelled'::public.notification_delivery_state, 'withdrawn in-flight result push is cancelled after a failure callback');
 select is((select failure_reason from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_type = 'round_completion' and aggregate_id = (select completion_id from reopened))), 'round_reopened', 'withdrawn push work records the safe reopen reason');
 select is((select count(*) from public.round_official_results where completion_id = (select completion_id from reopened)), 1::bigint, 'the prior result snapshot remains for investigation');
 select is((select generated_merit::numeric from public.round_official_results where completion_id = (select completion_id from reopened)), 12::numeric, 'generated merit is retained as historical evidence');
@@ -292,6 +344,62 @@ select is((select count(distinct idempotency_key) from public.notification_outbo
 select is((select count(*) from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_id = (select completion_id from recompleted))), 1::bigint, 'recompletion creates a fresh push delivery for the new official run');
 select is((select count(*) from public.audit_events where action = 'round.completed' and target_id = 'e4000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion writes a second completion audit');
 select is((select count(*) from public.score_revisions where participant_id = 'e5000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion preserves both score revisions');
+
+-- A missed provider callback must not strand the fresh child after a second
+-- Reopen. The stale lease pass terminalizes it as cancelled and returns no
+-- provider-visible work.
+update public.rounds
+set group_time_zone = case
+  when extract(hour from (now() at time zone 'UTC')) < 7 then 'Etc/GMT+12'
+  when extract(hour from (now() at time zone 'UTC')) >= 21 then 'Etc/GMT-12'
+  else 'UTC'
+end
+where id = 'e4000000-0000-4000-8000-000000000001';
+update public.notification_push_deliveries
+set next_attempt_at = now()
+where outbox_job_id = (
+  select id
+  from public.notification_outbox_jobs
+  where event_type = 'results_published'
+    and aggregate_type = 'round_completion'
+    and aggregate_id = (select completion_id from recompleted)
+);
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where event_type = 'results_published'
+  and aggregate_type = 'round_completion'
+  and aggregate_id = (select completion_id from recompleted);
+create temporary table stale_push as
+select *
+from public.claim_results_published_push(
+  'e7200000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from stale_push), 1::bigint, 'recompletion push can be leased before the second withdrawal');
+update public.notification_push_deliveries
+set claimed_at = now() - interval '2 hours'
+where id = (select delivery_id from stale_push);
+select lives_ok(
+  $$ select * from public.reopen_completed_round(
+       'e1000000-0000-4000-8000-000000000001',
+       'e4000000-0000-4000-8000-000000000001',
+       'Withdraw second published result',
+       4,
+       true,
+       'e7300000-0000-4000-8000-000000000001',
+       'e7400000-0000-4000-8000-000000000001'
+     ) $$,
+  'second Reopen succeeds while a push lease is stale'
+);
+create temporary table stale_recovery as
+select *
+from public.claim_results_published_push(
+  'e7500000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from stale_recovery), 0::bigint, 'stale withdrawn push is not re-exposed to a provider worker');
+select is((select state from public.notification_push_deliveries where id = (select delivery_id from stale_push)), 'cancelled'::public.notification_delivery_state, 'stale withdrawn result push is terminalized');
+select is((select failure_reason from public.notification_push_deliveries where id = (select delivery_id from stale_push)), 'round_reopened', 'stale withdrawn push records the reopen reason');
 
 select * from finish();
 

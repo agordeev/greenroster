@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(40);
 
 select has_table(
   'public',
@@ -126,6 +126,112 @@ select ok(
   ),
   'push delivery rows never persist raw Expo tokens'
 );
+
+-- A retryable push that wakes during quiet hours is deferred without erasing
+-- the previous provider outcome.  Choose a valid fixed-offset zone whose
+-- current local clock is inside the 21:00–07:00 window so this stays
+-- deterministic across test runners.
+create temporary table quiet_zone as
+select candidate
+from unnest(array[
+  'UTC', 'Etc/GMT+12', 'Etc/GMT-12', 'Etc/GMT+10', 'Etc/GMT-10',
+  'Etc/GMT+8', 'Etc/GMT-8', 'Etc/GMT+6', 'Etc/GMT-6', 'Etc/GMT+4',
+  'Etc/GMT-4', 'Etc/GMT+2', 'Etc/GMT-2'
+]::text[]) as candidates(candidate)
+where (now() at time zone candidate)::time >= time '21:00'
+   or (now() at time zone candidate)::time < time '07:00'
+order by candidate
+limit 1;
+select is((select count(*) from quiet_zone), 1::bigint, 'quiet-hours fixture finds a valid local window');
+update public.rounds
+set group_time_zone = (select candidate from quiet_zone)
+where id = 'f4000000-0000-4000-8000-000000000001';
+update public.notification_push_deliveries
+set state = 'retryable'::public.notification_delivery_state,
+    failure_reason = 'provider_unavailable',
+    next_attempt_at = now()
+where outbox_job_id = 'f6000000-0000-4000-8000-000000000001';
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = 'f6000000-0000-4000-8000-000000000001';
+select is((select count(*) from public.claim_results_published_push('f6500000-0000-4000-8000-000000000001', now() - interval '1 hour')), 0::bigint, 'quiet-hours push is deferred instead of claimed');
+select ok((select bool_and(failure_reason = 'provider_unavailable') from public.notification_push_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 'quiet-hours deferral preserves the prior provider failure');
+select ok((select bool_and(next_attempt_at > now()) from public.notification_push_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 'quiet-hours deferral schedules a future retry');
+
+-- Make claim assertions independent of the wall clock while preserving the
+-- production quiet-hours predicate.  The fixture timezone is shifted into
+-- the local daytime window, and due timestamps are explicitly made claimable.
+update public.rounds
+set group_time_zone = case
+  when extract(hour from (now() at time zone 'UTC')) < 7 then 'Etc/GMT+12'
+  when extract(hour from (now() at time zone 'UTC')) >= 21 then 'Etc/GMT-12'
+  else 'UTC'
+end
+where id = 'f4000000-0000-4000-8000-000000000001';
+update public.notification_push_deliveries
+set next_attempt_at = now()
+where outbox_job_id = 'f6000000-0000-4000-8000-000000000001';
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = 'f6000000-0000-4000-8000-000000000001';
+
+create temporary table claimed_email as
+select *
+from public.claim_results_published_email(
+  'f7000000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from claimed_email), 1::bigint, 'result e-mail claim leases one child');
+select is((select recipient_address from claimed_email), 'fanout-member@example.test', 'e-mail claim resolves the current verified address');
+select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 'sending'::public.notification_delivery_state, 'claimed e-mail is sending');
+select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'processing'::public.notification_outbox_job_state, 'parent remains processing while children are in flight');
+select lives_ok(
+  $$ select public.record_results_email_send_success(
+       (select delivery_id from claimed_email),
+       'f7000000-0000-4000-8000-000000000001',
+       'res-email-1'
+     ) $$,
+  'result e-mail success finalizes only its child'
+);
+select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'sent'::public.notification_delivery_state, 'result e-mail is terminally sent');
+select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'retryable'::public.notification_outbox_job_state, 'parent remains retryable while push children remain pending');
+
+create temporary table claimed_push_one as
+select *
+from public.claim_results_published_push(
+  'f7100000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from claimed_push_one), 1::bigint, 'result push claim leases one device child');
+select is((select expo_push_token from claimed_push_one), 'ExponentPushToken[fanout-member-one]', 'push claim resolves the current token only to the trusted worker');
+select is((select state from public.notification_push_deliveries where id = (select delivery_id from claimed_push_one)), 'sending'::public.notification_delivery_state, 'claimed push is sending');
+select lives_ok(
+  $$ select public.record_results_push_send_success(
+       (select delivery_id from claimed_push_one),
+       'f7100000-0000-4000-8000-000000000001',
+       'expo-ticket-1'
+     ) $$,
+  'result push success finalizes one device child'
+);
+select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'retryable'::public.notification_outbox_job_state, 'parent remains retryable while another push device is pending');
+
+create temporary table claimed_push_two as
+select *
+from public.claim_results_published_push(
+  'f7200000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from claimed_push_two), 1::bigint, 'second active device is independently claimable');
+select lives_ok(
+  $$ select public.record_results_push_send_success(
+       (select delivery_id from claimed_push_two),
+       'f7200000-0000-4000-8000-000000000001',
+       'expo-ticket-2'
+     ) $$,
+  'second result push success finalizes the final child'
+);
+select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'succeeded'::public.notification_outbox_job_state, 'parent succeeds only after every child is terminal');
+select is((select count(*) from public.claim_results_published_email('f7300000-0000-4000-8000-000000000001', now() - interval '1 hour')), 0::bigint, 'terminal result parent has no further e-mail claim');
 
 insert into public.notification_outbox_jobs (
   id, group_id, event_type, aggregate_type, aggregate_id, aggregate_version,
