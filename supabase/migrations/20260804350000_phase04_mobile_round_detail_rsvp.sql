@@ -128,7 +128,7 @@ begin
     target_round.rsvp_deadline_at,
     coalesce(actor_participant.rsvp_status, 'no_response'::public.round_rsvp_status),
     actor_participant.version,
-    rsvp_change.changed_at,
+    rsvp_change.changed_at::app.utc_instant,
     counts.participant_count,
     counts.playing_count,
     target_round.cancelled_at,

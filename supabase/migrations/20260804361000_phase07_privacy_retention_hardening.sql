@@ -24,27 +24,27 @@ declare
   deleted_email_deliveries bigint := 0;
   deleted_push_receipts bigint := 0;
   deleted_push_deliveries bigint := 0;
+  expired_invitations public.membership_invitations[] := '{}'::public.membership_invitations[];
+  expired_invitation public.membership_invitations;
 begin
-  drop table if exists pg_temp.privacy_expired_invitations;
-  create temporary table privacy_expired_invitations (
-    id uuid not null,
-    group_id uuid not null,
-    membership_id uuid not null,
-    primary key (id, group_id)
-  ) on commit drop;
-
-  insert into privacy_expired_invitations (id, group_id, membership_id)
-  select invitation.id, invitation.group_id, invitation.membership_id
-  from public.membership_invitations as invitation
-  where (
-      invitation.status = 'expired'::public.membership_invitation_status
-      and invitation.expired_at < invitation_cutoff
-    )
-    or (
-      invitation.status = 'pending'::public.membership_invitation_status
-      and invitation.expires_at < invitation_cutoff
-    )
-  for update;
+  for expired_invitation in
+    select invitation.*
+    from public.membership_invitations as invitation
+    where (
+        invitation.status = 'expired'::public.membership_invitation_status
+        and invitation.expired_at < invitation_cutoff
+      )
+      or (
+        invitation.status = 'pending'::public.membership_invitation_status
+        and invitation.expires_at < invitation_cutoff
+      )
+    for update
+  loop
+    expired_invitations := pg_catalog.array_append(
+      expired_invitations,
+      expired_invitation
+    );
+  end loop;
 
   -- Delivery and outbox rows do not have a foreign key to invitations. Lock
   -- and cancel them first so a queued/retryable job cannot remain sendable
@@ -56,7 +56,7 @@ begin
       failure_reason = 'invitation_expired',
       next_attempt_at = now_at
   from public.notification_outbox_jobs as outbox
-  join privacy_expired_invitations as expired
+  join unnest(expired_invitations) as expired
     on expired.id = outbox.aggregate_id
    and expired.group_id = outbox.group_id
   where delivery.outbox_job_id = outbox.id
@@ -73,7 +73,7 @@ begin
   set recipient_address = 'deleted+' || replace(delivery.id::text, '-', '') || '@invalid.greenroster.local',
       recipient_address_normalized = 'deleted+' || replace(delivery.id::text, '-', '') || '@invalid.greenroster.local'
   from public.notification_outbox_jobs as outbox
-  join privacy_expired_invitations as expired
+  join unnest(expired_invitations) as expired
     on expired.id = outbox.aggregate_id
    and expired.group_id = outbox.group_id
   where delivery.outbox_job_id = outbox.id
@@ -87,7 +87,7 @@ begin
       claimed_at = null,
       finished_at = now_at,
       next_attempt_at = now_at
-  from privacy_expired_invitations as expired
+  from unnest(expired_invitations) as expired
   where outbox.aggregate_id = expired.id
     and outbox.group_id = expired.group_id
     and outbox.event_type = 'membership.invitation'
@@ -111,12 +111,12 @@ begin
       handicap_id = null
   where exists (
     select 1
-    from privacy_expired_invitations as expired
+    from unnest(expired_invitations) as expired
     where expired.id = import_row.invitation_id
   );
 
   delete from public.membership_invitations as invitation
-  using privacy_expired_invitations as expired
+  using unnest(expired_invitations) as expired
   where invitation.id = expired.id
     and invitation.group_id = expired.group_id;
   get diagnostics deleted_expired_invitations = row_count;

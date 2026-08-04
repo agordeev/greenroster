@@ -68,6 +68,8 @@ declare
   prior_state jsonb;
   existing_email text;
   target_membership_ids uuid[];
+  invitation_restore_rows public.membership_invitations[];
+  restored_invitation public.membership_invitations;
   legacy_result record;
   restored_invitation_count bigint := 0;
   adjusted_invitation_count bigint := 0;
@@ -152,11 +154,11 @@ begin
   -- The legacy operation also redacted invitations where this user was the
   -- inviter. Preserve those belonging to other memberships and recipients;
   -- an inviter UUID is already a pseudonymous historical actor reference.
-  drop table if exists pg_temp.privacy_invitation_restore;
-  create temporary table privacy_invitation_restore
-  on commit drop
-  as
-  select invitation.*
+  select coalesce(
+    pg_catalog.array_agg(invitation order by invitation.id),
+    '{}'::public.membership_invitations[]
+  )
+  into invitation_restore_rows
   from public.membership_invitations as invitation
   where invitation.inviter_user_id = p_user_id
     and not exists (
@@ -168,8 +170,7 @@ begin
     )
     and invitation.invited_email_normalized <> pg_catalog.lower(pg_catalog.btrim(existing_email));
 
-  select count(*) into restored_invitation_count
-  from pg_temp.privacy_invitation_restore;
+  restored_invitation_count := pg_catalog.cardinality(invitation_restore_rows);
 
   -- Retire the push-device trigger with the same operation correlation as the
   -- privacy audit. The setting is transaction-local and cannot be supplied by
@@ -209,22 +210,23 @@ begin
     'privacy_process'
   );
 
-  update public.membership_invitations as invitation
-  set invited_email = restored.invited_email,
-      invited_email_normalized = restored.invited_email_normalized,
-      role = restored.role,
-      token_digest_sha256 = restored.token_digest_sha256,
-      token_key_version = restored.token_key_version,
-      status = restored.status,
-      issued_at = restored.issued_at,
-      expires_at = restored.expires_at,
-      accepted_at = restored.accepted_at,
-      revoked_at = restored.revoked_at,
-      expired_at = restored.expired_at,
-      version = restored.version
-  from pg_temp.privacy_invitation_restore as restored
-  where invitation.id = restored.id
-    and invitation.group_id = restored.group_id;
+  foreach restored_invitation in array invitation_restore_rows loop
+    update public.membership_invitations as invitation
+    set invited_email = restored_invitation.invited_email,
+        invited_email_normalized = restored_invitation.invited_email_normalized,
+        role = restored_invitation.role,
+        token_digest_sha256 = restored_invitation.token_digest_sha256,
+        token_key_version = restored_invitation.token_key_version,
+        status = restored_invitation.status,
+        issued_at = restored_invitation.issued_at,
+        expires_at = restored_invitation.expires_at,
+        accepted_at = restored_invitation.accepted_at,
+        revoked_at = restored_invitation.revoked_at,
+        expired_at = restored_invitation.expired_at,
+        version = restored_invitation.version
+    where invitation.id = restored_invitation.id
+      and invitation.group_id = restored_invitation.group_id;
+  end loop;
 
   -- Handicap IDs are external identifiers, unlike the numeric sporting value
   -- and immutable round snapshots that remain useful for history.
