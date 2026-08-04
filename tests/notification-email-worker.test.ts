@@ -218,6 +218,38 @@ describe("invitation notification worker", () => {
     });
   });
 
+  it("keeps provider outages retryable and records a safe outage code", async () => {
+    const serverError = successRpc();
+    const serverErrorResult = await runInvitationEmailWorker(
+      makeDependencies(serverError.rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+      }),
+    );
+    expect(serverErrorResult).toEqual({ kind: "retryable", deliveryId });
+    expect(serverError.calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-07-26T12:01:30.000Z",
+    });
+
+    const networkError = successRpc();
+    const networkErrorResult = await runInvitationEmailWorker(
+      makeDependencies(networkError.rpc, {
+        createProvider: () => ({
+          send: async () => {
+            throw new Error("provider network unavailable");
+          },
+        }),
+      }),
+    );
+    expect(networkErrorResult).toEqual({ kind: "retryable", deliveryId });
+    expect(networkError.calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-07-26T12:01:30.000Z",
+    });
+  });
+
   it("honors the injected maximum attempt count", async () => {
     const calls: string[] = [];
     const rpc: NotificationRpcClient["rpc"] = async (name) => {
