@@ -4,14 +4,39 @@ import { z } from "zod";
 
 import type { MemberNextRound } from "@/domain/member-next-round";
 import { executeReadMemberNextRound } from "@/lib/rounds/member-next-round-data";
+import {
+  executeReadMemberOfficialResults,
+  executeReadMemberQuotaHistory,
+  executeReadMemberStandings,
+  type MemberOfficialResult,
+  type MemberQuotaHistory,
+  type MemberStanding,
+} from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 
 import { MemberNextRoundRsvp } from "./member-next-round-rsvp";
+import {
+  MemberNotificationPreferences,
+  type MemberNotificationPreference,
+} from "./member-notification-preferences";
 
 const firstRunSchema = z
   .array(z.object({ is_complete: z.boolean() }))
   .length(1);
+
+const preferenceRowsSchema = z.array(
+  z
+    .object({
+      category: z.string().min(1),
+      mandatory: z.boolean(),
+      email_enabled: z.boolean(),
+      push_enabled: z.boolean(),
+      email_allowed: z.boolean(),
+      push_allowed: z.boolean(),
+    })
+    .strict(),
+);
 
 export default async function MemberHomePage() {
   const access = await resolveMemberPageSession();
@@ -42,9 +67,52 @@ export default async function MemberHomePage() {
     return <MemberHomeUnavailable />;
   }
 
+  const [standingsResult, historyResult] = await Promise.allSettled([
+    executeReadMemberStandings(access.userId),
+    executeReadMemberQuotaHistory(access.userId),
+  ]);
+  const preferencesResult = await access.client.rpc(
+    "resolve_mobile_member_notification_preferences",
+  );
+  const parsedPreferences = preferenceRowsSchema.safeParse(
+    preferencesResult.data,
+  );
+  const preferences: readonly MemberNotificationPreference[] | null =
+    preferencesResult.error || !parsedPreferences.success
+      ? null
+      : parsedPreferences.data;
+  const standings =
+    standingsResult.status === "fulfilled" ? standingsResult.value : null;
+  const history =
+    historyResult.status === "fulfilled" ? historyResult.value : null;
+  const recentHistory = history?.[0] ?? null;
+  let recentResult: Readonly<{
+    results: readonly MemberOfficialResult[];
+    history: MemberQuotaHistory;
+  }> | null = null;
+  if (recentHistory) {
+    try {
+      const official = await executeReadMemberOfficialResults(
+        access.userId,
+        recentHistory.round_id,
+      );
+      recentResult = { history: recentHistory, results: official.results };
+    } catch {
+      recentResult = null;
+    }
+  }
+
   return (
     <main className="auth-shell auth-shell-single invitation-shell">
       <section className="auth-ledger" aria-labelledby="member-home-title">
+        <nav className="member-results-nav" aria-label="Member navigation">
+          <Link className="secondary-link" href="/member/standings">
+            Standings and history
+          </Link>
+          <Link className="secondary-link" href="#notifications">
+            Notification preferences
+          </Link>
+        </nav>
         <div className="auth-heading">
           <p className="ledger-kicker">Member home</p>
           <h1 id="member-home-title">
@@ -69,6 +137,12 @@ export default async function MemberHomePage() {
               </p>
             </section>
           )}
+          <MemberHomeResultsSummary
+            standings={standings}
+            history={history}
+            recentResult={recentResult}
+          />
+          <MemberNotificationPreferences preferences={preferences} />
           <Link className="secondary-link" href="/account">
             Manage account e-mail
           </Link>
@@ -76,6 +150,124 @@ export default async function MemberHomePage() {
       </section>
     </main>
   );
+}
+
+function MemberHomeResultsSummary({
+  standings,
+  history,
+  recentResult,
+}: Readonly<{
+  standings: readonly MemberStanding[] | null;
+  history: readonly MemberQuotaHistory[] | null;
+  recentResult: Readonly<{
+    results: readonly MemberOfficialResult[];
+    history: MemberQuotaHistory;
+  }> | null;
+}>) {
+  const own = standings?.find((row) => row.is_actor) ?? null;
+  const winnerRank = recentResult?.results.find(
+    (result) => result.competition_rank !== null,
+  )?.competition_rank;
+  const winners = winnerRank
+    ? (recentResult?.results.filter(
+        (result) => result.competition_rank === winnerRank,
+      ) ?? [])
+    : [];
+
+  return (
+    <section
+      className="member-home-results-summary"
+      aria-labelledby="member-home-summary-title"
+    >
+      <div className="member-home-round-heading">
+        <p className="ledger-kicker">Results and standings</p>
+        <h2 id="member-home-summary-title">Your current game view</h2>
+      </div>
+      {recentResult ? (
+        <article className="member-home-recent-result">
+          <p className="ledger-kicker">Recent result</p>
+          <h3>{recentResult.history.round_description ?? "Completed round"}</h3>
+          <p>
+            {formatCompletedAt(
+              recentResult.history.completed_at,
+              recentResult.history.group_time_zone,
+            )}{" "}
+            ·{" "}
+            {recentResult.history.format === "individual_net"
+              ? "Individual Net"
+              : "Individual Gross"}
+          </p>
+          {winners.length > 0 ? (
+            <p>
+              Winner{winners.length === 1 ? "" : "s"}:{" "}
+              {winners.map(displayName).join(" and ")} at rank {winnerRank}
+            </p>
+          ) : null}
+          <Link
+            className="secondary-link"
+            href={
+              "/member/results?round_id=" +
+              encodeURIComponent(recentResult.history.round_id)
+            }
+          >
+            Open official result
+          </Link>
+        </article>
+      ) : history === null ? (
+        <p className="member-read-empty" role="status">
+          Results and standings are temporarily unavailable. Refresh to try
+          again.
+        </p>
+      ) : (
+        <p className="member-read-empty" role="status">
+          No completed official rounds are available yet.
+        </p>
+      )}
+      <dl
+        className="member-stats-summary"
+        aria-label="Current standings summary"
+      >
+        <div>
+          <dt>Current quota</dt>
+          <dd>{own?.projected_quota ?? "Not available"}</dd>
+        </div>
+        <div>
+          <dt>Merit total</dt>
+          <dd>{own?.merit_total ?? "0"}</dd>
+        </div>
+        <div>
+          <dt>Rounds played</dt>
+          <dd>{own?.rounds_played ?? "0"}</dd>
+        </div>
+        <div>
+          <dt>Order of Merit rank</dt>
+          <dd>{own?.standing_rank ?? "Not ranked"}</dd>
+        </div>
+      </dl>
+      <Link className="secondary-link" href="/member/standings">
+        Open standings and history
+      </Link>
+    </section>
+  );
+}
+
+function displayName(
+  result: Pick<MemberOfficialResult, "first_name" | "last_name">,
+) {
+  return (
+    [result.first_name, result.last_name]
+      .filter((value): value is string => Boolean(value?.trim()))
+      .join(" ")
+      .trim() || "Unnamed player"
+  );
+}
+
+function formatCompletedAt(value: string, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  }).format(new Date(value));
 }
 
 function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {

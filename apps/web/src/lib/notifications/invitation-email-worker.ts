@@ -96,6 +96,7 @@ export type InvitationEmailWorkerResult =
 
 export const notificationPermanentFailureCodes = [
   "provider_rejected",
+  "provider_invalid",
   "provider_invalid_response",
   "unsupported_token_key_version",
   "invalid_claim",

@@ -104,4 +104,47 @@ describe("mobile rounds API", () => {
       ok: false,
     });
   });
+
+  it("resolves an exact historical round summary for deep links", async () => {
+    rpc.mockResolvedValue({ data: [row], error: null });
+    const api = createMobileRoundsApi({ rpc });
+
+    await expect(api.read(roundId)).resolves.toEqual({
+      data: {
+        roundId,
+        groupId,
+        description: "Saturday live round",
+        scheduledAt: "2026-08-08T12:00:00.000Z",
+        groupTimeZone: "America/New_York",
+        venue: "North Course",
+        format: "individual_net",
+        state: "live",
+        version: 4,
+        participantStatus: "playing",
+        participantVersion: 2,
+        participantCount: 3,
+        playingCount: 2,
+        updatedAt: "2026-08-04T12:00:00.000Z",
+      },
+      ok: true,
+    });
+    expect(rpc).toHaveBeenCalledWith("read_mobile_round_summary", {
+      p_round_id: roundId,
+    });
+  });
+
+  it("does not accept malformed exact-summary responses or IDs", async () => {
+    const api = createMobileRoundsApi({ rpc });
+    await expect(api.read("not-a-uuid")).resolves.toMatchObject({
+      code: "validation",
+      ok: false,
+    });
+    expect(rpc).not.toHaveBeenCalled();
+
+    rpc.mockResolvedValue({ data: [], error: null });
+    await expect(api.read(roundId)).resolves.toMatchObject({
+      code: "unavailable",
+      ok: false,
+    });
+  });
 });

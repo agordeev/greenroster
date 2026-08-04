@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { AppState, Platform } from "react-native";
+import * as Notifications from "expo-notifications";
 
 import {
   parseMobileAuthCallback,
@@ -38,6 +39,7 @@ import { mobileRuntimeEnv } from "@/lib/runtime-env";
 import { retireCurrentMobilePushDevice } from "@/lib/notifications/mobile-push-registration-default";
 import { createMobileScoreQueue } from "@/lib/rounds/mobile-score-queue";
 import { mobileLiveRoundSnapshotStorage } from "@/lib/rounds/mobile-live-round-snapshot-storage";
+import { resolveResultsNotificationDestination } from "@/lib/notifications/mobile-results-notification";
 
 type MobileAuthContextValue = MobileAuthState & {
   clearPendingDestination(): Promise<void>;
@@ -100,6 +102,7 @@ export function MobileAuthProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const handledCallback = useRef<string | null>(null);
+  const handledNotificationResponse = useRef<string | null>(null);
   const pendingRecoveryCallback = useRef<Extract<
     MobileAuthCallback,
     { kind: "code" }
@@ -328,6 +331,39 @@ export function MobileAuthProvider({
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    let active = true;
+
+    const handleResponse = (response: Notifications.NotificationResponse) => {
+      const data = response.notification.request.content.data;
+      const destination = resolveResultsNotificationDestination(data);
+      if (!destination) return;
+      if (handledNotificationResponse.current === destination) return;
+      handledNotificationResponse.current = destination;
+      void pendingLinkStorage
+        .set(`${mobileRuntimeEnv.appUrl}${destination}`)
+        .then(() => {
+          if (!active) return;
+          setPendingDestination(destination);
+          setPendingDestinationReady(true);
+        });
+    };
+
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(handleResponse);
+    void Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (active && response) handleResponse(response);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+      subscription.remove();
     };
   }, []);
 

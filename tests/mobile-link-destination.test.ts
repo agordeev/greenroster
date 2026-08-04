@@ -39,6 +39,28 @@ describe("mobile link destination contract", () => {
     }
   });
 
+  it("resolves a validated result round query for notification taps", () => {
+    const roundId = "70000000-0000-4000-8000-000000000001";
+    expect(
+      resolveMobileLinkDestination(
+        `${canonicalOrigin}/rounds?roundId=${roundId}`,
+        canonicalOrigin,
+      ),
+    ).toEqual({
+      href: `/rounds?roundId=${roundId}`,
+      source: "https",
+    });
+    expect(
+      resolveMobileLinkDestination(
+        `greenroster://rounds?roundId=${roundId}`,
+        canonicalOrigin,
+      ),
+    ).toEqual({
+      href: `/rounds?roundId=${roundId}`,
+      source: "custom-scheme",
+    });
+  });
+
   it("rejects auth callbacks and URLs with credentials, queries, or fragments", () => {
     const rejected = [
       "greenroster://auth/callback",

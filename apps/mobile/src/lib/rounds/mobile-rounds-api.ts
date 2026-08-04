@@ -67,14 +67,26 @@ export type MobileRoundsResult =
   | Readonly<{ ok: true; data: readonly MobileRoundSummary[] }>
   | Readonly<{ ok: false; code: MobileRoundsErrorCode; message: string }>;
 
+type MobileRoundsFailure = Readonly<{
+  ok: false;
+  code: MobileRoundsErrorCode;
+  message: string;
+}>;
+
+export type MobileRoundSummaryResult =
+  | Readonly<{ ok: true; data: MobileRoundSummary }>
+  | Readonly<{ ok: false; code: MobileRoundsErrorCode; message: string }>;
+
 type MobileRoundsClient = Pick<typeof mobileSupabase, "rpc">;
 
 function mapError(
   error: Readonly<{ code?: string; message?: string }>,
-): MobileRoundsResult {
+): MobileRoundsFailure {
   const normalized = (error.message ?? "").toLowerCase();
   if (
     error.code === "P0003" ||
+    error.code === "P0002" ||
+    normalized.includes("round_not_found") ||
     normalized.includes("not_authorized") ||
     normalized.includes("permission")
   ) {
@@ -118,6 +130,10 @@ function mapRow(row: z.infer<typeof roundRowSchema>): MobileRoundSummary {
   };
 }
 
+function invalidSummary(message: string): MobileRoundSummaryResult {
+  return { code: "unavailable", message, ok: false };
+}
+
 export function createMobileRoundsApi(client: MobileRoundsClient) {
   return {
     async list(
@@ -152,6 +168,31 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
           };
         }
         return { data: parsed.data.map(mapRow), ok: true };
+      } catch {
+        return mapError({ message: "network_unavailable" });
+      }
+    },
+    async read(roundId: string): Promise<MobileRoundSummaryResult> {
+      const parsedRoundId = z.uuid().safeParse(roundId);
+      if (!parsedRoundId.success) {
+        return {
+          code: "validation",
+          message: "That round could not be loaded.",
+          ok: false,
+        };
+      }
+      try {
+        const { data, error } = await client.rpc("read_mobile_round_summary", {
+          p_round_id: parsedRoundId.data,
+        });
+        if (error) return mapError(error);
+        const parsed = z.array(roundRowSchema).safeParse(data);
+        if (!parsed.success || parsed.data.length !== 1) {
+          return invalidSummary(
+            "GreenRoster returned an invalid round summary.",
+          );
+        }
+        return { data: mapRow(parsed.data[0]), ok: true };
       } catch {
         return mapError({ message: "network_unavailable" });
       }

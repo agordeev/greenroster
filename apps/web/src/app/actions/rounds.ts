@@ -37,6 +37,16 @@ import {
 import { executeOpenRoundScoring } from "@/lib/rounds/round-scoring-data";
 import { executeSetRoundParticipantScore } from "@/lib/rounds/round-score-data";
 import { executeSetLiveRoundParticipantNotPlaying } from "@/lib/rounds/live-round-participant-rsvp-correction-data";
+import {
+  executeCompleteLiveRound,
+  executePreviewLiveRoundCompletion,
+  executeReopenCompletedRound,
+} from "@/lib/rounds/round-completion-data";
+import {
+  runRoundCompletionMutation,
+  runRoundCompletionPreview,
+  runRoundReopenMutation,
+} from "@/domain/round-completion";
 
 export async function createRoundDraftAction(input: unknown) {
   const requestHeaders = await headers();
@@ -158,6 +168,38 @@ export async function setLiveRoundParticipantNotPlayingAction(input: unknown) {
       verifySession: verifyMutationSession,
     },
   );
+}
+
+export async function previewLiveRoundCompletionAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundCompletionPreview(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executePreviewLiveRoundCompletion,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function completeLiveRoundAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundCompletionMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeCompleteLiveRound,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function reopenCompletedRoundAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundReopenMutation(input, requestHeaders.get("x-correlation-id"), {
+    execute: executeReopenCompletedRound,
+    verifySession: verifyMutationSession,
+  });
 }
 
 export async function setRoundRsvpAction(input: unknown) {

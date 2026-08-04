@@ -35,7 +35,7 @@ type ProviderState =
 type MobileFirstRunContextValue = ProviderState & {
   complete(firstName: string, lastName: string): Promise<MobileFirstRunResult>;
   consumeDeferredPath(): MobileLinkDestination;
-  rememberDeferredPath(path: string): void;
+  rememberDeferredPath(path: MobileLinkDestination): void;
   retry(): Promise<void>;
 };
 
@@ -135,9 +135,14 @@ export function MobileFirstRunProvider({
       consumeDeferredPath() {
         return deferredPath.current;
       },
-      rememberDeferredPath(path: string) {
-        if ((MOBILE_LINK_PATHS as readonly string[]).includes(path)) {
-          deferredPath.current = path as MobileLinkDestination;
+      rememberDeferredPath(path: MobileLinkDestination) {
+        if (
+          (MOBILE_LINK_PATHS as readonly string[]).includes(path) ||
+          /^\/rounds\?roundId=[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+            path,
+          )
+        ) {
+          deferredPath.current = path;
         }
       },
       retry,

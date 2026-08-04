@@ -444,7 +444,7 @@ function PortalDashboardSummaryCard({
       <div className="dashboard-summary-heading">
         <div>
           <p className="ledger-kicker">Operational snapshot</p>
-          <h2 id="dashboard-summary-title">Roster and delivery health</h2>
+          <h2 id="dashboard-summary-title">Roster, results, and standings</h2>
         </div>
         <p>Authoritative counts from your current group</p>
       </div>
@@ -509,10 +509,65 @@ function PortalDashboardSummaryCard({
             </span>
             <strong>{summary.actionRequiredInvitations.total}</strong>
           </Link>
+          {summary.completedResult !== undefined || summary.standingsSummary ? (
+            <div className="dashboard-summary-grid">
+              <Link
+                className="dashboard-summary-card"
+                href={
+                  summary.completedResult
+                    ? `/portal/rounds?round=${encodeURIComponent(summary.completedResult.roundId)}`
+                    : "/portal/rounds"
+                }
+                aria-label="Open recent official round results"
+              >
+                <span>Most recent completed result</span>
+                <strong>
+                  {summary.completedResult
+                    ? summary.completedResult.description || "Completed round"
+                    : "No completed rounds"}
+                </strong>
+                <small>
+                  {summary.completedResult
+                    ? `${summary.completedResult.winnerNames.length > 0 ? summary.completedResult.winnerNames.join(" · ") : "No ranked winner"} · ${summary.completedResult.resultCount} official rows · ${formatDashboardDate(summary.completedResult.completedAt, summary.completedResult.groupTimeZone)}`
+                    : "Open round administration"}
+                </small>
+              </Link>
+              {summary.standingsSummary ? (
+                <Link
+                  className="dashboard-summary-card"
+                  href="/portal/standings"
+                  aria-label="Open current Order of Merit standings"
+                >
+                  <span>Current Order of Merit</span>
+                  <strong>
+                    {summary.standingsSummary.leader?.name ??
+                      "No ranked members"}
+                  </strong>
+                  <small>
+                    {summary.standingsSummary.leader
+                      ? `${summary.standingsSummary.leader.meritTotal ?? "0"} merit · ${summary.standingsSummary.memberCount} active members`
+                      : `${summary.standingsSummary.memberCount} active members · Configure results to rank`}
+                  </small>
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
         </>
       ) : null}
     </section>
   );
+}
+
+function formatDashboardDate(value: string | null, timeZone: string) {
+  if (!value) return "date unavailable";
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeZone,
+    }).format(new Date(value));
+  } catch {
+    return "date unavailable";
+  }
 }
 
 function formatActionRequiredInvitationSummary(

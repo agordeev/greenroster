@@ -44,6 +44,18 @@ describe("notification drain route", () => {
         calls.push("details-changed");
         return { kind: "empty" as const };
       },
+      runResultsPublished: async () => {
+        calls.push("results-published");
+        return { kind: "empty" as const };
+      },
+      runResultsPublishedPush: async () => {
+        calls.push("results-published-push");
+        return { kind: "empty" as const };
+      },
+      runResultsPublishedPushReceipt: async () => {
+        calls.push("results-published-push-receipt");
+        return { kind: "empty" as const };
+      },
     });
     expect(calls).toEqual([
       "invitation",
@@ -51,6 +63,9 @@ describe("notification drain route", () => {
       "round",
       "cancelled",
       "details-changed",
+      "results-published",
+      "results-published-push",
+      "results-published-push-receipt",
     ]);
     expect(result).toEqual({
       kind: "sent",
@@ -90,6 +105,11 @@ describe("notification drain route", () => {
         runRoundPublished: async () => ({ kind: "empty" as const }),
         runRoundCancelled: async () => ({ kind: "empty" as const }),
         runRoundDetailsChanged: async () => ({ kind: "empty" as const }),
+        runResultsPublished: async () => ({ kind: "empty" as const }),
+        runResultsPublishedPush: async () => ({ kind: "empty" as const }),
+        runResultsPublishedPushReceipt: async () => ({
+          kind: "empty" as const,
+        }),
       },
       5,
     );

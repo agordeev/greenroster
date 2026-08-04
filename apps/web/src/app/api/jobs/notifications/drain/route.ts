@@ -6,6 +6,9 @@ import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notificat
 import { runRoundCancelledEmailWorker } from "../../../../../lib/notifications/round-cancelled-email-worker";
 import { runRoundDetailsChangedEmailWorker } from "../../../../../lib/notifications/round-details-changed-email-worker";
 import { runRoundPublishedEmailWorker } from "../../../../../lib/notifications/round-published-email-worker";
+import { runResultsPublishedEmailWorker } from "../../../../../lib/notifications/results-published-email-worker";
+import { runResultsPublishedPushWorker } from "../../../../../lib/notifications/results-published-push-worker";
+import { runResultsPublishedPushReceiptWorker } from "../../../../../lib/notifications/results-published-push-receipt-worker";
 import { cronBearerMatches } from "../../../../../lib/jobs/cron-auth";
 
 export type NotificationDrainRouteDependencies = Readonly<{
@@ -27,6 +30,9 @@ export type NotificationEmailWorkerRunners = Readonly<{
   runRoundPublished: () => Promise<InvitationEmailWorkerResult>;
   runRoundCancelled: () => Promise<InvitationEmailWorkerResult>;
   runRoundDetailsChanged: () => Promise<InvitationEmailWorkerResult>;
+  runResultsPublished: () => Promise<InvitationEmailWorkerResult>;
+  runResultsPublishedPush: () => Promise<InvitationEmailWorkerResult>;
+  runResultsPublishedPushReceipt: () => Promise<InvitationEmailWorkerResult>;
 }>;
 
 export async function runNotificationEmailWorkers(
@@ -38,6 +44,9 @@ export async function runNotificationEmailWorkers(
     runRoundPublished: runRoundPublishedEmailWorker,
     runRoundCancelled: runRoundCancelledEmailWorker,
     runRoundDetailsChanged: runRoundDetailsChangedEmailWorker,
+    runResultsPublished: runResultsPublishedEmailWorker,
+    runResultsPublishedPush: runResultsPublishedPushWorker,
+    runResultsPublishedPushReceipt: runResultsPublishedPushReceiptWorker,
     ...overrides,
   };
   const results = await Promise.all([
@@ -46,6 +55,9 @@ export async function runNotificationEmailWorkers(
     runners.runRoundPublished(),
     runners.runRoundCancelled(),
     runners.runRoundDetailsChanged(),
+    runners.runResultsPublished(),
+    runners.runResultsPublishedPush(),
+    runners.runResultsPublishedPushReceipt(),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;
@@ -76,6 +88,9 @@ export async function runNotificationEmailDrain(
     runRoundPublished: runRoundPublishedEmailWorker,
     runRoundCancelled: runRoundCancelledEmailWorker,
     runRoundDetailsChanged: runRoundDetailsChangedEmailWorker,
+    runResultsPublished: runResultsPublishedEmailWorker,
+    runResultsPublishedPush: runResultsPublishedPushWorker,
+    runResultsPublishedPushReceipt: runResultsPublishedPushReceiptWorker,
     ...overrides,
   };
   const results = await Promise.all([
@@ -84,6 +99,12 @@ export async function runNotificationEmailDrain(
     drainWorker(runners.runRoundPublished, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundCancelled, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundDetailsChanged, maxDeliveriesPerCategory),
+    drainWorker(runners.runResultsPublished, maxDeliveriesPerCategory),
+    drainWorker(runners.runResultsPublishedPush, maxDeliveriesPerCategory),
+    drainWorker(
+      runners.runResultsPublishedPushReceipt,
+      maxDeliveriesPerCategory,
+    ),
   ]);
   const unavailable = results.find((result) => result.kind === "unavailable");
   if (unavailable) return unavailable;

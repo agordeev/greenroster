@@ -1,4 +1,9 @@
-import { Redirect, usePathname, useSegments } from "expo-router";
+import {
+  Redirect,
+  useLocalSearchParams,
+  usePathname,
+  useSegments,
+} from "expo-router";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +19,7 @@ export function MobileAuthBoundary({
 }: Readonly<{ children: ReactNode }>) {
   const segments = useSegments();
   const pathname = usePathname();
+  const params = useLocalSearchParams<{ roundId?: string | string[] }>();
   const theme = useTheme();
   const {
     pendingDestination,
@@ -26,6 +32,15 @@ export function MobileAuthBoundary({
   const isRecoveryRoute =
     isAuthRoute &&
     (segments[1] === "callback" || segments[1] === "reset-password");
+  const currentRoundId = Array.isArray(params.roundId)
+    ? params.roundId[0]
+    : params.roundId;
+  const pendingRoundId = pendingDestination?.startsWith("/rounds?roundId=")
+    ? pendingDestination.slice("/rounds?roundId=".length)
+    : null;
+  const hasArrivedAtPendingDestination =
+    pendingDestination?.split("?", 1)[0] === pathname &&
+    (!pendingRoundId || pendingRoundId === currentRoundId);
 
   if (status === "checking" || !pendingDestinationReady) {
     return (
@@ -69,7 +84,7 @@ export function MobileAuthBoundary({
     status === "signed-in" &&
     !recoveryRequired &&
     pendingDestination &&
-    pendingDestination !== pathname
+    !hasArrivedAtPendingDestination
   ) {
     return <Redirect href={pendingDestination} />;
   }

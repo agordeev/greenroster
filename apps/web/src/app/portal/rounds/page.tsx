@@ -17,6 +17,8 @@ import { MutationError } from "@/lib/mutations/result";
 import { executeListRoundDrafts } from "@/lib/rounds/round-drafts-data";
 import { executeReadCoordinatorRoundDetail } from "@/lib/rounds/round-detail-data";
 import { executeReadLiveRoundScores } from "@/lib/rounds/live-round-score-data";
+import { executeReadMemberOfficialResults } from "@/lib/rounds/member-results-data";
+import { executePreviewLiveRoundCompletion } from "@/lib/rounds/round-completion-data";
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -137,6 +139,27 @@ export default async function RoundsPage({
       liveScoresUnavailable = true;
     }
   }
+  let completionPreview = null as Awaited<
+    ReturnType<typeof executePreviewLiveRoundCompletion>
+  > | null;
+  let completionPreviewUnavailable = false;
+  if (selectedRound?.state === "live") {
+    if (!roundDetail) {
+      completionPreviewUnavailable = true;
+    } else {
+      try {
+        completionPreview = await executePreviewLiveRoundCompletion(
+          session.userId,
+          {
+            roundId: selectedRound.roundId,
+            groupId: roundDetail.groupId,
+          },
+        );
+      } catch {
+        completionPreviewUnavailable = true;
+      }
+    }
+  }
   let publicationReview = null;
   let publicationReviewUnavailable = false;
   if (selectedRound?.state === "draft" && selectedRound.format !== null) {
@@ -147,6 +170,20 @@ export default async function RoundsPage({
       });
     } catch {
       publicationReviewUnavailable = true;
+    }
+  }
+  let officialResults = null as Awaited<
+    ReturnType<typeof executeReadMemberOfficialResults>
+  > | null;
+  let officialResultsUnavailable = false;
+  if (selectedRound?.state === "completed") {
+    try {
+      officialResults = await executeReadMemberOfficialResults(
+        session.userId,
+        selectedRound.roundId,
+      );
+    } catch {
+      officialResultsUnavailable = true;
     }
   }
   const newRound: RoundDraft = {
@@ -203,6 +240,10 @@ export default async function RoundsPage({
           roundDetailUnavailable={roundDetailUnavailable}
           liveScores={liveScores}
           liveScoresUnavailable={liveScoresUnavailable}
+          officialResults={officialResults}
+          officialResultsUnavailable={officialResultsUnavailable}
+          completionPreview={completionPreview}
+          completionPreviewUnavailable={completionPreviewUnavailable}
         />
 
         <section

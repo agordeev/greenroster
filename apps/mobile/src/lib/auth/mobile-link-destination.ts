@@ -17,8 +17,11 @@ export const MOBILE_LINK_PATHS = [
 
 export type MobileLinkPath = (typeof MOBILE_LINK_PATHS)[number];
 
+export type MobileRoundResultDestination = `/rounds?roundId=${string}`;
+
 /** A route string that can be handed directly to Expo Router navigation. */
-export type MobileLinkDestination = MobileLinkPath & Href;
+export type MobileLinkDestination =
+  (MobileLinkPath & Href) | (MobileRoundResultDestination & Href);
 
 export type MobileLinkSource = "custom-scheme" | "https";
 
@@ -31,6 +34,31 @@ const MOBILE_SCHEME = "greenroster:";
 
 function isAllowedPath(pathname: string): pathname is MobileLinkPath {
   return (MOBILE_LINK_PATHS as readonly string[]).includes(pathname);
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+    value,
+  );
+}
+
+function resolveAllowedDestination(
+  pathname: string,
+  search: string,
+): MobileLinkDestination | null {
+  if (search === "" && isAllowedPath(pathname)) return pathname;
+  if (pathname !== "/rounds") return null;
+  const params = new URLSearchParams(search);
+  const roundId = params.get("roundId");
+  if (
+    !roundId ||
+    !isUuid(roundId) ||
+    params.size !== 1 ||
+    params.get("roundId") !== roundId
+  ) {
+    return null;
+  }
+  return `/rounds?roundId=${roundId}`;
 }
 
 function isCanonicalOrigin(value: string): boolean {
@@ -51,13 +79,12 @@ function isCanonicalOrigin(value: string): boolean {
   }
 }
 
-function resolveCustomSchemePath(parsed: URL): MobileLinkPath | null {
+function resolveCustomSchemePath(parsed: URL): MobileLinkDestination | null {
   if (
     parsed.protocol !== MOBILE_SCHEME ||
     parsed.port !== "" ||
     parsed.username !== "" ||
     parsed.password !== "" ||
-    parsed.search !== "" ||
     parsed.hash !== ""
   ) {
     return null;
@@ -69,20 +96,17 @@ function resolveCustomSchemePath(parsed: URL): MobileLinkPath | null {
   // combination is accepted.
   if (parsed.hostname !== "") {
     const hostPath = `/${parsed.hostname}`;
-    if (parsed.pathname !== "" || !isAllowedPath(hostPath)) {
-      return null;
-    }
-
-    return hostPath;
+    if (parsed.pathname !== "") return null;
+    return resolveAllowedDestination(hostPath, parsed.search);
   }
 
   // `greenroster://` is the canonical two-slash root form; URL exposes its
   // empty pathname, so normalize that one exact shape to Expo's `/` route.
-  if (parsed.pathname === "") {
+  if (parsed.pathname === "" && parsed.search === "") {
     return "/";
   }
 
-  return isAllowedPath(parsed.pathname) ? parsed.pathname : null;
+  return resolveAllowedDestination(parsed.pathname, parsed.search);
 }
 
 /**
@@ -118,13 +142,11 @@ export function resolveMobileLinkDestination(
     parsed.username !== "" ||
     parsed.password !== "" ||
     parsed.port !== "" ||
-    parsed.search !== "" ||
     parsed.hash !== ""
   ) {
     return null;
   }
 
-  return isAllowedPath(parsed.pathname)
-    ? { href: parsed.pathname, source: "https" }
-    : null;
+  const destination = resolveAllowedDestination(parsed.pathname, parsed.search);
+  return destination ? { href: destination, source: "https" } : null;
 }

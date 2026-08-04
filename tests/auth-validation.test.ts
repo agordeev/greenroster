@@ -76,7 +76,7 @@ describe("authentication input contracts", () => {
     );
   });
 
-  it("allows only exact parameter-free invitation and member destinations", () => {
+  it("allows only exact member destinations and validated result queries", () => {
     expect(resolveSafeReturnPath("/invitations/accept")).toBe(
       "/invitations/accept",
     );
@@ -84,7 +84,20 @@ describe("authentication input contracts", () => {
       "/member/first-run",
     );
     expect(resolveSafeReturnPath("/member/home")).toBe("/member/home");
+    expect(resolveSafeReturnPath("/member/results")).toBe("/member/results");
+    expect(
+      resolveSafeReturnPath(
+        "/member/results?round_id=10000000-0000-4000-8000-000000000001",
+      ),
+    ).toBe("/member/results?round_id=10000000-0000-4000-8000-000000000001");
+    expect(resolveSafeReturnPath("/member/standings")).toBe(
+      "/member/standings",
+    );
+    expect(resolveSafeReturnPath("/member/profile")).toBe("/portal");
     expect(resolveSafeReturnPath("/member/home?admin=true")).toBe("/portal");
+    expect(resolveSafeReturnPath("/member/results?round_id=not-a-uuid")).toBe(
+      "/portal",
+    );
     expect(resolveSafeReturnPath("/member/home/extra")).toBe("/portal");
     expect(resolveSafeReturnPath("/account")).toBe("/account");
     expect(resolveSafeReturnPath("/account?admin=true")).toBe("/portal");

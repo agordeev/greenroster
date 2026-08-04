@@ -63,4 +63,22 @@ describe("pending mobile link persistence", () => {
     await recoveryHandleStorage.clear();
     expect(await recoveryHandleStorage.get()).toBeNull();
   });
+
+  it("consumes a result deep link only after its round query is present", () => {
+    const destination =
+      "/rounds?roundId=10000000-0000-4000-8000-000000000001" as const;
+    expect(hasArrivedAtMobilePendingDestination(destination, "/rounds")).toBe(
+      false,
+    );
+    expect(
+      hasArrivedAtMobilePendingDestination(destination, "/rounds", {
+        roundId: "10000000-0000-4000-8000-000000000001",
+      }),
+    ).toBe(true);
+    expect(
+      hasArrivedAtMobilePendingDestination(destination, "/rounds", {
+        roundId: "20000000-0000-4000-8000-000000000001",
+      }),
+    ).toBe(false);
+  });
 });

@@ -18,6 +18,7 @@ import {
 } from "react";
 
 import { MemberDestinationScreen } from "@/components/member-destination-screen";
+import { MobileOfficialRoundResultSurface } from "@/components/mobile-official-round-result-surface";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -72,6 +73,9 @@ export function MobileLiveRoundSurface({
     "idle" | "loading" | "ready" | "error"
   >("idle");
   const [roundMessage, setRoundMessage] = useState<string | null>(null);
+  const [requestedRoundMessage, setRequestedRoundMessage] = useState<
+    string | null
+  >(null);
   const [scoreState, setScoreState] = useState<MobileLiveRoundState | null>(
     null,
   );
@@ -164,6 +168,7 @@ export function MobileLiveRoundSurface({
     const sequence = ++roundRequestSequence.current;
     setRoundStatus("loading");
     setRoundMessage(null);
+    setRequestedRoundMessage(null);
     const result = await mobileRoundsApi.list();
     if (sequence !== roundRequestSequence.current) return;
     if (!result.ok) {
@@ -218,12 +223,26 @@ export function MobileLiveRoundSurface({
         // Cache reconciliation is best effort; the fresh server list remains authoritative.
       }
     }
-    setRounds(result.data);
+    let nextRounds = result.data;
+    if (
+      requestedRoundId &&
+      !result.data.some((round) => round.roundId === requestedRoundId)
+    ) {
+      const exactRound = await mobileRoundsApi.read(requestedRoundId);
+      if (sequence !== roundRequestSequence.current) return;
+      if (exactRound.ok) {
+        nextRounds = [...result.data, exactRound.data];
+      } else {
+        setRequestedRoundMessage(exactRound.message);
+      }
+    }
+    setRounds(nextRounds);
     setRoundStatus("ready");
   }, [
     purgeRoundOfflineData,
     purgeUserOfflineData,
     queue,
+    requestedRoundId,
     session,
     snapshotStorage,
   ]);
@@ -566,6 +585,44 @@ export function MobileLiveRoundSurface({
   const visibleRoundCount =
     mode === "leaderboard" ? liveRounds.length : rounds.length;
 
+  if (requestedRoundId && selectedRound?.state === "completed") {
+    return (
+      <MobileOfficialRoundResultSurface
+        round={selectedRound}
+        onBack={clearSelectedRound}
+      />
+    );
+  }
+
+  if (
+    requestedRoundId &&
+    roundStatus === "ready" &&
+    !selectedRound &&
+    requestedRoundMessage
+  ) {
+    return (
+      <MemberDestinationScreen
+        eyebrow="Results"
+        title="Official result unavailable"
+        introduction="This exact round could not be opened for the signed-in account. GreenRoster does not reveal whether a denied or withdrawn round exists."
+        emptyTitle="Result unavailable"
+        emptyBody={requestedRoundMessage}
+        facts={[["Round", "Unavailable"]]}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Back to rounds"
+          onPress={clearSelectedRound}
+          style={[styles.secondaryButton, { borderColor: theme.separator }]}
+        >
+          <ThemedText type="smallBold" themeColor="accent">
+            Back to rounds
+          </ThemedText>
+        </Pressable>
+      </MemberDestinationScreen>
+    );
+  }
+
   if (
     requestedRoundId &&
     selectedRound?.state === "live" &&
@@ -691,7 +748,7 @@ export function MobileLiveRoundSurface({
           rounds={completedRounds}
           onOpen={openRound}
           theme={theme}
-          interactive={false}
+          interactive
         />
       ) : null}
       {roundStatus === "error" ? (
@@ -788,7 +845,11 @@ function RoundRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Open ${round.description || "round"}`}
+      accessibilityLabel={
+        round.state === "completed"
+          ? `Open results for ${round.description || "round"}`
+          : `Open ${round.description || "round"}`
+      }
       onPress={() => onOpen(round.roundId)}
       style={({ pressed }) => [...rowStyle, pressed && styles.pressed]}
     >

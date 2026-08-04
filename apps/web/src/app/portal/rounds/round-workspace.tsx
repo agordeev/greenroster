@@ -6,6 +6,11 @@ import type { RoundDraftFormValue, RoundFormat } from "@/domain/round-drafts";
 import type { RoundCoordinatorDetail } from "@/domain/round-detail";
 import type { RoundPublicationReview } from "@/domain/round-publication";
 import type { LiveRoundScoreParticipant } from "@/domain/round-score";
+import type {
+  MemberOfficialResult,
+  MemberOfficialRound,
+} from "@/lib/rounds/member-results-data";
+import type { RoundCompletionPreview } from "@/domain/round-completion";
 
 import { PublicationReviewPanel } from "./publication-review";
 import { RoundCancellationPanel } from "./round-cancellation-panel";
@@ -16,6 +21,8 @@ import { RoundScoringPanel } from "./round-scoring-panel";
 import { LiveRoundScoreboard } from "./live-round-scoreboard";
 import { LiveRoundScoreEntryPanel } from "./live-round-score-entry-panel";
 import { LiveRoundParticipantRsvpCorrectionPanel } from "./live-round-participant-rsvp-correction-panel";
+import { OfficialResultsPanel } from "./official-results-panel";
+import { RoundCompletionPanel } from "./round-completion-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -31,6 +38,10 @@ export function RoundWorkspace({
   roundDetailUnavailable,
   liveScores,
   liveScoresUnavailable,
+  officialResults,
+  officialResultsUnavailable,
+  completionPreview,
+  completionPreviewUnavailable,
 }: Readonly<{
   identityKey: string;
   initialValue: RoundDraftFormValue;
@@ -45,6 +56,13 @@ export function RoundWorkspace({
   roundDetailUnavailable: boolean;
   liveScores: readonly LiveRoundScoreParticipant[];
   liveScoresUnavailable: boolean;
+  officialResults: Readonly<{
+    round: MemberOfficialRound;
+    results: readonly MemberOfficialResult[];
+  }> | null;
+  officialResultsUnavailable: boolean;
+  completionPreview: RoundCompletionPreview | null;
+  completionPreviewUnavailable: boolean;
 }>) {
   const [draftDirty, setDraftDirty] = useState(false);
 
@@ -68,6 +86,24 @@ export function RoundWorkspace({
         ) : (
           <RoundReadOnlyDetail detail={roundDetail} />
         )}
+
+        {state === "completed" ? (
+          <OfficialResultsPanel
+            data={officialResults}
+            unavailable={officialResultsUnavailable}
+          />
+        ) : null}
+
+        {roundId && (state === "live" || state === "completed") ? (
+          <RoundCompletionPanel
+            roundId={roundId}
+            description={description}
+            state={state}
+            version={version}
+            preview={completionPreview}
+            unavailable={completionPreviewUnavailable}
+          />
+        ) : null}
 
         {roundId &&
         state === "published" &&

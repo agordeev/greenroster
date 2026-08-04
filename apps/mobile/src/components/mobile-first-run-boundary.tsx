@@ -1,4 +1,9 @@
-import { Redirect, usePathname, useSegments } from "expo-router";
+import {
+  Redirect,
+  useLocalSearchParams,
+  usePathname,
+  useSegments,
+} from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { ReactNode } from "react";
@@ -10,11 +15,13 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import type { MobileLinkDestination } from "@/lib/auth/mobile-link-destination";
 
 export function MobileFirstRunBoundary({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const path = usePathname();
+  const params = useLocalSearchParams<{ roundId?: string | string[] }>();
   const segments = useSegments();
   const theme = useTheme();
   const firstRun = useMobileFirstRun();
@@ -74,7 +81,12 @@ export function MobileFirstRunBoundary({
   }
 
   if (firstRun.status === "required" && !isFirstRunRoute) {
-    firstRun.rememberDeferredPath(path);
+    const roundId = Array.isArray(params.roundId)
+      ? params.roundId[0]
+      : params.roundId;
+    const deferredPath =
+      path === "/rounds" && roundId ? `/rounds?roundId=${roundId}` : path;
+    firstRun.rememberDeferredPath(deferredPath as MobileLinkDestination);
     return <Redirect href="/auth/first-run" />;
   }
 

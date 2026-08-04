@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { usePathname } from "expo-router";
+import { useLocalSearchParams, usePathname } from "expo-router";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -32,13 +32,22 @@ export function MemberDestinationScreen({
 }>) {
   const theme = useTheme();
   const pathname = usePathname();
+  const searchParams = useLocalSearchParams<{
+    roundId?: string | string[];
+  }>();
   const { clearPendingDestination, pendingDestination } = useMobileAuth();
 
   useEffect(() => {
-    if (hasArrivedAtMobilePendingDestination(pendingDestination, pathname)) {
+    if (
+      hasArrivedAtMobilePendingDestination(
+        pendingDestination,
+        pathname,
+        searchParams,
+      )
+    ) {
       void clearPendingDestination();
     }
-  }, [clearPendingDestination, pathname, pendingDestination]);
+  }, [clearPendingDestination, pathname, pendingDestination, searchParams]);
 
   return (
     <ThemedView style={styles.screen}>

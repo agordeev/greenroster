@@ -25,6 +25,14 @@ export async function resumeMobilePendingDestination(
 export function hasArrivedAtMobilePendingDestination(
   pendingDestination: MobileLinkDestination | null,
   pathname: string,
+  searchParams: Readonly<{ roundId?: string | string[] }> = {},
 ): boolean {
-  return pendingDestination !== null && pendingDestination === pathname;
+  if (pendingDestination === null) return false;
+  const rawRoundId = searchParams.roundId;
+  const roundId = Array.isArray(rawRoundId) ? rawRoundId[0] : rawRoundId;
+  const currentDestination =
+    pathname === "/rounds" && roundId
+      ? `/rounds?roundId=${encodeURIComponent(roundId)}`
+      : pathname;
+  return pendingDestination === currentDestination;
 }
