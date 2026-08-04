@@ -3,6 +3,10 @@
 -- Seed totals remain bootstrap inputs.  Only retained official completion runs
 -- contribute round history; reopened runs are excluded by their run state.
 
+alter table public.round_completion_runs
+  add constraint round_completion_runs_id_round_group_unique
+  unique (id, round_id, group_id);
+
 create table public.membership_quota_history (
   id app.entity_id primary key default extensions.gen_random_uuid(),
   membership_id app.entity_id not null,
@@ -18,13 +22,13 @@ create table public.membership_quota_history (
   source jsonb not null default '{}'::jsonb,
   created_at app.utc_instant not null default pg_catalog.now(),
   constraint membership_quota_history_id_group_unique unique (id, group_id),
+  constraint membership_quota_history_completion_round_group_fk
+    foreign key (completion_id, round_id, group_id)
+    references public.round_completion_runs (id, round_id, group_id)
+    on delete restrict,
   constraint membership_quota_history_membership_group_fk
     foreign key (membership_id, group_id)
     references public.memberships (id, group_id)
-    on delete restrict,
-  constraint membership_quota_history_completion_group_fk
-    foreign key (completion_id, group_id)
-    references public.round_completion_runs (id, group_id)
     on delete restrict,
   constraint membership_quota_history_round_group_fk
     foreign key (round_id, group_id)
@@ -143,6 +147,7 @@ begin
         select 1
         from public.round_completion_runs as completion
         where completion.id = result.completion_id
+          and completion.round_id = result.round_id
           and completion.group_id = result.group_id
           and completion.state = 'official'::public.round_completion_run_state
       )
@@ -157,6 +162,7 @@ begin
       select 1
       from public.round_completion_runs as completion
       where completion.id = result.completion_id
+        and completion.round_id = result.round_id
         and completion.group_id = result.group_id
         and completion.state = 'official'::public.round_completion_run_state
     );
@@ -175,6 +181,7 @@ begin
         select 1
         from public.round_completion_runs as completion
         where completion.id = history.completion_id
+          and completion.round_id = history.round_id
           and completion.group_id = history.group_id
           and completion.state = 'official'::public.round_completion_run_state
       )
@@ -220,6 +227,7 @@ begin
         from public.membership_quota_history as quota
         join public.round_completion_runs as completion
           on completion.id = quota.completion_id
+         and completion.round_id = quota.round_id
          and completion.group_id = quota.group_id
          and completion.state = 'official'::public.round_completion_run_state
         where quota.membership_id = p_membership_id
@@ -265,6 +273,7 @@ begin
         from public.membership_quota_history as quota
         join public.round_completion_runs as completion
           on completion.id = quota.completion_id
+         and completion.round_id = quota.round_id
          and completion.group_id = quota.group_id
          and completion.state = 'official'::public.round_completion_run_state
         where quota.membership_id = p_membership_id
@@ -297,6 +306,7 @@ begin
       from public.membership_quota_history as quota
       join public.round_completion_runs as completion
         on completion.id = quota.completion_id
+       and completion.round_id = quota.round_id
        and completion.group_id = quota.group_id
        and completion.state = 'official'::public.round_completion_run_state
       join public.round_rule_snapshots as snapshot
@@ -353,6 +363,119 @@ begin
     use_initial_next := membership_record.initial_quota is not null
       and membership_record.uses_initial_quota
       and official_count = 0;
+  end if;
+
+  if settings_record.method = 'moving_average'::public.quota_method
+    and not use_initial_next
+    and history_count > 0
+  then
+    with history as (
+      select
+        false as is_official,
+        seed.position::bigint as seed_position,
+        null::app.utc_instant as completed_at,
+        seed.id as tie_id,
+        null::app.entity_id as round_id,
+        seed.point_total
+      from public.membership_quota_seed_totals as seed
+      where seed.membership_id = p_membership_id
+        and seed.group_id = p_group_id
+      union all
+      select
+        true,
+        null::bigint,
+        quota.completed_at,
+        quota.id,
+        quota.round_id,
+        quota.point_total
+      from public.membership_quota_history as quota
+      join public.round_completion_runs as completion
+        on completion.id = quota.completion_id
+       and completion.round_id = quota.round_id
+       and completion.group_id = quota.group_id
+       and completion.state = 'official'::public.round_completion_run_state
+      where quota.membership_id = p_membership_id
+        and quota.group_id = p_group_id
+    ), selected as (
+      select history.*
+      from history
+      order by history.is_official desc, history.completed_at desc nulls last,
+        history.seed_position desc nulls last, history.tie_id desc
+      limit settings_record.moving_average_history_length
+    )
+    select coalesce(
+      pg_catalog.jsonb_agg(selected.round_id order by selected.completed_at, selected.tie_id)
+        filter (where selected.round_id is not null),
+      '[]'::jsonb
+    )
+    into source_rounds
+    from selected;
+  elsif settings_record.method = 'best_10_of_20'::public.quota_method
+    and not use_initial_next
+    and history_count > 0
+  then
+    with history as (
+      select
+        false as is_official,
+        seed.position::bigint as seed_position,
+        null::app.utc_instant as completed_at,
+        seed.id as tie_id,
+        null::app.entity_id as round_id,
+        seed.point_total
+      from public.membership_quota_seed_totals as seed
+      where seed.membership_id = p_membership_id
+        and seed.group_id = p_group_id
+      union all
+      select
+        true,
+        null::bigint,
+        quota.completed_at,
+        quota.id,
+        quota.round_id,
+        quota.point_total
+      from public.membership_quota_history as quota
+      join public.round_completion_runs as completion
+        on completion.id = quota.completion_id
+       and completion.round_id = quota.round_id
+       and completion.group_id = quota.group_id
+       and completion.state = 'official'::public.round_completion_run_state
+      where quota.membership_id = p_membership_id
+        and quota.group_id = p_group_id
+    ), last_twenty as (
+      select history.*
+      from history
+      order by history.is_official desc, history.completed_at desc nulls last,
+        history.seed_position desc nulls last, history.tie_id desc
+      limit 20
+    ), selected as (
+      select last_twenty.*
+      from last_twenty
+      order by last_twenty.point_total desc, last_twenty.tie_id desc
+      limit 10
+    )
+    select coalesce(
+      pg_catalog.jsonb_agg(selected.round_id order by selected.completed_at, selected.tie_id)
+        filter (where selected.round_id is not null),
+      '[]'::jsonb
+    )
+    into source_rounds
+    from selected;
+  elsif settings_record.method = 'previous_plus_minus'::public.quota_method then
+    select coalesce(
+      pg_catalog.jsonb_agg(history.round_id order by history.completed_at, history.completion_id),
+      '[]'::jsonb
+    )
+    into source_rounds
+    from public.membership_quota_history as history
+    join public.round_completion_runs as completion
+      on completion.id = history.completion_id
+     and completion.round_id = history.round_id
+     and completion.group_id = history.group_id
+     and completion.state = 'official'::public.round_completion_run_state
+    where history.membership_id = p_membership_id
+      and history.group_id = p_group_id;
+  else
+    source_rounds := '[]'::jsonb;
   end if;
 
   if calculated_quota is not null then

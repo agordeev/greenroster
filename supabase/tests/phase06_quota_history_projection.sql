@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(22);
 
 select has_table('public', 'membership_quota_history', 'eligible quota history exists');
 select has_function(
@@ -114,7 +114,8 @@ insert into public.rounds (
 )
 values
   ('c4000000-0000-4000-8000-000000000001', 'c2000000-0000-4000-8000-000000000001', 'Quota history round', now(), 'UTC', 'individual_net', 'completed', now(), 'c1000000-0000-4000-8000-000000000001'),
-  ('c4000000-0000-4000-8000-000000000002', 'c2000000-0000-4000-8000-000000000003', 'Method C round', now(), 'UTC', 'individual_net', 'completed', now(), 'c1000000-0000-4000-8000-000000000001');
+  ('c4000000-0000-4000-8000-000000000002', 'c2000000-0000-4000-8000-000000000003', 'Method C round', now(), 'UTC', 'individual_net', 'completed', now(), 'c1000000-0000-4000-8000-000000000001'),
+  ('c4000000-0000-4000-8000-000000000003', 'c2000000-0000-4000-8000-000000000001', 'Mismatched round', now(), 'UTC', 'individual_net', 'completed', now(), 'c1000000-0000-4000-8000-000000000001');
 
 insert into public.round_rule_snapshots (
   round_id, group_id, format, quota_method, moving_average_history_length,
@@ -153,6 +154,13 @@ select is(
   )),
   5::bigint,
   'eligible quota count includes seeds and active official rounds'
+);
+select is(
+  (select projection_source -> 'official_round_ids' from app.member_quota_projection(
+    'c3000000-0000-4000-8000-000000000001', 'c2000000-0000-4000-8000-000000000001'
+  )),
+  '["c4000000-0000-4000-8000-000000000001"]'::jsonb,
+  'moving-average provenance contains only the selected official rounds'
 );
 
 insert into public.membership_quota_seed_totals (membership_id, group_id, position, point_total)
@@ -205,6 +213,37 @@ select is(
   )),
   20::numeric,
   'reopened completion history is excluded from current quota'
+);
+
+select throws_ok(
+  $$ update public.membership_quota_history
+     set point_total = 51
+   where completion_id = 'c5000000-0000-4000-8000-000000000001' $$,
+  'P0001',
+  'membership_quota_history_immutable',
+  'quota history cannot be edited after append'
+);
+select throws_ok(
+  $$ delete from public.membership_quota_history
+   where completion_id = 'c5000000-0000-4000-8000-000000000001' $$,
+  'P0001',
+  'membership_quota_history_immutable',
+  'quota history cannot be deleted after append'
+);
+select throws_ok(
+  $$ insert into public.membership_quota_history (
+       membership_id, group_id, completion_id, round_id, completed_at,
+       point_total, plus_minus, quota_before, quota_after, method, source
+     ) values (
+       'c3000000-0000-4000-8000-000000000002',
+       'c2000000-0000-4000-8000-000000000001',
+       'c5000000-0000-4000-8000-000000000001',
+       'c4000000-0000-4000-8000-000000000003',
+       now(), 60, 5, 35, 36, 'moving_average', '{}'
+     ) $$,
+  '23503',
+  null,
+  'quota history cannot pair a completion with another same-tenant round'
 );
 
 select throws_ok(
