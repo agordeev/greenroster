@@ -44,7 +44,6 @@ set search_path = ''
 as $$
 declare
   target_round public.rounds%rowtype;
-  actor_membership public.memberships%rowtype;
   completion_record public.round_completion_runs%rowtype;
 begin
   if p_actor_user_id is null or p_round_id is null then
@@ -69,8 +68,7 @@ begin
     raise exception 'round_not_found' using errcode = 'P0002';
   end if;
 
-  select membership.*
-  into actor_membership
+  perform membership.id
   from public.memberships as membership
   join public.user_profiles as profile on profile.user_id = membership.user_id
   join auth.users as identity on identity.id = membership.user_id
@@ -92,21 +90,6 @@ begin
   order by membership.id
   limit 1;
   if not found then
-    raise exception 'round_not_found' using errcode = 'P0002';
-  end if;
-
-  if actor_membership.role = 'member'
-    and not exists (
-      select 1
-      from public.round_participants as participant
-      where participant.round_id = target_round.id
-        and participant.group_id = target_round.group_id
-        and (
-          participant.membership_id = actor_membership.id
-          or participant.sponsor_membership_id = actor_membership.id
-        )
-    )
-  then
     raise exception 'round_not_found' using errcode = 'P0002';
   end if;
 

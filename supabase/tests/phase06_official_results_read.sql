@@ -33,11 +33,13 @@ insert into auth.users (
 )
 values
   ('e1000000-0000-4000-8000-000000000001', 'results-admin@example.test', now(), false, false, now(), now()),
-  ('e1000000-0000-4000-8000-000000000002', 'results-member@example.test', now(), false, false, now(), now());
+  ('e1000000-0000-4000-8000-000000000002', 'results-member@example.test', now(), false, false, now(), now()),
+  ('e1000000-0000-4000-8000-000000000003', 'results-nonparticipant@example.test', now(), false, false, now(), now());
 insert into public.user_profiles (user_id, display_name, first_name, last_name)
 values
   ('e1000000-0000-4000-8000-000000000001', 'Results Admin', 'Results', 'Admin'),
-  ('e1000000-0000-4000-8000-000000000002', 'Results Member', 'Results', 'Member');
+  ('e1000000-0000-4000-8000-000000000002', 'Results Member', 'Results', 'Member'),
+  ('e1000000-0000-4000-8000-000000000003', 'Results Nonparticipant', 'Results', 'Nonparticipant');
 insert into public.groups (id, name, time_zone)
 values
   ('e2000000-0000-4000-8000-000000000001', 'Results Group', 'UTC'),
@@ -47,7 +49,8 @@ insert into public.memberships (
 )
 values
   ('e3000000-0000-4000-8000-000000000001', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000001', 'administrator', 'active', now()),
-  ('e3000000-0000-4000-8000-000000000002', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000002', 'member', 'active', now());
+  ('e3000000-0000-4000-8000-000000000002', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000002', 'member', 'active', now()),
+  ('e3000000-0000-4000-8000-000000000003', 'e2000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000003', 'member', 'active', now());
 
 insert into public.rounds (
   id, group_id, description, scheduled_at, group_time_zone, format, state,
@@ -107,10 +110,12 @@ select is((select membership_id::uuid from admin_results where participant_kind 
 select is((select quota_snapshot::numeric from admin_results where participant_kind = 'member'), 20::numeric, 'result exposes the round quota snapshot');
 select is((select plus_minus::numeric from admin_results where participant_kind = 'member'), 20::numeric, 'result exposes server plus-minus');
 select is((select score_revision_id::uuid from admin_results where participant_kind = 'member'), 'e6000000-0000-4000-8000-000000000001'::uuid, 'result preserves score revision provenance');
-select throws_ok(
-  $$ select * from public.read_official_round_results('e1000000-0000-4000-8000-000000000003', 'e4000000-0000-4000-8000-000000000001') $$,
-  'P0002', 'round_not_found', 'a member without a round participant cannot read results'
+create temporary table nonparticipant_results as
+select * from public.read_official_round_results(
+  'e1000000-0000-4000-8000-000000000003',
+  'e4000000-0000-4000-8000-000000000001'
 );
+select is((select count(*) from nonparticipant_results), 2::bigint, 'an active group member can read results without participating in the round');
 select throws_ok(
   $$ select * from public.read_official_round_results('e1000000-0000-4000-8000-000000000001', 'e4000000-0000-4000-8000-000000000002') $$,
   'P0002', 'round_not_found', 'cross-tenant result reads are indistinguishable from missing rounds'
