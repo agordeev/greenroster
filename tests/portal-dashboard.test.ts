@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("../apps/web/src/lib/supabase/service-client", () => ({
+  createSupabaseServiceClient: vi.fn(),
+}));
+
 import { buildPortalDashboardSummary } from "../apps/web/src/domain/portal-dashboard";
 import { executePortalDashboardData } from "../apps/web/src/lib/portal/dashboard-data";
 import { MutationError } from "../apps/web/src/lib/mutations/result";

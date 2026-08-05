@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   resolveSession: vi.fn(),
   readNextRound: vi.fn(),
+  readOfficialResults: vi.fn(),
+  readQuotaHistory: vi.fn().mockResolvedValue([]),
+  readStandings: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("../apps/web/src/lib/auth/member-page-session", () => ({
@@ -10,6 +13,11 @@ vi.mock("../apps/web/src/lib/auth/member-page-session", () => ({
 }));
 vi.mock("../apps/web/src/lib/rounds/member-next-round-data", () => ({
   executeReadMemberNextRound: mocks.readNextRound,
+}));
+vi.mock("../apps/web/src/lib/rounds/member-results-data", () => ({
+  executeReadMemberOfficialResults: mocks.readOfficialResults,
+  executeReadMemberQuotaHistory: mocks.readQuotaHistory,
+  executeReadMemberStandings: mocks.readStandings,
 }));
 vi.mock("../apps/web/src/app/member/home/member-next-round-rsvp", () => ({
   MemberNextRoundRsvp: () => null,
