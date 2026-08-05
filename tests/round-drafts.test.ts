@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createRoundDraftInputSchema,
   isLocalDateTimeOrBlank,
+  roundFormats,
   toLocalDateTimeInput,
+  updateRoundDraftInputSchema,
 } from "../apps/web/src/domain/round-drafts";
 import {
   runCreateRoundDraftMutation,
@@ -109,6 +112,30 @@ describe("round draft domain boundary", () => {
     expect(isLocalDateTimeOrBlank("2026-02-30T09:30")).toBe(false);
     expect(isLocalDateTimeOrBlank("2026-08-15T09:30")).toBe(true);
     expect(isLocalDateTimeOrBlank("2026-08-15 09:30")).toBe(false);
+  });
+
+  it("keeps the v1 format vocabulary closed and rejects deferred fields", () => {
+    expect(roundFormats).toEqual(["individual_net", "individual_gross"]);
+    expect(
+      createRoundDraftInputSchema.safeParse({
+        ...createInput,
+        format: "scramble",
+      }).success,
+    ).toBe(false);
+    expect(
+      createRoundDraftInputSchema.safeParse({
+        ...createInput,
+        holes: 18,
+      }).success,
+    ).toBe(false);
+    expect(
+      updateRoundDraftInputSchema.safeParse({
+        ...createInput,
+        roundId: round.roundId,
+        expectedRoundVersion: round.version,
+        teamId: "60000000-0000-4000-8000-000000000001",
+      }).success,
+    ).toBe(false);
   });
 
   it("formats stored instants in the snapshotted group zone and selects safe ids", () => {
