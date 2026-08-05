@@ -48,6 +48,12 @@ describe("results notification destination", () => {
         roundId: "70000000-0000-4000-8000-000000000001",
       }),
     ).toBe("/rounds?roundId=70000000-0000-4000-8000-000000000001");
+    expect(
+      resolveResultsNotificationDestination({
+        type: "scoring_opened",
+        roundId: "70000000-0000-4000-8000-000000000001",
+      }),
+    ).toBe("/rounds?roundId=70000000-0000-4000-8000-000000000001");
   });
 
   it("rejects malformed notification data", () => {

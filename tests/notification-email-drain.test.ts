@@ -48,6 +48,10 @@ describe("notification drain route", () => {
         calls.push("announcement-push");
         return { kind: "empty" as const };
       },
+      runScoringOpenedPush: async () => {
+        calls.push("scoring-opened-push");
+        return { kind: "empty" as const };
+      },
       runRoundDetailsChanged: async () => {
         calls.push("details-changed");
         return { kind: "empty" as const };
@@ -72,6 +76,7 @@ describe("notification drain route", () => {
       "cancelled",
       "cancelled-push",
       "announcement-push",
+      "scoring-opened-push",
       "details-changed",
       "results-published",
       "results-published-push",
@@ -116,6 +121,7 @@ describe("notification drain route", () => {
         runRoundCancelled: async () => ({ kind: "empty" as const }),
         runRoundCancelledPush: async () => ({ kind: "empty" as const }),
         runRoundAnnouncementPush: async () => ({ kind: "empty" as const }),
+        runScoringOpenedPush: async () => ({ kind: "empty" as const }),
         runRoundDetailsChanged: async () => ({ kind: "empty" as const }),
         runResultsPublished: async () => ({ kind: "empty" as const }),
         runResultsPublishedPush: async () => ({ kind: "empty" as const }),

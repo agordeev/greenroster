@@ -6,7 +6,11 @@ import { z } from "zod";
 import type { NotificationRpcClient } from "./invitation-email-worker";
 
 const expoPushEndpoint = "https://exp.host/--/api/v2/push/send";
-const eventTypeSchema = z.enum(["round.published", "round.details_changed"]);
+const eventTypeSchema = z.enum([
+  "round.published",
+  "round.details_changed",
+  "scoring_opened",
+]);
 const providerMessageIdSchema = z
   .string()
   .min(1)
@@ -25,6 +29,9 @@ const claimRowsSchema = z
         round_id: z.uuid(),
         group_id: z.uuid(),
         round_description: z.string().min(1),
+        scheduled_at: z.string().datetime({ offset: true }).nullable(),
+        venue: z.string().nullable(),
+        rsvp_deadline_at: z.string().datetime({ offset: true }).nullable(),
         recipient_user_id: z.uuid(),
         device_id: z.uuid(),
         expo_push_token: z
@@ -66,24 +73,28 @@ const providerTransportResponseSchema = z
   .object({ statusCode: z.number().int().min(100).max(599), body: z.unknown() })
   .strict();
 
-export type RoundAnnouncementPushMessage = Readonly<{
+export type RoundPushMessage = Readonly<{
   to: string;
   title: string;
   body: string;
   data: Readonly<{
-    type: "round_published" | "round_details_changed";
+    type: "round_published" | "round_details_changed" | "scoring_opened";
     roundId: string;
   }>;
 }>;
 
-export type ExpoAnnouncementPushProvider = Readonly<{
+export type ExpoRoundPushProvider = Readonly<{
   send: (
-    message: RoundAnnouncementPushMessage,
+    message: RoundPushMessage,
     options: Readonly<{ idempotencyKey: string }>,
   ) =>
     | Readonly<{ statusCode: number; body: unknown }>
     | PromiseLike<Readonly<{ statusCode: number; body: unknown }>>;
 }>;
+
+export type RoundAnnouncementPushMessage = RoundPushMessage;
+export type ExpoAnnouncementPushProvider = ExpoRoundPushProvider;
+export type ExpoScoringOpenedPushProvider = ExpoRoundPushProvider;
 
 export type RoundAnnouncementPushWorkerResult =
   | Readonly<{ kind: "empty" }>
@@ -107,14 +118,14 @@ export type RoundAnnouncementPushWorkerDependencies = Readonly<{
   createClient: () => NotificationRpcClient | Promise<NotificationRpcClient>;
   createCorrelationId: () => string;
   createOperationId: () => string;
-  createProvider: () => ExpoAnnouncementPushProvider;
+  createProvider: () => ExpoRoundPushProvider;
   getConfig: () =>
     | Readonly<{ maxAttempts: number; retrySeconds: number }>
     | Promise<Readonly<{ maxAttempts: number; retrySeconds: number }>>;
   now: () => Date;
 }>;
 
-const defaultProvider: ExpoAnnouncementPushProvider = {
+const defaultProvider: ExpoRoundPushProvider = {
   send: async (message, options) => {
     void options;
     const response = await fetch(expoPushEndpoint, {
@@ -215,29 +226,79 @@ function permanentResult(
 
 async function recordFailure(
   client: NotificationRpcClient,
+  failureRpc: string,
   deliveryId: string,
   claimToken: string,
   safeError: PushFailureCode,
   retryAtValue: string | null,
 ): Promise<boolean> {
   try {
-    const result = await client.rpc(
-      "record_round_announcement_push_send_failure",
-      {
-        p_delivery_id: deliveryId,
-        p_claim_token: claimToken,
-        p_safe_error: safeError,
-        p_retry_at: retryAtValue,
-      },
-    );
+    const result = await client.rpc(failureRpc, {
+      p_delivery_id: deliveryId,
+      p_claim_token: claimToken,
+      p_safe_error: safeError,
+      p_retry_at: retryAtValue,
+    });
     return !rpcFailed(result.error);
   } catch {
     return false;
   }
 }
 
-export async function runRoundAnnouncementPushWorker(
+type RoundPushMode = Readonly<{
+  allowedEventTypes: readonly z.infer<typeof eventTypeSchema>[];
+  claimRpc: string;
+  failureRpc: string;
+  invalidDeviceRpc: string;
+  successRpc: string;
+  idempotencyPrefix: string;
+  buildMessage: (row: z.infer<typeof claimRowsSchema>[number]) => Readonly<{
+    title: string;
+    body: string;
+    type: RoundPushMessage["data"]["type"];
+  }>;
+}>;
+
+const announcementMode: RoundPushMode = {
+  allowedEventTypes: ["round.published", "round.details_changed"],
+  claimRpc: "claim_round_announcement_push",
+  failureRpc: "record_round_announcement_push_send_failure",
+  invalidDeviceRpc: "record_round_announcement_push_invalid_device",
+  successRpc: "record_round_announcement_push_send_success",
+  idempotencyPrefix: "round-announcement",
+  buildMessage: (row) => {
+    const description = row.round_description.replace(/[\r\n]+/gu, " ").trim();
+    const isDetailsChange = row.event_type === "round.details_changed";
+    return {
+      body: isDetailsChange
+        ? `${description} details changed.`
+        : `${description} is open for RSVP.`,
+      title: isDetailsChange ? "Round details changed" : "Round published",
+      type: isDetailsChange ? "round_details_changed" : "round_published",
+    };
+  },
+};
+
+const scoringOpenedMode: RoundPushMode = {
+  allowedEventTypes: ["scoring_opened"],
+  claimRpc: "claim_scoring_opened_push",
+  failureRpc: "record_scoring_opened_push_send_failure",
+  invalidDeviceRpc: "record_scoring_opened_push_invalid_device",
+  successRpc: "record_scoring_opened_push_send_success",
+  idempotencyPrefix: "scoring-opened",
+  buildMessage: (row) => {
+    const description = row.round_description.replace(/[\r\n]+/gu, " ").trim();
+    return {
+      body: `${description} is open for scoring.`,
+      title: "Scoring is open",
+      type: "scoring_opened",
+    };
+  },
+};
+
+async function runRoundPushWorker(
   overrides?: Partial<RoundAnnouncementPushWorkerDependencies>,
+  mode: RoundPushMode = announcementMode,
 ): Promise<RoundAnnouncementPushWorkerResult> {
   const dependencies = { ...defaultDependencies, ...overrides };
   const config = await dependencies.getConfig();
@@ -246,7 +307,7 @@ export async function runRoundAnnouncementPushWorker(
   const staleBefore = new Date(
     dependencies.now().getTime() - config.retrySeconds * 1000,
   ).toISOString();
-  const claim = await client.rpc("claim_round_announcement_push", {
+  const claim = await client.rpc(mode.claimRpc, {
     p_claim_token: claimToken,
     p_stale_before: staleBefore,
   });
@@ -255,10 +316,18 @@ export async function runRoundAnnouncementPushWorker(
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
   const row = parsedClaim.row;
+  if (
+    !mode.allowedEventTypes.includes(
+      row.event_type as z.infer<typeof eventTypeSchema>,
+    )
+  ) {
+    return { kind: "unavailable" };
+  }
 
   if (row.attempt_number > config.maxAttempts) {
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       "max_attempts_exceeded",
@@ -273,25 +342,20 @@ export async function runRoundAnnouncementPushWorker(
       : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
-  const description = row.round_description.replace(/[\r\n]+/gu, " ").trim();
-  const isDetailsChange = row.event_type === "round.details_changed";
-  const body = isDetailsChange
-    ? `${description} details changed.`
-    : `${description} is open for RSVP.`;
-  const title = isDetailsChange ? "Round details changed" : "Round published";
+  const message = mode.buildMessage(row);
   let providerResponse: Readonly<{ statusCode: number; body: unknown }>;
   try {
     providerResponse = await dependencies.createProvider().send(
       {
-        body,
+        body: message.body,
         data: {
-          type: isDetailsChange ? "round_details_changed" : "round_published",
+          type: message.type,
           roundId: row.round_id,
         },
-        title,
+        title: message.title,
         to: row.expo_push_token,
       },
-      { idempotencyKey: `round-announcement/${row.delivery_id}` },
+      { idempotencyKey: `${mode.idempotencyPrefix}/${row.delivery_id}` },
     );
   } catch (error) {
     const status =
@@ -310,6 +374,7 @@ export async function runRoundAnnouncementPushWorker(
           : "provider_unavailable";
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       code,
@@ -326,6 +391,7 @@ export async function runRoundAnnouncementPushWorker(
   if (!parsedTransport.success) {
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       "provider_invalid_response",
@@ -339,6 +405,7 @@ export async function runRoundAnnouncementPushWorker(
   if (transport.statusCode === 429 || transport.statusCode >= 500) {
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       transport.statusCode === 429
@@ -355,6 +422,7 @@ export async function runRoundAnnouncementPushWorker(
   if (!parsedResponse.success) {
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       "provider_invalid_response",
@@ -372,6 +440,7 @@ export async function runRoundAnnouncementPushWorker(
     if (failure.kind === "retryable") {
       const recorded = await recordFailure(
         client,
+        mode.failureRpc,
         row.delivery_id,
         claimToken,
         "provider_rate_limited",
@@ -383,17 +452,14 @@ export async function runRoundAnnouncementPushWorker(
     }
     if (failure.kind === "invalid") {
       try {
-        const recorded = await client.rpc(
-          "record_round_announcement_push_invalid_device",
-          {
-            p_delivery_id: row.delivery_id,
-            p_claim_token: claimToken,
-            p_device_id: row.device_id,
-            p_group_id: row.group_id,
-            p_correlation_id: dependencies.createCorrelationId(),
-            p_operation_id: dependencies.createOperationId(),
-          },
-        );
+        const recorded = await client.rpc(mode.invalidDeviceRpc, {
+          p_delivery_id: row.delivery_id,
+          p_claim_token: claimToken,
+          p_device_id: row.device_id,
+          p_group_id: row.group_id,
+          p_correlation_id: dependencies.createCorrelationId(),
+          p_operation_id: dependencies.createOperationId(),
+        });
         return rpcFailed(recorded.error)
           ? { deliveryId: row.delivery_id, kind: "unavailable" }
           : permanentResult(row.delivery_id, "provider_invalid");
@@ -403,6 +469,7 @@ export async function runRoundAnnouncementPushWorker(
     }
     const recorded = await recordFailure(
       client,
+      mode.failureRpc,
       row.delivery_id,
       claimToken,
       "provider_rejected",
@@ -413,14 +480,11 @@ export async function runRoundAnnouncementPushWorker(
       : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
-  const finalized = await client.rpc(
-    "record_round_announcement_push_send_success",
-    {
-      p_delivery_id: row.delivery_id,
-      p_claim_token: claimToken,
-      p_provider_message_id: ticket.id,
-    },
-  );
+  const finalized = await client.rpc(mode.successRpc, {
+    p_delivery_id: row.delivery_id,
+    p_claim_token: claimToken,
+    p_provider_message_id: ticket.id,
+  });
   if (rpcFailed(finalized.error)) {
     return { deliveryId: row.delivery_id, kind: "unavailable" };
   }
@@ -429,4 +493,20 @@ export async function runRoundAnnouncementPushWorker(
     kind: "sent",
     providerMessageId: ticket.id,
   };
+}
+
+export async function runRoundAnnouncementPushWorker(
+  overrides?: Partial<RoundAnnouncementPushWorkerDependencies>,
+): Promise<RoundAnnouncementPushWorkerResult> {
+  return runRoundPushWorker(overrides, announcementMode);
+}
+
+export type ScoringOpenedPushWorkerResult = RoundAnnouncementPushWorkerResult;
+export type ScoringOpenedPushWorkerDependencies =
+  RoundAnnouncementPushWorkerDependencies;
+
+export async function runScoringOpenedPushWorker(
+  overrides?: Partial<ScoringOpenedPushWorkerDependencies>,
+): Promise<ScoringOpenedPushWorkerResult> {
+  return runRoundPushWorker(overrides, scoringOpenedMode);
 }

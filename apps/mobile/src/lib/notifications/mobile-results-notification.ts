@@ -28,6 +28,12 @@ const notificationDataSchema = z.discriminatedUnion("type", [
       roundId: z.uuid(),
     })
     .strict(),
+  z
+    .object({
+      type: z.literal("scoring_opened"),
+      roundId: z.uuid(),
+    })
+    .strict(),
 ]);
 
 export function resolveResultsNotificationDestination(

@@ -6,6 +6,7 @@ import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notificat
 import { runRoundCancelledEmailWorker } from "../../../../../lib/notifications/round-cancelled-email-worker";
 import { runRoundCancelledPushWorker } from "../../../../../lib/notifications/round-cancelled-push-worker";
 import { runRoundAnnouncementPushWorker } from "../../../../../lib/notifications/round-announcement-push-worker";
+import { runScoringOpenedPushWorker } from "../../../../../lib/notifications/round-scoring-opened-push-worker";
 import { runRoundDetailsChangedEmailWorker } from "../../../../../lib/notifications/round-details-changed-email-worker";
 import { runRoundPublishedEmailWorker } from "../../../../../lib/notifications/round-published-email-worker";
 import { runResultsPublishedEmailWorker } from "../../../../../lib/notifications/results-published-email-worker";
@@ -33,6 +34,7 @@ export type NotificationEmailWorkerRunners = Readonly<{
   runRoundCancelled: () => Promise<InvitationEmailWorkerResult>;
   runRoundCancelledPush: () => Promise<InvitationEmailWorkerResult>;
   runRoundAnnouncementPush: () => Promise<InvitationEmailWorkerResult>;
+  runScoringOpenedPush: () => Promise<InvitationEmailWorkerResult>;
   runRoundDetailsChanged: () => Promise<InvitationEmailWorkerResult>;
   runResultsPublished: () => Promise<InvitationEmailWorkerResult>;
   runResultsPublishedPush: () => Promise<InvitationEmailWorkerResult>;
@@ -49,6 +51,7 @@ export async function runNotificationEmailWorkers(
     runRoundCancelled: runRoundCancelledEmailWorker,
     runRoundCancelledPush: runRoundCancelledPushWorker,
     runRoundAnnouncementPush: runRoundAnnouncementPushWorker,
+    runScoringOpenedPush: runScoringOpenedPushWorker,
     runRoundDetailsChanged: runRoundDetailsChangedEmailWorker,
     runResultsPublished: runResultsPublishedEmailWorker,
     runResultsPublishedPush: runResultsPublishedPushWorker,
@@ -62,6 +65,7 @@ export async function runNotificationEmailWorkers(
     runners.runRoundCancelled(),
     runners.runRoundCancelledPush(),
     runners.runRoundAnnouncementPush(),
+    runners.runScoringOpenedPush(),
     runners.runRoundDetailsChanged(),
     runners.runResultsPublished(),
     runners.runResultsPublishedPush(),
@@ -97,6 +101,7 @@ export async function runNotificationEmailDrain(
     runRoundCancelled: runRoundCancelledEmailWorker,
     runRoundCancelledPush: runRoundCancelledPushWorker,
     runRoundAnnouncementPush: runRoundAnnouncementPushWorker,
+    runScoringOpenedPush: runScoringOpenedPushWorker,
     runRoundDetailsChanged: runRoundDetailsChangedEmailWorker,
     runResultsPublished: runResultsPublishedEmailWorker,
     runResultsPublishedPush: runResultsPublishedPushWorker,
@@ -110,6 +115,7 @@ export async function runNotificationEmailDrain(
     drainWorker(runners.runRoundCancelled, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundCancelledPush, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundAnnouncementPush, maxDeliveriesPerCategory),
+    drainWorker(runners.runScoringOpenedPush, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundDetailsChanged, maxDeliveriesPerCategory),
     drainWorker(runners.runResultsPublished, maxDeliveriesPerCategory),
     drainWorker(runners.runResultsPublishedPush, maxDeliveriesPerCategory),

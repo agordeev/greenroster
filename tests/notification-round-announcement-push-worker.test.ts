@@ -5,6 +5,7 @@ import {
   runRoundAnnouncementPushWorker,
   type RoundAnnouncementPushWorkerDependencies,
 } from "../apps/web/src/lib/notifications/round-announcement-push-worker";
+import { runScoringOpenedPushWorker } from "../apps/web/src/lib/notifications/round-scoring-opened-push-worker";
 
 const deliveryId = "72000000-0000-4000-8000-000000000001";
 const roundId = "72000000-0000-4000-8000-000000000003";
@@ -23,6 +24,9 @@ const row = {
   round_id: roundId,
   group_id: groupId,
   round_description: "August Championship",
+  scheduled_at: "2026-08-06T12:00:00.000Z",
+  venue: "North Course",
+  rsvp_deadline_at: "2026-08-06T10:00:00.000Z",
   recipient_user_id: userId,
   device_id: deviceId,
   expo_push_token: "ExponentPushToken[announcement-device]",
@@ -205,5 +209,128 @@ describe("round announcement push worker", () => {
       body: "August Championship details changed.",
       data: { type: "round_details_changed", roundId },
     });
+  });
+
+  it("sends scoring-opened payloads through the scoring-specific RPC boundary", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let sentMessage: Record<string, unknown> | null = null;
+    const result = await runScoringOpenedPushWorker(
+      dependencies(
+        async (name, args) => {
+          calls.push({ name, args });
+          if (name === "claim_scoring_opened_push") {
+            return {
+              data: [{ ...row, event_type: "scoring_opened" }],
+              error: null,
+            };
+          }
+          return { data: null, error: null };
+        },
+        {
+          createProvider: () => ({
+            send: async (message, options) => {
+              sentMessage = message;
+              expect(options.idempotencyKey).toBe(
+                `scoring-opened/${deliveryId}`,
+              );
+              return {
+                statusCode: 200,
+                body: {
+                  data: [{ status: "ok", id: "expo-scoring-ticket-1" }],
+                },
+              };
+            },
+          }),
+        },
+      ),
+    );
+    expect(result).toEqual({
+      deliveryId,
+      kind: "sent",
+      providerMessageId: "expo-scoring-ticket-1",
+    });
+    expect(sentMessage).toMatchObject({
+      title: "Scoring is open",
+      body: "August Championship is open for scoring.",
+      data: { type: "scoring_opened", roundId },
+    });
+    expect(calls.map((call) => call.name)).toEqual([
+      "claim_scoring_opened_push",
+      "record_scoring_opened_push_send_success",
+    ]);
+  });
+
+  it("uses scoring-specific retry and invalid-device finalizers", async () => {
+    const retryCalls: string[] = [];
+    const retryResult = await runScoringOpenedPushWorker(
+      dependencies(
+        async (name) => {
+          retryCalls.push(name);
+          if (name === "claim_scoring_opened_push") {
+            return {
+              data: [{ ...row, event_type: "scoring_opened" }],
+              error: null,
+            };
+          }
+          return { data: null, error: null };
+        },
+        {
+          createProvider: () => ({
+            send: async () => {
+              throw new TypeError("fetch failed");
+            },
+          }),
+        },
+      ),
+    );
+    expect(retryResult).toEqual({ deliveryId, kind: "retryable" });
+    expect(retryCalls).toEqual([
+      "claim_scoring_opened_push",
+      "record_scoring_opened_push_send_failure",
+    ]);
+
+    const invalidCalls: string[] = [];
+    const invalidResult = await runScoringOpenedPushWorker(
+      dependencies(
+        async (name) => {
+          invalidCalls.push(name);
+          if (name === "claim_scoring_opened_push") {
+            return {
+              data: [{ ...row, event_type: "scoring_opened" }],
+              error: null,
+            };
+          }
+          return { data: null, error: null };
+        },
+        {
+          createProvider: () => ({
+            send: async () => ({
+              statusCode: 200,
+              body: {
+                data: [
+                  {
+                    status: "error",
+                    message: "The device is not registered",
+                    details: { error: "DeviceNotRegistered" },
+                  },
+                ],
+              },
+            }),
+          }),
+        },
+      ),
+    );
+    expect(invalidResult).toEqual({
+      code: "provider_invalid",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(invalidCalls).toEqual([
+      "claim_scoring_opened_push",
+      "record_scoring_opened_push_invalid_device",
+    ]);
   });
 });
