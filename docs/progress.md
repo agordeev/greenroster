@@ -7,7 +7,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 07 — Release hardening
-- **Active slice:** Phase 07 local verification hardening isolated two Vitest suites from eager runtime-env imports and restored a plain `pnpm test` plus full `pnpm check` green path. Hosted readiness was separately re-inspected read-only: Supabase still reports migrations only through `20260803061434_group_profile_update`, and Vercel still reports no `greenroster` deployment or domain; no hosted state was changed.
+- **Active slice:** Fresh Phase 07 hosted-state reinspection after the setup update remains read-only: Supabase still reports migrations only through `20260803061434_group_profile_update`, and Vercel still reports `greenroster` as not live with no latest deployment or domain. The local Vitest isolation/full-check slice is green; no hosted state was changed.
 - **Status:** In progress
 - **Next:** Obtain explicit authority and the approved deployment/domain/environment contract for hosted migration and Vercel work, then continue accessibility owner/device sign-off and the remaining RSVP-reminder, guest-lifecycle, forgotten-round, magic-link, storage, rate-limit, and provider/legal/store evidence contracts without inventing their missing inputs.
 - **Blockers:**
