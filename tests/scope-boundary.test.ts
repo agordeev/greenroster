@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,6 +7,11 @@ import { describe, expect, it } from "vitest";
 type RouteFile = Readonly<{
   file: string;
   route: string;
+}>;
+
+type DeferredScopeToken = Readonly<{
+  name: string;
+  pattern: RegExp;
 }>;
 
 function collectRouteFiles(
@@ -42,6 +47,24 @@ function collectRouteFiles(
   });
 }
 
+function collectSourceFiles(
+  root: string,
+  relativeDirectory = "",
+): readonly string[] {
+  const directory = `${root}${relativeDirectory ? `/${relativeDirectory}` : ""}`;
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryRelativePath = relativeDirectory
+      ? `${relativeDirectory}/${entry.name}`
+      : entry.name;
+    if (entry.isDirectory()) {
+      return collectSourceFiles(root, entryRelativePath);
+    }
+    return /\.(tsx|ts)$/u.test(entry.name)
+      ? [`${directory}/${entry.name}`]
+      : [];
+  });
+}
+
 function routeSegments(route: string): readonly string[] {
   return route
     .split("/")
@@ -55,6 +78,29 @@ const webAppRoot = fileURLToPath(
 const mobileAppRoot = fileURLToPath(
   new URL("../apps/mobile/src/app/", import.meta.url),
 );
+const roundDraftFormFile = fileURLToPath(
+  new URL(
+    "../apps/web/src/app/portal/rounds/round-draft-form.tsx",
+    import.meta.url,
+  ),
+);
+
+const deferredScopeTokens: readonly DeferredScopeToken[] = [
+  { name: "advanced format", pattern: /\badvanced[-_ ]formats?\b/iu },
+  { name: "best-ball", pattern: /\bbest[-_ ]ball\b/iu },
+  { name: "billing", pattern: /\bbilling\b/iu },
+  { name: "group-switch", pattern: /\bgroup[-_ ]switch\b/iu },
+  { name: "hole-by-hole", pattern: /\bhole[-_ ]by[-_ ]hole\b/iu },
+  { name: "message composer", pattern: /\bmessage[-_ ]composer\b/iu },
+  { name: "scramble", pattern: /\bscramble\b/iu },
+  { name: "skins", pattern: /\bskins\b/iu },
+  { name: "sms", pattern: /\bsms\b/iu },
+  { name: "teams", pattern: /\bteams\b/iu },
+];
+
+function readSource(file: string): string {
+  return readFileSync(file, "utf8");
+}
 
 describe("v1 scope boundary", () => {
   it("keeps the member namespace to onboarding plus three view screens", () => {
@@ -102,5 +148,28 @@ describe("v1 scope boundary", () => {
     );
 
     expect(violations).toEqual([]);
+  });
+
+  it("does not expose deferred capability controls or links in route sources", () => {
+    const sourceFiles = [
+      ...collectSourceFiles(webAppRoot),
+      ...collectSourceFiles(mobileAppRoot),
+    ];
+    const violations = sourceFiles.flatMap((file) => {
+      const source = readSource(file);
+      return deferredScopeTokens
+        .filter(({ pattern }) => pattern.test(source))
+        .map(({ name }) => `${name}: ${file}`);
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps the existing format control closed to Individual Net and Gross", () => {
+    const source = readSource(roundDraftFormFile);
+
+    expect(source).toMatch(/roundFormats\.map\(\(option\) =>/u);
+    expect(source).toContain("formatRoundFormat(option)");
+    expect(source).not.toMatch(/scramble|best[-_ ]ball|hole[-_ ]by[-_ ]hole/iu);
   });
 });
