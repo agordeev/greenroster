@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(59);
+select plan(61);
 
 select has_function(
   'public',
@@ -342,6 +342,8 @@ select is((select rounds_played from public.membership_standings_projections whe
 select is((select count(*) from public.notification_outbox_jobs where event_type = 'results_published'), 2::bigint, 'recompletion queues a second results notification');
 select is((select count(distinct idempotency_key) from public.notification_outbox_jobs where event_type = 'results_published'), 2::bigint, 'recompletion notification is keyed to its new completion run');
 select is((select count(*) from public.notification_push_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_id = (select completion_id from recompleted))), 1::bigint, 'recompletion creates a fresh push delivery for the new official run');
+select is((select count(*) from public.notification_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_id = (select completion_id from recompleted)) and recipient_membership_id = 'e3000000-0000-4000-8000-000000000002' and channel = 'email'), 1::bigint, 'recompletion creates exactly one results e-mail child for the fixture member');
+select is((select count(*) from public.notification_deliveries where outbox_job_id = (select id from public.notification_outbox_jobs where event_type = 'results_published' and aggregate_id = (select completion_id from reopened)) and recipient_membership_id = 'e3000000-0000-4000-8000-000000000002' and channel = 'email'), 1::bigint, 'prior results outbox retains exactly one e-mail child without replay duplication');
 select is((select count(*) from public.audit_events where action = 'round.completed' and target_id = 'e4000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion writes a second completion audit');
 select is((select count(*) from public.score_revisions where participant_id = 'e5000000-0000-4000-8000-000000000001'), 2::bigint, 'recompletion preserves both score revisions');
 
