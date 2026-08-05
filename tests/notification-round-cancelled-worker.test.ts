@@ -142,4 +142,98 @@ describe("round-cancelled notification worker", () => {
       p_retry_at: "2026-08-03T12:01:30.000Z",
     });
   });
+
+  it("records HTTP 5xx provider responses as retryable outages", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runRoundCancelledEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-03T12:01:30.000Z",
+    });
+  });
+
+  it("records thrown provider network errors as retryable outages", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runRoundCancelledEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            throw new TypeError("fetch failed");
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-03T12:01:30.000Z",
+    });
+  });
+
+  it("drains a retried outage successfully on the next worker run", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let claimCount = 0;
+    let providerCount = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_round_cancelled_email") {
+        claimCount += 1;
+        return {
+          data: [{ ...row, attempt_number: claimCount }],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    };
+
+    const provider = {
+      send: async () => {
+        providerCount += 1;
+        return providerCount === 1
+          ? { data: null, error: { statusCode: 503 } }
+          : { data: { id: "provider-cancelled-recovered" }, error: null };
+      },
+    };
+
+    const first = await runRoundCancelledEmailWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+    const second = await runRoundCancelledEmailWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+
+    expect(first).toEqual({ kind: "retryable", deliveryId });
+    expect(second).toEqual({
+      kind: "sent",
+      deliveryId,
+      providerMessageId: "provider-cancelled-recovered",
+    });
+    expect(calls.map((call) => call.name)).toEqual([
+      "claim_round_cancelled_email",
+      "record_email_send_failure",
+      "claim_round_cancelled_email",
+      "record_email_send_success",
+    ]);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-03T12:01:30.000Z",
+    });
+    expect(calls[3]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_provider_message_id: "provider-cancelled-recovered",
+    });
+  });
 });
