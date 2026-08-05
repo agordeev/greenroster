@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(50);
+select plan(52);
 
 select has_table(
   'public',
@@ -77,6 +77,41 @@ values (
   'f3000000-0000-4000-8000-000000000003',
   'f2000000-0000-4000-8000-000000000001',
   'results_published', false, false
+);
+
+insert into auth.users (
+  id, email, email_confirmed_at, is_sso_user, is_anonymous, created_at, updated_at
+)
+values (
+  'f1000000-0000-4000-8000-000000000005', 'fanout-email-only@example.test', now(), false, false, now(), now()
+);
+
+insert into public.user_profiles (user_id, display_name, first_name, last_name)
+values (
+  'f1000000-0000-4000-8000-000000000005', 'Fanout E-mail Only', 'Fanout', 'E-mail Only'
+);
+
+insert into public.memberships (
+  id, group_id, user_id, role, status, activated_at, inactivated_at
+)
+values (
+  'f3000000-0000-4000-8000-000000000005', 'f2000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000005', 'member', 'active', now(), null
+);
+
+insert into public.notification_preferences (
+  membership_id, group_id, category, email_enabled, push_enabled
+)
+values (
+  'f3000000-0000-4000-8000-000000000005',
+  'f2000000-0000-4000-8000-000000000001',
+  'results_published', true, false
+);
+
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values (
+  'f3100000-0000-4000-8000-000000000005', 'f1000000-0000-4000-8000-000000000005', 'ExponentPushToken[fanout-email-only]', 'ios', now()
 );
 
 insert into public.push_devices (
@@ -309,6 +344,30 @@ values (
 on conflict (idempotency_key) do nothing;
 select is((select count(*) from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 1::bigint, 'replayed outbox insertion does not duplicate e-mail');
 select is((select count(*) from public.notification_push_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 2::bigint, 'replayed outbox insertion does not duplicate push devices');
+
+-- A member who opts into results e-mail while opting out of push still gets
+-- exactly the e-mail child; the active device must not create a push child.
+insert into public.round_participants (
+  id, round_id, group_id, membership_id, participant_kind, sponsor_membership_id,
+  guest_first_name, guest_last_name, rsvp_status
+)
+values (
+  'f5000000-0000-4000-8000-000000000005', 'f4000000-0000-4000-8000-000000000001', 'f2000000-0000-4000-8000-000000000001', 'f3000000-0000-4000-8000-000000000005', 'member', null, null, null, 'playing'
+);
+
+insert into public.notification_outbox_jobs (
+  id, group_id, event_type, aggregate_type, aggregate_id, aggregate_version,
+  idempotency_key
+)
+values (
+  'f6000000-0000-4000-8000-000000000003',
+  'f2000000-0000-4000-8000-000000000001',
+  'results_published', 'round_completion', 'f4100000-0000-4000-8000-000000000001', 3,
+  'results_published:f4100000-0000-4000-8000-000000000001:email-only'
+);
+
+select is((select count(*) from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000003' and recipient_membership_id = 'f3000000-0000-4000-8000-000000000005'), 1::bigint, 'e-mail-enabled member receives a results e-mail');
+select is((select count(*) from public.notification_push_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000003' and recipient_membership_id = 'f3000000-0000-4000-8000-000000000005'), 0::bigint, 'push-disabled member receives no results push child');
 
 select throws_ok(
   $$ insert into public.notification_push_deliveries (
