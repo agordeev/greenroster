@@ -27,7 +27,7 @@ export function InformationShell({
           Sign in
         </Link>
       </header>
-      <main id="main-content" className="information-card">
+      <main id="main-content" tabIndex={-1} className="information-card">
         <p className="ledger-kicker">{kicker}</p>
         <h1>{title}</h1>
         {children}

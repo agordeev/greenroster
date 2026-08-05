@@ -103,52 +103,61 @@ export default async function MemberHomePage() {
   }
 
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
-      <section className="auth-ledger" aria-labelledby="member-home-title">
-        <nav className="member-results-nav" aria-label="Member navigation">
-          <Link className="secondary-link" href="/member/standings">
-            Standings and history
-          </Link>
-          <Link className="secondary-link" href="#notifications">
-            Notification preferences
-          </Link>
-        </nav>
-        <div className="auth-heading">
-          <p className="ledger-kicker">Member home</p>
-          <h1 id="member-home-title">
-            {groupResult.data?.name ?? "Your GreenRoster group"}
-          </h1>
-          <p className="member-home-intro">
-            Your membership is active and your profile is complete. You can
-            return here whenever you sign in to GreenRoster.
-          </p>
-          {nextRound ? (
-            <NextRoundCard round={nextRound} />
-          ) : (
-            <section
-              className="member-home-empty"
-              aria-labelledby="next-round-title"
-            >
-              <p className="ledger-kicker">Next round</p>
-              <h2 id="next-round-title">Nothing published yet</h2>
-              <p>
-                Your next published round will appear here when your group opens
-                RSVP.
-              </p>
-            </section>
-          )}
-          <MemberHomeResultsSummary
-            standings={standings}
-            history={history}
-            recentResult={recentResult}
-          />
-          <MemberNotificationPreferences preferences={preferences} />
-          <Link className="secondary-link" href="/account">
-            Manage account e-mail
-          </Link>
-        </div>
-      </section>
-    </main>
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="auth-shell auth-shell-single invitation-shell"
+      >
+        <section className="auth-ledger" aria-labelledby="member-home-title">
+          <nav className="member-results-nav" aria-label="Member navigation">
+            <Link className="secondary-link" href="/member/standings">
+              Standings and history
+            </Link>
+            <Link className="secondary-link" href="#notifications">
+              Notification preferences
+            </Link>
+          </nav>
+          <div className="auth-heading">
+            <p className="ledger-kicker">Member home</p>
+            <h1 id="member-home-title">
+              {groupResult.data?.name ?? "Your GreenRoster group"}
+            </h1>
+            <p className="member-home-intro">
+              Your membership is active and your profile is complete. You can
+              return here whenever you sign in to GreenRoster.
+            </p>
+            {nextRound ? (
+              <NextRoundCard round={nextRound} />
+            ) : (
+              <section
+                className="member-home-empty"
+                aria-labelledby="next-round-title"
+              >
+                <p className="ledger-kicker">Next round</p>
+                <h2 id="next-round-title">Nothing published yet</h2>
+                <p>
+                  Your next published round will appear here when your group
+                  opens RSVP.
+                </p>
+              </section>
+            )}
+            <MemberHomeResultsSummary
+              standings={standings}
+              history={history}
+              recentResult={recentResult}
+            />
+            <MemberNotificationPreferences preferences={preferences} />
+            <Link className="secondary-link" href="/account">
+              Manage account e-mail
+            </Link>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
 
@@ -332,12 +341,21 @@ function formatGroupDateTime(value: string, timeZone: string): string {
 
 function MemberHomeUnavailable() {
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
-      <section className="auth-ledger">
-        <p className="ledger-kicker">Member home</p>
-        <h1>Your membership could not be loaded</h1>
-        <p>Try again in a moment or ask a group coordinator for help.</p>
-      </section>
-    </main>
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="auth-shell auth-shell-single invitation-shell"
+      >
+        <section className="auth-ledger">
+          <p className="ledger-kicker">Member home</p>
+          <h1>Your membership could not be loaded</h1>
+          <p>Try again in a moment or ask a group coordinator for help.</p>
+        </section>
+      </main>
+    </>
   );
 }

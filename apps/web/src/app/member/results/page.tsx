@@ -62,63 +62,75 @@ function MemberResultsContent({
     round.format === "individual_net" ? "Individual Net" : "Individual Gross";
 
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
-      <section
-        className="auth-ledger member-results-page"
-        aria-labelledby="member-results-title"
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="auth-shell auth-shell-single invitation-shell"
       >
-        <nav className="member-results-nav" aria-label="Member navigation">
-          <Link className="secondary-link" href="/member/home">
-            Home
-          </Link>
-          <Link className="secondary-link" href="/member/standings">
-            Standings and history
-          </Link>
-          <Link className="secondary-link" href="/member/home#notifications">
-            Notification preferences
-          </Link>
-        </nav>
-        <p className="ledger-kicker">Official results</p>
-        <h1 id="member-results-title">
-          {round.description ?? "Completed round"}
-        </h1>
-        <p className="member-results-intro">
-          {formatLabel} · Published{" "}
-          {formatDate(results[0]?.completed_at ?? null, round.group_time_zone)}
-          {round.group_time_zone ? ` (${round.group_time_zone})` : ""}
-        </p>
-        <p className="member-results-format-note">
-          Ranking criterion:{" "}
-          {round.format === "individual_net"
-            ? "server-calculated plus/minus"
-            : "server-calculated golf points"}
-          .
-        </p>
-        {winners.length > 0 ? (
-          <section
-            className="member-results-winner"
-            aria-labelledby="winner-title"
-          >
-            <p className="ledger-kicker">Winner summary</p>
-            <h2 id="winner-title">
-              {winners.map(displayName).join(" and ")} — tied at rank{" "}
-              {winnerRank}
-            </h2>
-          </section>
-        ) : null}
-        {results.length === 0 ? (
-          <section className="member-home-empty" aria-live="polite">
-            <h2>No official result rows</h2>
-            <p>The round is completed, but no result rows are available.</p>
-          </section>
-        ) : (
-          <ResultsTable
-            groupTimeZone={round.group_time_zone}
-            results={results}
-          />
-        )}
-      </section>
-    </main>
+        <section
+          className="auth-ledger member-results-page"
+          aria-labelledby="member-results-title"
+        >
+          <nav className="member-results-nav" aria-label="Member navigation">
+            <Link className="secondary-link" href="/member/home">
+              Home
+            </Link>
+            <Link className="secondary-link" href="/member/standings">
+              Standings and history
+            </Link>
+            <Link className="secondary-link" href="/member/home#notifications">
+              Notification preferences
+            </Link>
+          </nav>
+          <p className="ledger-kicker">Official results</p>
+          <h1 id="member-results-title">
+            {round.description ?? "Completed round"}
+          </h1>
+          <p className="member-results-intro">
+            {formatLabel} · Published{" "}
+            {formatDate(
+              results[0]?.completed_at ?? null,
+              round.group_time_zone,
+            )}
+            {round.group_time_zone ? ` (${round.group_time_zone})` : ""}
+          </p>
+          <p className="member-results-format-note">
+            Ranking criterion:{" "}
+            {round.format === "individual_net"
+              ? "server-calculated plus/minus"
+              : "server-calculated golf points"}
+            .
+          </p>
+          {winners.length > 0 ? (
+            <section
+              className="member-results-winner"
+              aria-labelledby="winner-title"
+            >
+              <p className="ledger-kicker">Winner summary</p>
+              <h2 id="winner-title">
+                {winners.map(displayName).join(" and ")} — tied at rank{" "}
+                {winnerRank}
+              </h2>
+            </section>
+          ) : null}
+          {results.length === 0 ? (
+            <section className="member-home-empty" aria-live="polite">
+              <h2>No official result rows</h2>
+              <p>The round is completed, but no result rows are available.</p>
+            </section>
+          ) : (
+            <ResultsTable
+              groupTimeZone={round.group_time_zone}
+              results={results}
+            />
+          )}
+        </section>
+      </main>
+    </>
   );
 }
 
@@ -219,18 +231,27 @@ function formatDate(value: string | null, timeZone: string): string {
 
 function MemberResultsUnavailable() {
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
-      <section className="auth-ledger">
-        <p className="ledger-kicker">Official results</p>
-        <h1>These results are not available</h1>
-        <p>
-          The round may have been reopened, the link may be incomplete, or your
-          membership no longer has access to this group.
-        </p>
-        <Link className="secondary-link" href="/member/home">
-          Return to member home
-        </Link>
-      </section>
-    </main>
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="auth-shell auth-shell-single invitation-shell"
+      >
+        <section className="auth-ledger">
+          <p className="ledger-kicker">Official results</p>
+          <h1>These results are not available</h1>
+          <p>
+            The round may have been reopened, the link may be incomplete, or
+            your membership no longer has access to this group.
+          </p>
+          <Link className="secondary-link" href="/member/home">
+            Return to member home
+          </Link>
+        </section>
+      </main>
+    </>
   );
 }

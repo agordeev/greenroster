@@ -125,7 +125,7 @@ export function PortalShell({
           </form>
         </div>
       </header>
-      <main id="main-content" className="portal-main">
+      <main id="main-content" tabIndex={-1} className="portal-main">
         {children}
       </main>
       <InformationFooter />
