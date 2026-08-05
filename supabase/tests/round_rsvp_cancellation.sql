@@ -22,6 +22,12 @@ select has_function(
   array['uuid','timestamptz'],
   'cancellation e-mail claim RPC exists'
 );
+select has_function(
+  'public',
+  'claim_round_cancelled_push',
+  array['uuid','timestamptz'],
+  'cancellation push claim RPC exists'
+);
 select ok(
   has_function_privilege(
     'service_role',
@@ -37,8 +43,13 @@ select ok(
     'service_role',
     'public.claim_round_cancelled_email(uuid,timestamptz)',
     'execute'
+  )
+  and has_function_privilege(
+    'service_role',
+    'public.claim_round_cancelled_push(uuid,timestamptz)',
+    'execute'
   ),
-  'trusted server can call the three round operation boundaries'
+  'trusted server can call the round operation and notification boundaries'
 );
 select ok(
   not has_function_privilege(
@@ -245,6 +256,17 @@ update public.memberships
 set status = 'inactive', inactivated_at = now()
 where id = '69000000-0000-4000-8000-000000000003';
 
+insert into public.push_devices (
+  device_id, user_id, expo_push_token, platform, last_seen_at
+)
+values (
+  'b9000000-0000-4000-8000-000000000001',
+  '19000000-0000-4000-8000-000000000002',
+  'ExponentPushToken[rsvp-member-device]',
+  'ios',
+  now()
+);
+
 -- Seed one pending publication delivery; cancellation must terminalize it.
 insert into public.notification_outbox_jobs (
   id, group_id, event_type, aggregate_type, aggregate_id, aggregate_version, idempotency_key
@@ -290,6 +312,30 @@ select is(
   (select count(*) from public.notification_outbox_jobs where aggregate_id = '79000000-0000-4000-8000-000000000001' and event_type = 'round.cancelled'),
   3::bigint,
   'cancellation creates durable participant outbox jobs'
+);
+select is(
+  (select count(*)
+   from public.notification_push_deliveries as delivery
+   join public.notification_outbox_jobs as outbox
+     on outbox.id = delivery.outbox_job_id
+    and outbox.group_id = delivery.group_id
+   where outbox.aggregate_id = '79000000-0000-4000-8000-000000000001'
+     and outbox.event_type = 'round.cancelled'
+     and delivery.recipient_membership_id = '69000000-0000-4000-8000-000000000002'),
+  1::bigint,
+  'cancellation fan-out creates one push child for each active device'
+);
+select is(
+  (select delivery.state
+   from public.notification_push_deliveries as delivery
+   join public.notification_outbox_jobs as outbox
+     on outbox.id = delivery.outbox_job_id
+    and outbox.group_id = delivery.group_id
+   where outbox.aggregate_id = '79000000-0000-4000-8000-000000000001'
+     and outbox.event_type = 'round.cancelled'
+     and delivery.recipient_membership_id = '69000000-0000-4000-8000-000000000002'),
+  'queued'::public.notification_delivery_state,
+  'cancellation push child starts queued'
 );
 select is(
   (select delivery.state
@@ -343,6 +389,52 @@ select is(
   1::bigint,
   'cancellation history is append-only and audited'
 );
+
+-- Cancellation push is mandatory and quiet-hours exempt. The claim returns the
+-- raw token only to service_role and never stores it in the delivery row.
+create temporary table cancellation_push_claim as
+select * from public.claim_round_cancelled_push(
+  'b9000000-0000-4000-8000-000000000002',
+  now() - interval '1 minute'
+);
+select is((select count(*) from cancellation_push_claim), 1::bigint, 'cancellation push claim returns one due device');
+select is((select cancellation_reason from cancellation_push_claim), 'Weather closure', 'push claim preserves cancellation reason');
+select is((select expo_push_token from cancellation_push_claim), 'ExponentPushToken[rsvp-member-device]', 'push claim returns token only to trusted worker');
+select is(
+  (select state from public.notification_push_deliveries where id = (select delivery_id from cancellation_push_claim)),
+  'sending'::public.notification_delivery_state,
+  'cancellation push claim leases the child'
+);
+select ok(
+  (select count(*) from public.notification_push_deliveries
+   where id = (select delivery_id from cancellation_push_claim)
+     and provider_message_id is null) = 1,
+  'raw push token is not persisted in the delivery row'
+);
+select public.record_round_cancelled_push_send_success(
+  (select delivery_id from cancellation_push_claim),
+  'b9000000-0000-4000-8000-000000000002',
+  'expo-cancel-ticket-1'
+);
+select is(
+  (select state from public.notification_push_deliveries where id = (select delivery_id from cancellation_push_claim)),
+  'sent'::public.notification_delivery_state,
+  'cancellation push success terminalizes the child'
+);
+select is(
+  (select count(*) from public.notification_push_receipts
+   where delivery_id = (select delivery_id from cancellation_push_claim)),
+  0::bigint,
+  'results-only receipt worker does not strand a cancellation push receipt'
+);
+
+-- A permanent push failure must remain visible when the sibling e-mail later
+-- succeeds; the aggregate parent cannot be marked succeeded prematurely.
+update public.notification_push_deliveries
+set state = 'failed_permanent'::public.notification_delivery_state,
+    failure_reason = 'provider_invalid',
+    sent_at = null
+where id = (select delivery_id from cancellation_push_claim);
 
 create temporary table cancelled_retry as
 select * from public.cancel_round(
@@ -423,6 +515,25 @@ select is(
   (select state from public.notification_deliveries where id = (select delivery_id from cancellation_claim)),
   'sending'::public.notification_delivery_state,
   'mandatory cancellation claim ignores optional e-mail suppression'
+);
+select is(
+  (select state
+   from public.notification_outbox_jobs
+   where id = (select outbox_job_id from cancellation_claim)),
+  'processing'::public.notification_outbox_job_state,
+  'cancellation e-mail claim keeps the sibling aggregate processing'
+);
+select public.record_email_send_success(
+  (select delivery_id from cancellation_claim),
+  'b9000000-0000-4000-8000-000000000001',
+  'resend-cancel-ticket-1'
+);
+select is(
+  (select state
+   from public.notification_outbox_jobs
+   where id = (select outbox_job_id from cancellation_claim)),
+  'abandoned'::public.notification_outbox_job_state,
+  'permanent cancellation push failure remains visible after e-mail success'
 );
 
 select throws_ok(

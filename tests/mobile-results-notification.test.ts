@@ -19,6 +19,22 @@ describe("results notification destination", () => {
     ).toBeNull();
   });
 
+  it("maps strict cancellation payloads to the cancelled round detail route", () => {
+    expect(
+      resolveResultsNotificationDestination({
+        type: "round_cancelled",
+        roundId: "70000000-0000-4000-8000-000000000001",
+        summary: "August Championship was cancelled: Course closure",
+      }),
+    ).toBe("/rounds?roundId=70000000-0000-4000-8000-000000000001");
+    expect(
+      resolveResultsNotificationDestination({
+        type: "round_cancelled",
+        roundId: "70000000-0000-4000-8000-000000000001",
+      }),
+    ).toBeNull();
+  });
+
   it("rejects malformed or non-results notification data", () => {
     expect(resolveResultsNotificationDestination(null)).toBeNull();
     expect(
