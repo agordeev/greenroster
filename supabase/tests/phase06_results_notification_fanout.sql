@@ -213,7 +213,7 @@ select lives_ok(
      ) $$,
   'retryable result e-mail failure releases the first claim'
 );
-select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable'::public.notification_delivery_state, 'retryable result e-mail remains queued for a later drain');
+select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable'::public.notification_delivery_state, 'retryable result e-mail remains retryable for a later drain');
 select is((select failure_reason from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'provider_unavailable', 'retryable result e-mail preserves a safe provider error');
 select ok((select next_attempt_at > now() from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable result e-mail schedules a future attempt');
 update public.notification_deliveries

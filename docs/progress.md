@@ -1,6 +1,6 @@
 # GreenRoster implementation progress
 
-Last updated: August 4, 2026
+Last updated: August 5, 2026
 
 The [master spec](./master-spec.md) and [phase documents](./phases/README.md) contain detailed requirements and evidence. This file tracks only current state and recent milestones.
 
