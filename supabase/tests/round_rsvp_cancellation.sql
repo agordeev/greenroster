@@ -411,9 +411,42 @@ select ok(
      and provider_message_id is null) = 1,
   'raw push token is not persisted in the delivery row'
 );
-select public.record_round_cancelled_push_send_success(
+select public.record_round_cancelled_push_send_failure(
   (select delivery_id from cancellation_push_claim),
   'b9000000-0000-4000-8000-000000000002',
+  'provider_unavailable',
+  now() + interval '1 hour'
+);
+select is(
+  (select state from public.notification_push_deliveries where id = (select delivery_id from cancellation_push_claim)),
+  'retryable'::public.notification_delivery_state,
+  'provider-unavailable cancellation push releases a retryable child'
+);
+select is(
+  (select state from public.notification_outbox_jobs where id = (select outbox_job_id from cancellation_push_claim)),
+  'retryable'::public.notification_outbox_job_state,
+  'provider-unavailable cancellation push keeps the parent retryable'
+);
+select ok(
+  (select next_attempt_at > now() from public.notification_push_deliveries where id = (select delivery_id from cancellation_push_claim)),
+  'provider-unavailable cancellation push schedules a future retry'
+);
+update public.notification_push_deliveries
+set next_attempt_at = now()
+where id = (select delivery_id from cancellation_push_claim);
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = (select outbox_job_id from cancellation_push_claim);
+create temporary table cancellation_push_retry_claim as
+select * from public.claim_round_cancelled_push(
+  'b9000000-0000-4000-8000-000000000003',
+  now() - interval '1 minute'
+);
+select is((select count(*) from cancellation_push_retry_claim), 1::bigint, 'due cancellation push retry is claimable on the next drain');
+select is((select attempt_number from cancellation_push_retry_claim), 2, 'cancellation push retry increments the attempt number');
+select public.record_round_cancelled_push_send_success(
+  (select delivery_id from cancellation_push_retry_claim),
+  'b9000000-0000-4000-8000-000000000003',
   'expo-cancel-ticket-1'
 );
 select is(
