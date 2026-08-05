@@ -16,6 +16,18 @@ const notificationDataSchema = z.discriminatedUnion("type", [
       summary: z.string().min(1),
     })
     .strict(),
+  z
+    .object({
+      type: z.literal("round_published"),
+      roundId: z.uuid(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("round_details_changed"),
+      roundId: z.uuid(),
+    })
+    .strict(),
 ]);
 
 export function resolveResultsNotificationDestination(

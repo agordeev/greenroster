@@ -35,12 +35,28 @@ describe("results notification destination", () => {
     ).toBeNull();
   });
 
-  it("rejects malformed or non-results notification data", () => {
+  it("maps strict publication and detail-change payloads", () => {
+    expect(
+      resolveResultsNotificationDestination({
+        type: "round_published",
+        roundId: "70000000-0000-4000-8000-000000000001",
+      }),
+    ).toBe("/rounds?roundId=70000000-0000-4000-8000-000000000001");
+    expect(
+      resolveResultsNotificationDestination({
+        type: "round_details_changed",
+        roundId: "70000000-0000-4000-8000-000000000001",
+      }),
+    ).toBe("/rounds?roundId=70000000-0000-4000-8000-000000000001");
+  });
+
+  it("rejects malformed notification data", () => {
     expect(resolveResultsNotificationDestination(null)).toBeNull();
     expect(
       resolveResultsNotificationDestination({
         type: "round_published",
         roundId: "70000000-0000-4000-8000-000000000001",
+        extra: true,
       }),
     ).toBeNull();
     expect(
