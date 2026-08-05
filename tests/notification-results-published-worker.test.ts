@@ -195,6 +195,64 @@ describe("results-published notification worker", () => {
     });
   });
 
+  it("drains a retried outage successfully on the next worker run", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let claimCount = 0;
+    let providerCount = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_results_published_email") {
+        claimCount += 1;
+        return {
+          data: [{ ...row, attempt_number: claimCount }],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    };
+
+    const provider = {
+      send: async () => {
+        providerCount += 1;
+        return providerCount === 1
+          ? { data: null, error: { statusCode: 503 } }
+          : { data: { id: "provider-results-recovered" }, error: null };
+      },
+    };
+
+    const first = await runResultsPublishedEmailWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+    const second = await runResultsPublishedEmailWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+
+    expect(first).toEqual({ kind: "retryable", deliveryId });
+    expect(second).toEqual({
+      kind: "sent",
+      deliveryId,
+      providerMessageId: "provider-results-recovered",
+    });
+    expect(calls.map((call) => call.name)).toEqual([
+      "claim_results_published_email",
+      "record_results_email_send_failure",
+      "claim_results_published_email",
+      "record_results_email_send_success",
+    ]);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+    expect(calls[3]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_provider_message_id: "provider-results-recovered",
+    });
+  });
+
   it("records permanent provider rejections", async () => {
     const { calls, rpc } = successRpc();
     const result = await runResultsPublishedEmailWorker(
