@@ -8,7 +8,10 @@ vi.mock("../apps/mobile/src/lib/auth/secure-session-storage", () => ({
   },
 }));
 
-import { createMobileLiveRoundSnapshotStorage } from "../apps/mobile/src/lib/rounds/mobile-live-round-snapshot-storage";
+import {
+  createMobileLiveRoundSnapshotStorage,
+  mobileLiveRoundSnapshotStorageKey,
+} from "../apps/mobile/src/lib/rounds/mobile-live-round-snapshot-storage";
 
 const scope = {
   userId: "10000000-0000-4000-8000-000000000001",
@@ -165,6 +168,24 @@ describe("mobile live-round snapshot storage", () => {
         round(),
       ),
     ).rejects.toThrow("mobile_live_round_snapshot:scope_mismatch");
+  });
+
+  it("rejects a cached snapshot tampered with a foreign top-level group", async () => {
+    const secure = storage();
+    const snapshots = createMobileLiveRoundSnapshotStorage({
+      storage: secure,
+    });
+
+    await snapshots.save(scope, [participant()], round());
+
+    const key = mobileLiveRoundSnapshotStorageKey(scope);
+    const cached = JSON.parse(secure.values.get(key) ?? "") as {
+      groupId: string;
+    };
+    cached.groupId = "20000000-0000-4000-8000-000000000002";
+    secure.values.set(key, JSON.stringify(cached));
+
+    await expect(snapshots.load(scope)).resolves.toBeNull();
   });
 });
 
