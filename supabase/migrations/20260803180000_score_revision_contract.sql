@@ -433,7 +433,6 @@ declare
   saved_projection public.participant_score_projections%rowtype;
   saved_revision public.score_revisions%rowtype;
   prior_revision public.score_revisions%rowtype;
-  prior_event public.audit_events%rowtype;
   request_payload jsonb;
   request_fingerprint text;
   before_state jsonb;
@@ -441,7 +440,6 @@ declare
   normalized_source text;
   normalized_reason text;
   actor_user_id uuid := p_actor_user_id;
-  now_at timestamptz := pg_catalog.clock_timestamp();
   current_version bigint := 0;
   next_version bigint;
   current_gross app.golf_score_value;

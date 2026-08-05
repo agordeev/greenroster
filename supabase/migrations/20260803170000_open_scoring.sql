@@ -28,7 +28,6 @@ declare
   actor_role public.membership_role;
   locked_group public.groups%rowtype;
   locked_round public.rounds%rowtype;
-  actor_membership public.memberships%rowtype;
   saved_round public.rounds%rowtype;
   prior_event public.audit_events%rowtype;
   request_payload jsonb;
@@ -76,8 +75,7 @@ begin
 
   -- Re-check the actor after the tenant lock.  A concurrent role/status or
   -- identity change must not pass the transition boundary on stale context.
-  select membership.*
-  into actor_membership
+  perform 1
   from public.memberships as membership
   join public.user_profiles as profile on profile.user_id = membership.user_id
   join auth.users as identity on identity.id = membership.user_id
