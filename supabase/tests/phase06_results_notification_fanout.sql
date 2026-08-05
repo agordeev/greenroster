@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(44);
+select plan(50);
 
 select has_table(
   'public',
@@ -194,20 +194,47 @@ update public.notification_outbox_jobs
 set next_attempt_at = now()
 where id = 'f6000000-0000-4000-8000-000000000001';
 
-create temporary table claimed_email as
+create temporary table claimed_email_initial as
 select *
 from public.claim_results_published_email(
   'f7000000-0000-4000-8000-000000000001',
   now() - interval '1 hour'
 );
-select is((select count(*) from claimed_email), 1::bigint, 'result e-mail claim leases one child');
-select is((select recipient_address from claimed_email), 'fanout-member@example.test', 'e-mail claim resolves the current verified address');
+select is((select count(*) from claimed_email_initial), 1::bigint, 'result e-mail claim leases one child');
+select is((select recipient_address from claimed_email_initial), 'fanout-member@example.test', 'e-mail claim resolves the current verified address');
 select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'), 'sending'::public.notification_delivery_state, 'claimed e-mail is sending');
 select is((select state from public.notification_outbox_jobs where id = 'f6000000-0000-4000-8000-000000000001'), 'processing'::public.notification_outbox_job_state, 'parent remains processing while children are in flight');
 select lives_ok(
+  $$ select public.record_results_email_send_failure(
+       (select delivery_id from claimed_email_initial),
+       'f7000000-0000-4000-8000-000000000001',
+       'provider_unavailable',
+       now() + interval '1 hour'
+     ) $$,
+  'retryable result e-mail failure releases the first claim'
+);
+select is((select state from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable'::public.notification_delivery_state, 'retryable result e-mail remains queued for a later drain');
+select is((select failure_reason from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'provider_unavailable', 'retryable result e-mail preserves a safe provider error');
+select ok((select next_attempt_at > now() from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable result e-mail schedules a future attempt');
+update public.notification_deliveries
+set next_attempt_at = now()
+where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'
+  and channel = 'email';
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = 'f6000000-0000-4000-8000-000000000001';
+create temporary table claimed_email as
+select *
+from public.claim_results_published_email(
+  'f7050000-0000-4000-8000-000000000001',
+  now() - interval '1 hour'
+);
+select is((select count(*) from claimed_email), 1::bigint, 'due retryable result e-mail is claimable on the next drain');
+select is((select attempt_number from claimed_email), 2, 'retryable result e-mail increments the attempt number');
+select lives_ok(
   $$ select public.record_results_email_send_success(
        (select delivery_id from claimed_email),
-       'f7000000-0000-4000-8000-000000000001',
+       'f7050000-0000-4000-8000-000000000001',
        'res-email-1'
      ) $$,
   'result e-mail success finalizes only its child'
