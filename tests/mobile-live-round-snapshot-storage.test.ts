@@ -147,6 +147,25 @@ describe("mobile live-round snapshot storage", () => {
       ),
     ).rejects.toThrow("scope_mismatch");
   });
+
+  it("rejects a participant from a different group", async () => {
+    const snapshots = createMobileLiveRoundSnapshotStorage({
+      storage: storage(),
+    });
+
+    await expect(
+      snapshots.save(
+        scope,
+        [
+          {
+            ...participant(),
+            groupId: "20000000-0000-4000-8000-000000000002",
+          },
+        ],
+        round(),
+      ),
+    ).rejects.toThrow("mobile_live_round_snapshot:scope_mismatch");
+  });
 });
 
 const secondRoundId = "30000000-0000-4000-8000-000000000002";
