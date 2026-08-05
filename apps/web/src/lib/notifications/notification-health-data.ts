@@ -10,6 +10,11 @@ const countSchema = z
   .transform((value) => Number(value))
   .refine(Number.isSafeInteger, "Invalid notification count.");
 
+const rateSchema = z
+  .union([z.number().finite(), z.string().regex(/^\d+(?:\.\d+)?$/u)])
+  .transform((value) => Number(value))
+  .refine((value) => value >= 0 && value <= 1, "Invalid notification rate.");
+
 const instantSchema = z.string().datetime({ offset: true }).nullable();
 
 const notificationHealthRowSchema = z
@@ -24,11 +29,18 @@ const notificationHealthRowSchema = z
     email_retryable: countSchema,
     email_failed_permanent: countSchema,
     email_suppressed: countSchema,
+    email_attempted: countSchema,
+    email_bounced: countSchema,
+    email_complained: countSchema,
+    email_bounce_rate: rateSchema,
+    email_complaint_rate: rateSchema,
     push_queued: countSchema,
     push_sending: countSchema,
     push_retryable: countSchema,
     push_failed_permanent: countSchema,
     push_cancelled: countSchema,
+    push_invalid_token: countSchema,
+    push_invalid_token_rate: rateSchema,
     push_receipt_pending: countSchema,
     push_receipt_failed: countSchema,
     last_activity_at: instantSchema,
@@ -49,11 +61,18 @@ export type NotificationDeliveryHealth = Readonly<{
   emailRetryable: number;
   emailFailedPermanent: number;
   emailSuppressed: number;
+  emailAttempted: number;
+  emailBounced: number;
+  emailComplained: number;
+  emailBounceRate: number;
+  emailComplaintRate: number;
   pushQueued: number;
   pushSending: number;
   pushRetryable: number;
   pushFailedPermanent: number;
   pushCancelled: number;
+  pushInvalidToken: number;
+  pushInvalidTokenRate: number;
   pushReceiptPending: number;
   pushReceiptFailed: number;
   lastActivityAt: string | null;
@@ -101,11 +120,18 @@ export async function executeReadNotificationDeliveryHealth(
     emailRetryable: row.email_retryable,
     emailFailedPermanent: row.email_failed_permanent,
     emailSuppressed: row.email_suppressed,
+    emailAttempted: row.email_attempted,
+    emailBounced: row.email_bounced,
+    emailComplained: row.email_complained,
+    emailBounceRate: row.email_bounce_rate,
+    emailComplaintRate: row.email_complaint_rate,
     pushQueued: row.push_queued,
     pushSending: row.push_sending,
     pushRetryable: row.push_retryable,
     pushFailedPermanent: row.push_failed_permanent,
     pushCancelled: row.push_cancelled,
+    pushInvalidToken: row.push_invalid_token,
+    pushInvalidTokenRate: row.push_invalid_token_rate,
     pushReceiptPending: row.push_receipt_pending,
     pushReceiptFailed: row.push_receipt_failed,
     lastActivityAt: row.last_activity_at,

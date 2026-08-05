@@ -536,12 +536,26 @@ function PortalDashboardSummaryCard({
                 <div className="dashboard-summary-card">
                   <span>E-mail failures</span>
                   <strong>{summary.notificationHealth.emailFailures}</strong>
-                  <small>Permanent failures or provider suppression</small>
+                  <small>
+                    {formatHealthRate(
+                      summary.notificationHealth.emailBounceRate,
+                    )}{" "}
+                    bounce ·{" "}
+                    {formatHealthRate(
+                      summary.notificationHealth.emailComplaintRate,
+                    )}{" "}
+                    complaint
+                  </small>
                 </div>
                 <div className="dashboard-summary-card">
                   <span>Push failures</span>
                   <strong>{summary.notificationHealth.pushFailures}</strong>
-                  <small>Permanent delivery failures</small>
+                  <small>
+                    {formatHealthRate(
+                      summary.notificationHealth.pushInvalidTokenRate,
+                    )}{" "}
+                    invalid-token rate
+                  </small>
                 </div>
                 <div className="dashboard-summary-card">
                   <span>Receipt failures</span>
@@ -627,6 +641,10 @@ function formatHealthTimestamp(value: string) {
   } catch {
     return "time unavailable";
   }
+}
+
+function formatHealthRate(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 function formatActionRequiredInvitationSummary(

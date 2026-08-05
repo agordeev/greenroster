@@ -22,7 +22,10 @@ export type PortalDashboardNotificationHealth = Readonly<{
   queueDepth: number;
   oldestQueuedAt: string | null;
   emailFailures: number;
+  emailBounceRate: number;
+  emailComplaintRate: number;
   pushFailures: number;
+  pushInvalidTokenRate: number;
   receiptFailures: number;
   sampledAt: string;
 }>;
@@ -87,7 +90,10 @@ export type PortalDashboardPhase07Input = Readonly<{
     outboxOldestAt: string | null;
     emailFailedPermanent: number;
     emailSuppressed: number;
+    emailBounceRate: number;
+    emailComplaintRate: number;
     pushFailedPermanent: number;
+    pushInvalidTokenRate: number;
     pushReceiptFailed: number;
     sampledAt: string;
   }>;
@@ -171,7 +177,10 @@ function buildNotificationHealthSummary(
       health.outboxQueued + health.outboxProcessing + health.outboxRetryable,
     oldestQueuedAt: health.outboxOldestAt,
     emailFailures: health.emailFailedPermanent + health.emailSuppressed,
+    emailBounceRate: health.emailBounceRate,
+    emailComplaintRate: health.emailComplaintRate,
     pushFailures: health.pushFailedPermanent,
+    pushInvalidTokenRate: health.pushInvalidTokenRate,
     receiptFailures: health.pushReceiptFailed,
     sampledAt: health.sampledAt,
   };
