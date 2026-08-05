@@ -58,5 +58,6 @@ For mobile rows, mark hardware-keyboard navigation N/A when unavailable; still v
 ## Evidence notes
 
 - Existing public web smoke evidence is recorded in `docs/progress.md`, but it is not a substitute for this device and assistive-technology sign-off.
+- Fresh local browser smoke (August 5, 2026) observed `/sign-in`, `/privacy`, and `/terms` rendering meaningful content and labeled interactive controls without a Next.js error overlay. The public legal pages exposed a skip-to-main-content link and privacy/support links. At both the default desktop viewport and 375×812 CSS pixels, sign-in Tab order reached the e-mail field, password visibility control, password field, submit button, and recovery link. A signed-out `/account/privacy` request redirected to `/sign-in?next=%2Faccount%2Fprivacy`. This is observable web smoke evidence only; it does not satisfy owner, device, screen-reader, resize/text-size, contrast, reduced-motion, or mobile sign-off.
 - Relevant implementation surfaces include `apps/web/src/app/portal/portal-shell.tsx`, `apps/web/src/app/portal/page.tsx`, `apps/web/src/app/member/{home,results,standings}/page.tsx`, and the mobile Home, live-round, standings, official-result, profile, auth, and tab-shell components.
 - Automated tests can supplement, but cannot replace, VoiceOver/TalkBack, resize/text-size, contrast, and reduced-motion evidence.
