@@ -125,7 +125,7 @@ describe("round draft domain boundary", () => {
     expect(
       createRoundDraftInputSchema.safeParse({
         ...createInput,
-        holes: 18,
+        unexpectedField: true,
       }).success,
     ).toBe(false);
     expect(
@@ -133,7 +133,7 @@ describe("round draft domain boundary", () => {
         ...createInput,
         roundId: round.roundId,
         expectedRoundVersion: round.version,
-        teamId: "60000000-0000-4000-8000-000000000001",
+        anotherUnknownField: "not-part-of-the-v1-schema",
       }).success,
     ).toBe(false);
   });
