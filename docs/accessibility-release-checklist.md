@@ -32,7 +32,7 @@ Run these checks on each listed core flow:
 - Reduced-motion settings are respected; realtime rank updates do not steal focus or move an actively focused row.
 - Touch targets meet the documented platform guidance where feasible: 44×44 points on iOS and 48×48 density-independent pixels on Android.
 
-For mobile rows, mark the keyboard/focus column N/A when no hardware keyboard is attached; record touch focus, target size, and focus restoration instead.
+For mobile rows, mark hardware-keyboard navigation N/A when unavailable; still verify input order, first-invalid focus, assistive focus restoration, and touch targets.
 
 ## Core flow matrix
 
