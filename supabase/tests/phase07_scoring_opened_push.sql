@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(35);
 
 select has_function(
   'public', 'claim_scoring_opened_push', array['uuid', 'timestamptz'],
@@ -306,20 +306,117 @@ values (
   '74000000-0000-4000-8000-000000000003',
   'member', 'playing'
 );
+do $$
+declare
+  utc_hour integer := extract(hour from clock_timestamp())::integer;
+  utc_delta integer := utc_hour - 12;
+  safe_time_zone text := case
+    when utc_delta = 0 then 'Etc/GMT'
+    when utc_delta > 0 then format('Etc/GMT+%s', utc_delta)
+    else format('Etc/GMT-%s', -utc_delta)
+  end;
+begin
+  update public.rounds
+  set group_time_zone = safe_time_zone
+  where id = '74000000-0000-4000-8000-000000000014';
+end;
+$$;
 update public.rounds
 set state = 'live', version = 2
 where id = '74000000-0000-4000-8000-000000000014';
-create temporary table invalid_device_claim as
+create temporary table scoring_retry_initial as
 select * from public.claim_scoring_opened_push(
   '74000000-0000-4000-8000-000000000016', now() - interval '1 minute'
 );
+select is((select count(*) from scoring_retry_initial), 1::bigint, 'retry fixture claims the first scoring push');
+select is((select attempt_number from scoring_retry_initial), 1, 'first scoring claim starts at attempt one');
+select public.record_scoring_opened_push_send_failure(
+  (select delivery_id from scoring_retry_initial),
+  '74000000-0000-4000-8000-000000000016',
+  'provider_unavailable',
+  now() + interval '1 hour'
+);
+select is(
+  (select state from public.notification_push_deliveries
+   where id = (select delivery_id from scoring_retry_initial)),
+  'retryable'::public.notification_delivery_state,
+  'provider outage releases the scoring child for retry'
+);
+select is(
+  (select state from public.notification_outbox_jobs
+   where id = (select outbox_job_id from scoring_retry_initial)),
+  'retryable'::public.notification_outbox_job_state,
+  'provider outage releases the scoring parent for retry'
+);
+select ok(
+  (select next_attempt_at > now() from public.notification_push_deliveries
+   where id = (select delivery_id from scoring_retry_initial)),
+  'provider outage schedules a future scoring attempt'
+);
+update public.notification_push_deliveries
+set next_attempt_at = now()
+where id = (select delivery_id from scoring_retry_initial);
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = (select outbox_job_id from scoring_retry_initial);
+create temporary table scoring_retry_reclaim as
+select * from public.claim_scoring_opened_push(
+  '74000000-0000-4000-8000-000000000017', now() - interval '1 minute'
+);
+select is((select count(*) from scoring_retry_reclaim), 1::bigint, 'due scoring retry is claimable on the next drain');
+select is((select attempt_number from scoring_retry_reclaim), 2, 'scoring retry increments the attempt number');
+select public.record_scoring_opened_push_send_success(
+  (select delivery_id from scoring_retry_reclaim),
+  '74000000-0000-4000-8000-000000000017',
+  'expo-scoring-recovered-ticket'
+);
+select is(
+  (select state from public.notification_push_deliveries
+   where id = (select delivery_id from scoring_retry_reclaim)),
+  'sent'::public.notification_delivery_state,
+  'recovered scoring push terminalizes the child'
+);
+select is(
+  (select state from public.notification_outbox_jobs
+   where id = (select outbox_job_id from scoring_retry_reclaim)),
+  'succeeded'::public.notification_outbox_job_state,
+  'recovered scoring push terminalizes the parent'
+);
+
+insert into public.rounds (
+  id, group_id, description, scheduled_at, group_time_zone, format,
+  state, version, published_at, created_by
+)
+values (
+  '74000000-0000-4000-8000-000000000019',
+  '74000000-0000-4000-8000-000000000002',
+  'Scoring Round Five', now() + interval '5 days', 'UTC', 'individual_net',
+  'published', 1, now(), '74000000-0000-4000-8000-000000000001'
+);
+insert into public.round_participants (
+  id, round_id, group_id, membership_id, participant_kind, rsvp_status
+)
+values (
+  '74000000-0000-4000-8000-000000000020',
+  '74000000-0000-4000-8000-000000000019',
+  '74000000-0000-4000-8000-000000000002',
+  '74000000-0000-4000-8000-000000000003',
+  'member', 'playing'
+);
+update public.rounds
+set state = 'live', version = 2
+where id = '74000000-0000-4000-8000-000000000019';
+create temporary table invalid_device_claim as
+select * from public.claim_scoring_opened_push(
+  '74000000-0000-4000-8000-000000000021', now() - interval '1 minute'
+);
 select public.record_scoring_opened_push_invalid_device(
   (select delivery_id from invalid_device_claim),
-  '74000000-0000-4000-8000-000000000016',
+  '74000000-0000-4000-8000-000000000021',
   '74000000-0000-4000-8000-000000000004',
   '74000000-0000-4000-8000-000000000002',
-  '74000000-0000-4000-8000-000000000017',
-  '74000000-0000-4000-8000-000000000018'
+  '74000000-0000-4000-8000-000000000022',
+  '74000000-0000-4000-8000-000000000023'
 );
 select is(
   (select active from public.push_devices

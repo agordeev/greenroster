@@ -333,4 +333,55 @@ describe("round announcement push worker", () => {
       "record_scoring_opened_push_invalid_device",
     ]);
   });
+
+  it("recovers a scoring-opened outage on the next claimed attempt", async () => {
+    const calls: string[] = [];
+    let claimCount = 0;
+    let providerAttempt = 0;
+    const provider = {
+      send: async () => {
+        providerAttempt += 1;
+        if (providerAttempt === 1) throw new TypeError("fetch failed");
+        return {
+          statusCode: 200,
+          body: { data: [{ status: "ok", id: "expo-scoring-recovered" }] },
+        };
+      },
+    };
+    const rpc: NotificationRpcClient["rpc"] = async (name) => {
+      calls.push(name);
+      if (name === "claim_scoring_opened_push") {
+        claimCount += 1;
+        return {
+          data: [
+            {
+              ...row,
+              attempt_number: claimCount,
+              event_type: "scoring_opened",
+            },
+          ],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    };
+    const first = await runScoringOpenedPushWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+    const second = await runScoringOpenedPushWorker(
+      dependencies(rpc, { createProvider: () => provider }),
+    );
+    expect(first).toEqual({ deliveryId, kind: "retryable" });
+    expect(second).toEqual({
+      deliveryId,
+      kind: "sent",
+      providerMessageId: "expo-scoring-recovered",
+    });
+    expect(calls).toEqual([
+      "claim_scoring_opened_push",
+      "record_scoring_opened_push_send_failure",
+      "claim_scoring_opened_push",
+      "record_scoring_opened_push_send_success",
+    ]);
+  });
 });
