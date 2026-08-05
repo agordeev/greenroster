@@ -6,16 +6,16 @@ This checklist is the release artifact for acceptance scenario 22. It is derived
 
 ## Sign-off
 
-| Field | Value |
-| --- | --- |
-| Product/release | GreenRoster v1 |
-| Accessibility owner | _Pending assignment_ |
-| Product owner approval | _Pending_ |
-| Web browser/device matrix | _Pending_ |
-| iOS device/OS and VoiceOver | _Pending_ |
-| Android device/OS and TalkBack | _Pending_ |
-| Evidence location | _Pending links or artifact IDs_ |
-| Open defects / disposition | _Pending_ |
+| Field                          | Value                           |
+| ------------------------------ | ------------------------------- |
+| Product/release                | GreenRoster v1                  |
+| Accessibility owner            | _Pending assignment_            |
+| Product owner approval         | _Pending_                       |
+| Web browser/device matrix      | _Pending_                       |
+| iOS device/OS and VoiceOver    | _Pending_                       |
+| Android device/OS and TalkBack | _Pending_                       |
+| Evidence location              | _Pending links or artifact IDs_ |
+| Open defects / disposition     | _Pending_                       |
 
 The owner must record the tested browser, operating-system version, viewport or text-size setting, result, and evidence link for every row. “Not run” is not a passing result.
 
@@ -36,24 +36,24 @@ For mobile rows, mark hardware-keyboard navigation N/A when unavailable; still v
 
 ## Core flow matrix
 
-| Surface and flow | Keyboard / focus | Screen reader | Resize / text size | Contrast / status | Reduced motion | Result / evidence |
-| --- | --- | --- | --- | --- | --- | --- |
-| Web sign-in, recovery, invitation, first-run, and legal acceptance | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Web admin portal shell and dashboard | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Web admin round setup, live operations, and leaderboard | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Web member Home / RSVP | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Web member Results | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Web member Standings | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| iOS sign-in, Home, and Profile | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| iOS round detail / RSVP (guest rows only where enabled) | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| iOS Live scoring, stale rejection, and offline state | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| iOS live leaderboard and realtime update review | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| iOS Results and Standings | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Android sign-in, Home, and Profile | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Android round detail / RSVP (guest rows only where enabled) | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Android Live scoring, stale rejection, and offline state | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Android live leaderboard and realtime update review | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
-| Android Results and Standings | [ ] | [ ] | [ ] | [ ] | [ ] | _Pending_ |
+| Surface and flow                                                   | Keyboard / focus | Screen reader | Resize / text size | Contrast / status | Reduced motion | Result / evidence |
+| ------------------------------------------------------------------ | ---------------- | ------------- | ------------------ | ----------------- | -------------- | ----------------- |
+| Web sign-in, recovery, invitation, first-run, and legal acceptance | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Web admin portal shell and dashboard                               | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Web admin round setup, live operations, and leaderboard            | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Web member Home / RSVP                                             | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Web member Results                                                 | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Web member Standings                                               | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| iOS sign-in, Home, and Profile                                     | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| iOS round detail / RSVP (guest rows only where enabled)            | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| iOS Live scoring, stale rejection, and offline state               | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| iOS live leaderboard and realtime update review                    | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| iOS Results and Standings                                          | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Android sign-in, Home, and Profile                                 | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Android round detail / RSVP (guest rows only where enabled)        | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Android Live scoring, stale rejection, and offline state           | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Android live leaderboard and realtime update review                | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
+| Android Results and Standings                                      | [ ]              | [ ]           | [ ]                | [ ]               | [ ]            | _Pending_         |
 
 ## Evidence notes
 
