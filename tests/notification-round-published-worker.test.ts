@@ -30,6 +30,7 @@ const row = {
 
 function config() {
   return {
+    appUrl: "https://greenroster.example",
     resendApiKey: "re_test_key",
     resendFromEmail: "GreenRoster <rounds@example.com>",
     maxAttempts: 3,
@@ -97,6 +98,9 @@ describe("round-published notification worker", () => {
     expect(providerMessage?.to).toBe("member@example.com");
     expect(providerMessage?.text).toContain("August Championship");
     expect(providerMessage?.text).toContain("Individual Net");
+    expect(providerMessage?.text).toContain(
+      "Manage optional e-mail notifications: https://greenroster.example/member/home#notifications",
+    );
     expect(calls.map((call) => call.name)).toEqual([
       "claim_round_published_email",
       "record_email_send_success",
@@ -124,6 +128,33 @@ describe("round-published notification worker", () => {
       }),
     );
     expect(result).toEqual({ kind: "empty" });
+    expect(providerCalled).toBe(false);
+  });
+
+  it("records invalid app URLs as rendering failures", async () => {
+    const { calls, rpc } = successRpc();
+    let providerCalled = false;
+    const result = await runRoundPublishedEmailWorker(
+      dependencies(rpc, {
+        getConfig: () => ({ ...config(), appUrl: "ftp://greenroster.example" }),
+        createProvider: () => ({
+          send: async () => {
+            providerCalled = true;
+            return { data: { id: "unexpected" }, error: null };
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({
+      code: "provider_invalid_response",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_invalid_response",
+      p_retry_at: null,
+    });
     expect(providerCalled).toBe(false);
   });
 

@@ -27,12 +27,20 @@ export type RoundDetailsChangedEmailWorkerDependencies = Readonly<{
   getConfig: () =>
     | Pick<
         NotificationEmailWorkerConfig,
-        "resendApiKey" | "resendFromEmail" | "maxAttempts" | "retrySeconds"
+        | "appUrl"
+        | "resendApiKey"
+        | "resendFromEmail"
+        | "maxAttempts"
+        | "retrySeconds"
       >
     | Promise<
         Pick<
           NotificationEmailWorkerConfig,
-          "resendApiKey" | "resendFromEmail" | "maxAttempts" | "retrySeconds"
+          | "appUrl"
+          | "resendApiKey"
+          | "resendFromEmail"
+          | "maxAttempts"
+          | "retrySeconds"
         >
       >;
   now: () => Date;
@@ -41,6 +49,7 @@ export type RoundDetailsChangedEmailWorkerDependencies = Readonly<{
       description: string;
       groupName: string;
       groupTimeZone: string;
+      notificationPreferencesUrl: string;
       scheduledAt: string;
       venue: string | null;
       rsvpDeadlineAt: string | null;
@@ -95,6 +104,7 @@ const defaultDependencies: RoundDetailsChangedEmailWorkerDependencies = {
   getConfig: async () => {
     const { webRuntimeEnv } = await import("../runtime-env");
     return {
+      appUrl: webRuntimeEnv.appUrl,
       resendApiKey: webRuntimeEnv.resendApiKey,
       resendFromEmail: webRuntimeEnv.resendFromEmail,
       maxAttempts: webRuntimeEnv.notificationEmailMaxAttempts,
@@ -122,6 +132,18 @@ function parseClaimRows(data: unknown):
 
 function rpcFailed(error: Readonly<{ code?: string }> | null): boolean {
   return error !== null;
+}
+
+function buildActionUrl(appUrl: string, path: string): string {
+  const url = new URL(path, appUrl);
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error("notification preferences URL must use HTTP or HTTPS");
+  }
+  return url.toString();
+}
+
+function buildNotificationPreferencesUrl(appUrl: string): string {
+  return buildActionUrl(appUrl, "/member/home#notifications");
 }
 
 export async function runRoundDetailsChangedEmailWorker(
@@ -168,6 +190,9 @@ export async function runRoundDetailsChangedEmailWorker(
       description: row.round_description,
       groupName: row.group_name,
       groupTimeZone: row.group_time_zone,
+      notificationPreferencesUrl: buildNotificationPreferencesUrl(
+        config.appUrl,
+      ),
       scheduledAt: row.scheduled_at,
       venue: row.venue,
       rsvpDeadlineAt: row.rsvp_deadline_at,

@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Text,
   render,
@@ -15,6 +16,7 @@ export type RoundPublishedEmailInput = Readonly<{
   format: "individual_net" | "individual_gross";
   groupName: string;
   groupTimeZone: string;
+  notificationPreferencesUrl: string;
   scheduledAt: string;
 }>;
 
@@ -72,7 +74,12 @@ export function RoundPublishedEmailDocument(input: RoundPublishedEmailInput) {
           </Text>
           <Hr style={ruleStyle} />
           <Text style={mutedTextStyle}>
-            Sign in to GreenRoster to view the round and respond.
+            Sign in to GreenRoster to view the round and respond. You can manage
+            optional e-mail notifications from your{" "}
+            <Link href={input.notificationPreferencesUrl} style={linkStyle}>
+              notification preferences
+            </Link>
+            .
           </Text>
         </Container>
       </Body>
@@ -98,7 +105,7 @@ export function buildRoundPublishedEmail(
       `Format: ${format}`,
       `Scheduled for: ${scheduledAt}`,
       "",
-      "Sign in to GreenRoster to view the round and respond.",
+      `Sign in to GreenRoster to view the round and respond. Manage optional e-mail notifications: ${input.notificationPreferencesUrl}`,
     ].join("\n"),
   };
 }
@@ -146,6 +153,11 @@ const mutedTextStyle = {
   color: "#595a52",
   fontSize: "14px",
   lineHeight: "1.5",
+};
+
+const linkStyle = {
+  color: "#213d2b",
+  fontWeight: "700",
 };
 
 const ruleStyle = {

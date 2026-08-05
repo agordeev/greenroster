@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Text,
   render,
@@ -14,6 +15,7 @@ export type RoundDetailsChangedEmailInput = Readonly<{
   description: string;
   groupName: string;
   groupTimeZone: string;
+  notificationPreferencesUrl: string;
   scheduledAt: string;
   venue: string | null;
   rsvpDeadlineAt: string | null;
@@ -83,7 +85,11 @@ export function RoundDetailsChangedEmailDocument(
           <Hr style={ruleStyle} />
           <Text style={mutedTextStyle}>
             Sign in to GreenRoster to review the round and update your RSVP if
-            needed.
+            needed. You can manage optional e-mail notifications from your{" "}
+            <Link href={input.notificationPreferencesUrl} style={linkStyle}>
+              notification preferences
+            </Link>
+            .
           </Text>
         </Container>
       </Body>
@@ -111,7 +117,7 @@ export function buildRoundDetailsChangedEmail(
       `Venue: ${venue}`,
       `RSVP deadline: ${rsvpDeadlineAt}`,
       "",
-      "Sign in to GreenRoster to review the round and update your RSVP if needed.",
+      `Sign in to GreenRoster to review the round and update your RSVP if needed. Manage optional e-mail notifications: ${input.notificationPreferencesUrl}`,
     ].join("\n"),
   };
 }
@@ -159,6 +165,11 @@ const mutedTextStyle = {
   color: "#595a52",
   fontSize: "14px",
   lineHeight: "1.5",
+};
+
+const linkStyle = {
+  color: "#213d2b",
+  fontWeight: "700",
 };
 
 const ruleStyle = {

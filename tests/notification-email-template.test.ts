@@ -87,6 +87,8 @@ describe("round published email", () => {
       format: "individual_net",
       groupName: "<Saturday League>",
       groupTimeZone: "America/New_York",
+      notificationPreferencesUrl:
+        "https://greenroster.example/member/home#notifications",
       scheduledAt: "2026-08-15T09:00:00.000Z",
     });
 
@@ -94,9 +96,15 @@ describe("round published email", () => {
     expect(email.html).toContain("August Championship");
     expect(email.html).toContain("Individual Net");
     expect(email.html).toContain("&lt;Saturday League&gt;");
+    expect(email.html).toContain(
+      "https://greenroster.example/member/home#notifications",
+    );
     expect(email.html).not.toContain("<img");
     expect(email.text).toContain("Format: Individual Net");
     expect(email.text).toContain("Scheduled for: Aug 15, 2026, 5:00 AM EDT");
+    expect(email.text).toContain(
+      "Manage optional e-mail notifications: https://greenroster.example/member/home#notifications",
+    );
   });
 
   it("normalizes invalid scheduled-at display input", () => {
@@ -105,6 +113,8 @@ describe("round published email", () => {
       format: "individual_gross",
       groupName: "Saturday League",
       groupTimeZone: "America/New_York",
+      notificationPreferencesUrl:
+        "https://greenroster.example/member/home#notifications",
       scheduledAt: "scheduled time supplied by the server",
     });
 

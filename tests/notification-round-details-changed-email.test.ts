@@ -11,6 +11,8 @@ describe("round details changed email", () => {
       description: "<August Championship>",
       groupName: "<Saturday League>",
       groupTimeZone: "America/New_York",
+      notificationPreferencesUrl:
+        "https://greenroster.example/member/home#notifications",
       scheduledAt: "2026-08-15T13:00:00.000Z",
       venue: "<Pine Valley>\nClubhouse",
       rsvpDeadlineAt: "2026-08-12T13:00:00.000Z",
@@ -21,12 +23,18 @@ describe("round details changed email", () => {
     expect(email.html).toContain("&lt;August Championship&gt;");
     expect(email.html).toContain("&lt;Pine Valley&gt; Clubhouse");
     expect(email.html).toContain("RSVP deadline");
+    expect(email.html).toContain(
+      "https://greenroster.example/member/home#notifications",
+    );
     expect(email.html).not.toContain("<script");
     expect(email.html).not.toContain("notes");
     expect(email.html).not.toContain("member@example.com");
     expect(email.text).toContain("Scheduled for: Aug 15, 2026, 9:00 AM EDT");
     expect(email.text).toContain("Venue: <Pine Valley> Clubhouse");
     expect(email.text).toContain("RSVP deadline: Aug 12, 2026, 9:00 AM EDT");
+    expect(email.text).toContain(
+      "Manage optional e-mail notifications: https://greenroster.example/member/home#notifications",
+    );
     expect(email.text).not.toContain("notes");
     expect(email.text).not.toContain("member@example.com");
   });
@@ -36,6 +44,8 @@ describe("round details changed email", () => {
       description: "August Championship",
       groupName: "Saturday League",
       groupTimeZone: "UTC",
+      notificationPreferencesUrl:
+        "https://greenroster.example/member/home#notifications",
       scheduledAt: "2026-08-15T13:00:00.000Z",
       venue: null,
       rsvpDeadlineAt: null,
@@ -50,6 +60,8 @@ describe("round details changed email", () => {
       description: "August Championship",
       groupName: "Saturday League",
       groupTimeZone: "America/New_York",
+      notificationPreferencesUrl:
+        "https://greenroster.example/member/home#notifications",
       scheduledAt: "schedule supplied by the server",
       venue: "Pine Valley",
       rsvpDeadlineAt: "deadline supplied by the server",

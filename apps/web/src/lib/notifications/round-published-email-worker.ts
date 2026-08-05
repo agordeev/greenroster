@@ -27,12 +27,20 @@ export type RoundPublishedEmailWorkerDependencies = Readonly<{
   getConfig: () =>
     | Pick<
         NotificationEmailWorkerConfig,
-        "resendApiKey" | "resendFromEmail" | "maxAttempts" | "retrySeconds"
+        | "appUrl"
+        | "resendApiKey"
+        | "resendFromEmail"
+        | "maxAttempts"
+        | "retrySeconds"
       >
     | Promise<
         Pick<
           NotificationEmailWorkerConfig,
-          "resendApiKey" | "resendFromEmail" | "maxAttempts" | "retrySeconds"
+          | "appUrl"
+          | "resendApiKey"
+          | "resendFromEmail"
+          | "maxAttempts"
+          | "retrySeconds"
         >
       >;
   now: () => Date;
@@ -42,6 +50,7 @@ export type RoundPublishedEmailWorkerDependencies = Readonly<{
       format: "individual_net" | "individual_gross";
       groupName: string;
       groupTimeZone: string;
+      notificationPreferencesUrl: string;
       scheduledAt: string;
     }>,
   ) => RoundPublishedEmail | Promise<RoundPublishedEmail>;
@@ -93,6 +102,7 @@ const defaultDependencies: RoundPublishedEmailWorkerDependencies = {
   getConfig: async () => {
     const { webRuntimeEnv } = await import("../runtime-env");
     return {
+      appUrl: webRuntimeEnv.appUrl,
       resendApiKey: webRuntimeEnv.resendApiKey,
       resendFromEmail: webRuntimeEnv.resendFromEmail,
       maxAttempts: webRuntimeEnv.notificationEmailMaxAttempts,
@@ -119,6 +129,18 @@ function parseClaimRows(
 
 function rpcFailed(error: Readonly<{ code?: string }> | null): boolean {
   return error !== null;
+}
+
+function buildActionUrl(appUrl: string, path: string): string {
+  const url = new URL(path, appUrl);
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error("notification preferences URL must use HTTP or HTTPS");
+  }
+  return url.toString();
+}
+
+function buildNotificationPreferencesUrl(appUrl: string): string {
+  return buildActionUrl(appUrl, "/member/home#notifications");
 }
 
 export async function runRoundPublishedEmailWorker(
@@ -166,6 +188,9 @@ export async function runRoundPublishedEmailWorker(
       format: row.format,
       groupName: row.group_name,
       groupTimeZone: row.group_time_zone,
+      notificationPreferencesUrl: buildNotificationPreferencesUrl(
+        config.appUrl,
+      ),
       scheduledAt: row.scheduled_at,
     });
   } catch {
