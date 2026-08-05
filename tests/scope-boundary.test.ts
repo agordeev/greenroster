@@ -78,6 +78,12 @@ const webAppRoot = fileURLToPath(
 const mobileAppRoot = fileURLToPath(
   new URL("../apps/mobile/src/app/", import.meta.url),
 );
+const webSourceRoot = fileURLToPath(
+  new URL("../apps/web/src/", import.meta.url),
+);
+const mobileSourceRoot = fileURLToPath(
+  new URL("../apps/mobile/src/", import.meta.url),
+);
 const roundDraftFormFile = fileURLToPath(
   new URL(
     "../apps/web/src/app/portal/rounds/round-draft-form.tsx",
@@ -150,10 +156,10 @@ describe("v1 scope boundary", () => {
     expect(violations).toEqual([]);
   });
 
-  it("does not expose deferred capability controls or links in route sources", () => {
+  it("does not expose deferred capability controls or links in app sources", () => {
     const sourceFiles = [
-      ...collectSourceFiles(webAppRoot),
-      ...collectSourceFiles(mobileAppRoot),
+      ...collectSourceFiles(webSourceRoot),
+      ...collectSourceFiles(mobileSourceRoot),
     ];
     const violations = sourceFiles.flatMap((file) => {
       const source = readSource(file);
