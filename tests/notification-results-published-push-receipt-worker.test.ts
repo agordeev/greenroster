@@ -167,12 +167,55 @@ describe("results-published push receipt worker", () => {
     });
   });
 
-  it("does not expose receipt data when the claim is malformed", async () => {
-    let providerCalled = false;
-    const rpc: NotificationRpcClient["rpc"] = async () => ({
-      data: [{ ...row, unexpected: true }],
-      error: null,
+  it("uses attempt-dependent backoff for later transport outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_results_push_receipt") {
+        return { data: [{ ...row, attempt_number: 2 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runResultsPublishedPushReceiptWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          getReceipts: async () => ({
+            statusCode: 503,
+            body: { data: {} },
+          }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:03:00.000Z",
     });
+  });
+
+  it("terminalizes malformed claims without exposing receipt data", async () => {
+    let providerCalled = false;
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      return {
+        data: [
+          {
+            receipt_id: receiptId,
+            delivery_id: deliveryId,
+            unexpected: true,
+          },
+        ],
+        error: null,
+      };
+    };
     const result = await runResultsPublishedPushReceiptWorker(
       dependencies(rpc, {
         createProvider: () => ({
@@ -183,7 +226,17 @@ describe("results-published push receipt worker", () => {
         }),
       }),
     );
-    expect(result).toEqual({ kind: "unavailable" });
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
     expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_receipt_id: receiptId,
+      p_claim_token: claimToken,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
   });
 });

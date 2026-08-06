@@ -7,6 +7,7 @@ import type {
   InvitationEmailWorkerResult,
   NotificationRpcClient,
 } from "./invitation-email-worker";
+import { retryAtWithBackoff } from "./invitation-email-worker";
 
 const expoReceiptsEndpoint = "https://exp.host/--/api/v2/push/getReceipts";
 
@@ -26,6 +27,17 @@ const claimRowsSchema = z
         attempt_number: z.number().int().positive(),
       })
       .strict(),
+  )
+  .max(1);
+
+const claimEnvelopeSchema = z
+  .array(
+    z
+      .object({
+        receipt_id: z.uuid(),
+        delivery_id: z.uuid(),
+      })
+      .passthrough(),
   )
   .max(1);
 
@@ -131,11 +143,8 @@ type ReceiptFailureCode =
   | "provider_rejected"
   | "provider_rate_limited"
   | "provider_unavailable"
-  | "max_attempts_exceeded";
-
-function retryAt(now: Date, retrySeconds: number): string {
-  return new Date(now.getTime() + retrySeconds * 1000).toISOString();
-}
+  | "max_attempts_exceeded"
+  | "invalid_claim";
 
 function mapRpcFailure(error: Readonly<{ code?: string }> | null): boolean {
   return error !== null;
@@ -147,13 +156,28 @@ function parseClaimRows(data: unknown):
       kind: "row";
       row: z.infer<typeof claimRowsSchema>[number];
     }>
+  | Readonly<{
+      deliveryId: string;
+      kind: "invalid_claim";
+      receiptId: string;
+    }>
   | Readonly<{ kind: "invalid" }> {
   if (data === null || (Array.isArray(data) && data.length === 0)) {
     return { kind: "empty" };
   }
   const parsed = claimRowsSchema.safeParse(data);
-  if (!parsed.success || parsed.data.length !== 1) return { kind: "invalid" };
-  return { kind: "row", row: parsed.data[0] };
+  if (parsed.success && parsed.data.length === 1) {
+    return { kind: "row", row: parsed.data[0] };
+  }
+  const envelope = claimEnvelopeSchema.safeParse(data);
+  if (!envelope.success || envelope.data.length !== 1) {
+    return { kind: "invalid" };
+  }
+  return {
+    deliveryId: envelope.data[0].delivery_id,
+    kind: "invalid_claim",
+    receiptId: envelope.data[0].receipt_id,
+  };
 }
 
 async function recordFailure(
@@ -247,6 +271,22 @@ export async function runResultsPublishedPushReceiptWorker(
   const parsedClaim = parseClaimRows(claim.data);
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
+  if (parsedClaim.kind === "invalid_claim") {
+    const recorded = await recordFailure(
+      client,
+      parsedClaim.receiptId,
+      claimToken,
+      "invalid_claim",
+      null,
+    );
+    return recorded
+      ? {
+          code: "invalid_claim",
+          deliveryId: parsedClaim.deliveryId,
+          kind: "failed_permanent",
+        }
+      : { deliveryId: parsedClaim.deliveryId, kind: "unavailable" };
+  }
   const row = parsedClaim.row;
 
   if (row.attempt_number > config.maxAttempts) {
@@ -277,7 +317,11 @@ export async function runResultsPublishedPushReceiptWorker(
       row.receipt_id,
       claimToken,
       "provider_unavailable",
-      retryAt(dependencies.now(), config.retrySeconds),
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
     );
     return recorded
       ? { deliveryId: row.delivery_id, kind: "retryable" }
@@ -311,7 +355,11 @@ export async function runResultsPublishedPushReceiptWorker(
       transport.statusCode === 429
         ? "provider_rate_limited"
         : "provider_unavailable",
-      retryAt(dependencies.now(), config.retrySeconds),
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
     );
     return recorded
       ? { deliveryId: row.delivery_id, kind: "retryable" }
@@ -343,7 +391,11 @@ export async function runResultsPublishedPushReceiptWorker(
       row.receipt_id,
       claimToken,
       "provider_unavailable",
-      retryAt(dependencies.now(), config.retrySeconds),
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
     );
     return recorded
       ? { deliveryId: row.delivery_id, kind: "retryable" }
@@ -373,7 +425,13 @@ export async function runResultsPublishedPushReceiptWorker(
       row.receipt_id,
       claimToken,
       retryable ? "provider_rate_limited" : "provider_rejected",
-      retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+      retryable
+        ? retryAtWithBackoff(
+            dependencies.now(),
+            config.retrySeconds,
+            row.attempt_number,
+          )
+        : null,
     );
     return recorded
       ? retryable
