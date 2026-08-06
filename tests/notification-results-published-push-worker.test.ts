@@ -113,12 +113,19 @@ describe("results-published push worker", () => {
     });
   });
 
-  it("returns unavailable without sending for a malformed claim", async () => {
+  it("terminalizes malformed claims without sending", async () => {
     let providerCalled = false;
-    const rpc: NotificationRpcClient["rpc"] = async () => ({
-      data: [{ ...row, unexpected: true }],
-      error: null,
-    });
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      return {
+        data: [{ delivery_id: deliveryId, unexpected: true }],
+        error: null,
+      };
+    };
     const result = await runResultsPublishedPushWorker(
       dependencies(rpc, {
         createProvider: () => ({
@@ -129,8 +136,18 @@ describe("results-published push worker", () => {
         }),
       }),
     );
-    expect(result).toEqual({ kind: "unavailable" });
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
     expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_claim_token: claimToken,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
   });
 
   it("records retryable Expo rate limits with backoff", async () => {
@@ -150,6 +167,33 @@ describe("results-published push worker", () => {
     expect(calls[1]?.args).toMatchObject({
       p_safe_error: "provider_rate_limited",
       p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+  });
+
+  it("uses attempt-dependent backoff for later transport outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_results_published_push") {
+        return { data: [{ ...row, attempt_number: 2 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runResultsPublishedPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ statusCode: 503, body: { data: [] } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:03:00.000Z",
     });
   });
 

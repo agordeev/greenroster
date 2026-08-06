@@ -3,7 +3,10 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
-import type { NotificationRpcClient } from "./invitation-email-worker";
+import {
+  retryAtWithBackoff,
+  type NotificationRpcClient,
+} from "./invitation-email-worker";
 
 const expoPushEndpoint = "https://exp.host/--/api/v2/push/send";
 
@@ -34,6 +37,16 @@ const claimRowsSchema = z
         attempt_number: z.number().int().positive(),
       })
       .strict(),
+  )
+  .max(1);
+
+const claimEnvelopeSchema = z
+  .array(
+    z
+      .object({
+        delivery_id: z.uuid(),
+      })
+      .passthrough(),
   )
   .max(1);
 
@@ -111,7 +124,10 @@ export type ResultsPublishedPushWorkerResult =
   | Readonly<{ deliveryId: string; kind: "retryable" }>
   | Readonly<{
       code:
-        "provider_invalid" | "provider_invalid_response" | "provider_rejected";
+        | "invalid_claim"
+        | "provider_invalid"
+        | "provider_invalid_response"
+        | "provider_rejected";
       deliveryId: string;
       kind: "failed_permanent";
     }>
@@ -181,13 +197,23 @@ function parseClaimRows(
 ):
   | Readonly<{ kind: "empty" }>
   | Readonly<{ kind: "row"; row: z.infer<typeof claimRowsSchema>[number] }>
+  | Readonly<{ deliveryId: string; kind: "invalid_claim" }>
   | Readonly<{ kind: "invalid" }> {
   if (data === null || (Array.isArray(data) && data.length === 0)) {
     return { kind: "empty" };
   }
   const parsed = claimRowsSchema.safeParse(data);
-  if (!parsed.success || parsed.data.length !== 1) return { kind: "invalid" };
-  return { kind: "row", row: parsed.data[0] };
+  if (parsed.success && parsed.data.length === 1) {
+    return { kind: "row", row: parsed.data[0] };
+  }
+  const envelope = claimEnvelopeSchema.safeParse(data);
+  if (!envelope.success || envelope.data.length !== 1) {
+    return { kind: "invalid" };
+  }
+  return {
+    deliveryId: envelope.data[0].delivery_id,
+    kind: "invalid_claim",
+  };
 }
 
 function rpcFailed(error: Readonly<{ code?: string }> | null): boolean {
@@ -200,7 +226,8 @@ type PushFailureCode =
   | "provider_rejected"
   | "provider_rate_limited"
   | "provider_unavailable"
-  | "max_attempts_exceeded";
+  | "max_attempts_exceeded"
+  | "invalid_claim";
 
 async function recordFailure(
   client: NotificationRpcClient,
@@ -242,10 +269,6 @@ async function recordInvalidDeviceFailure(
   } catch {
     return false;
   }
-}
-
-function retryAt(now: Date, retrySeconds: number): string {
-  return new Date(now.getTime() + retrySeconds * 1000).toISOString();
 }
 
 function failureFromTicket(ticket: z.infer<typeof expoErrorTicketSchema>) {
@@ -298,6 +321,22 @@ export async function runResultsPublishedPushWorker(
   const parsedClaim = parseClaimRows(claim.data);
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
+  if (parsedClaim.kind === "invalid_claim") {
+    const recorded = await recordFailure(
+      client,
+      parsedClaim.deliveryId,
+      claimToken,
+      "invalid_claim",
+      null,
+    );
+    return recorded
+      ? {
+          code: "invalid_claim",
+          deliveryId: parsedClaim.deliveryId,
+          kind: "failed_permanent",
+        }
+      : { deliveryId: parsedClaim.deliveryId, kind: "unavailable" };
+  }
   const row = parsedClaim.row;
 
   if (row.attempt_number > config.maxAttempts) {
@@ -349,7 +388,13 @@ export async function runResultsPublishedPushWorker(
       row.delivery_id,
       claimToken,
       code,
-      retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+      retryable
+        ? retryAtWithBackoff(
+            dependencies.now(),
+            config.retrySeconds,
+            row.attempt_number,
+          )
+        : null,
     );
     if (!recorded) return { deliveryId: row.delivery_id, kind: "unavailable" };
     return retryable
@@ -380,7 +425,11 @@ export async function runResultsPublishedPushWorker(
       transport.statusCode === 429
         ? "provider_rate_limited"
         : "provider_unavailable",
-      retryAt(dependencies.now(), config.retrySeconds),
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
     );
     return recorded
       ? { deliveryId: row.delivery_id, kind: "retryable" }
@@ -411,7 +460,11 @@ export async function runResultsPublishedPushWorker(
         row.delivery_id,
         claimToken,
         "provider_rate_limited",
-        retryAt(dependencies.now(), config.retrySeconds),
+        retryAtWithBackoff(
+          dependencies.now(),
+          config.retrySeconds,
+          row.attempt_number,
+        ),
       );
       return recorded
         ? { deliveryId: row.delivery_id, kind: "retryable" }
