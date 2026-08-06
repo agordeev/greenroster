@@ -250,6 +250,33 @@ describe("invitation notification worker", () => {
     });
   });
 
+  it("uses attempt-dependent backoff for later provider outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_membership_invitation_email") {
+        return { data: [{ ...row, attempt_number: 2 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runInvitationEmailWorker(
+      makeDependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-07-26T12:03:00.000Z",
+    });
+  });
+
   it("honors the injected maximum attempt count", async () => {
     const calls: string[] = [];
     const rpc: NotificationRpcClient["rpc"] = async (name) => {
@@ -279,5 +306,43 @@ describe("invitation notification worker", () => {
       "claim_membership_invitation_email",
       "record_email_send_failure",
     ]);
+  });
+
+  it("terminalizes malformed claimed rows without sending", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalled = false;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      return {
+        data: [{ delivery_id: deliveryId, unexpected: true }],
+        error: null,
+      };
+    };
+    const result = await runInvitationEmailWorker(
+      makeDependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalled = true;
+            return { data: { id: "unexpected" }, error: null };
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_claim_token: claimToken,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
   });
 });
