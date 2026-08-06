@@ -12,7 +12,7 @@ import {
   isRetryableProviderFailure,
   providerFailureCode,
   recordEmailFailure,
-  retryAt,
+  retryAtWithBackoff,
   type InvitationEmailWorkerResult,
   type NotificationEmailProvider,
   type NotificationEmailWorkerConfig,
@@ -59,11 +59,22 @@ const claimRowsSchema = z
         group_time_zone: z.string().min(1),
         round_description: z.string().min(1),
         scheduled_at: z.string().datetime({ offset: true }),
+        format: z.enum(["individual_net", "individual_gross"]),
         cancellation_reason: z.string().min(1),
         recipient_address: z.email(),
         attempt_number: z.number().int().positive(),
       })
       .strict(),
+  )
+  .max(1);
+
+const claimEnvelopeSchema = z
+  .array(
+    z
+      .object({
+        delivery_id: z.uuid(),
+      })
+      .passthrough(),
   )
   .max(1);
 
@@ -108,13 +119,23 @@ function parseClaimRows(
 ):
   | Readonly<{ kind: "empty" }>
   | Readonly<{ kind: "row"; row: z.infer<typeof claimRowsSchema>[number] }>
+  | Readonly<{ deliveryId: string; kind: "invalid_claim" }>
   | Readonly<{ kind: "invalid" }> {
   if (data === null || (Array.isArray(data) && data.length === 0)) {
     return { kind: "empty" };
   }
   const parsed = claimRowsSchema.safeParse(data);
-  if (!parsed.success || parsed.data.length !== 1) return { kind: "invalid" };
-  return { kind: "row", row: parsed.data[0] };
+  if (parsed.success && parsed.data.length === 1) {
+    return { kind: "row", row: parsed.data[0] };
+  }
+  const envelope = claimEnvelopeSchema.safeParse(data);
+  if (!envelope.success || envelope.data.length !== 1) {
+    return { kind: "invalid" };
+  }
+  return {
+    deliveryId: envelope.data[0].delivery_id,
+    kind: "invalid_claim",
+  };
 }
 
 function rpcFailed(error: Readonly<{ code?: string }> | null): boolean {
@@ -140,6 +161,22 @@ export async function runRoundCancelledEmailWorker(
   const parsedClaim = parseClaimRows(claim.data);
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
+  if (parsedClaim.kind === "invalid_claim") {
+    const recorded = await recordEmailFailure(
+      client,
+      parsedClaim.deliveryId,
+      claimToken,
+      "invalid_claim",
+      null,
+    );
+    return recorded
+      ? {
+          kind: "failed_permanent",
+          code: "invalid_claim",
+          deliveryId: parsedClaim.deliveryId,
+        }
+      : { kind: "unavailable", deliveryId: parsedClaim.deliveryId };
+  }
   const row = parsedClaim.row;
 
   if (row.attempt_number > config.maxAttempts) {
@@ -206,7 +243,13 @@ export async function runRoundCancelledEmailWorker(
         row.delivery_id,
         claimToken,
         code,
-        retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+        retryable
+          ? retryAtWithBackoff(
+              dependencies.now(),
+              config.retrySeconds,
+              row.attempt_number,
+            )
+          : null,
       );
       if (!recorded)
         return { kind: "unavailable", deliveryId: row.delivery_id };
@@ -259,7 +302,13 @@ export async function runRoundCancelledEmailWorker(
       row.delivery_id,
       claimToken,
       code,
-      retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+      retryable
+        ? retryAtWithBackoff(
+            dependencies.now(),
+            config.retrySeconds,
+            row.attempt_number,
+          )
+        : null,
     );
     if (!recorded) return { kind: "unavailable", deliveryId: row.delivery_id };
     return retryable

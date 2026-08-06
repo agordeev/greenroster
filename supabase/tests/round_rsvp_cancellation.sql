@@ -390,6 +390,67 @@ select is(
   'cancellation history is append-only and audited'
 );
 
+-- A retryable cancellation e-mail must not delay its queued mandatory push
+-- sibling. The child keeps its future e-mail retry timestamp while the shared
+-- parent is reconciled to the earliest due sibling.
+-- Keep the member-with-device outbox deterministic; the other active member
+-- has no push sibling and is covered by the later e-mail claim assertions.
+update public.notification_deliveries as delivery
+set state = 'cancelled',
+    failure_reason = 'test_other_recipient'
+from public.notification_outbox_jobs as outbox
+where delivery.outbox_job_id = outbox.id
+  and delivery.group_id = outbox.group_id
+  and outbox.event_type = 'round.cancelled'
+  and outbox.aggregate_id = '79000000-0000-4000-8000-000000000001'
+  and delivery.recipient_membership_id <> '69000000-0000-4000-8000-000000000002';
+
+create temporary table cancellation_email_retry_claim as
+select * from public.claim_round_cancelled_email(
+  'b9000000-0000-4000-8000-000000000004',
+  now() - interval '1 minute'
+);
+select is(
+  (select count(*) from cancellation_email_retry_claim),
+  1::bigint,
+  'cancellation e-mail retry regression claims the due e-mail child'
+);
+select public.record_email_send_failure(
+  (select delivery_id from cancellation_email_retry_claim),
+  'b9000000-0000-4000-8000-000000000004',
+  'provider_unavailable',
+  now() + interval '1 hour'
+);
+select is(
+  (select state
+   from public.notification_deliveries
+   where id = (select delivery_id from cancellation_email_retry_claim)),
+  'retryable'::public.notification_delivery_state,
+  'cancellation e-mail retry remains durable'
+);
+select ok(
+  (select next_attempt_at > now()
+   from public.notification_deliveries
+   where id = (select delivery_id from cancellation_email_retry_claim)),
+  'cancellation e-mail keeps its future retry timestamp'
+);
+select ok(
+  (select next_attempt_at <= pg_catalog.clock_timestamp() + interval '1 second'
+   from public.notification_outbox_jobs
+   where id = (select outbox_job_id from cancellation_email_retry_claim)),
+  'queued cancellation push sibling keeps the aggregate parent due'
+);
+select is(
+  (select next_attempt_at
+   from public.notification_outbox_jobs
+   where id = (select outbox_job_id from cancellation_email_retry_claim)),
+  (select next_attempt_at
+   from public.notification_push_deliveries
+   where outbox_job_id = (select outbox_job_id from cancellation_email_retry_claim)
+     and state = 'queued'),
+  'cancellation parent uses the queued push sibling due time'
+);
+
 -- Cancellation push is mandatory and quiet-hours exempt. The claim returns the
 -- raw token only to service_role and never stores it in the delivery row.
 create temporary table cancellation_push_claim as
@@ -460,6 +521,14 @@ select is(
   0::bigint,
   'results-only receipt worker does not strand a cancellation push receipt'
 );
+
+-- Make the e-mail due again for the later claim-shape assertion below.
+update public.notification_deliveries
+set next_attempt_at = now()
+where id = (select delivery_id from cancellation_email_retry_claim);
+update public.notification_outbox_jobs
+set next_attempt_at = now()
+where id = (select outbox_job_id from cancellation_email_retry_claim);
 
 -- A permanent push failure must remain visible when the sibling e-mail later
 -- succeeds; the aggregate parent cannot be marked succeeded prematurely.
