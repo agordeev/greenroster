@@ -233,6 +233,19 @@ export function retryAt(now: Date, retrySeconds: number): string {
   return new Date(now.getTime() + retrySeconds * 1000).toISOString();
 }
 
+export function retryAtWithBackoff(
+  now: Date,
+  retrySeconds: number,
+  attemptNumber: number,
+): string {
+  const exponent = Math.max(attemptNumber - 1, 0);
+  const delaySeconds = Math.min(
+    retrySeconds * 2 ** exponent,
+    retrySeconds * 16,
+  );
+  return new Date(now.getTime() + delaySeconds * 1000).toISOString();
+}
+
 function parseClaimRows(
   data: unknown,
 ):

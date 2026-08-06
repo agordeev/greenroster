@@ -12,6 +12,7 @@ import {
   isRetryableProviderFailure,
   providerFailureCode,
   recordEmailFailure,
+  retryAtWithBackoff,
   type InvitationEmailWorkerResult,
   type NotificationEmailProvider,
   type NotificationEmailWorkerConfig,
@@ -144,19 +145,6 @@ function parseClaimRows(data: unknown):
     deliveryId: envelope.data[0].delivery_id,
     kind: "invalid_claim",
   };
-}
-
-function retryAtWithBackoff(
-  now: Date,
-  retrySeconds: number,
-  attemptNumber: number,
-): string {
-  const exponent = Math.max(attemptNumber - 1, 0);
-  const delaySeconds = Math.min(
-    retrySeconds * 2 ** exponent,
-    retrySeconds * 16,
-  );
-  return new Date(now.getTime() + delaySeconds * 1000).toISOString();
 }
 
 function buildActionUrl(appUrl: string, invitationId: string): string {

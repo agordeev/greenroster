@@ -11,7 +11,7 @@ import {
 import {
   isRetryableProviderFailure,
   providerFailureCode,
-  retryAt,
+  retryAtWithBackoff,
   type InvitationEmailWorkerResult,
   type NotificationEmailProvider,
   type NotificationEmailWorkerConfig,
@@ -74,6 +74,17 @@ const claimRowsSchema = z
         attempt_number: z.number().int().positive(),
       })
       .strict(),
+  )
+  .max(1);
+
+const claimEnvelopeSchema = z
+  .array(
+    z
+      .object({
+        delivery_id: z.uuid(),
+        attempt_number: z.number().int().positive(),
+      })
+      .passthrough(),
   )
   .max(1);
 
@@ -145,13 +156,19 @@ function parseClaimRows(
 ):
   | Readonly<{ kind: "empty" }>
   | Readonly<{ kind: "row"; row: z.infer<typeof claimRowsSchema>[number] }>
+  | Readonly<{ deliveryId: string; kind: "invalid_claim" }>
   | Readonly<{ kind: "invalid" }> {
   if (data === null || (Array.isArray(data) && data.length === 0)) {
     return { kind: "empty" };
   }
   const parsed = claimRowsSchema.safeParse(data);
-  if (!parsed.success || parsed.data.length !== 1) return { kind: "invalid" };
-  return { kind: "row", row: parsed.data[0] };
+  if (parsed.success && parsed.data.length === 1) {
+    return { kind: "row", row: parsed.data[0] };
+  }
+  const envelope = claimEnvelopeSchema.safeParse(data);
+  if (!envelope.success || envelope.data.length !== 1)
+    return { kind: "invalid" };
+  return { deliveryId: envelope.data[0].delivery_id, kind: "invalid_claim" };
 }
 
 function buildActionUrl(appUrl: string, path: string): string {
@@ -230,6 +247,22 @@ export async function runResultsPublishedEmailWorker(
   const parsedClaim = parseClaimRows(claim.data);
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
+  if (parsedClaim.kind === "invalid_claim") {
+    const recorded = await recordResultsEmailFailure(
+      client,
+      parsedClaim.deliveryId,
+      claimToken,
+      "invalid_claim",
+      null,
+    );
+    return recorded
+      ? {
+          kind: "failed_permanent",
+          code: "invalid_claim",
+          deliveryId: parsedClaim.deliveryId,
+        }
+      : { kind: "unavailable", deliveryId: parsedClaim.deliveryId };
+  }
   const row = parsedClaim.row;
 
   if (row.attempt_number > config.maxAttempts) {
@@ -310,7 +343,13 @@ export async function runResultsPublishedEmailWorker(
         row.delivery_id,
         claimToken,
         code,
-        retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+        retryable
+          ? retryAtWithBackoff(
+              dependencies.now(),
+              config.retrySeconds,
+              row.attempt_number,
+            )
+          : null,
       );
       if (!recorded)
         return { kind: "unavailable", deliveryId: row.delivery_id };
@@ -349,7 +388,13 @@ export async function runResultsPublishedEmailWorker(
       row.delivery_id,
       claimToken,
       code,
-      retryable ? retryAt(dependencies.now(), config.retrySeconds) : null,
+      retryable
+        ? retryAtWithBackoff(
+            dependencies.now(),
+            config.retrySeconds,
+            row.attempt_number,
+          )
+        : null,
     );
     if (!recorded) return { kind: "unavailable", deliveryId: row.delivery_id };
     return retryable
