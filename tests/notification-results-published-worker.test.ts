@@ -129,7 +129,7 @@ describe("results-published notification worker", () => {
     const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
       calls.push({ name, args });
       return {
-        data: [{ ...row, unexpected: true }],
+        data: [{ ...row, attempt_number: "not-a-number" }],
         error: null,
       };
     };
@@ -215,6 +215,47 @@ describe("results-published notification worker", () => {
     expect(calls[1]?.args).toMatchObject({
       p_safe_error: "provider_unavailable",
       p_retry_at: "2026-08-04T12:03:00.000Z",
+    });
+  });
+
+  it("caps repeated retry backoff at sixteen base intervals", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+        getConfig: () => ({ ...config(), maxAttempts: 10 }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+
+    const cappedCalls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const cappedRpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      cappedCalls.push({ name, args });
+      if (name === "claim_results_published_email") {
+        return { data: [{ ...row, attempt_number: 7 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    await runResultsPublishedEmailWorker(
+      dependencies(cappedRpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+        getConfig: () => ({ ...config(), maxAttempts: 10 }),
+      }),
+    );
+    expect(cappedCalls[1]?.args).toMatchObject({
+      p_retry_at: "2026-08-04T12:24:00.000Z",
     });
   });
 

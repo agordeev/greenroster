@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(53);
+select plan(54);
 
 select has_table(
   'public',
@@ -253,11 +253,16 @@ select is((select failure_reason from public.notification_deliveries where outbo
 select ok((select next_attempt_at > now() from public.notification_deliveries where outbox_job_id = 'f6000000-0000-4000-8000-000000000001' and channel = 'email'), 'retryable result e-mail schedules a future attempt');
 select is((select count(*) from public.claim_results_published_email('f7040000-0000-4000-8000-000000000001', now() - interval '1 hour')), 0::bigint, 'future retryable result e-mail is not claimable before its scheduled attempt');
 update public.notification_deliveries
-set next_attempt_at = now()
+set state = 'sending'::public.notification_delivery_state,
+    claim_token = 'f7045000-0000-4000-8000-000000000001',
+    claimed_at = now() - interval '2 hours',
+    next_attempt_at = now()
 where outbox_job_id = 'f6000000-0000-4000-8000-000000000001'
   and channel = 'email';
 update public.notification_outbox_jobs
-set next_attempt_at = now()
+set state = 'processing'::public.notification_outbox_job_state,
+    claimed_at = now() - interval '2 hours',
+    next_attempt_at = now()
 where id = 'f6000000-0000-4000-8000-000000000001';
 create temporary table claimed_email as
 select *
@@ -265,8 +270,9 @@ from public.claim_results_published_email(
   'f7050000-0000-4000-8000-000000000001',
   now() - interval '1 hour'
 );
-select is((select count(*) from claimed_email), 1::bigint, 'due retryable result e-mail is claimable on the next drain');
-select is((select attempt_number from claimed_email), 2, 'retryable result e-mail increments the attempt number');
+select is((select count(*) from claimed_email), 1::bigint, 'stale result e-mail claim is recovered on the next drain');
+select is((select attempt_number from claimed_email), 2, 'stale result e-mail reclaim increments the attempt number');
+select ok((select state = 'sending'::public.notification_delivery_state and claim_token = 'f7050000-0000-4000-8000-000000000001'::uuid from public.notification_deliveries where id = (select delivery_id from claimed_email)), 'stale result e-mail reclaim owns the refreshed lease');
 select lives_ok(
   $$ select public.record_results_email_send_success(
        (select delivery_id from claimed_email),

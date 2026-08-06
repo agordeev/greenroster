@@ -239,11 +239,13 @@ export function retryAtWithBackoff(
   attemptNumber: number,
 ): string {
   const exponent = Math.max(attemptNumber - 1, 0);
-  const delaySeconds = Math.min(
-    retrySeconds * 2 ** exponent,
-    retrySeconds * 16,
+  const maxDateDelayMs = Math.max(8_640_000_000_000_000 - now.getTime(), 0);
+  const delayMs = Math.min(
+    retrySeconds * 1000 * 2 ** exponent,
+    retrySeconds * 16 * 1000,
+    maxDateDelayMs,
   );
-  return new Date(now.getTime() + delaySeconds * 1000).toISOString();
+  return new Date(now.getTime() + delayMs).toISOString();
 }
 
 function parseClaimRows(

@@ -82,7 +82,6 @@ const claimEnvelopeSchema = z
     z
       .object({
         delivery_id: z.uuid(),
-        attempt_number: z.number().int().positive(),
       })
       .passthrough(),
   )
