@@ -2,6 +2,23 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
+create function pg_temp.test_non_quiet_timezone_scoring()
+returns text
+language plpgsql
+stable
+as $$
+declare
+  utc_hour integer := extract(hour from clock_timestamp())::integer;
+  utc_delta integer := utc_hour - 12;
+begin
+  return case
+    when utc_delta = 0 then 'Etc/GMT'
+    when utc_delta > 0 then format('Etc/GMT+%s', utc_delta)
+    else format('Etc/GMT-%s', -utc_delta)
+  end;
+end;
+$$;
+
 select plan(35);
 
 select has_function(
@@ -81,7 +98,7 @@ insert into public.rounds (
 values (
   '74000000-0000-4000-8000-000000000005',
   '74000000-0000-4000-8000-000000000002',
-  'Scoring Round One', now() + interval '1 day', 'UTC', 'individual_net',
+  'Scoring Round One', now() + interval '1 day', pg_temp.test_non_quiet_timezone_scoring(), 'individual_net',
   'published', 1, now(), '74000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (
@@ -183,7 +200,7 @@ insert into public.rounds (
 values (
   '74000000-0000-4000-8000-000000000008',
   '74000000-0000-4000-8000-000000000002',
-  'Scoring Round Two', now() + interval '2 days', 'UTC', 'individual_net',
+  'Scoring Round Two', now() + interval '2 days', pg_temp.test_non_quiet_timezone_scoring(), 'individual_net',
   'published', 1, now(), '74000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (
@@ -243,7 +260,7 @@ insert into public.rounds (
 values (
   '74000000-0000-4000-8000-000000000011',
   '74000000-0000-4000-8000-000000000002',
-  'Scoring Round Three', now() + interval '3 days', 'UTC', 'individual_net',
+  'Scoring Round Three', now() + interval '3 days', pg_temp.test_non_quiet_timezone_scoring(), 'individual_net',
   'published', 1, now(), '74000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (
@@ -293,7 +310,7 @@ insert into public.rounds (
 values (
   '74000000-0000-4000-8000-000000000014',
   '74000000-0000-4000-8000-000000000002',
-  'Scoring Round Four', now() + interval '4 days', 'UTC', 'individual_net',
+  'Scoring Round Four', now() + interval '4 days', pg_temp.test_non_quiet_timezone_scoring(), 'individual_net',
   'published', 1, now(), '74000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (
@@ -390,7 +407,7 @@ insert into public.rounds (
 values (
   '74000000-0000-4000-8000-000000000019',
   '74000000-0000-4000-8000-000000000002',
-  'Scoring Round Five', now() + interval '5 days', 'UTC', 'individual_net',
+  'Scoring Round Five', now() + interval '5 days', pg_temp.test_non_quiet_timezone_scoring(), 'individual_net',
   'published', 1, now(), '74000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (

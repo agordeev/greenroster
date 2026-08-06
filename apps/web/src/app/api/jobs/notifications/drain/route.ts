@@ -2,6 +2,7 @@ import {
   runInvitationEmailWorker,
   type InvitationEmailWorkerResult,
 } from "../../../../../lib/notifications/invitation-email-worker";
+import { runInvitationDeliveryFailedEmailWorker } from "../../../../../lib/notifications/invitation-delivery-failed-email-worker";
 import { runMembershipRoleChangeEmailWorker } from "../../../../../lib/notifications/membership-role-change-email-worker";
 import { runRoundCancelledEmailWorker } from "../../../../../lib/notifications/round-cancelled-email-worker";
 import { runRoundCancelledPushWorker } from "../../../../../lib/notifications/round-cancelled-push-worker";
@@ -29,6 +30,7 @@ const defaultDependencies: NotificationDrainRouteDependencies = {
 
 export type NotificationEmailWorkerRunners = Readonly<{
   runInvitation: () => Promise<InvitationEmailWorkerResult>;
+  runInvitationDeliveryFailed: () => Promise<InvitationEmailWorkerResult>;
   runRoleChange: () => Promise<InvitationEmailWorkerResult>;
   runRoundPublished: () => Promise<InvitationEmailWorkerResult>;
   runRoundCancelled: () => Promise<InvitationEmailWorkerResult>;
@@ -46,6 +48,7 @@ export async function runNotificationEmailWorkers(
 ): Promise<InvitationEmailWorkerResult> {
   const runners: NotificationEmailWorkerRunners = {
     runInvitation: runInvitationEmailWorker,
+    runInvitationDeliveryFailed: runInvitationDeliveryFailedEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
     runRoundPublished: runRoundPublishedEmailWorker,
     runRoundCancelled: runRoundCancelledEmailWorker,
@@ -60,6 +63,7 @@ export async function runNotificationEmailWorkers(
   };
   const results = await Promise.all([
     runners.runInvitation(),
+    runners.runInvitationDeliveryFailed(),
     runners.runRoleChange(),
     runners.runRoundPublished(),
     runners.runRoundCancelled(),
@@ -96,6 +100,7 @@ export async function runNotificationEmailDrain(
 ): Promise<InvitationEmailWorkerResult> {
   const runners: NotificationEmailWorkerRunners = {
     runInvitation: runInvitationEmailWorker,
+    runInvitationDeliveryFailed: runInvitationDeliveryFailedEmailWorker,
     runRoleChange: runMembershipRoleChangeEmailWorker,
     runRoundPublished: runRoundPublishedEmailWorker,
     runRoundCancelled: runRoundCancelledEmailWorker,
@@ -110,6 +115,7 @@ export async function runNotificationEmailDrain(
   };
   const results = await Promise.all([
     drainWorker(runners.runInvitation, maxDeliveriesPerCategory),
+    drainWorker(runners.runInvitationDeliveryFailed, maxDeliveriesPerCategory),
     drainWorker(runners.runRoleChange, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundPublished, maxDeliveriesPerCategory),
     drainWorker(runners.runRoundCancelled, maxDeliveriesPerCategory),

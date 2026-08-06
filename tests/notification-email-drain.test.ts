@@ -24,6 +24,10 @@ describe("notification drain route", () => {
         calls.push("invitation");
         return { kind: "empty" as const };
       },
+      runInvitationDeliveryFailed: async () => {
+        calls.push("invitation-delivery-failed");
+        return { kind: "empty" as const };
+      },
       runRoleChange: async () => {
         calls.push("role");
         return {
@@ -71,6 +75,7 @@ describe("notification drain route", () => {
     });
     expect(calls).toEqual([
       "invitation",
+      "invitation-delivery-failed",
       "role",
       "round",
       "cancelled",
@@ -116,6 +121,7 @@ describe("notification drain route", () => {
     const result = await runNotificationEmailDrain(
       {
         runInvitation: async () => invitationResults[invitationCalls++]!,
+        runInvitationDeliveryFailed: async () => ({ kind: "empty" as const }),
         runRoleChange: async () => roleResults[roleCalls++]!,
         runRoundPublished: async () => ({ kind: "empty" as const }),
         runRoundCancelled: async () => ({ kind: "empty" as const }),

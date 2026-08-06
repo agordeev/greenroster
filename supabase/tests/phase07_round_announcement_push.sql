@@ -2,6 +2,23 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
+create function pg_temp.test_non_quiet_timezone_announcement()
+returns text
+language plpgsql
+stable
+as $$
+declare
+  utc_hour integer := extract(hour from clock_timestamp())::integer;
+  utc_delta integer := utc_hour - 12;
+begin
+  return case
+    when utc_delta = 0 then 'Etc/GMT'
+    when utc_delta > 0 then format('Etc/GMT+%s', utc_delta)
+    else format('Etc/GMT-%s', -utc_delta)
+  end;
+end;
+$$;
+
 select plan(24);
 
 select has_function(
@@ -70,7 +87,7 @@ insert into public.rounds (
 values (
   '73000000-0000-4000-8000-000000000004',
   '73000000-0000-4000-8000-000000000002',
-  'Announcement Round', now() + interval '1 day', 'UTC', 'individual_net',
+  'Announcement Round', now() + interval '1 day', pg_temp.test_non_quiet_timezone_announcement(), 'individual_net',
   'published', 2, now(), '73000000-0000-4000-8000-000000000001'
 );
 insert into public.round_participants (id, round_id, group_id, membership_id)

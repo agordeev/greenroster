@@ -13,6 +13,7 @@ import {
   buildRoundCancelledEmail,
   renderRoundCancelledEmail,
 } from "../apps/web/src/emails/round-cancelled";
+import { renderInvitationDeliveryFailedEmail } from "../apps/web/src/emails/invitation-delivery-failed";
 
 const input = {
   acceptanceUrl:
@@ -155,5 +156,27 @@ describe("round cancelled email", () => {
 
     expect(email.text).toContain("Reason: weather closure");
     expect(email.text).not.toContain("weather\nclosure");
+  });
+});
+
+describe("invitation delivery failed email", () => {
+  it("explains the hard bounce, deep-links to invitations, and has accessible alternatives", async () => {
+    const email = await renderInvitationDeliveryFailedEmail({
+      actionUrl: "https://greenroster.example/portal/invitations",
+      groupName: "<Saturday League>",
+      invitedAddress: "bounced-invite@example.com",
+    });
+
+    expect(email.subject).toContain("Saturday League");
+    expect(email.html).toContain("Invitation could not be delivered");
+    expect(email.html).toContain("bounced-invite@example.com");
+    expect(email.html).toContain(
+      "https://greenroster.example/portal/invitations",
+    );
+    expect(email.html).not.toContain("<img");
+    expect(email.text).toContain("bounced-invite@example.com");
+    expect(email.text).toContain(
+      "Open invitations: https://greenroster.example/portal/invitations",
+    );
   });
 });
