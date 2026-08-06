@@ -7,10 +7,10 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 ## Current focus
 
 - **Phase:** 07 — Release hardening
-- **Active slice:** Phase 07 local release verification after notification retry hardening: re-run the pinned database/schema gates and record the remaining acceptance and hosted blockers without mutating hosted state.
+- **Active slice:** Phase 07 acceptance-evidence follow-up after notification retry hardening: continue local/browser evidence for unblocked scenarios while preserving the explicit product and hosted blockers.
 - **Status:** In progress
-- **Next:** Run the pinned local schema/pgTAP release gates, then continue with the next unblocked acceptance-evidence slice while keeping reminder, storage, hosted-apply, and operational-evidence blockers explicit.
-- **Latest evidence:** Commits `37c31bf`, `f498c27`, `f25c2b9`, and `5075541` contain results-published, cancellation, receipt, announcement, and scoring push hardening; focused announcement/scoring push Vitest 11/11; full Vitest 125 files/753 tests; lint, web typecheck, escalated Next.js production build, formatting, and diff checks are green.
+- **Next:** Continue local/browser evidence for unblocked acceptance scenarios, then stop only at the documented reminder, storage, hosted-apply, rate-limit, legal/store, and accessibility-owner blockers.
+- **Latest evidence:** Commits `37c31bf`, `f498c27`, `f25c2b9`, and `5075541` contain results-published, cancellation, receipt, announcement, and scoring push hardening; focused announcement/scoring push Vitest 11/11; full Vitest 125 files/753 tests; full pgTAP 72 files/2,522 tests; scoped app/public schema lint, lint, web typecheck, escalated Next.js production build, formatting, and diff checks are green.
 - **Blockers:**
   - The global Homebrew Supabase CLI rejects this repository's older config keys; use the pinned project CLI (`pnpm exec supabase`, v2.109.1) for local reset and pgTAP verification. Docker is healthy and the pinned reset/test path is green.
   - Phase 01 needs external re-verification of installed public links and approved legal-content exit evidence.
