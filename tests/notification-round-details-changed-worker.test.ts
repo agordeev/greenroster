@@ -161,7 +161,7 @@ describe("round-details-changed notification worker", () => {
 
   it("rejects malformed claim rows without sending", async () => {
     let providerCalled = false;
-    const { rpc } = successRpc({ ...row, unexpected: "private notes" });
+    const { calls, rpc } = successRpc({ ...row, unexpected: "private notes" });
     const result = await runRoundDetailsChangedEmailWorker(
       dependencies(rpc, {
         createProvider: () => ({
@@ -172,8 +172,17 @@ describe("round-details-changed notification worker", () => {
         }),
       }),
     );
-    expect(result).toEqual({ kind: "unavailable" });
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
     expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
   });
 
   it("records a retryable provider failure", async () => {
@@ -206,6 +215,33 @@ describe("round-details-changed notification worker", () => {
     expect(calls[1]?.args).toMatchObject({
       p_safe_error: "provider_unavailable",
       p_retry_at: "2026-08-03T12:01:30.000Z",
+    });
+  });
+
+  it("uses attempt-dependent backoff for later provider outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_round_details_changed_email") {
+        return { data: [{ ...row, attempt_number: 2 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runRoundDetailsChangedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ data: null, error: { statusCode: 503 } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-03T12:03:00.000Z",
     });
   });
 
