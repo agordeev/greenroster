@@ -129,6 +129,33 @@ describe("round announcement push worker", () => {
     expect(JSON.stringify(calls)).not.toContain(row.expo_push_token);
   });
 
+  it("uses attempt-dependent backoff for later announcement outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_round_announcement_push") {
+        return { data: [{ ...row, attempt_number: 2 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runRoundAnnouncementPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ statusCode: 503, body: { data: [] } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-05T12:03:00.000Z",
+    });
+  });
+
   it("retires an invalid device through the atomic provider-invalid RPC", async () => {
     const calls: Array<{
       name: string;
@@ -263,6 +290,44 @@ describe("round announcement push worker", () => {
     ]);
   });
 
+  it("terminalizes malformed announcement claims without sending", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalled = false;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      return {
+        data: [{ delivery_id: deliveryId, unexpected: true }],
+        error: null,
+      };
+    };
+    const result = await runRoundAnnouncementPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalled = true;
+            return { statusCode: 200, body: {} };
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_claim_token: claimToken,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
+  });
+
   it("uses scoring-specific retry and invalid-device finalizers", async () => {
     const retryCalls: string[] = [];
     const retryResult = await runScoringOpenedPushWorker(
@@ -332,6 +397,76 @@ describe("round announcement push worker", () => {
       "claim_scoring_opened_push",
       "record_scoring_opened_push_invalid_device",
     ]);
+  });
+
+  it("uses attempt-dependent backoff for later scoring-opened outages", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_scoring_opened_push") {
+        return {
+          data: [{ ...row, event_type: "scoring_opened", attempt_number: 2 }],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runScoringOpenedPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => ({ statusCode: 503, body: { data: [] } }),
+        }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(calls[1]?.name).toBe("record_scoring_opened_push_send_failure");
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-05T12:03:00.000Z",
+    });
+  });
+
+  it("terminalizes malformed scoring claims without sending", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalled = false;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      return {
+        data: [{ delivery_id: deliveryId, unexpected: true }],
+        error: null,
+      };
+    };
+    const result = await runScoringOpenedPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalled = true;
+            return { statusCode: 200, body: {} };
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({
+      code: "invalid_claim",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_delivery_id: deliveryId,
+      p_claim_token: claimToken,
+      p_safe_error: "invalid_claim",
+      p_retry_at: null,
+    });
   });
 
   it("recovers a scoring-opened outage on the next claimed attempt", async () => {
