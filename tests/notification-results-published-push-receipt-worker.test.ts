@@ -197,6 +197,39 @@ describe("results-published push receipt worker", () => {
     });
   });
 
+  it("caps repeated pending-receipt backoff at sixteen base intervals", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalls = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_results_push_receipt") {
+        return { data: [{ ...row, attempt_number: 7 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runResultsPublishedPushReceiptWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          getReceipts: async () => {
+            providerCalls += 1;
+            return { statusCode: 200, body: { data: {} } };
+          },
+        }),
+        getConfig: () => ({ maxAttempts: 10, retrySeconds: 90 }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(providerCalls).toBe(1);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:24:00.000Z",
+    });
+  });
+
   it("terminalizes malformed claims without exposing receipt data", async () => {
     let providerCalled = false;
     const calls: Array<{
