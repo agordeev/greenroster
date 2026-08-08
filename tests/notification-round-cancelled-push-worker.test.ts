@@ -158,6 +158,39 @@ describe("round-cancelled push worker", () => {
     });
   });
 
+  it("caps repeated retry backoff at sixteen base intervals", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalls = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_round_cancelled_push") {
+        return { data: [{ ...row, attempt_number: 7 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runRoundCancelledPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalls += 1;
+            return { statusCode: 503, body: { data: [] } };
+          },
+        }),
+        getConfig: () => ({ maxAttempts: 10, retrySeconds: 90 }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(providerCalls).toBe(1);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-05T12:24:00.000Z",
+    });
+  });
+
   it("retires invalid devices through the atomic provider-invalid RPC", async () => {
     const calls: Array<{
       name: string;
