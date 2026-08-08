@@ -431,6 +431,43 @@ describe("round announcement push worker", () => {
     });
   });
 
+  it("caps repeated scoring-opened retry backoff at sixteen base intervals", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalls = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_scoring_opened_push") {
+        return {
+          data: [{ ...row, event_type: "scoring_opened", attempt_number: 7 }],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runScoringOpenedPushWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalls += 1;
+            return { statusCode: 503, body: { data: [] } };
+          },
+        }),
+        getConfig: () => ({ maxAttempts: 10, retrySeconds: 90 }),
+      }),
+    );
+
+    expect(result).toEqual({ deliveryId, kind: "retryable" });
+    expect(providerCalls).toBe(1);
+    expect(calls[1]?.name).toBe("record_scoring_opened_push_send_failure");
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-05T12:24:00.000Z",
+    });
+  });
+
   it("terminalizes malformed scoring claims without sending", async () => {
     const calls: Array<{
       name: string;
