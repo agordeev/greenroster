@@ -218,6 +218,39 @@ describe("round-published notification worker", () => {
     });
   });
 
+  it("caps repeated retry backoff at sixteen base intervals", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalls = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_round_published_email") {
+        return { data: [{ ...row, attempt_number: 7 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runRoundPublishedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalls += 1;
+            return { data: null, error: { statusCode: 503 } };
+          },
+        }),
+        getConfig: () => ({ ...config(), maxAttempts: 10 }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(providerCalls).toBe(1);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-03T12:24:00.000Z",
+    });
+  });
+
   it("records thrown provider network errors as retryable outages", async () => {
     const { calls, rpc } = successRpc();
     const result = await runRoundPublishedEmailWorker(
