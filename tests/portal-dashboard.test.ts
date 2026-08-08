@@ -219,6 +219,61 @@ describe("portal dashboard summary", () => {
     expect(readStandings).toHaveBeenCalledWith(actorUserId);
   });
 
+  it("forwards the actor and maps privacy-safe notification health aggregates", async () => {
+    const actorUserId = "10000000-0000-4000-8000-000000000001";
+    const readNotificationHealth = vi.fn().mockResolvedValue({
+      groupId: "40000000-0000-4000-8000-000000000001",
+      outboxQueued: 2,
+      outboxProcessing: 1,
+      outboxRetryable: 3,
+      outboxOldestAt: "2026-08-04T10:00:00.000Z",
+      emailQueued: 7,
+      emailSending: 2,
+      emailRetryable: 1,
+      emailFailedPermanent: 4,
+      emailSuppressed: 1,
+      emailAttempted: 20,
+      emailBounced: 5,
+      emailComplained: 2,
+      emailBounceRate: 0.25,
+      emailComplaintRate: 0.1,
+      pushQueued: 8,
+      pushSending: 1,
+      pushRetryable: 2,
+      pushFailedPermanent: 2,
+      pushCancelled: 1,
+      pushInvalidToken: 3,
+      pushInvalidTokenRate: 0.2,
+      pushReceiptPending: 4,
+      pushReceiptFailed: 1,
+      lastActivityAt: "2026-08-04T11:00:00.000Z",
+      sampledAt: "2026-08-04T12:00:00.000Z",
+    });
+
+    const summary = await executePortalDashboardData(actorUserId, {
+      listMembers: vi.fn().mockResolvedValue([]),
+      listInvitations: vi.fn().mockResolvedValue([]),
+      listRounds: vi.fn().mockResolvedValue([]),
+      readStandings: vi.fn().mockResolvedValue([]),
+      readNotificationHealth,
+      loadPhase06: true,
+      loadPhase07: true,
+    });
+
+    expect(readNotificationHealth).toHaveBeenCalledWith(actorUserId);
+    expect(summary.notificationHealth).toEqual({
+      queueDepth: 6,
+      oldestQueuedAt: "2026-08-04T10:00:00.000Z",
+      emailFailures: 5,
+      emailBounceRate: 0.25,
+      emailComplaintRate: 0.1,
+      pushFailures: 2,
+      pushInvalidTokenRate: 0.2,
+      receiptFailures: 1,
+      sampledAt: "2026-08-04T12:00:00.000Z",
+    });
+  });
+
   it("reuses both server-authoritative projections for one dashboard read", async () => {
     const listMembers = vi
       .fn()
