@@ -151,6 +151,39 @@ describe("invitation delivery failed email worker", () => {
     });
   });
 
+  it("caps repeated retry backoff at sixteen base intervals", async () => {
+    const calls: Array<{
+      name: string;
+      args: Readonly<Record<string, unknown>>;
+    }> = [];
+    let providerCalls = 0;
+    const rpc: NotificationRpcClient["rpc"] = async (name, args) => {
+      calls.push({ name, args });
+      if (name === "claim_invitation_delivery_failed_email") {
+        return { data: [{ ...row, attempt_number: 7 }], error: null };
+      }
+      return { data: null, error: null };
+    };
+    const result = await runInvitationDeliveryFailedEmailWorker(
+      dependencies(rpc, {
+        createProvider: () => ({
+          send: async () => {
+            providerCalls += 1;
+            return { data: null, error: { statusCode: 503 } };
+          },
+        }),
+        getConfig: () => ({ ...config(), maxAttempts: 10 }),
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(providerCalls).toBe(1);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-05T12:24:00.000Z",
+    });
+  });
+
   it("abandons a claim after the configured attempt limit", async () => {
     const calls: Array<{
       name: string;
