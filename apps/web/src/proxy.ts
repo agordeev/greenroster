@@ -69,7 +69,7 @@ function contentSecurityPolicy(): string {
     "form-action 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' ${supabaseOrigin} data: blob:`,
     "font-src 'self' data:",
     `connect-src 'self' ${supabaseOrigin}`,
     "frame-src 'none'",

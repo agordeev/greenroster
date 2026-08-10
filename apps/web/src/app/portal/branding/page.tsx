@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { BrandingForm } from "./branding-form";
 import { PortalShell } from "../portal-shell";
+import { executeReadBrandingAssetsForActor } from "@/lib/clubhouse/clubhouse-content-data";
 import { resolveClubhousePortalContext } from "@/lib/portal/portal-context";
 
 export default async function BrandingPage() {
@@ -24,6 +25,7 @@ export default async function BrandingPage() {
         </section>
       </PortalShell>
     );
+  const assets = await executeReadBrandingAssetsForActor(context.userId);
   return (
     <PortalShell
       email={context.email}
@@ -36,10 +38,10 @@ export default async function BrandingPage() {
         <p className="ledger-kicker">Group branding</p>
         <h1 id="branding-title">Your scoreboard appearance</h1>
         <p>
-          You choose secure images for your clubhouse display. Your banner link
-          must use HTTPS.
+          Upload a validated image for your clubhouse display. Optional
+          click-through links must use HTTPS.
         </p>
-        <BrandingForm />
+        <BrandingForm assets={assets} />
       </section>
     </PortalShell>
   );

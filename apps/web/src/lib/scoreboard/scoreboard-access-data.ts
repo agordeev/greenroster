@@ -227,7 +227,14 @@ export async function executeReadPublicScoreboard(
     throw new MutationError("unexpected", { cause: parsed.error });
   const [first] = parsed.data;
   if (!first) return null;
-  const branding = await executeReadPublicScoreboardBranding(rawToken);
+  let branding: readonly PublicScoreboardBranding[] = [];
+  try {
+    branding = await executeReadPublicScoreboardBranding(rawToken);
+  } catch {
+    // Branding is cosmetic. A transient Storage or projection failure must
+    // not hide the authoritative live scores from the kiosk.
+    branding = [];
+  }
   return {
     roundId: first.round_id,
     groupName: first.group_name,
@@ -264,10 +271,10 @@ export async function executeReadPublicScoreboard(
   };
 }
 
-const scoreboardBrandingRowSchema = z
+const scoreboardBrandingStorageRowSchema = z
   .object({
     slot: z.enum(["scoreboard_header", "scoreboard_footer"]),
-    asset_url: z.string().url(),
+    storage_path: z.string().trim().min(1),
     alt_text: z.string().nullable(),
     decorative: z.boolean(),
     click_url: z.string().url().nullable(),
@@ -278,20 +285,34 @@ const scoreboardBrandingRowSchema = z
 export async function executeReadPublicScoreboardBranding(
   rawToken: string,
 ): Promise<readonly PublicScoreboardBranding[]> {
-  const { data, error } = await createSupabaseServiceClient().rpc(
-    "read_public_scoreboard_branding",
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase.rpc(
+    "read_public_scoreboard_branding_storage",
     { p_token: rawToken },
   );
   if (error) throw mapScoreboardError(error);
-  const parsed = z.array(scoreboardBrandingRowSchema).safeParse(data);
+  const parsed = z.array(scoreboardBrandingStorageRowSchema).safeParse(data);
   if (!parsed.success)
     throw new MutationError("unexpected", { cause: parsed.error });
-  return parsed.data.map((row) => ({
-    slot: row.slot,
-    assetUrl: row.asset_url,
-    altText: row.alt_text,
-    decorative: row.decorative,
-    clickUrl: row.click_url,
-    displayOrder: row.display_order,
-  }));
+  const signedBranding = await Promise.all(
+    parsed.data.map(async (row) => {
+      try {
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from("group-branding")
+          .createSignedUrl(row.storage_path, 60 * 60);
+        if (signedError || !signedData?.signedUrl) return null;
+        return {
+          slot: row.slot,
+          assetUrl: signedData.signedUrl,
+          altText: row.alt_text,
+          decorative: row.decorative,
+          clickUrl: row.click_url,
+          displayOrder: row.display_order,
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return signedBranding.flatMap((item) => (item ? [item] : []));
 }

@@ -24,6 +24,14 @@ import {
 export type ResultsPublishedEmailWorkerDependencies = Readonly<{
   createClaimToken: () => string;
   createClient: () => NotificationRpcClient | Promise<NotificationRpcClient>;
+  createMagicLink: (
+    input: Readonly<{
+      email: string;
+      redirectTo: string;
+    }>,
+  ) =>
+    | Readonly<{ tokenHash: string; userId: string }>
+    | Promise<Readonly<{ tokenHash: string; userId: string }>>;
   createProvider: (apiKey: string) => NotificationEmailProvider;
   getConfig: () =>
     | Pick<
@@ -45,6 +53,34 @@ export type ResultsPublishedEmailWorkerDependencies = Readonly<{
         >
       >;
   now: () => Date;
+  readMagicLinkState: (
+    client: NotificationRpcClient,
+    input: Readonly<{ claimToken: string; deliveryId: string }>,
+  ) =>
+    | Readonly<{
+        recipientUserId: string;
+        tokenHash: string | null;
+        tokenIssuedAt: string | null;
+        tokenExpiresAt: string | null;
+      }>
+    | null
+    | Promise<Readonly<{
+        recipientUserId: string;
+        tokenHash: string | null;
+        tokenIssuedAt: string | null;
+        tokenExpiresAt: string | null;
+      }> | null>;
+  storeMagicLink: (
+    client: NotificationRpcClient,
+    input: Readonly<{
+      claimToken: string;
+      deliveryId: string;
+      recipientUserId: string;
+      tokenHash: string;
+      tokenIssuedAt: string;
+      tokenExpiresAt: string;
+    }>,
+  ) => boolean | Promise<boolean>;
   renderEmail: (
     input: Readonly<{
       completedAt: string;
@@ -109,12 +145,48 @@ const providerResponseSchema = z
   })
   .passthrough();
 
+const memberMagicLinkTtlMilliseconds = 55 * 60 * 1000;
+
+class InvalidMemberMagicLinkError extends Error {
+  statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "validation_error";
+  }
+}
+
 const defaultDependencies: ResultsPublishedEmailWorkerDependencies = {
   createClaimToken: randomUUID,
   createClient: async () => {
     const { createSupabaseServiceClient } =
       await import("../supabase/service-client");
     return createSupabaseServiceClient();
+  },
+  createMagicLink: async ({ email, redirectTo }) => {
+    const { createSupabaseServiceClient } =
+      await import("../supabase/service-client");
+    const supabase = createSupabaseServiceClient();
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo },
+    });
+    if (error) throw error;
+    const tokenHash = data.properties?.hashed_token;
+    const userId = data.user?.id;
+    if (
+      !tokenHash ||
+      !userId ||
+      tokenHash.length < 16 ||
+      tokenHash.length > 512 ||
+      /\s/u.test(tokenHash)
+    ) {
+      throw new InvalidMemberMagicLinkError(
+        "magic link response did not include a valid recipient token",
+      );
+    }
+    return { tokenHash, userId };
   },
   createProvider: (apiKey) => {
     const resend = new Resend(apiKey);
@@ -143,6 +215,44 @@ const defaultDependencies: ResultsPublishedEmailWorkerDependencies = {
     };
   },
   now: () => new Date(),
+  readMagicLinkState: async (client, input) => {
+    const result = await client.rpc("read_results_member_magic_link", {
+      p_delivery_id: input.deliveryId,
+      p_claim_token: input.claimToken,
+    });
+    if (rpcFailed(result.error) || !Array.isArray(result.data)) return null;
+    const parsed = z
+      .array(
+        z
+          .object({
+            recipient_user_id: z.uuid(),
+            token_hash: z.string().min(16).nullable(),
+            token_issued_at: z.string().datetime({ offset: true }).nullable(),
+            token_expires_at: z.string().datetime({ offset: true }).nullable(),
+          })
+          .strict(),
+      )
+      .length(1)
+      .safeParse(result.data);
+    if (!parsed.success) return null;
+    return {
+      recipientUserId: parsed.data[0].recipient_user_id,
+      tokenHash: parsed.data[0].token_hash,
+      tokenIssuedAt: parsed.data[0].token_issued_at,
+      tokenExpiresAt: parsed.data[0].token_expires_at,
+    };
+  },
+  storeMagicLink: async (client, input) => {
+    const result = await client.rpc("store_results_member_magic_link", {
+      p_delivery_id: input.deliveryId,
+      p_claim_token: input.claimToken,
+      p_recipient_user_id: input.recipientUserId,
+      p_token_hash: input.tokenHash,
+      p_token_issued_at: input.tokenIssuedAt,
+      p_token_expires_at: input.tokenExpiresAt,
+    });
+    return !rpcFailed(result.error);
+  },
   renderEmail: renderResultsPublishedEmail,
 };
 
@@ -182,6 +292,25 @@ function buildResultsUrl(appUrl: string, roundId: string): string {
   const url = new URL("/member/results", appUrl);
   url.searchParams.set("round_id", roundId);
   return buildActionUrl(appUrl, `${url.pathname}${url.search}`);
+}
+
+function buildMemberCallbackUrl(appUrl: string): string {
+  return new URL("/auth/member-callback", appUrl).toString();
+}
+
+function buildMemberMagicLinkUrl(
+  appUrl: string,
+  roundId: string,
+  tokenHash: string,
+): string {
+  const callback = new URL("/auth/member-callback", appUrl);
+  const resultsUrl = new URL(buildResultsUrl(appUrl, roundId));
+  callback.hash = new URLSearchParams({
+    token_hash: tokenHash,
+    type: "magiclink",
+    next: `${resultsUrl.pathname}${resultsUrl.search}`,
+  }).toString();
+  return buildActionUrl(appUrl, `${callback.pathname}${callback.hash}`);
 }
 
 function buildNotificationPreferencesUrl(appUrl: string): string {
@@ -281,6 +410,90 @@ export async function runResultsPublishedEmailWorker(
       : { kind: "unavailable", deliveryId: row.delivery_id };
   }
 
+  const magicLinkState = await dependencies.readMagicLinkState(client, {
+    claimToken,
+    deliveryId: row.delivery_id,
+  });
+  if (!magicLinkState)
+    return { kind: "unavailable", deliveryId: row.delivery_id };
+
+  let tokenHash = magicLinkState.tokenHash;
+  let tokenIssuedAt = magicLinkState.tokenIssuedAt;
+  let tokenExpiresAt = magicLinkState.tokenExpiresAt;
+  try {
+    const expiresAtMilliseconds = tokenExpiresAt
+      ? Date.parse(tokenExpiresAt)
+      : Number.NaN;
+    if (
+      !tokenHash ||
+      !tokenIssuedAt ||
+      !Number.isFinite(expiresAtMilliseconds) ||
+      expiresAtMilliseconds <= dependencies.now().getTime()
+    ) {
+      const issuedAt = dependencies.now();
+      const expiresAt = new Date(
+        issuedAt.getTime() + memberMagicLinkTtlMilliseconds,
+      );
+      const generated = await dependencies.createMagicLink({
+        email: row.recipient_address,
+        redirectTo: buildMemberCallbackUrl(config.appUrl),
+      });
+      if (generated.userId !== magicLinkState.recipientUserId) {
+        throw new InvalidMemberMagicLinkError("magic link recipient mismatch");
+      }
+      if (
+        generated.tokenHash.length < 16 ||
+        generated.tokenHash.length > 512 ||
+        /\s/u.test(generated.tokenHash)
+      ) {
+        throw new InvalidMemberMagicLinkError("magic link token is invalid");
+      }
+      const stored = await dependencies.storeMagicLink(client, {
+        claimToken,
+        deliveryId: row.delivery_id,
+        recipientUserId: generated.userId,
+        tokenHash: generated.tokenHash,
+        tokenIssuedAt: issuedAt.toISOString(),
+        tokenExpiresAt: expiresAt.toISOString(),
+      });
+      if (!stored) return { kind: "unavailable", deliveryId: row.delivery_id };
+      tokenHash = generated.tokenHash;
+      tokenIssuedAt = issuedAt.toISOString();
+      tokenExpiresAt = expiresAt.toISOString();
+    }
+  } catch (error) {
+    const retryable = isRetryableProviderFailure(error);
+    const code = providerFailureCode(error);
+    const recorded = await recordResultsEmailFailure(
+      client,
+      row.delivery_id,
+      claimToken,
+      code,
+      retryable
+        ? retryAtWithBackoff(
+            dependencies.now(),
+            config.retrySeconds,
+            row.attempt_number,
+          )
+        : null,
+    );
+    if (!recorded) return { kind: "unavailable", deliveryId: row.delivery_id };
+    return retryable
+      ? { kind: "retryable", deliveryId: row.delivery_id }
+      : {
+          kind: "failed_permanent",
+          code: "provider_rejected",
+          deliveryId: row.delivery_id,
+        };
+  }
+
+  if (!tokenHash) return { kind: "unavailable", deliveryId: row.delivery_id };
+  const resultsUrl = buildMemberMagicLinkUrl(
+    config.appUrl,
+    row.round_id,
+    tokenHash,
+  );
+
   let email: ResultsPublishedEmail;
   try {
     email = await dependencies.renderEmail({
@@ -291,7 +504,7 @@ export async function runResultsPublishedEmailWorker(
       notificationPreferencesUrl: buildNotificationPreferencesUrl(
         config.appUrl,
       ),
-      resultsUrl: buildResultsUrl(config.appUrl, row.round_id),
+      resultsUrl,
     });
   } catch {
     return permanentFailure(
@@ -312,7 +525,9 @@ export async function runResultsPublishedEmailWorker(
         text: email.text,
         to: row.recipient_address,
       },
-      { idempotencyKey: `results-published/${row.delivery_id}` },
+      {
+        idempotencyKey: `results-published/${row.delivery_id}/${tokenIssuedAt}`,
+      },
     );
     const parsedResponse = providerResponseSchema.safeParse(rawResponse);
     if (!parsedResponse.success) {

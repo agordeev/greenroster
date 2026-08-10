@@ -6,14 +6,7 @@ import { MemberNextRoundRsvp } from "@/app/member/home/member-next-round-rsvp";
 import type { MemberRoundDetail } from "@/domain/member-round-detail";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
-import { executeReadLiveRoundScores } from "@/lib/rounds/live-round-score-data";
-import {
-  executeReadMemberRoundDetail,
-  executeReadMemberRoundGuestContext,
-} from "@/lib/rounds/member-round-detail-data";
-
-import { MemberLiveRoundScorePanel } from "./member-live-round-score-panel";
-import { MemberRoundGuestPanel } from "./member-round-guest-panel";
+import { executeReadMemberRoundDetail } from "@/lib/rounds/member-round-detail-data";
 
 const roundIdSchema = z.uuid();
 
@@ -44,17 +37,6 @@ export default async function MemberRoundPage({
   if (detail.state === "completed") {
     redirect(`/member/results?round_id=${encodeURIComponent(detail.roundId)}`);
   }
-
-  const [guestContextResult, liveScoresResult] = await Promise.allSettled([
-    executeReadMemberRoundGuestContext(access.userId, detail.roundId),
-    detail.state === "live"
-      ? executeReadLiveRoundScores(access.userId, detail.roundId)
-      : Promise.resolve([] as const),
-  ]);
-  const guestContext =
-    guestContextResult.status === "fulfilled" ? guestContextResult.value : null;
-  const liveScores =
-    liveScoresResult.status === "fulfilled" ? liveScoresResult.value : null;
 
   return (
     <>
@@ -146,22 +128,17 @@ export default async function MemberRoundPage({
           ) : null}
 
           {detail.state === "live" ? (
-            liveScores ? (
-              <MemberLiveRoundScorePanel participants={liveScores} />
-            ) : (
-              <p className="member-read-empty" role="status">
-                You refresh this page to see your live score.
+            <section
+              className="member-read-section"
+              aria-labelledby="round-day-access-title"
+            >
+              <p className="ledger-kicker">Round day</p>
+              <h2 id="round-day-access-title">Your round is live</h2>
+              <p className="field-help">
+                You use the GreenRoster app to enter scores and manage guests.
               </p>
-            )
+            </section>
           ) : null}
-
-          {guestContext ? (
-            <MemberRoundGuestPanel context={guestContext} />
-          ) : (
-            <p className="member-read-empty" role="status">
-              You refresh this page to see your guests.
-            </p>
-          )}
         </section>
       </main>
     </>
@@ -173,7 +150,7 @@ function formatRound(format: MemberRoundDetail["format"]): string {
 }
 
 function formatState(state: MemberRoundDetail["state"]): string {
-  if (state === "live") return "You can enter scores now";
+  if (state === "live") return "Your round is live";
   if (state === "cancelled") {
     return "You cannot respond because this round is cancelled";
   }

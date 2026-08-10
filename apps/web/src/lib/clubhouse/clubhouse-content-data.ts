@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import type {
   BrandingAssetInput,
+  BrandingAssetSummary,
   ClubhouseMediaItem,
   ClubhouseNewsItem,
   ClubhouseProjection,
@@ -12,6 +13,7 @@ import type {
   CoordinatorContactMessage,
   GroupMediaInput,
   GroupNewsInput,
+  RemoveBrandingAssetInput,
   RoundMessage,
   RoundMessageInput,
 } from "@/domain/clubhouse-content";
@@ -225,6 +227,74 @@ export function executeSaveBrandingAsset(
     p_correlation_id: correlationId,
     p_operation_id: input.operationId,
   });
+}
+
+export function executeRemoveBrandingAsset(
+  actorUserId: string,
+  input: RemoveBrandingAssetInput,
+  correlationId: string,
+) {
+  return executeRpc("remove_group_branding_asset", {
+    p_actor_user_id: actorUserId,
+    p_asset_id: input.assetId,
+    p_correlation_id: correlationId,
+    p_operation_id: input.operationId,
+  });
+}
+
+const brandingAssetRowSchema = z
+  .object({
+    asset_id: z.uuid(),
+    group_id: z.uuid(),
+    slot: z.enum(["scoreboard_header", "scoreboard_footer"]),
+    storage_path: z.string().nullable(),
+    mime_type: z.string(),
+    byte_size: z.number().int().positive(),
+    alt_text: z.string().nullable(),
+    decorative: z.boolean(),
+    click_url: z.string().url().nullable(),
+    display_order: z.number().int().nonnegative(),
+    version: z.number().int().positive(),
+  })
+  .strict();
+
+export async function executeReadBrandingAssetsForActor(
+  actorUserId: string,
+): Promise<readonly BrandingAssetSummary[]> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase.rpc(
+    "read_group_branding_assets_for_actor",
+    { p_actor_user_id: actorUserId },
+  );
+  if (error) throw mapRpcError(error);
+  const parsed = z.array(brandingAssetRowSchema).safeParse(data);
+  if (!parsed.success)
+    throw new MutationError("unexpected", { cause: parsed.error });
+
+  return Promise.all(
+    parsed.data.flatMap((row) => {
+      const storagePath = row.storage_path;
+      if (!storagePath) return [];
+      return [
+        (async () => {
+          const signed = await supabase.storage
+            .from("group-branding")
+            .createSignedUrl(storagePath, 60 * 60);
+          return {
+            assetId: row.asset_id,
+            slot: row.slot,
+            storagePath,
+            assetUrl: signed.data?.signedUrl ?? null,
+            altText: row.alt_text,
+            decorative: row.decorative,
+            clickUrl: row.click_url,
+            displayOrder: row.display_order,
+            version: row.version,
+          };
+        })(),
+      ];
+    }),
+  );
 }
 
 export async function executeReadRoundMessages(

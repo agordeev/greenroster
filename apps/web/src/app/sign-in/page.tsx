@@ -42,6 +42,18 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               Your session expired. Sign in and try again.
             </p>
           ) : null}
+          {status === "member-link-expired" ? (
+            <p className="form-message recovery-status" role="alert">
+              That member results link is expired or already used. Request a new
+              results e-mail from your group coordinator.
+            </p>
+          ) : null}
+          {status === "member-link-unavailable" ? (
+            <p className="form-message recovery-status" role="alert">
+              The member results link could not be verified. Try again or sign
+              in with your account e-mail.
+            </p>
+          ) : null}
 
           <AuthForm returnPath={returnPath} />
           <div className="information-actions">

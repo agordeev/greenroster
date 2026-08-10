@@ -12,6 +12,7 @@ const outboxJobId = "70000000-0000-4000-8000-000000000002";
 const completionId = "70000000-0000-4000-8000-000000000003";
 const roundId = "70000000-0000-4000-8000-000000000004";
 const groupId = "70000000-0000-4000-8000-000000000005";
+const recipientUserId = "70000000-0000-4000-8000-000000000006";
 const claimToken = "claim-token-that-is-not-a-provider-secret";
 const now = new Date("2026-08-04T12:00:00.000Z");
 
@@ -46,11 +47,22 @@ function dependencies(
   return {
     createClaimToken: () => claimToken,
     createClient: () => ({ rpc }),
+    createMagicLink: async () => ({
+      tokenHash: "hash-member-example-1234567890",
+      userId: recipientUserId,
+    }),
     createProvider: () => ({
       send: async () => ({ data: { id: "provider-results-1" }, error: null }),
     }),
     getConfig: () => config(),
     now: () => now,
+    readMagicLinkState: async () => ({
+      recipientUserId,
+      tokenHash: null,
+      tokenIssuedAt: null,
+      tokenExpiresAt: null,
+    }),
+    storeMagicLink: async () => true,
     renderEmail: renderResultsPublishedEmail,
     ...overrides,
   };
@@ -94,13 +106,13 @@ describe("results-published notification worker", () => {
       providerMessageId: "provider-results-1",
     });
     expect(providerOptions).toEqual({
-      idempotencyKey: `results-published/${deliveryId}`,
+      idempotencyKey: `results-published/${deliveryId}/2026-08-04T12:00:00.000Z`,
     });
     expect(providerMessage?.to).toBe("member@example.com");
     expect(providerMessage?.subject).toContain("August Championship");
     expect(providerMessage?.text).toContain("Official results");
     expect(providerMessage?.text).toContain(
-      `https://greenroster.example/member/results?round_id=${roundId}`,
+      "https://greenroster.example/auth/member-callback#token_hash=hash-member-example-1234567890&type=magiclink&next=%2Fmember%2Fresults%3Fround_id%3D70000000-0000-4000-8000-000000000004",
     );
     expect(providerMessage?.text).toContain(
       "https://greenroster.example/member/home#notifications",
@@ -117,6 +129,214 @@ describe("results-published notification worker", () => {
       p_delivery_id: deliveryId,
       p_claim_token: claimToken,
       p_provider_message_id: "provider-results-1",
+    });
+  });
+
+  it("generates a one-time member redirect link for the results e-mail", async () => {
+    const { rpc } = successRpc();
+    let input: { email: string; redirectTo: string } | null = null;
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createMagicLink: async (next) => {
+          input = next;
+          return {
+            tokenHash: "hash-member-example-1234567890",
+            userId: recipientUserId,
+          };
+        },
+      }),
+    );
+
+    expect(result.kind).toBe("sent");
+    expect(input).toEqual({
+      email: "member@example.com",
+      redirectTo: "https://greenroster.example/auth/member-callback",
+    });
+  });
+
+  it("retries when Supabase cannot generate the member link", async () => {
+    const { calls, rpc } = successRpc();
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createMagicLink: async () => {
+          throw new TypeError("fetch failed");
+        },
+      }),
+    );
+
+    expect(result).toEqual({ kind: "retryable", deliveryId });
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+  });
+
+  it("reuses the stored one-time token across an ambiguous provider retry", async () => {
+    const { calls, rpc } = successRpc();
+    let tokenHash: string | null = null;
+    let tokenIssuedAt: string | null = null;
+    let tokenExpiresAt: string | null = null;
+    let generatedCount = 0;
+    let providerCount = 0;
+    const resultDependencies = dependencies(rpc, {
+      createMagicLink: async () => {
+        generatedCount += 1;
+        return {
+          tokenHash: "hash-member-example-1234567890",
+          userId: recipientUserId,
+        };
+      },
+      readMagicLinkState: async () => ({
+        recipientUserId,
+        tokenHash,
+        tokenIssuedAt,
+        tokenExpiresAt,
+      }),
+      storeMagicLink: async (_client, input) => {
+        tokenHash = input.tokenHash;
+        tokenIssuedAt = input.tokenIssuedAt;
+        tokenExpiresAt = input.tokenExpiresAt;
+        return true;
+      },
+      createProvider: () => ({
+        send: async () => {
+          providerCount += 1;
+          return providerCount === 1
+            ? { data: null, error: { statusCode: 503 } }
+            : { data: { id: "provider-results-recovered" }, error: null };
+        },
+      }),
+    });
+
+    const first = await runResultsPublishedEmailWorker(resultDependencies);
+    const second = await runResultsPublishedEmailWorker(resultDependencies);
+
+    expect(first).toEqual({ kind: "retryable", deliveryId });
+    expect(second).toEqual({
+      kind: "sent",
+      deliveryId,
+      providerMessageId: "provider-results-recovered",
+    });
+    expect(generatedCount).toBe(1);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_unavailable",
+      p_retry_at: "2026-08-04T12:01:30.000Z",
+    });
+  });
+
+  it("rotates an expired stored token under a new provider idempotency key", async () => {
+    const { rpc } = successRpc();
+    let currentNow = new Date(now);
+    let tokenHash: string | null = null;
+    let tokenIssuedAt: string | null = null;
+    let tokenExpiresAt: string | null = null;
+    let generatedCount = 0;
+    const providerOptions: string[] = [];
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        now: () => currentNow,
+        createMagicLink: async () => {
+          generatedCount += 1;
+          return {
+            tokenHash: `hash-member-example-${generatedCount}234567890`,
+            userId: recipientUserId,
+          };
+        },
+        readMagicLinkState: async () => ({
+          recipientUserId,
+          tokenHash,
+          tokenIssuedAt,
+          tokenExpiresAt,
+        }),
+        storeMagicLink: async (_client, input) => {
+          tokenHash = input.tokenHash;
+          tokenIssuedAt = input.tokenIssuedAt;
+          tokenExpiresAt = input.tokenExpiresAt;
+          return true;
+        },
+        createProvider: () => ({
+          send: async (_message, options) => {
+            providerOptions.push(options.idempotencyKey);
+            return {
+              data: { id: `provider-results-${providerOptions.length}` },
+              error: null,
+            };
+          },
+        }),
+      }),
+    );
+    expect(result.kind).toBe("sent");
+
+    currentNow = new Date("2026-08-04T12:56:00.000Z");
+    const retry = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        now: () => currentNow,
+        createMagicLink: async () => {
+          generatedCount += 1;
+          return {
+            tokenHash: `hash-member-example-${generatedCount}234567890`,
+            userId: recipientUserId,
+          };
+        },
+        readMagicLinkState: async () => ({
+          recipientUserId,
+          tokenHash,
+          tokenIssuedAt,
+          tokenExpiresAt,
+        }),
+        storeMagicLink: async (_client, input) => {
+          tokenHash = input.tokenHash;
+          tokenIssuedAt = input.tokenIssuedAt;
+          tokenExpiresAt = input.tokenExpiresAt;
+          return true;
+        },
+        createProvider: () => ({
+          send: async (_message, options) => {
+            providerOptions.push(options.idempotencyKey);
+            return {
+              data: { id: `provider-results-${providerOptions.length}` },
+              error: null,
+            };
+          },
+        }),
+      }),
+    );
+
+    expect(retry.kind).toBe("sent");
+    expect(generatedCount).toBe(2);
+    expect(providerOptions).toEqual([
+      `results-published/${deliveryId}/2026-08-04T12:00:00.000Z`,
+      `results-published/${deliveryId}/2026-08-04T12:56:00.000Z`,
+    ]);
+  });
+
+  it("does not send when Auth returns a link for a different member", async () => {
+    const { calls, rpc } = successRpc();
+    let providerCalled = false;
+    const result = await runResultsPublishedEmailWorker(
+      dependencies(rpc, {
+        createMagicLink: async () => ({
+          tokenHash: "hash-member-example-1234567890",
+          userId: "70000000-0000-4000-8000-000000000007",
+        }),
+        createProvider: () => ({
+          send: async () => {
+            providerCalled = true;
+            return { data: { id: "unexpected" }, error: null };
+          },
+        }),
+      }),
+    );
+
+    expect(result).toEqual({
+      code: "provider_rejected",
+      deliveryId,
+      kind: "failed_permanent",
+    });
+    expect(providerCalled).toBe(false);
+    expect(calls[1]?.args).toMatchObject({
+      p_safe_error: "provider_rejected",
+      p_retry_at: null,
     });
   });
 

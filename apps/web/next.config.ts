@@ -32,7 +32,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' ${supabaseUrl.origin} data: blob:`,
   "font-src 'self' data:",
   "connect-src 'self' " + supabaseUrl.origin,
   "frame-src 'none'",
@@ -83,6 +83,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   experimental: {
     serverActions: {
+      // Leave room for multipart metadata around the 1 MiB binary asset
+      // limit enforced by the upload action.
+      bodySizeLimit: "1.1mb",
       // Next compares Server Action Origin with Host/X-Forwarded-Host. Keep
       // the production origin explicit; wildcard origins would widen CSRF.
       allowedOrigins: [appUrl.host],

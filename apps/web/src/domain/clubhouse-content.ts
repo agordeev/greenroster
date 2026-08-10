@@ -55,7 +55,12 @@ export const brandingAssetInputSchema = z
       "scoreboard_header",
       "scoreboard_footer",
     ]),
-    storagePath: z.string().trim().max(500).nullable().optional(),
+    storagePath: z
+      .string()
+      .trim()
+      .min(1)
+      .max(500)
+      .regex(/^[0-9a-fA-F-]{36}\/[A-Za-z0-9._/-]+$/u),
     assetUrl: z.string().url().startsWith("https://"),
     mimeType: z.enum([
       "image/png",
@@ -68,7 +73,23 @@ export const brandingAssetInputSchema = z
     altText: z.string().trim().max(200).nullable().optional(),
     decorative: z.boolean().default(false),
     clickUrl: z.string().url().startsWith("https://").nullable().optional(),
-    displayOrder: z.number().int().min(0).max(3).default(0),
+    displayOrder: z.number().int().min(0).max(2).default(0),
+    operationId: z.uuid(),
+  })
+  .strict()
+  .superRefine((input, context) => {
+    if (input.slot === "scoreboard_header" && input.displayOrder !== 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["displayOrder"],
+        message: "Scoreboard headers must use the first position",
+      });
+    }
+  });
+
+export const removeBrandingAssetInputSchema = z
+  .object({
+    assetId: z.uuid(),
     operationId: z.uuid(),
   })
   .strict();
@@ -80,6 +101,20 @@ export type CoordinatorContactInput = z.infer<
   typeof coordinatorContactInputSchema
 >;
 export type BrandingAssetInput = z.infer<typeof brandingAssetInputSchema>;
+export type RemoveBrandingAssetInput = z.infer<
+  typeof removeBrandingAssetInputSchema
+>;
+export type BrandingAssetSummary = Readonly<{
+  assetId: string;
+  slot: "scoreboard_header" | "scoreboard_footer";
+  storagePath: string;
+  assetUrl: string | null;
+  altText: string | null;
+  decorative: boolean;
+  clickUrl: string | null;
+  displayOrder: number;
+  version: number;
+}>;
 
 export type ClubhouseMutationReceipt = Readonly<Record<string, unknown>>;
 
@@ -144,6 +179,17 @@ export function runBrandingAssetMutation(
   return runVerifiedMutation(raw, correlation, {
     ...dependencies,
     inputSchema: brandingAssetInputSchema,
+  });
+}
+
+export function runRemoveBrandingAssetMutation(
+  raw: unknown,
+  correlation: string | null | undefined,
+  dependencies: Dependencies<RemoveBrandingAssetInput>,
+): Promise<MutationResult<ClubhouseMutationReceipt>> {
+  return runVerifiedMutation(raw, correlation, {
+    ...dependencies,
+    inputSchema: removeBrandingAssetInputSchema,
   });
 }
 

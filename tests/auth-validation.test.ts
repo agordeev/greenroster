@@ -7,6 +7,7 @@ import {
 } from "../apps/web/src/lib/auth/auth-validation";
 import { recoveryDestination } from "../apps/web/src/lib/auth/recovery-callback";
 import {
+  memberAuthDestination,
   resolveSafeReturnPath,
   signInPath,
 } from "../apps/web/src/lib/auth/safe-return-path";
@@ -58,6 +59,17 @@ describe("authentication input contracts", () => {
     expect(recoveryDestination(null)).toBeNull();
   });
 
+  it("allows only member routes as magic-link callback destinations", () => {
+    expect(memberAuthDestination("/member/home")).toBe("/member/home");
+    expect(
+      memberAuthDestination(
+        "/member/results?round_id=10000000-0000-4000-8000-000000000001",
+      ),
+    ).toBe("/member/results?round_id=10000000-0000-4000-8000-000000000001");
+    expect(memberAuthDestination("/portal")).toBeNull();
+    expect(memberAuthDestination("https://attacker.example")).toBeNull();
+  });
+
   it("preserves only parameter-free protected portal return paths", () => {
     expect(resolveSafeReturnPath("/portal")).toBe("/portal");
     expect(resolveSafeReturnPath("/portal/account-settings")).toBe(
@@ -87,6 +99,11 @@ describe("authentication input contracts", () => {
     expect(resolveSafeReturnPath("/member/results")).toBe("/member/results");
     expect(
       resolveSafeReturnPath(
+        "/member/rounds/10000000-0000-4000-8000-000000000001",
+      ),
+    ).toBe("/member/rounds/10000000-0000-4000-8000-000000000001");
+    expect(
+      resolveSafeReturnPath(
         "/member/results?round_id=10000000-0000-4000-8000-000000000001",
       ),
     ).toBe("/member/results?round_id=10000000-0000-4000-8000-000000000001");
@@ -102,6 +119,12 @@ describe("authentication input contracts", () => {
     expect(resolveSafeReturnPath("/member/results?round_id=not-a-uuid")).toBe(
       "/portal",
     );
+    expect(resolveSafeReturnPath("/member/rounds/not-a-uuid")).toBe("/portal");
+    expect(
+      resolveSafeReturnPath(
+        "/member/rounds/10000000-0000-4000-8000-000000000001?admin=true",
+      ),
+    ).toBe("/portal");
     expect(resolveSafeReturnPath("/member/home/extra")).toBe("/portal");
     expect(resolveSafeReturnPath("/account")).toBe("/account");
     expect(resolveSafeReturnPath("/account/privacy")).toBe("/account/privacy");
