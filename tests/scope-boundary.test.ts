@@ -180,7 +180,7 @@ function deferredPublicRpcViolations(source: string): readonly string[] {
 }
 
 describe("v1 scope boundary", () => {
-  it("keeps the member namespace to onboarding plus three view screens", () => {
+  it("keeps the member namespace to onboarding plus four view screens", () => {
     const memberRoot = `${webAppRoot}/member`;
     const routes = collectRouteFiles(memberRoot, "web")
       .filter((entry) => entry.file.endsWith("/page.tsx"))
@@ -190,6 +190,7 @@ describe("v1 scope boundary", () => {
     expect(routes).toContain("/first-run");
     expect(routes.filter((route) => route !== "/first-run")).toEqual([
       "/home",
+      "/inbox",
       "/results",
       "/standings",
     ]);

@@ -49,6 +49,8 @@ import {
   runRoundCompletionPreview,
   runRoundReopenMutation,
 } from "@/domain/round-completion";
+import { runRoundAnnouncementMutation } from "@/domain/round-announcement";
+import { executePostRoundAnnouncement } from "@/lib/notifications/round-announcement-data";
 import {
   runCreateRoundGuestMutation,
   runUpdateRoundGuestMutation,
@@ -224,6 +226,18 @@ export async function reopenCompletedRoundAction(input: unknown) {
     execute: executeReopenCompletedRound,
     verifySession: verifyMutationSession,
   });
+}
+
+export async function postRoundAnnouncementAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundAnnouncementMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executePostRoundAnnouncement,
+      verifySession: verifyMutationSession,
+    },
+  );
 }
 
 export async function setRoundRsvpAction(input: unknown) {

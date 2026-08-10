@@ -422,6 +422,45 @@ input {
   color: var(--pencil);
   line-height: 1.65;
 }
+.member-inbox-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.member-inbox-item {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--rule);
+  background: var(--inset);
+}
+.member-inbox-item-unread {
+  border-color: var(--bentgrass);
+}
+.member-inbox-item-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.member-inbox-item-heading h2 {
+  margin: 0.375rem 0 0;
+  font-family: var(--font-ledger);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+.member-inbox-item-heading time,
+.member-inbox-author {
+  color: var(--pencil);
+  font-size: 0.8125rem;
+}
+.member-inbox-item > p {
+  margin: 0;
+  line-height: 1.6;
+}
+.member-inbox-item .secondary-button {
+  justify-self: start;
+}
 .member-home-round-heading h2,
 .member-home-empty h2 {
   margin: 0.375rem 0 0;

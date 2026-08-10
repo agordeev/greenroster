@@ -120,6 +120,9 @@ export default async function MemberHomePage() {
             <Link className="secondary-link" href="#notifications">
               Notification preferences
             </Link>
+            <Link className="secondary-link" href="/member/inbox">
+              Open your inbox
+            </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Member home</p>

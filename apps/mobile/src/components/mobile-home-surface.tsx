@@ -218,6 +218,20 @@ function HomeContent({
       />
 
       <GroupDirectoryLink />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Open your round updates"
+        onPress={() => router.push("/inbox" as never)}
+        style={({ pressed }) => [
+          styles.secondaryButton,
+          { borderColor: theme.separator },
+          pressed && styles.pressed,
+        ]}
+      >
+        <ThemedText type="smallBold" themeColor="accent">
+          Open your round updates
+        </ThemedText>
+      </Pressable>
     </>
   );
 }
