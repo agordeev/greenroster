@@ -28,7 +28,13 @@ export function PortalShell({
   roleStatus?: string;
   timeZone: string;
   currentSection?:
-    "home" | "members" | "invitations" | "rounds" | "standings" | "group";
+    | "home"
+    | "members"
+    | "invitations"
+    | "rounds"
+    | "standings"
+    | "reports"
+    | "group";
 }>) {
   const visibleRole = role
     ? roleLabel[role]
@@ -89,6 +95,14 @@ export function PortalShell({
               aria-current={currentSection === "standings" ? "page" : undefined}
             >
               Standings
+            </Link>
+          ) : null}
+          {role && role !== "member" ? (
+            <Link
+              href="/portal/reports"
+              aria-current={currentSection === "reports" ? "page" : undefined}
+            >
+              Reports
             </Link>
           ) : null}
           {role && role !== "member" ? (

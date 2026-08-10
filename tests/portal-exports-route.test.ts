@@ -101,4 +101,44 @@ describe("portal export route", () => {
     expect(response.status).toBe(403);
     expect(loadRoster).not.toHaveBeenCalled();
   });
+
+  it("returns a private no-store PDF with a completed round score pad", async () => {
+    const response = await handlePortalExport(
+      new Request(
+        "http://localhost/api/portal/exports?kind=scorepad&format=pdf&round_id=40000000-0000-4000-8000-000000000001",
+      ),
+      {
+        verifySession: vi.fn().mockResolvedValue({ userId }),
+        resolveContext: vi.fn().mockResolvedValue({
+          groupId,
+          role: "coordinator",
+          groupName: "Ada's group",
+          timeZone: "UTC",
+        }),
+        loadResults: vi.fn().mockResolvedValue({
+          round: {
+            id: "40000000-0000-4000-8000-000000000001",
+            group_id: groupId,
+            description: "August round",
+            scheduled_at: "2026-08-10T09:00:00.000Z",
+            group_time_zone: "UTC",
+            format: "individual_net",
+            state: "completed",
+          },
+          results: [],
+        }),
+        recordAudit: vi.fn().mockResolvedValue(undefined),
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("content-disposition")).toContain(
+      "greenroster-scorepad.pdf",
+    );
+    expect(new TextDecoder().decode(await response.arrayBuffer())).toContain(
+      "August round score pad",
+    );
+  });
 });

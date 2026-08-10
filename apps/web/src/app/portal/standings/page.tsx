@@ -119,6 +119,12 @@ export default async function PortalStandingsPage() {
             href="/api/portal/exports?kind=standings"
           >
             Download standings (CSV)
+          </Link>{" "}
+          <Link
+            className="secondary-link"
+            href="/api/portal/exports?kind=standings&format=pdf"
+          >
+            Download standings (PDF)
           </Link>
         </p>
 

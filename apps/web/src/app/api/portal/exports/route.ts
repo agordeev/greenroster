@@ -14,15 +14,24 @@ import {
   createOfficialResultsCsv,
   createStandingsCsv,
 } from "@/lib/exports/csv-export";
+import {
+  createMemberRosterPdf,
+  createOfficialResultsPdf,
+  createScorepadPdf,
+  createStandingsPdf,
+} from "@/lib/exports/pdf-report";
 
 export const dynamic = "force-dynamic";
 
-const kindSchema = z.enum(["members", "standings", "results"]);
+const kindSchema = z.enum(["members", "standings", "results", "scorepad"]);
 const roundIdSchema = z.uuid();
+const formatSchema = z.enum(["csv", "pdf"]).default("csv");
 
 type ExportContext = Readonly<{
   groupId: string;
   role: "coordinator" | "administrator";
+  groupName?: string;
+  timeZone?: string;
 }>;
 
 type ExportDependencies = Readonly<{
@@ -34,7 +43,8 @@ type ExportDependencies = Readonly<{
   recordAudit: (input: {
     actorUserId: string;
     groupId: string;
-    kind: "members" | "standings" | "results";
+    kind: "members" | "standings" | "results" | "scorepad";
+    format: "csv" | "pdf";
     rowCount: number;
     correlationId: string;
     filter: string;
@@ -60,6 +70,13 @@ export async function handlePortalExport(
   if (!kind.success) {
     return jsonError("Choose an export type.", 400);
   }
+  const format = formatSchema.safeParse(
+    url.searchParams.get("format") ?? undefined,
+  );
+  if (!format.success) return jsonError("Choose a report format.", 400);
+  if (kind.data === "scorepad" && format.data !== "pdf") {
+    return jsonError("The score pad is available as a PDF report.", 400);
+  }
 
   let session: Awaited<ReturnType<typeof verifyMutationSession>>;
   try {
@@ -78,9 +95,16 @@ export async function handlePortalExport(
 
   const correlationId =
     request.headers.get("x-correlation-id") ?? crypto.randomUUID();
-  let csv: string;
+  let output: string | Uint8Array;
   let filename: string;
   let rowCount = 0;
+  const metadata = {
+    groupName: context.groupName ?? "GreenRoster group",
+    generatedAt: new Date().toISOString(),
+    timeZone: context.timeZone ?? "UTC",
+    reportingWindow: "Current group data",
+    containsPrivateData: kind.data === "members",
+  } as const;
 
   try {
     if (kind.data === "members") {
@@ -110,14 +134,20 @@ export async function handlePortalExport(
           );
         }
       } while (rows.length < totalCount && rows.length > 0);
-      csv = createMemberRosterCsv(rows);
+      output =
+        format.data === "pdf"
+          ? createMemberRosterPdf(metadata, rows)
+          : createMemberRosterCsv(rows);
       rowCount = rows.length;
-      filename = "greenroster-members.csv";
+      filename = `greenroster-members.${format.data}`;
     } else if (kind.data === "standings") {
       const rows = await dependencies.loadStandings(session.userId);
-      csv = createStandingsCsv(rows);
+      output =
+        format.data === "pdf"
+          ? createStandingsPdf(metadata, rows)
+          : createStandingsCsv(rows);
       rowCount = rows.length;
-      filename = "greenroster-standings.csv";
+      filename = `greenroster-standings.${format.data}`;
     } else {
       const roundId = roundIdSchema.safeParse(url.searchParams.get("round_id"));
       if (!roundId.success) return jsonError("Choose a completed round.", 400);
@@ -125,14 +155,20 @@ export async function handlePortalExport(
         session.userId,
         roundId.data,
       );
-      csv = createOfficialResultsCsv(result.round, result.results);
+      output =
+        format.data === "pdf"
+          ? kind.data === "scorepad"
+            ? createScorepadPdf(metadata, result.round, result.results)
+            : createOfficialResultsPdf(metadata, result.round, result.results)
+          : createOfficialResultsCsv(result.round, result.results);
       rowCount = result.results.length;
-      filename = "greenroster-results.csv";
+      filename = `greenroster-${kind.data}.${format.data}`;
     }
     await dependencies.recordAudit({
       actorUserId: session.userId,
       groupId: context.groupId,
       kind: kind.data,
+      format: format.data,
       rowCount,
       correlationId,
       filter: url.searchParams.toString(),
@@ -141,11 +177,16 @@ export async function handlePortalExport(
     return jsonError("Your export is unavailable right now.", 503);
   }
 
-  return new Response(csv, {
+  const body: BodyInit =
+    typeof output === "string"
+      ? output
+      : new Blob([output as unknown as ArrayBuffer]);
+  return new Response(body, {
     headers: {
       "Cache-Control": "private, no-store",
       "Content-Disposition": `attachment; filename="${filename}"`,
-      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Type":
+        format.data === "pdf" ? "application/pdf" : "text/csv; charset=utf-8",
       "X-GreenRoster-Export-Rows": String(rowCount),
     },
   });
@@ -170,13 +211,25 @@ async function resolvePortalExportContext(): Promise<ExportContext | null> {
   if (result.error || !parsed.success) return null;
   const context = parsed.data[0];
   if (context.role === "member") return null;
-  return { groupId: context.group_id, role: context.role };
+  const group = await supabase
+    .from("groups")
+    .select("name,time_zone")
+    .eq("id", context.group_id)
+    .maybeSingle();
+  if (group.error || !group.data) return null;
+  return {
+    groupId: context.group_id,
+    role: context.role,
+    groupName: group.data.name,
+    timeZone: group.data.time_zone,
+  };
 }
 
 async function recordExportAudit(input: {
   actorUserId: string;
   groupId: string;
-  kind: "members" | "standings" | "results";
+  kind: "members" | "standings" | "results" | "scorepad";
+  format: "csv" | "pdf";
   rowCount: number;
   correlationId: string;
   filter: string;
@@ -189,6 +242,7 @@ async function recordExportAudit(input: {
     target_type: "report",
     after_state: {
       kind: input.kind,
+      format: input.format,
       row_count: input.rowCount,
       filter: input.filter,
     },
