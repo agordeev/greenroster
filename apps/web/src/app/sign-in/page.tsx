@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { AuthForm } from "./auth-form";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
@@ -42,6 +44,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           ) : null}
 
           <AuthForm returnPath={returnPath} />
+          <div className="information-actions">
+            <Link className="secondary-link" href="/sign-up">
+              Create your group
+            </Link>
+          </div>
         </section>
 
         <aside

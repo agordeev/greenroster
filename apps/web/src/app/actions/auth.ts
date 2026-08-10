@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies, headers } from "next/headers";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 
 import type { AuthFormState } from "@/app/actions/auth-state";
@@ -11,13 +12,30 @@ import {
   recoverySchema,
 } from "@/lib/auth/auth-validation";
 import {
+  organizerRegistrationSchema,
+  runOrganizerBootstrapMutation,
+} from "@/lib/auth/organizer-signup";
+import {
+  createOrganizerSignupCookieValue,
+  ORGANIZER_SIGNUP_COOKIE,
+  ORGANIZER_SIGNUP_COOKIE_MAX_AGE_SECONDS,
+  ORGANIZER_SIGNUP_COOKIE_PATH,
+  readOrganizerSignupCookieValue,
+} from "@/lib/auth/organizer-signup-state";
+import {
+  executeOrganizerBootstrap,
+  resolveCurrentLegalDocuments,
+} from "@/lib/auth/organizer-signup-data";
+import {
   claimPasswordRecoverySession,
   consumePasswordRecoverySession,
   releasePasswordRecoveryClaim,
   resolvePasswordRecoveryOperation,
 } from "@/lib/auth/password-recovery-registry";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
+import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
+import { MutationError } from "@/lib/mutations/result";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { createServerActionSupabaseClient } from "@/lib/supabase/server-action-client";
 
@@ -73,6 +91,164 @@ export async function signInAction(
   }
 
   redirect(returnPath);
+}
+
+export async function registerOrganizerAction(
+  _previousState: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const parsed = organizerRegistrationSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+    acceptedTerms: formData.get("acceptedTerms") === "on",
+    acceptedPrivacy: formData.get("acceptedPrivacy") === "on",
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Review the highlighted fields.",
+      fieldErrors: authFieldErrors(parsed.error),
+    };
+  }
+
+  let legal: Awaited<ReturnType<typeof resolveCurrentLegalDocuments>>;
+  try {
+    legal = await resolveCurrentLegalDocuments();
+  } catch {
+    legal = null;
+  }
+  if (!legal) {
+    return {
+      status: "error",
+      message:
+        "You cannot create your account right now. Try again in a moment.",
+    };
+  }
+
+  const supabase = await createServerActionSupabaseClient();
+  const redirectTo = new URL(
+    "/auth/organizer-callback",
+    webRuntimeEnv.appUrl,
+  ).toString();
+
+  const storeSignupHandoff = async () => {
+    const cookieStore = await cookies();
+    cookieStore.set(
+      ORGANIZER_SIGNUP_COOKIE,
+      createOrganizerSignupCookieValue(
+        {
+          termsVersion: legal.termsVersion,
+          privacyVersion: legal.privacyVersion,
+        },
+        webRuntimeEnv.invitationTokenSecret,
+      ),
+      {
+        httpOnly: true,
+        maxAge: ORGANIZER_SIGNUP_COOKIE_MAX_AGE_SECONDS,
+        path: ORGANIZER_SIGNUP_COOKIE_PATH,
+        sameSite: "lax",
+        secure: webRuntimeEnv.appUrl.startsWith("https://"),
+      },
+    );
+  };
+
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: { emailRedirectTo: redirectTo },
+    });
+
+    if (error) {
+      if (error.status === 429) {
+        return {
+          status: "error",
+          message: "Too many attempts. Wait a moment and try again.",
+        };
+      }
+      if (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500) {
+        return {
+          status: "error",
+          message:
+            "You cannot create your account right now. Try again in a moment.",
+        };
+      }
+
+      await storeSignupHandoff();
+      return {
+        status: "success",
+        message:
+          "Check your account e-mail to verify your account, then continue setting up your group.",
+      };
+    }
+
+    await storeSignupHandoff();
+
+    return {
+      status: "success",
+      message: data.session
+        ? "Your account is ready. Continue setting up your group."
+        : "Check your account e-mail to verify your account, then continue setting up your group.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message:
+        "You cannot create your account right now. Try again in a moment.",
+    };
+  }
+}
+
+export async function bootstrapOrganizerAction(input: unknown) {
+  const requestHeaders = await headers();
+  const correlationCandidate = requestHeaders.get("x-correlation-id");
+
+  const result = await runOrganizerBootstrapMutation(
+    input,
+    correlationCandidate,
+    {
+      executeBootstrap: executeOrganizerBootstrap,
+      verifySession: verifyMutationSession,
+      verifyLegalHandoff: async () => {
+        const cookieStore = await cookies();
+        const handoff = readOrganizerSignupCookieValue(
+          cookieStore.get(ORGANIZER_SIGNUP_COOKIE)?.value,
+          webRuntimeEnv.invitationTokenSecret,
+        );
+        const legal = await resolveCurrentLegalDocuments();
+
+        if (!legal) throw new MutationError("transient");
+        if (
+          !handoff ||
+          handoff.termsVersion !== legal.termsVersion ||
+          handoff.privacyVersion !== legal.privacyVersion
+        ) {
+          throw new MutationError("validation", {
+            fieldErrors: {
+              acceptedTerms: ["Review the current Terms of Use."],
+              acceptedPrivacy: ["Review the current Privacy Policy."],
+            },
+          });
+        }
+      },
+    },
+  );
+
+  if (result.ok) {
+    const cookieStore = await cookies();
+    cookieStore.set(ORGANIZER_SIGNUP_COOKIE, "", {
+      expires: new Date(0),
+      httpOnly: true,
+      maxAge: 0,
+      path: ORGANIZER_SIGNUP_COOKIE_PATH,
+      sameSite: "lax",
+      secure: webRuntimeEnv.appUrl.startsWith("https://"),
+    });
+  }
+
+  return result;
 }
 
 export async function requestPasswordResetAction(
