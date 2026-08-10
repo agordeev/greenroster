@@ -4,6 +4,8 @@ import { handleGetLegacyImport } from "../apps/web/src/app/api/legacy-imports/[j
 import { handleSetLegacyImportMapping } from "../apps/web/src/app/api/legacy-imports/[jobId]/mapping/route";
 import { handleLegacyImportUpload } from "../apps/web/src/app/api/legacy-imports/route";
 import {
+  fingerprintLegacyImportProfile,
+  LEGACY_IMPORT_MAX_BYTES,
   parseProfiledLegacyCsv,
   validateLegacyImportProfile,
   type LegacyImportProfile,
@@ -24,10 +26,11 @@ const profileInput = {
 
 function uploadRequest(
   csv = "legacy_type,legacy_key,first_name,unused\nmember,m-1,Alex,ignored\n",
+  profile = profileInput,
 ) {
   const form = new FormData();
   form.set("file", new File([csv], "golfdogfight.csv", { type: "text/csv" }));
-  form.set("profile", JSON.stringify(profileInput));
+  form.set("profile", JSON.stringify(profile));
   return new Request("http://localhost/api/legacy-imports", {
     body: form,
     headers: { "x-correlation-id": correlationId },
@@ -125,6 +128,57 @@ describe("legacy import HTTP routes", () => {
     });
   });
 
+  it("rejects a multipart body above the Vercel-safe ceiling before staging", async () => {
+    const createJob = vi.fn();
+    const response = await handleLegacyImportUpload(
+      uploadRequest(new Uint8Array(LEGACY_IMPORT_MAX_BYTES + 1)),
+      {
+        createJob,
+        verifySession: vi.fn().mockResolvedValue({ userId: actorUserId }),
+      },
+    );
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      errors: [{ code: "file_too_large" }],
+    });
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
+  it("includes the canonical submitted profile in the replay identity", async () => {
+    const createJob = vi.fn().mockResolvedValue({
+      jobId,
+      profileKey: "golfdogfight-export",
+      state: "mapping_required",
+      totalRows: 1,
+      exceptionRows: 0,
+      revision: 2,
+    });
+    const alternateProfile = {
+      ...profileInput,
+      mappings: [{ sourceHeader: "first_name", targetField: "last_name" }],
+    };
+    await handleLegacyImportUpload(uploadRequest(undefined, profileInput), {
+      createJob,
+      verifySession: vi.fn().mockResolvedValue({ userId: actorUserId }),
+      createId: vi.fn().mockReturnValue(jobId),
+    });
+    await handleLegacyImportUpload(uploadRequest(undefined, alternateProfile), {
+      createJob,
+      verifySession: vi.fn().mockResolvedValue({ userId: actorUserId }),
+      createId: vi.fn().mockReturnValue(jobId),
+    });
+    const first = createJob.mock.calls[0][1];
+    const second = createJob.mock.calls[1][1];
+    const validated = validateLegacyImportProfile(profileInput);
+    expect(validated.ok).toBe(true);
+    if (!validated.ok) return;
+    expect(first.profileDigest).toBe(
+      fingerprintLegacyImportProfile(validated.profile),
+    );
+    expect(second.profileDigest).not.toBe(first.profileDigest);
+  });
+
   it("returns only the authenticated safe job projection", async () => {
     const projection = {
       jobId,
@@ -179,6 +233,50 @@ describe("legacy import HTTP routes", () => {
     await expect(forbidden.json()).resolves.toEqual({
       ok: false,
       status: "forbidden",
+    });
+
+    const queryRejected = await handleGetLegacyImport(
+      jobId,
+      {
+        getJob: vi.fn(),
+        verifySession: vi.fn(),
+      },
+      new Request(`http://localhost/api/legacy-imports/${jobId}?unexpected=1`),
+    );
+    expect(queryRejected.status).toBe(422);
+  });
+
+  it("strictly validates and forwards bounded projection cursors", async () => {
+    const getJob = vi.fn().mockResolvedValue({
+      jobId,
+      profileKey: "golfdogfight-export",
+      schemaVersion: "2026-08",
+      state: "mapping_required" as const,
+      totalRows: 101,
+      mappedRows: 0,
+      exceptionRows: 0,
+      revision: 2,
+      rows: [],
+      nextCursor: 101,
+    });
+    const response = await handleGetLegacyImport(
+      jobId,
+      {
+        getJob,
+        verifySession: vi.fn().mockResolvedValue({ userId: actorUserId }),
+      },
+      new Request(
+        `http://localhost/api/legacy-imports/${jobId}?cursor=100&limit=1`,
+      ),
+    );
+    expect(response.status).toBe(200);
+    expect(getJob).toHaveBeenCalledWith(actorUserId, jobId, {
+      afterRowNumber: 100,
+      limit: 1,
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      job: { nextCursor: 101 },
     });
   });
 

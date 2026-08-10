@@ -3,6 +3,7 @@ import { MutationError } from "../mutations/result";
 import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import {
   fingerprintLegacyCsv,
+  fingerprintLegacyImportProfile,
   LEGACY_IMPORT_MAX_BYTES,
   LEGACY_IMPORT_MAX_ROWS,
   parseProfiledLegacyCsv,
@@ -37,6 +38,7 @@ export type LegacyImportUploadDependencies = Readonly<{
       importJobId: string;
       profile: LegacyImportProfile;
       sourceFingerprint: string;
+      profileDigest: string;
       rows: Parameters<typeof executeCreateLegacyImport>[1]["rows"];
       warnings: Parameters<typeof executeCreateLegacyImport>[1]["warnings"];
     }>,
@@ -61,6 +63,7 @@ const defaults: LegacyImportUploadDependencies = {
         profileKey: input.profile.profileKey,
         schemaVersion: input.profile.schemaVersion,
         sourceFingerprint: input.sourceFingerprint,
+        profileDigest: input.profileDigest,
         rows: input.rows,
         warnings: input.warnings,
       },
@@ -186,6 +189,7 @@ export async function runLegacyImportUpload(
         importJobId,
         profile: profile.profile,
         sourceFingerprint: fingerprintLegacyCsv(bytes),
+        profileDigest: fingerprintLegacyImportProfile(profile.profile),
         rows: parsed.rows,
         warnings: parsed.warnings,
       },

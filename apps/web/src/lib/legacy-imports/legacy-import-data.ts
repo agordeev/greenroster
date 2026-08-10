@@ -123,6 +123,7 @@ export async function executeCreateLegacyImport(
     profileKey: string;
     schemaVersion: string;
     sourceFingerprint: string;
+    profileDigest: string;
     rows: readonly LegacyImportRow[];
     warnings: readonly Readonly<{
       code: string;
@@ -141,6 +142,7 @@ export async function executeCreateLegacyImport(
     p_profile_key: input.profileKey,
     p_schema_version: input.schemaVersion,
     p_source_fingerprint: input.sourceFingerprint,
+    p_profile_digest: input.profileDigest,
     p_rows: input.rows.map((row) => ({
       row_number: row.rowNumber,
       legacy_type: row.legacyType,
@@ -175,6 +177,7 @@ export type LegacyImportProjection = Readonly<{
   mappedRows: number;
   exceptionRows: number;
   revision: number;
+  nextCursor?: number | null;
   rows: readonly Readonly<{
     rowId: string;
     rowNumber: number;
@@ -191,18 +194,29 @@ export type LegacyImportProjection = Readonly<{
 export async function executeGetLegacyImport(
   actorUserId: string,
   importJobId: string,
+  options?: Readonly<{ afterRowNumber?: number; limit?: number }>,
 ): Promise<LegacyImportProjection> {
   const supabase = createSupabaseServiceClient();
-  const { data, error } = await supabase.rpc("get_legacy_import_job", {
-    p_actor_user_id: actorUserId,
-    p_import_job_id: importJobId,
-  });
+  const { data, error } = options
+    ? await supabase.rpc("get_legacy_import_job", {
+        p_actor_user_id: actorUserId,
+        p_import_job_id: importJobId,
+        p_after_row_number: options.afterRowNumber ?? null,
+        p_limit: options.limit ?? 100,
+      })
+    : await supabase.rpc("get_legacy_import_job", {
+        p_actor_user_id: actorUserId,
+        p_import_job_id: importJobId,
+      });
   if (error) throw mapError(error);
   const parsed = projectionRowsSchema.safeParse(data);
   if (!parsed.success || parsed.data.length === 0) {
     throw new MutationError("unexpected", { cause: parsed.error });
   }
-  const first = parsed.data[0];
+  const requestedLimit = options?.limit ?? 100;
+  const hasMore = Boolean(options && parsed.data.length > requestedLimit);
+  const visibleRows = parsed.data.slice(0, requestedLimit);
+  const first = visibleRows[0];
   return {
     jobId: first.import_job_id,
     profileKey: first.profile_key,
@@ -212,7 +226,7 @@ export async function executeGetLegacyImport(
     mappedRows: first.mapped_rows,
     exceptionRows: first.exception_rows,
     revision: first.revision,
-    rows: parsed.data.map((row) => ({
+    rows: visibleRows.map((row) => ({
       rowId: row.row_id,
       rowNumber: row.row_number,
       legacyType: row.legacy_type,
@@ -223,6 +237,13 @@ export async function executeGetLegacyImport(
       targetId: row.target_id,
       exceptionCount: row.exception_count,
     })),
+    ...(options
+      ? {
+          nextCursor: hasMore
+            ? (visibleRows[visibleRows.length - 1]?.row_number ?? null)
+            : null,
+        }
+      : {}),
   };
 }
 

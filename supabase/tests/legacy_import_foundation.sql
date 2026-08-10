@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(33);
 
 select has_table('public', 'legacy_import_jobs', 'legacy import jobs are persisted');
 select has_table('public', 'legacy_import_rows', 'legacy import rows are persisted');
@@ -46,12 +46,18 @@ select ok(
 select ok(
   pg_catalog.pg_get_functiondef(
     'public.create_legacy_import_job(uuid,uuid,text,text,text,jsonb,jsonb,uuid,uuid)'::pg_catalog.regprocedure
+  ) like '%crosswalk.import_job_id = row.import_job_id%'
+  or pg_catalog.pg_get_functiondef(
+    'public.create_legacy_import_job(uuid,uuid,text,text,text,text,jsonb,jsonb,uuid,uuid)'::pg_catalog.regprocedure
   ) like '%crosswalk.import_job_id = row.import_job_id%',
   'staging maps rows only through the current job crosswalk'
 );
 select ok(
   pg_catalog.pg_get_functiondef(
     'public.get_legacy_import_job(uuid,uuid)'::pg_catalog.regprocedure
+  ) like '%crosswalk.import_job_id = row.import_job_id%'
+  or pg_catalog.pg_get_functiondef(
+    'public.get_legacy_import_job(uuid,uuid,integer,integer)'::pg_catalog.regprocedure
   ) like '%crosswalk.import_job_id = row.import_job_id%',
   'job projection maps rows only through the current job crosswalk'
 );
@@ -275,6 +281,100 @@ select is(
      and operation_id = '96000000-0000-4000-8000-000000000083'),
   1,
   'mapping replay is idempotent'
+);
+
+select throws_ok(
+  $$ select * from public.set_legacy_import_mapping(
+    '91000000-0000-4000-8000-000000000081',
+    '94000000-0000-4000-8000-000000000082',
+    (select id from public.legacy_import_rows
+     where import_job_id = '94000000-0000-4000-8000-000000000082'),
+    'matched', 'member', '97000000-0000-4000-8000-000000000099',
+    'deterministic', 'The approved identity decision matches this member.',
+    2, '95000000-0000-4000-8000-000000000083',
+    '96000000-0000-4000-8000-000000000083'
+  ) $$,
+  '23505',
+  'operation_id_reused',
+  'a replay with a different target id is rejected'
+);
+select throws_ok(
+  $$ select * from public.set_legacy_import_mapping(
+    '91000000-0000-4000-8000-000000000081',
+    '94000000-0000-4000-8000-000000000082',
+    (select id from public.legacy_import_rows
+     where import_job_id = '94000000-0000-4000-8000-000000000082'),
+    'matched', 'member', '97000000-0000-4000-8000-000000000081',
+    'manual', 'The approved identity decision matches this member.',
+    2, '95000000-0000-4000-8000-000000000083',
+    '96000000-0000-4000-8000-000000000083'
+  ) $$,
+  '23505',
+  'operation_id_reused',
+  'a replay with a different mapping method is rejected'
+);
+select throws_ok(
+  $$ select * from public.set_legacy_import_mapping(
+    '91000000-0000-4000-8000-000000000081',
+    '94000000-0000-4000-8000-000000000082',
+    (select id from public.legacy_import_rows
+     where import_job_id = '94000000-0000-4000-8000-000000000082'),
+    'matched', 'member_alias', '97000000-0000-4000-8000-000000000081',
+    'deterministic', 'The approved identity decision matches this member.',
+    2, '95000000-0000-4000-8000-000000000083',
+    '96000000-0000-4000-8000-000000000083'
+  ) $$,
+  '23505',
+  'operation_id_reused',
+  'a replay with a different target type is rejected'
+);
+select throws_ok(
+  $$ select * from public.set_legacy_import_mapping(
+    '91000000-0000-4000-8000-000000000081',
+    '94000000-0000-4000-8000-000000000082',
+    (select id from public.legacy_import_rows
+     where import_job_id = '94000000-0000-4000-8000-000000000082'),
+    'rejected', null, null, null,
+    'The approved identity decision matches this member.',
+    2, '95000000-0000-4000-8000-000000000083',
+    '96000000-0000-4000-8000-000000000083'
+  ) $$,
+  '23505',
+  'operation_id_reused',
+  'a replay with a different mapping state is rejected'
+);
+
+-- The same source bytes are accepted as separate jobs when their canonical
+-- submitted profiles differ.
+select * from public.create_legacy_import_job(
+  '91000000-0000-4000-8000-000000000081',
+  '94000000-0000-4000-8000-000000000083',
+  'golfdogfight-export', '2026-08', repeat('c', 64), repeat('1', 64),
+  '[{"row_number":2,"legacy_type":"member","legacy_key":"m-2","payload":{"first_name":"Alex"}}]'::jsonb,
+  '[]'::jsonb, '95000000-0000-4000-8000-000000000084', '96000000-0000-4000-8000-000000000084'
+);
+select * from public.create_legacy_import_job(
+  '91000000-0000-4000-8000-000000000081',
+  '94000000-0000-4000-8000-000000000084',
+  'golfdogfight-export', '2026-08', repeat('c', 64), repeat('2', 64),
+  '[{"row_number":2,"legacy_type":"member","legacy_key":"m-2","payload":{"first_name":"Alex"}}]'::jsonb,
+  '[]'::jsonb, '95000000-0000-4000-8000-000000000085', '96000000-0000-4000-8000-000000000085'
+);
+select is(
+  (select count(*)::integer
+   from public.legacy_import_jobs
+   where group_id = '92000000-0000-4000-8000-000000000081'
+     and source_fingerprint = repeat('c', 64)),
+  2,
+  'a source replay key includes the submitted profile digest'
+);
+select is(
+  (select count(distinct profile_digest)::integer
+   from public.legacy_import_jobs
+   where group_id = '92000000-0000-4000-8000-000000000081'
+     and source_fingerprint = repeat('c', 64)),
+  2,
+  'each profile digest is persisted independently'
 );
 
 select throws_ok(

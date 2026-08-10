@@ -4,7 +4,9 @@ const HEADER_PATTERN = /^[a-z][a-z0-9_.-]{0,127}$/u;
 const SECRET_FIELD_PATTERN =
   /(?:password|passcode|token|secret|api[_-]?key|private[_-]?key|card(?:[_-]?number)?|cvv|cvc)/iu;
 
-export const LEGACY_IMPORT_MAX_BYTES = 10 * 1024 * 1024;
+// Keep the multipart request comfortably below Vercel's 4.5 MB envelope once
+// form-data boundaries and the profile field are included.
+export const LEGACY_IMPORT_MAX_BYTES = 4 * 1024 * 1024;
 export const LEGACY_IMPORT_MAX_ROWS = 50_000;
 
 export type LegacyImportProfile = Readonly<{
@@ -449,4 +451,28 @@ export function parseProfiledLegacyCsv(
 
 export function fingerprintLegacyCsv(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+/**
+ * Hash the normalized profile independently from the source bytes. A caller
+ * can submit the same CSV with a different mapping, so the profile belongs in
+ * the replay identity as a canonical, order-independent value.
+ */
+export function fingerprintLegacyImportProfile(
+  profile: LegacyImportProfile,
+): string {
+  const canonical = {
+    profileKey: profile.profileKey,
+    schemaVersion: profile.schemaVersion,
+    legacyTypeHeader: profile.legacyTypeHeader,
+    legacyKeyHeader: profile.legacyKeyHeader,
+    mappings: [...profile.mappings]
+      .map(({ sourceHeader, targetField }) => ({ sourceHeader, targetField }))
+      .sort((left, right) => {
+        const leftKey = `${left.sourceHeader}\u0000${left.targetField}`;
+        const rightKey = `${right.sourceHeader}\u0000${right.targetField}`;
+        return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+      }),
+  };
+  return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
 }
