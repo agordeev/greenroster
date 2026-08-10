@@ -113,6 +113,14 @@ export default async function PortalStandingsPage() {
           . The reset date affects current standings only; official quota
           history remains retained separately.
         </p>
+        <p>
+          <Link
+            className="secondary-link"
+            href="/api/portal/exports?kind=standings"
+          >
+            Download standings (CSV)
+          </Link>
+        </p>
 
         <section
           className="member-stats-summary"

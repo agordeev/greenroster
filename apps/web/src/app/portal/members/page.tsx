@@ -138,6 +138,14 @@ export default async function MemberManagementPage({
                 Import members from CSV
               </Link>
             </p>
+            <p>
+              <Link
+                className="secondary-link"
+                href="/api/portal/exports?kind=members"
+              >
+                Download member list (CSV)
+              </Link>
+            </p>
             <MemberCreateInvite role={portalContext.role} />
           </>
         ) : null}
