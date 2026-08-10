@@ -2,7 +2,7 @@
 
 Version: 2.0 simplified v1 baseline
 Date: July 25, 2026
-Status: implementation specification for the core product loop
+Status: implementation specification for the core product loop plus the approved August 10, 2026 parity expansion
 
 ## 1. Purpose and scope
 
@@ -19,7 +19,34 @@ V1 covers the core round loop:
 - completion, reopen, and published results;
 - quota history and standings.
 
-### 1.1 Not in v1
+### Approved parity expansion (August 10, 2026)
+
+The original v1 baseline below was intentionally narrow. The current
+implementation plan now includes the following locally verified parity slices,
+which supersede any conflicting baseline exclusion:
+
+- Stripe-normalized group billing, trial state, checkout/portal boundaries,
+  webhook idempotency, invoices, and member entitlement enforcement;
+- dated group news/media, round messages, coordinator contact, branding assets,
+  and token-scoped kiosk scoreboard branding;
+- hole-level strokes, putts, fairways, greens, sand saves, comments, revisions,
+  and personal golf-statistics reads;
+- member-web round detail and round-day parity views, plus operational CSV/PDF
+  reports and score-pad downloads;
+- a tenant-safe legacy import foundation with fingerprinted jobs, row
+  validation, mappings, exceptions, and audit history.
+
+These additions keep the server authoritative, preserve tenant isolation, and
+do not invent undocumented game rules. Teams, skins, Require Entry, best ball,
+scramble, GHIN, SMS, multi-group identities, and production legacy cutover
+remain outside the executable contract until their rules, credentials, or
+migration ownership are approved. Hosted migration, provider configuration,
+and deployment verification remain release gates.
+
+### 1.1 Historical v1 baseline exclusions
+
+The following paragraph records the original core-loop boundary. The approved
+parity expansion above takes precedence for the named slices.
 
 The following are deliberately out of scope. Planning detail for each is preserved in [`future-scope.md`](./future-scope.md), which creates no v1 obligation.
 
