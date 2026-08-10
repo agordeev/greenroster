@@ -14,6 +14,8 @@ import {
 } from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
+import { executeReadClubhouseContent } from "@/lib/clubhouse/clubhouse-content-data";
+import type { ClubhouseProjection } from "@/domain/clubhouse-content";
 
 import { MemberNextRoundRsvp } from "./member-next-round-rsvp";
 import {
@@ -71,6 +73,9 @@ export default async function MemberHomePage() {
     executeReadMemberStandings(access.userId),
     executeReadMemberQuotaHistory(access.userId),
   ]);
+  const clubhouseResult = await executeReadClubhouseContent(
+    access.userId,
+  ).catch(() => null);
   const preferencesResult = await access.client.rpc(
     "resolve_mobile_member_notification_preferences",
   );
@@ -159,6 +164,7 @@ export default async function MemberHomePage() {
               history={history}
               recentResult={recentResult}
             />
+            <MemberClubhouseSummary projection={clubhouseResult} />
             <MemberNotificationPreferences preferences={preferences} />
             <Link className="secondary-link" href="/account">
               Manage account e-mail
@@ -167,6 +173,54 @@ export default async function MemberHomePage() {
         </section>
       </main>
     </>
+  );
+}
+
+function MemberClubhouseSummary({
+  projection,
+}: Readonly<{ projection: ClubhouseProjection | null }>) {
+  return (
+    <section
+      className="member-home-results-summary"
+      aria-labelledby="clubhouse-title"
+    >
+      <div className="member-home-round-heading">
+        <p className="ledger-kicker">Clubhouse</p>
+        <h2 id="clubhouse-title">News and videos for you</h2>
+      </div>
+      {!projection ? (
+        <p className="member-read-empty">
+          You can’t load clubhouse news right now. Refresh to try again.
+        </p>
+      ) : projection.news.length === 0 && projection.media.length === 0 ? (
+        <p className="member-read-empty">
+          Your group has no clubhouse news yet.
+        </p>
+      ) : (
+        <>
+          {projection.news.slice(0, 3).map((item) => (
+            <article className="member-home-recent-result" key={item.id}>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <p>{item.author}</p>
+            </article>
+          ))}
+          {projection.media.slice(0, 3).map((item) => (
+            <article className="member-home-recent-result" key={item.id}>
+              <h3>{item.title}</h3>
+              <a
+                className="secondary-link"
+                href={item.mediaUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open video
+              </a>
+            </article>
+          ))}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -332,6 +386,12 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
           initialChangedAt={round.participant.changedAt}
         />
       </div>
+      <Link
+        className="secondary-link"
+        href={`/member/rounds/${encodeURIComponent(round.roundId)}`}
+      >
+        Open this round
+      </Link>
     </section>
   );
 }

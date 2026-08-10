@@ -179,6 +179,11 @@ function HomeContent({
                   `/leaderboard?roundId=${encodeURIComponent(round.roundId)}`,
                 )
               }
+              onOpenMessages={() =>
+                router.push(
+                  `/round-messages?roundId=${encodeURIComponent(round.roundId)}` as never,
+                )
+              }
               theme={theme}
             />
           ))}
@@ -220,6 +225,20 @@ function HomeContent({
       <GroupDirectoryLink />
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel="Open your clubhouse"
+        onPress={() => router.push("/clubhouse" as never)}
+        style={({ pressed }) => [
+          styles.secondaryButton,
+          { borderColor: theme.separator },
+          pressed && styles.pressed,
+        ]}
+      >
+        <ThemedText type="smallBold" themeColor="accent">
+          Open your clubhouse
+        </ThemedText>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
         accessibilityLabel="Open your round updates"
         onPress={() => router.push("/inbox" as never)}
         style={({ pressed }) => [
@@ -238,11 +257,13 @@ function HomeContent({
 
 function LiveRoundCard({
   onOpenLeaderboard,
+  onOpenMessages,
   onOpenScorecard,
   round,
   theme,
 }: Readonly<{
   onOpenLeaderboard: () => void;
+  onOpenMessages: () => void;
   onOpenScorecard: () => void;
   round: MobileRoundSummary;
   theme: ReturnType<typeof useTheme>;
@@ -279,6 +300,11 @@ function LiveRoundCard({
         <HomeButton
           label="Open scorecard"
           onPress={onOpenScorecard}
+          theme={theme}
+        />
+        <HomeButton
+          label="Open messages"
+          onPress={onOpenMessages}
           theme={theme}
         />
         <HomeButton

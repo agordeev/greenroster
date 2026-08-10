@@ -20,6 +20,7 @@ import {
 } from "react-native";
 
 import { GroupDirectoryLink } from "@/components/group-directory-link";
+import { MobileGolfStatsPanel } from "@/components/mobile-golf-stats-panel";
 import { MemberDestinationScreen } from "@/components/member-destination-screen";
 import { MobileSignOutButton } from "@/components/mobile-sign-out-button";
 import { useMobileAuth } from "@/components/mobile-auth-provider";
@@ -431,6 +432,7 @@ export default function ProfileScreen() {
             captureGeneration={captureGeneration}
             onReload={() => void reloadProfile()}
           />
+          <MobileGolfStatsPanel />
         </>
       ) : null}
       {!recoveryRequired ? (

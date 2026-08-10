@@ -4,6 +4,7 @@ import {
   executeReadPublicScoreboard,
   type PublicScoreboardPlayer,
 } from "@/lib/scoreboard/scoreboard-access-data";
+import { KioskRefresh } from "./kiosk-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,16 @@ export const metadata: Metadata = {
 
 export default async function ScoreboardPage({
   params,
+  searchParams,
 }: Readonly<{
   params: Promise<{ token: string }>;
+  searchParams?: Promise<
+    Readonly<Record<string, string | string[] | undefined>>
+  >;
 }>) {
   const { token } = await params;
+  const query = searchParams ? await searchParams : {};
+  const kiosk = query.kiosk === "1" || query.kiosk === "true";
   let scoreboard;
   try {
     scoreboard = await executeReadPublicScoreboard(token);
@@ -38,7 +45,7 @@ export default async function ScoreboardPage({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className={`auth-shell auth-shell-single invitation-shell${kiosk ? " scoreboard-kiosk" : ""}`}
       >
         <section
           className="auth-ledger member-results-page"
@@ -54,6 +61,25 @@ export default async function ScoreboardPage({
             You see the latest scores as of{" "}
             {formatTimestamp(scoreboard.lastUpdatedAt)}.
           </p>
+          <KioskRefresh enabled={kiosk} />
+          {scoreboard.branding.header.map((asset) => (
+            <a
+              key={`${asset.assetUrl}-${asset.displayOrder}`}
+              href={asset.clickUrl ?? undefined}
+              target={asset.clickUrl ? "_blank" : undefined}
+              rel={asset.clickUrl ? "noreferrer" : undefined}
+            >
+              <img
+                className="scoreboard-branding-header"
+                src={asset.assetUrl}
+                alt={
+                  asset.decorative
+                    ? ""
+                    : (asset.altText ?? "Group scoreboard banner")
+                }
+              />
+            </a>
+          ))}
           {scoreboard.players.length === 0 ? (
             <section className="member-home-empty" aria-live="polite">
               <h2>You see no players yet.</h2>
@@ -65,6 +91,24 @@ export default async function ScoreboardPage({
               players={scoreboard.players}
             />
           )}
+          {scoreboard.branding.footer.map((asset) => (
+            <a
+              key={`${asset.assetUrl}-${asset.displayOrder}`}
+              href={asset.clickUrl ?? undefined}
+              target={asset.clickUrl ? "_blank" : undefined}
+              rel={asset.clickUrl ? "noreferrer" : undefined}
+            >
+              <img
+                className="scoreboard-branding-footer"
+                src={asset.assetUrl}
+                alt={
+                  asset.decorative
+                    ? ""
+                    : (asset.altText ?? "Group sponsor banner")
+                }
+              />
+            </a>
+          ))}
         </section>
       </main>
     </>

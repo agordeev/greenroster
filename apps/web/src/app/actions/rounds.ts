@@ -56,11 +56,13 @@ import {
   runUpdateRoundGuestMutation,
   runWithdrawRoundGuestMutation,
 } from "@/domain/round-guest";
+import { runRoundHoleScoreMutation } from "@/domain/round-hole-scorecard";
 import {
   executeCreateRoundGuest,
   executeUpdateRoundGuest,
   executeWithdrawRoundGuest,
 } from "@/lib/rounds/round-guest-data";
+import { executeSetRoundParticipantHoleScore } from "@/lib/rounds/round-hole-scorecard-data";
 
 export async function createRoundDraftAction(input: unknown) {
   const requestHeaders = await headers();
@@ -171,6 +173,27 @@ export async function setRoundParticipantScoreAction(input: unknown) {
   });
 }
 
+export async function setMemberRoundParticipantScoreAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundScoreMutation(input, requestHeaders.get("x-correlation-id"), {
+    source: "mobile",
+    execute: executeSetRoundParticipantScore,
+    verifySession: verifyMutationSession,
+  });
+}
+
+export async function setRoundParticipantHoleScoreAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundHoleScoreMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeSetRoundParticipantHoleScore,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
 export async function setRoundScoreFieldsAction(input: unknown) {
   const requestHeaders = await headers();
   return runRoundScoreFieldsMutation(
@@ -247,6 +270,45 @@ export async function setRoundRsvpAction(input: unknown) {
     execute: executeSetRoundRsvp,
     verifySession: verifyMutationSession,
   });
+}
+
+export async function createMemberRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runCreateRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "mobile",
+      execute: executeCreateRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function updateMemberRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runUpdateRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "mobile",
+      execute: executeUpdateRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function withdrawMemberRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runWithdrawRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "mobile",
+      execute: executeWithdrawRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
 }
 
 export async function createRoundGuestAction(input: unknown) {

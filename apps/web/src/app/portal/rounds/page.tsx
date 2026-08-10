@@ -17,10 +17,12 @@ import { MutationError } from "@/lib/mutations/result";
 import { executeListRoundDrafts } from "@/lib/rounds/round-drafts-data";
 import { executeReadCoordinatorRoundDetail } from "@/lib/rounds/round-detail-data";
 import { executeReadLiveRoundScores } from "@/lib/rounds/live-round-score-data";
+import { executeReadRoundHoleScorecard } from "@/lib/rounds/round-hole-scorecard-data";
 import { executeReadMemberOfficialResults } from "@/lib/rounds/member-results-data";
 import { executePreviewLiveRoundCompletion } from "@/lib/rounds/round-completion-data";
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
+import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data";
 
 import { PortalShell } from "../portal-shell";
 import { RoundWorkspace } from "./round-workspace";
@@ -127,6 +129,22 @@ export default async function RoundsPage({
       roundDetailUnavailable = true;
     }
   }
+  let roundMessages = [] as Awaited<
+    ReturnType<typeof executeReadRoundMessages>
+  >;
+  if (
+    selectedRound &&
+    ["published", "live", "completed"].includes(selectedRound.state)
+  ) {
+    try {
+      roundMessages = await executeReadRoundMessages(
+        session.userId,
+        selectedRound.roundId,
+      );
+    } catch {
+      roundMessages = [];
+    }
+  }
   let liveScores = [] as Awaited<ReturnType<typeof executeReadLiveRoundScores>>;
   let liveScoresUnavailable = false;
   if (selectedRound?.state === "live") {
@@ -137,6 +155,24 @@ export default async function RoundsPage({
       );
     } catch {
       liveScoresUnavailable = true;
+    }
+  }
+  let holeScores = [] as Awaited<
+    ReturnType<typeof executeReadRoundHoleScorecard>
+  >;
+  let holeScoresUnavailable = false;
+  if (
+    selectedRound &&
+    selectedRound.state !== "draft" &&
+    selectedRound.state !== "cancelled"
+  ) {
+    try {
+      holeScores = await executeReadRoundHoleScorecard(
+        session.userId,
+        selectedRound.roundId,
+      );
+    } catch {
+      holeScoresUnavailable = true;
     }
   }
   let completionPreview = null as Awaited<
@@ -246,8 +282,11 @@ export default async function RoundsPage({
           publicationReviewUnavailable={publicationReviewUnavailable}
           roundDetail={roundDetail}
           roundDetailUnavailable={roundDetailUnavailable}
+          roundMessages={roundMessages}
           liveScores={liveScores}
           liveScoresUnavailable={liveScoresUnavailable}
+          holeScores={holeScores}
+          holeScoresUnavailable={holeScoresUnavailable}
           officialResults={officialResults}
           officialResultsUnavailable={officialResultsUnavailable}
           completionPreview={completionPreview}

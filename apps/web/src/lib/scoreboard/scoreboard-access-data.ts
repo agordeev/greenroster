@@ -199,6 +199,19 @@ export type PublicScoreboard = Readonly<{
   roundVersion: number;
   lastUpdatedAt: string | null;
   players: readonly PublicScoreboardPlayer[];
+  branding: Readonly<{
+    header: readonly PublicScoreboardBranding[];
+    footer: readonly PublicScoreboardBranding[];
+  }>;
+}>;
+
+export type PublicScoreboardBranding = Readonly<{
+  slot: "scoreboard_header" | "scoreboard_footer";
+  assetUrl: string;
+  altText: string | null;
+  decorative: boolean;
+  clickUrl: string | null;
+  displayOrder: number;
 }>;
 
 export async function executeReadPublicScoreboard(
@@ -214,6 +227,7 @@ export async function executeReadPublicScoreboard(
     throw new MutationError("unexpected", { cause: parsed.error });
   const [first] = parsed.data;
   if (!first) return null;
+  const branding = await executeReadPublicScoreboardBranding(rawToken);
   return {
     roundId: first.round_id,
     groupName: first.group_name,
@@ -243,5 +257,41 @@ export async function executeReadPublicScoreboard(
           ]
         : [],
     ),
+    branding: {
+      header: branding.filter((item) => item.slot === "scoreboard_header"),
+      footer: branding.filter((item) => item.slot === "scoreboard_footer"),
+    },
   };
+}
+
+const scoreboardBrandingRowSchema = z
+  .object({
+    slot: z.enum(["scoreboard_header", "scoreboard_footer"]),
+    asset_url: z.string().url(),
+    alt_text: z.string().nullable(),
+    decorative: z.boolean(),
+    click_url: z.string().url().nullable(),
+    display_order: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export async function executeReadPublicScoreboardBranding(
+  rawToken: string,
+): Promise<readonly PublicScoreboardBranding[]> {
+  const { data, error } = await createSupabaseServiceClient().rpc(
+    "read_public_scoreboard_branding",
+    { p_token: rawToken },
+  );
+  if (error) throw mapScoreboardError(error);
+  const parsed = z.array(scoreboardBrandingRowSchema).safeParse(data);
+  if (!parsed.success)
+    throw new MutationError("unexpected", { cause: parsed.error });
+  return parsed.data.map((row) => ({
+    slot: row.slot,
+    assetUrl: row.asset_url,
+    altText: row.alt_text,
+    decorative: row.decorative,
+    clickUrl: row.click_url,
+    displayOrder: row.display_order,
+  }));
 }

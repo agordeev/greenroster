@@ -34,7 +34,10 @@ export function PortalShell({
     | "rounds"
     | "standings"
     | "reports"
-    | "group";
+    | "group"
+    | "content"
+    | "branding"
+    | "billing";
 }>) {
   const visibleRole = role
     ? roleLabel[role]
@@ -91,6 +94,22 @@ export function PortalShell({
           ) : null}
           {role && role !== "member" ? (
             <Link
+              href="/portal/content"
+              aria-current={currentSection === "content" ? "page" : undefined}
+            >
+              Clubhouse
+            </Link>
+          ) : null}
+          {role === "administrator" ? (
+            <Link
+              href="/portal/branding"
+              aria-current={currentSection === "branding" ? "page" : undefined}
+            >
+              Branding
+            </Link>
+          ) : null}
+          {role && role !== "member" ? (
+            <Link
               href="/portal/standings"
               aria-current={currentSection === "standings" ? "page" : undefined}
             >
@@ -111,6 +130,14 @@ export function PortalShell({
               aria-current={currentSection === "group" ? "page" : undefined}
             >
               Group
+            </Link>
+          ) : null}
+          {role === "administrator" ? (
+            <Link
+              href="/portal/billing"
+              aria-current={currentSection === "billing" ? "page" : undefined}
+            >
+              Billing
             </Link>
           ) : null}
           <Link href="/help">Help</Link>

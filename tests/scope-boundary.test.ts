@@ -119,10 +119,7 @@ const roundDraftFormFile = fileURLToPath(
 const deferredScopeTokens: readonly DeferredScopeToken[] = [
   { name: "advanced format", pattern: /\badvanced[-_ ]formats?\b/iu },
   { name: "best-ball", pattern: /\bbest[-_ ]ball\b/iu },
-  { name: "billing", pattern: /\bbilling\b/iu },
   { name: "group-switch", pattern: /\bgroup[-_ ]switch\b/iu },
-  { name: "hole-by-hole", pattern: /\bhole[-_ ]by[-_ ]hole\b/iu },
-  { name: "message composer", pattern: /\bmessage[-_ ]composer\b/iu },
   { name: "scramble", pattern: /\bscramble\b/iu },
   { name: "skins", pattern: /\bskins\b/iu },
   { name: "sms", pattern: /\bsms\b/iu },
@@ -139,23 +136,14 @@ const deferredPublicRpcTokens: readonly DeferredScopeToken[] = [
     pattern: /(?:^|[^a-z0-9])best[-_ ]ball(?=$|[^a-z0-9])/iu,
   },
   {
-    name: "billing",
-    pattern:
-      /(?:^|[^a-z0-9])(?:billing|stripe|subscriptions?|entitlements?|checkout|customer[-_ ]portal|invoices?|payments?)(?=$|[^a-z0-9])/iu,
-  },
-  {
     name: "group-switch",
     pattern:
       /(?:^|[^a-z0-9])(?:group[-_ ]switch(?:ing)?|active[-_ ]group)(?=$|[^a-z0-9])/iu,
   },
   {
-    name: "hole-by-hole",
-    pattern: /(?:^|[^a-z0-9])hole[-_ ]by[-_ ]hole(?=$|[^a-z0-9])/iu,
-  },
-  {
-    name: "free-text messaging",
+    name: "bulk messaging",
     pattern:
-      /(?:^|[^a-z0-9])(?:bulk[-_ ]communication|free[-_ ]text|messag(?:e|es|ing)(?:[-_ ]composer)?)(?=$|[^a-z0-9])/iu,
+      /(?:^|[^a-z0-9])(?:bulk[-_ ]communication|free[-_ ]text|message[-_ ]composer)(?=$|[^a-z0-9])/iu,
   },
   {
     name: "require entry",
@@ -175,18 +163,12 @@ function deferredPublicRpcViolations(source: string): readonly string[] {
   return collectPublicFunctionEndpoints(source).flatMap((endpoint) =>
     deferredPublicRpcTokens
       .filter(({ pattern }) => pattern.test(endpoint))
-      .filter(
-        () =>
-          !/\b(?:read_billing_summary|read_billing_account_for_checkout|attach_billing_customer|apply_billing_webhook_event)\b/u.test(
-            endpoint,
-          ),
-      )
       .map(({ name }) => `${name}: ${endpoint}`),
   );
 }
 
-describe("v1 scope boundary", () => {
-  it("keeps the member namespace to onboarding plus six view screens", () => {
+describe("approved parity boundary", () => {
+  it("keeps the member namespace to onboarding, views, and round detail", () => {
     const memberRoot = `${webAppRoot}/member`;
     const routes = collectRouteFiles(memberRoot, "web")
       .filter((entry) => entry.file.endsWith("/page.tsx"))
@@ -200,6 +182,7 @@ describe("v1 scope boundary", () => {
       "/inbox",
       "/profile",
       "/results",
+      "/rounds/[roundId]",
       "/standings",
     ]);
   });
@@ -213,15 +196,8 @@ describe("v1 scope boundary", () => {
       "advanced",
       "best-ball",
       "best_ball",
-      "billing",
       "group-switch",
       "group_switch",
-      "hole-by-hole",
-      "hole_by_hole",
-      "message",
-      "message-composer",
-      "message_composer",
-      "messages",
       "scramble",
       "skins",
       "sms",
@@ -236,7 +212,7 @@ describe("v1 scope boundary", () => {
     expect(violations).toEqual([]);
   });
 
-  it("does not expose deferred capability controls or links in app sources", () => {
+  it("does not expose still-deferred capability controls or links in app sources", () => {
     const sourceFiles = [
       ...collectSourceFiles(webSourceRoot),
       ...collectSourceFiles(mobileSourceRoot),
@@ -252,7 +228,7 @@ describe("v1 scope boundary", () => {
     expect(violations).toEqual([]);
   });
 
-  it("does not create deferred capability RPC endpoints in migrations", () => {
+  it("does not create still-deferred capability RPC endpoints in migrations", () => {
     const migrationFiles = collectMigrationFiles(migrationRoot);
     const violations = migrationFiles.flatMap((file) => {
       return deferredPublicRpcViolations(readSource(file)).map(
@@ -263,42 +239,33 @@ describe("v1 scope boundary", () => {
     expect(violations).toEqual([]);
   });
 
-  it("detects canonical billing and active-group RPC names", () => {
+  it("detects canonical still-deferred RPC names", () => {
     const source = [
-      "create function public.create_stripe_checkout() returns void language sql as $$ select 1 $$;",
-      "create function public.sync_subscription_entitlement() returns void language sql as $$ select 1 $$;",
-      "create function public.list_subscriptions() returns void language sql as $$ select 1 $$;",
-      "create function public.create_customer_portal_session() returns void language sql as $$ select 1 $$;",
       "create function public.set_active_group() returns void language sql as $$ select 1 $$;",
+      "create function public.send_sms_notification() returns void language sql as $$ select 1 $$;",
+      "create function public.create_team() returns void language sql as $$ select 1 $$;",
     ].join("\n");
 
     expect(deferredPublicRpcViolations(source)).toEqual([
-      "billing: create_stripe_checkout",
-      "billing: sync_subscription_entitlement",
-      "billing: list_subscriptions",
-      "billing: create_customer_portal_session",
       "group-switch: set_active_group",
+      "sms: send_sms_notification",
+      "teams: create_team",
     ]);
   });
 
   it("detects prefixed and quoted deferred public RPC names", () => {
     const source = [
-      "-- create function public.ignore_sms()",
-      "create function public.create_billing_portal() returns void as $$ begin null; end; $$ language plpgsql;",
       'create or replace function "public"."send_sms_notification"() returns void as $$ begin null; end; $$ language plpgsql;',
       "create function public.request_group_switching() returns void as $$ begin null; end; $$ language plpgsql;",
       "create function public.send_free_text_message() returns void as $$ begin null; end; $$ language plpgsql;",
-      "create function public.post_round_message() returns void as $$ begin null; end; $$ language plpgsql;",
       'create function "public" . "create_team"() returns void as $$ begin null; end; $$ language plpgsql;',
       "create or replace function public.set_require_entry() returns void as $$ begin null; end; $$ language plpgsql;",
     ].join("\n");
 
     expect(deferredPublicRpcViolations(source)).toEqual([
-      "billing: create_billing_portal",
       "sms: send_sms_notification",
       "group-switch: request_group_switching",
-      "free-text messaging: send_free_text_message",
-      "free-text messaging: post_round_message",
+      "bulk messaging: send_free_text_message",
       "teams: create_team",
       "require entry: set_require_entry",
     ]);

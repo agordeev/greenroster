@@ -56,6 +56,7 @@ import {
 import { createMobileScoreQueue } from "@/lib/rounds/mobile-score-queue";
 import { createMobileLiveRoundSnapshotStorage } from "@/lib/rounds/mobile-live-round-snapshot-storage";
 import { createMobileOperationId } from "@/lib/mobile-operation-id";
+import { MobileHoleScorecard } from "@/components/mobile-hole-scorecard";
 
 type SurfaceMode = "scorecard" | "leaderboard";
 
@@ -993,6 +994,13 @@ function LiveScorecard({
           sessionId={sessionId}
         />
       ))}
+      <MobileHoleScorecard
+        roundId={state.roundId}
+        participantId={
+          state.participants.find((entry) => entry.participant.canEdit)
+            ?.participant.participantId ?? null
+        }
+      />
     </View>
   );
 }

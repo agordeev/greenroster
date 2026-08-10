@@ -6,6 +6,8 @@ import type { RoundDraftFormValue, RoundFormat } from "@/domain/round-drafts";
 import type { RoundCoordinatorDetail } from "@/domain/round-detail";
 import type { RoundPublicationReview } from "@/domain/round-publication";
 import type { LiveRoundScoreParticipant } from "@/domain/round-score";
+import type { RoundHoleScoreRow } from "@/domain/round-hole-scorecard";
+import type { RoundMessage } from "@/domain/clubhouse-content";
 import type {
   MemberOfficialResult,
   MemberOfficialRound,
@@ -27,6 +29,8 @@ import { RoundCompletionPanel } from "./round-completion-panel";
 import { RoundGuestPanel } from "./round-guest-panel";
 import { RoundAnnouncementPanel } from "./round-announcement-panel";
 import { ScoreboardAccessPanel } from "./scoreboard-access-panel";
+import { RoundHoleScorecardPanel } from "./round-hole-scorecard-panel";
+import { RoundMessagePanel } from "./round-message-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -42,8 +46,11 @@ export function RoundWorkspace({
   publicationReviewUnavailable,
   roundDetail,
   roundDetailUnavailable,
+  roundMessages,
   liveScores,
   liveScoresUnavailable,
+  holeScores,
+  holeScoresUnavailable,
   officialResults,
   officialResultsUnavailable,
   completionPreview,
@@ -62,8 +69,11 @@ export function RoundWorkspace({
   publicationReviewUnavailable: boolean;
   roundDetail: RoundCoordinatorDetail | null;
   roundDetailUnavailable: boolean;
+  roundMessages: readonly RoundMessage[];
   liveScores: readonly LiveRoundScoreParticipant[];
   liveScoresUnavailable: boolean;
+  holeScores: readonly RoundHoleScoreRow[];
+  holeScoresUnavailable: boolean;
   officialResults: Readonly<{
     round: MemberOfficialRound;
     results: readonly MemberOfficialResult[];
@@ -97,6 +107,13 @@ export function RoundWorkspace({
 
         {roundId && (state === "published" || state === "live") ? (
           <RoundAnnouncementPanel roundId={roundId} />
+        ) : null}
+        {roundId &&
+        (state === "published" || state === "live" || state === "completed") ? (
+          <RoundMessagePanel
+            roundId={roundId}
+            initialMessages={roundMessages}
+          />
         ) : null}
 
         {roundId &&
@@ -164,6 +181,24 @@ export function RoundWorkspace({
                 participants={liveScores}
               />
             </>
+          )
+        ) : null}
+
+        {roundId &&
+        (state === "published" || state === "live" || state === "completed") ? (
+          holeScoresUnavailable ? (
+            <section
+              className="group-roles-panel"
+              aria-labelledby="round-hole-scorecard-unavailable-title"
+            >
+              <p className="ledger-kicker">Personal golf details</p>
+              <h2 id="round-hole-scorecard-unavailable-title">
+                Hole scorecard is unavailable
+              </h2>
+              <p>Refresh before you enter or review hole details.</p>
+            </section>
+          ) : (
+            <RoundHoleScorecardPanel rows={holeScores} state={state} />
           )
         ) : null}
 

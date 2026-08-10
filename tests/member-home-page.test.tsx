@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   readOfficialResults: vi.fn(),
   readQuotaHistory: vi.fn().mockResolvedValue([]),
   readStandings: vi.fn().mockResolvedValue([]),
+  readClubhouseContent: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock("../apps/web/src/lib/auth/member-page-session", () => ({
@@ -18,6 +19,9 @@ vi.mock("../apps/web/src/lib/rounds/member-results-data", () => ({
   executeReadMemberOfficialResults: mocks.readOfficialResults,
   executeReadMemberQuotaHistory: mocks.readQuotaHistory,
   executeReadMemberStandings: mocks.readStandings,
+}));
+vi.mock("../apps/web/src/lib/clubhouse/clubhouse-content-data", () => ({
+  executeReadClubhouseContent: mocks.readClubhouseContent,
 }));
 vi.mock("../apps/web/src/app/member/home/member-next-round-rsvp", () => ({
   MemberNextRoundRsvp: () => null,
