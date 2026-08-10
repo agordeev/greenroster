@@ -1,15 +1,18 @@
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import {
+  runLegacyImportUpload,
+  type LegacyImportUploadDependencies,
+} from "../../../lib/legacy-imports/legacy-import-upload";
 
-import { runLegacyImportUpload } from "../../../lib/legacy-imports/legacy-import-upload";
-
-export async function POST(request: Request) {
-  const requestHeaders = await headers();
+export async function handleLegacyImportUpload(
+  request: Request,
+  overrides?: Partial<LegacyImportUploadDependencies>,
+): Promise<Response> {
   const result = await runLegacyImportUpload(
     request,
-    requestHeaders.get("x-correlation-id"),
+    request.headers.get("x-correlation-id"),
+    overrides,
   );
-  return NextResponse.json(result, {
+  return Response.json(result, {
     status: result.ok
       ? 202
       : result.code === "authentication_required"
@@ -21,4 +24,8 @@ export async function POST(request: Request) {
             : 503,
     headers: { "cache-control": "no-store" },
   });
+}
+
+export async function POST(request: Request) {
+  return handleLegacyImportUpload(request);
 }

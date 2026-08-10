@@ -98,12 +98,24 @@ export function validateLegacyImportProfile(
       field: "legacyTypeHeader",
       message: "Choose the source column that identifies each row type.",
     });
+  } else if (SECRET_FIELD_PATTERN.test(legacyTypeHeader)) {
+    errors.push({
+      code: "legacy_type_header_sensitive",
+      field: "legacyTypeHeader",
+      message: "Choose a source column that does not contain a secret.",
+    });
   }
   if (!legacyKeyHeader || !HEADER_PATTERN.test(legacyKeyHeader)) {
     errors.push({
       code: "legacy_key_header_invalid",
       field: "legacyKeyHeader",
       message: "Choose the source column that identifies each row.",
+    });
+  } else if (SECRET_FIELD_PATTERN.test(legacyKeyHeader)) {
+    errors.push({
+      code: "legacy_key_header_sensitive",
+      field: "legacyKeyHeader",
+      message: "Choose a source column that does not contain a secret.",
     });
   }
   if (
@@ -143,6 +155,14 @@ export function validateLegacyImportProfile(
         code: "source_header_invalid",
         field: `mappings.${index}.sourceHeader`,
         message: "Choose a valid source column.",
+      });
+      continue;
+    }
+    if (SECRET_FIELD_PATTERN.test(sourceHeader)) {
+      errors.push({
+        code: "source_header_sensitive",
+        field: `mappings.${index}.sourceHeader`,
+        message: "Choose a source column that does not contain a secret.",
       });
       continue;
     }
@@ -407,7 +427,13 @@ export function parseProfiledLegacyCsv(
     const payload: Record<string, string> = {};
     for (const mapping of profile.mappings) {
       const value = sourceValues[mapping.sourceHeader];
-      if (value !== undefined) payload[mapping.targetField] = value;
+      if (
+        value !== undefined &&
+        !SECRET_FIELD_PATTERN.test(mapping.sourceHeader) &&
+        !SECRET_FIELD_PATTERN.test(mapping.targetField)
+      ) {
+        payload[mapping.targetField] = value;
+      }
     }
     rows.push({
       rowNumber,

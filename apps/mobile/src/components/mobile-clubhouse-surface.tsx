@@ -16,6 +16,7 @@ import { useTheme } from "@/hooks/use-theme";
 import {
   mobileClubhouseApi,
   type MobileClubhouseData,
+  type MobileCoordinatorContact,
   type MobileCoordinator,
 } from "@/lib/clubhouse/mobile-clubhouse-api";
 
@@ -28,6 +29,12 @@ export function MobileClubhouseSurface() {
   const [coordinators, setCoordinators] = useState<
     readonly MobileCoordinator[]
   >([]);
+  const [contacts, setContacts] = useState<readonly MobileCoordinatorContact[]>(
+    [],
+  );
+  const [contactHistoryMessage, setContactHistoryMessage] = useState<
+    string | null
+  >(null);
   const [selectedCoordinator, setSelectedCoordinator] = useState<string | null>(
     null,
   );
@@ -42,7 +49,18 @@ export function MobileClubhouseSurface() {
       return;
     }
     const result = await mobileClubhouseApi.read();
-    setCoordinators(await mobileClubhouseApi.coordinators());
+    const [nextCoordinators, contactResult] = await Promise.all([
+      mobileClubhouseApi.coordinators(),
+      mobileClubhouseApi.contacts(),
+    ]);
+    setCoordinators(nextCoordinators);
+    if (contactResult.ok) {
+      setContacts(contactResult.data);
+      setContactHistoryMessage(null);
+    } else {
+      setContacts([]);
+      setContactHistoryMessage(contactResult.message);
+    }
     if (!result.ok) {
       setMessage(result.message);
       setData(null);
@@ -170,7 +188,14 @@ export function MobileClubhouseSurface() {
                   setContactMessage(
                     result.ok ? "You sent your message." : result.message,
                   );
-                  if (result.ok) setContactBody("");
+                  if (result.ok) {
+                    setContactBody("");
+                    const refreshed = await mobileClubhouseApi.contacts();
+                    if (refreshed.ok) {
+                      setContacts(refreshed.data);
+                      setContactHistoryMessage(null);
+                    } else setContactHistoryMessage(refreshed.message);
+                  }
                 }}
                 style={[styles.button, { borderColor: theme.separator }]}
               >
@@ -190,8 +215,46 @@ export function MobileClubhouseSurface() {
           ) : null}
         </View>
       ) : null}
+      {contacts.length > 0 || contactHistoryMessage ? (
+        <View style={[styles.card, { borderColor: theme.separator }]}>
+          <ThemedText type="subtitle">
+            You see your coordinator messages
+          </ThemedText>
+          {contactHistoryMessage ? (
+            <ThemedText
+              accessibilityLiveRegion="polite"
+              themeColor="textSecondary"
+            >
+              {contactHistoryMessage}
+            </ThemedText>
+          ) : (
+            contacts.map((contact) => (
+              <View key={contact.messageId} style={styles.contactHistoryItem}>
+                <ThemedText>{contact.body}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {contact.sentByActor
+                    ? `You sent this to ${contact.recipientDisplayName}.`
+                    : `You receive this from ${contact.senderDisplayName}.`}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {formatContactTimestamp(contact.createdAt)}
+                </ThemedText>
+              </View>
+            ))
+          )}
+        </View>
+      ) : null}
     </MemberDestinationScreen>
   );
+}
+
+function formatContactTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 const styles = StyleSheet.create({
@@ -210,6 +273,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   coordinatorList: { gap: Spacing.two },
+  contactHistoryItem: {
+    gap: Spacing.two,
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   input: {
     minHeight: 96,
     padding: Spacing.three,

@@ -6,6 +6,11 @@ select no_plan();
 
 select has_type('public', 'round_state', 'round lifecycle has an explicit database enum');
 select has_type('public', 'round_format', 'round formats have an explicit database enum');
+select ok(
+  (select enum_range(null::public.round_format)::text[] =
+    array['individual_net', 'individual_gross']),
+  'v1 round formats remain limited to Individual Net and Individual Gross'
+);
 select has_table('public', 'rounds', 'round configuration exists');
 select has_pk('public', 'rounds', 'rounds have immutable identities');
 select ok(

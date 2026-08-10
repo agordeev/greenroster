@@ -42,6 +42,17 @@ const coordinatorSchema = z
     role: z.enum(["coordinator", "administrator"]),
   })
   .strict();
+const coordinatorContactSchema = z
+  .object({
+    message_id: z.uuid(),
+    group_id: z.uuid(),
+    sender_display_name: z.string(),
+    recipient_display_name: z.string(),
+    body: z.string(),
+    created_at: z.string(),
+    sent_by_actor: z.boolean(),
+  })
+  .strict();
 
 export type MobileClubhouseNews = Readonly<{
   id: string;
@@ -80,8 +91,20 @@ export type MobileCoordinator = Readonly<{
   displayName: string;
   role: "coordinator" | "administrator";
 }>;
+export type MobileCoordinatorContact = Readonly<{
+  messageId: string;
+  groupId: string;
+  senderDisplayName: string;
+  recipientDisplayName: string;
+  body: string;
+  createdAt: string;
+  sentByActor: boolean;
+}>;
 export type MobileClubhouseResult =
   | Readonly<{ ok: true; data: MobileClubhouseData }>
+  | Readonly<{ ok: false; message: string }>;
+export type MobileCoordinatorContactsResult =
+  | Readonly<{ ok: true; data: readonly MobileCoordinatorContact[] }>
   | Readonly<{ ok: false; message: string }>;
 
 export const mobileClubhouseApi = {
@@ -228,6 +251,38 @@ export const mobileClubhouseApi = {
       displayName: row.display_name,
       role: row.role,
     }));
+  },
+  async contacts(): Promise<MobileCoordinatorContactsResult> {
+    try {
+      const { data, error } = await mobileSupabase.rpc(
+        "resolve_mobile_coordinator_contacts",
+      );
+      const parsed = z.array(coordinatorContactSchema).safeParse(data);
+      if (error || !parsed.success)
+        return {
+          ok: false,
+          message:
+            "You can't load your coordinator messages right now. Try again.",
+        };
+      return {
+        ok: true,
+        data: parsed.data.map((row) => ({
+          messageId: row.message_id,
+          groupId: row.group_id,
+          senderDisplayName: row.sender_display_name,
+          recipientDisplayName: row.recipient_display_name,
+          body: row.body,
+          createdAt: row.created_at,
+          sentByActor: row.sent_by_actor,
+        })),
+      };
+    } catch {
+      return {
+        ok: false,
+        message:
+          "You can't load your coordinator messages right now. Try again.",
+      };
+    }
   },
   async contact(recipientMembershipId: string, body: string) {
     const { error } = await mobileSupabase.rpc(

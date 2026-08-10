@@ -59,9 +59,19 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               termsVersion={legal.termsVersion}
             />
           ) : (
-            <p className="form-message" role="alert">
-              You cannot create your account right now. Try again in a moment.
-            </p>
+            <div className="form-message" role="alert">
+              <p>
+                Organizer signup is temporarily unavailable because the approved
+                Terms of Use and Privacy Policy are not configured for this
+                deployment.
+              </p>
+              <p>
+                Review the current legal notices on the{" "}
+                <Link href="/terms">Terms of Use</Link> and{" "}
+                <Link href="/privacy">Privacy Policy</Link> pages. The form will
+                appear after the deployment owner publishes both versions.
+              </p>
+            </div>
           )}
 
           <Link className="secondary-link" href="/sign-in">

@@ -10,9 +10,9 @@ import {
   type LegacyImportCsvError,
   type LegacyImportProfile,
 } from "./legacy-csv";
-import {
+import type {
   executeCreateLegacyImport,
-  type LegacyImportSubmission,
+  LegacyImportSubmission,
 } from "./legacy-import-data";
 
 export type LegacyImportUploadResult =
@@ -29,7 +29,7 @@ export type LegacyImportUploadResult =
       errors?: readonly LegacyImportCsvError[];
     }>;
 
-type Dependencies = Readonly<{
+export type LegacyImportUploadDependencies = Readonly<{
   verifySession: () => Promise<VerifiedMutationSession>;
   createJob: (
     actorUserId: string,
@@ -46,14 +46,15 @@ type Dependencies = Readonly<{
   createId: () => string;
 }>;
 
-const defaults: Dependencies = {
+const defaults: LegacyImportUploadDependencies = {
   verifySession: async () => {
     const { verifyMutationSession } =
       await import("../auth/verify-mutation-session");
     return verifyMutationSession();
   },
-  createJob: (actorUserId, input, correlationId, operationId) =>
-    executeCreateLegacyImport(
+  createJob: async (actorUserId, input, correlationId, operationId) => {
+    const { executeCreateLegacyImport } = await import("./legacy-import-data");
+    return executeCreateLegacyImport(
       actorUserId,
       {
         importJobId: input.importJobId,
@@ -65,7 +66,8 @@ const defaults: Dependencies = {
       },
       correlationId,
       operationId,
-    ),
+    );
+  },
   createId: () => crypto.randomUUID(),
 };
 
@@ -79,7 +81,7 @@ function failure(
 export async function runLegacyImportUpload(
   request: Request,
   correlationCandidate: string | null | undefined,
-  overrides?: Partial<Dependencies>,
+  overrides?: Partial<LegacyImportUploadDependencies>,
 ): Promise<LegacyImportUploadResult> {
   const dependencies = { ...defaults, ...overrides };
   const correlationId = resolveCorrelationId(correlationCandidate);
