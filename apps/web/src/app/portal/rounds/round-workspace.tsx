@@ -24,6 +24,8 @@ import { LiveRoundScoreEntryPanel } from "./live-round-score-entry-panel";
 import { LiveRoundParticipantRsvpCorrectionPanel } from "./live-round-participant-rsvp-correction-panel";
 import { OfficialResultsPanel } from "./official-results-panel";
 import { RoundCompletionPanel } from "./round-completion-panel";
+import { RoundGuestPanel } from "./round-guest-panel";
+import { RoundAnnouncementPanel } from "./round-announcement-panel";
 
 export function RoundWorkspace({
   identityKey,
@@ -91,6 +93,21 @@ export function RoundWorkspace({
         ) : (
           <RoundReadOnlyDetail detail={roundDetail} />
         )}
+
+        {roundId && (state === "published" || state === "live") ? (
+          <RoundAnnouncementPanel roundId={roundId} />
+        ) : null}
+
+        {roundId &&
+        roundDetail &&
+        (state === "published" || state === "live") ? (
+          <RoundGuestPanel
+            format={roundDetail.format}
+            participants={roundDetail.participants}
+            roundId={roundId}
+            state={state}
+          />
+        ) : null}
 
         {state === "completed" ? (
           <OfficialResultsPanel

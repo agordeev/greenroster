@@ -228,9 +228,7 @@ export default async function RoundsPage({
           identityKey={`${portalContext.groupId}:${selectedRound?.roundId ?? "new"}`}
           initialValue={roundDraftFormValue(selectedRound ?? newRound)}
           roundId={selectedRound?.roundId ?? null}
-          format={
-            selectedRound?.state === "draft" ? selectedRound.format : null
-          }
+          format={selectedRound?.format ?? null}
           enableGrossScore={
             selectedRound?.state === "draft"
               ? selectedRound.enableGrossScore
