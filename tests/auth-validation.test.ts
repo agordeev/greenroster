@@ -93,7 +93,11 @@ describe("authentication input contracts", () => {
     expect(resolveSafeReturnPath("/member/standings")).toBe(
       "/member/standings",
     );
-    expect(resolveSafeReturnPath("/member/profile")).toBe("/portal");
+    expect(resolveSafeReturnPath("/member/profile")).toBe("/member/profile");
+    expect(resolveSafeReturnPath("/member/inbox")).toBe("/member/inbox");
+    expect(resolveSafeReturnPath("/member/directory")).toBe(
+      "/member/directory",
+    );
     expect(resolveSafeReturnPath("/member/home?admin=true")).toBe("/portal");
     expect(resolveSafeReturnPath("/member/results?round_id=not-a-uuid")).toBe(
       "/portal",

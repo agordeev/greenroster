@@ -5,6 +5,9 @@ const cleanInvitationAcceptancePath = "/invitations/accept";
 const cleanMemberPaths = new Set([
   "/member/first-run",
   "/member/home",
+  "/member/inbox",
+  "/member/profile",
+  "/member/directory",
   "/member/results",
   "/member/standings",
 ]);
