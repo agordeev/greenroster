@@ -24,9 +24,8 @@ const roundSchema = z.object({
 });
 
 export default async function PortalReportsPage() {
-  let session: Awaited<ReturnType<typeof verifyMutationSession>>;
   try {
-    session = await verifyMutationSession();
+    await verifyMutationSession();
   } catch {
     redirect(signInPath("/portal/reports"));
   }
@@ -67,9 +66,9 @@ export default async function PortalReportsPage() {
         <p className="ledger-kicker">Operational reporting</p>
         <h1 id="reports-title">Reports and exports</h1>
         <p>
-          Generate server-authoritative member, standings, and official round
-          reports. Every download includes its group, generation time, time
-          zone, reporting window, and private-data classification.
+          You generate server-authoritative member, standings, and official
+          round reports. You get the group, generation time, time zone,
+          reporting window, and private-data classification with every download.
         </p>
         <div className="information-actions">
           <Link
