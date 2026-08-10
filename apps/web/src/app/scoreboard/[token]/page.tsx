@@ -51,7 +51,7 @@ export default async function ScoreboardPage({
             {rankingLabel.toLowerCase()}.
           </p>
           <p className="member-results-format-note">
-            You see the latest confirmed scores as of{" "}
+            You see the latest scores as of{" "}
             {formatTimestamp(scoreboard.lastUpdatedAt)}.
           </p>
           {scoreboard.players.length === 0 ? (

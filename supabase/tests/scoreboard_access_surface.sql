@@ -223,6 +223,33 @@ select is(
 reset role;
 
 select is(
+  (select access_id from public.create_scoreboard_access(
+    'd1100000-0000-4000-8000-000000000001',
+    'd1600000-0000-4000-8000-000000000004',
+    'd1400000-0000-4000-8000-000000000001',
+    repeat('d', 64),
+    1,
+    now() + interval '1 hour',
+    'd1700000-0000-4000-8000-000000000004',
+    'd1800000-0000-4000-8000-000000000004'
+  )),
+  'd1600000-0000-4000-8000-000000000004'::uuid,
+  'an administrator can issue a second grant for revocation-boundary coverage'
+);
+select throws_ok(
+  $$ select * from public.revoke_scoreboard_access(
+    'd1100000-0000-4000-8000-000000000004',
+    'd1600000-0000-4000-8000-000000000004',
+    'Cross-group attempt',
+    'd1900000-0000-4000-8000-000000000002',
+    'd1a00000-0000-4000-8000-000000000002'
+  ) $$,
+  'P0002',
+  'scoreboard_access_not_found',
+  'a different group cannot revoke this grant'
+);
+
+select is(
   (select state from public.revoke_scoreboard_access(
     'd1100000-0000-4000-8000-000000000002',
     'd1600000-0000-4000-8000-000000000003',
