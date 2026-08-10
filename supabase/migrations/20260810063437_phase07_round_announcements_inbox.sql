@@ -357,6 +357,16 @@ begin
     raise exception 'actor_not_authorized' using errcode = 'P0003';
   end if;
 
+  -- Serialize the audit lookup with another mark-read request for this
+  -- tenant so concurrent retries converge on the same operation receipt.
+  perform 1
+  from public.groups as group_record
+  where group_record.id = actor_group_id
+  for update;
+  if not found then
+    raise exception 'actor_not_authorized' using errcode = 'P0003';
+  end if;
+
   select event.*
   into prior_event
   from public.audit_events as event
@@ -648,6 +658,7 @@ begin
   select coalesce(
     nullif(pg_catalog.concat_ws(' ', golfer_profile.first_name, golfer_profile.last_name), ''),
     nullif(pg_catalog.concat_ws(' ', user_profile.first_name, user_profile.last_name), ''),
+    nullif(pg_catalog.btrim(user_profile.display_name), ''),
     'Group coordinator'
   )
   into author_name
