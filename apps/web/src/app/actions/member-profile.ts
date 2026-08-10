@@ -2,8 +2,17 @@
 
 import { headers } from "next/headers";
 
-import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import {
+  memberSelfHandicapInputSchema,
+  memberSelfProfileInputSchema,
+} from "@/domain/member-self-profile";
 import { resolveCorrelationId } from "@/lib/mutations/correlation";
+import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import {
+  executeSetMemberSelfHandicap,
+  executeUpdateMemberSelfProfile,
+} from "@/lib/member/member-self-profile-data";
+import { runVerifiedMutation } from "@/lib/mutations/run-verified-mutation";
 import { createServerActionSupabaseClient } from "@/lib/supabase/server-action-client";
 import { webFirstRunInputSchema } from "@/lib/profile/web-first-run";
 
@@ -81,4 +90,22 @@ export async function completeMemberFirstRunAction(
     status: "success",
     message: "Profile confirmed. Your member experience is ready.",
   };
+}
+
+export async function updateMemberSelfProfileAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runVerifiedMutation(input, requestHeaders.get("x-correlation-id"), {
+    execute: executeUpdateMemberSelfProfile,
+    inputSchema: memberSelfProfileInputSchema,
+    verifySession: verifyMutationSession,
+  });
+}
+
+export async function setMemberSelfHandicapAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runVerifiedMutation(input, requestHeaders.get("x-correlation-id"), {
+    execute: executeSetMemberSelfHandicap,
+    inputSchema: memberSelfHandicapInputSchema,
+    verifySession: verifyMutationSession,
+  });
 }

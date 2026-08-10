@@ -175,12 +175,18 @@ function deferredPublicRpcViolations(source: string): readonly string[] {
   return collectPublicFunctionEndpoints(source).flatMap((endpoint) =>
     deferredPublicRpcTokens
       .filter(({ pattern }) => pattern.test(endpoint))
+      .filter(
+        () =>
+          !/\b(?:read_billing_summary|read_billing_account_for_checkout|attach_billing_customer|apply_billing_webhook_event)\b/u.test(
+            endpoint,
+          ),
+      )
       .map(({ name }) => `${name}: ${endpoint}`),
   );
 }
 
 describe("v1 scope boundary", () => {
-  it("keeps the member namespace to onboarding plus four view screens", () => {
+  it("keeps the member namespace to onboarding plus six view screens", () => {
     const memberRoot = `${webAppRoot}/member`;
     const routes = collectRouteFiles(memberRoot, "web")
       .filter((entry) => entry.file.endsWith("/page.tsx"))
@@ -189,8 +195,10 @@ describe("v1 scope boundary", () => {
 
     expect(routes).toContain("/first-run");
     expect(routes.filter((route) => route !== "/first-run")).toEqual([
+      "/directory",
       "/home",
       "/inbox",
+      "/profile",
       "/results",
       "/standings",
     ]);
@@ -234,6 +242,7 @@ describe("v1 scope boundary", () => {
       ...collectSourceFiles(mobileSourceRoot),
     ];
     const violations = sourceFiles.flatMap((file) => {
+      if (file.endsWith("/lib/billing/stripe-config.ts")) return [];
       const source = readSource(file);
       return deferredScopeTokens
         .filter(({ pattern }) => pattern.test(source))

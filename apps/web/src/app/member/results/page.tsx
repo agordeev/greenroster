@@ -85,6 +85,9 @@ function MemberResultsContent({
             <Link className="secondary-link" href="/member/home#notifications">
               Notification preferences
             </Link>
+            <Link className="secondary-link" href="/member/profile">
+              Open your profile
+            </Link>
           </nav>
           <p className="ledger-kicker">Official results</p>
           <h1 id="member-results-title">

@@ -67,6 +67,9 @@ function MemberStandingsContent({
             <Link className="secondary-link" href="/member/home#notifications">
               Notification preferences
             </Link>
+            <Link className="secondary-link" href="/member/profile">
+              Open your profile
+            </Link>
           </nav>
           <p className="ledger-kicker">Standings and history</p>
           <h1 id="member-standings-title">

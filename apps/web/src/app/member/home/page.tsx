@@ -123,6 +123,12 @@ export default async function MemberHomePage() {
             <Link className="secondary-link" href="/member/inbox">
               Open your inbox
             </Link>
+            <Link className="secondary-link" href="/member/profile">
+              Open your profile
+            </Link>
+            <Link className="secondary-link" href="/member/directory">
+              Open your directory
+            </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Member home</p>

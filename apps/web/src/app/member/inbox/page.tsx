@@ -38,6 +38,9 @@ export default async function MemberInboxPage() {
             <Link className="secondary-link" href="/member/home">
               Open your home
             </Link>
+            <Link className="secondary-link" href="/member/profile">
+              Open your profile
+            </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Your inbox</p>
