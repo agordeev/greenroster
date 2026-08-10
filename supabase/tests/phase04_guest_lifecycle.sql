@@ -125,6 +125,21 @@ select throws_ok(
   '23505', 'operation_id_reused', 'create operation reuse with a different request is rejected'
 );
 
+update public.rounds
+set rsvp_deadline_at = now() - interval '1 minute'
+where id = 'e4000000-0000-4000-8000-000000000001';
+select throws_ok(
+  $$ select * from public.create_round_guest(
+    'e1000000-0000-4000-8000-000000000002', 'e4000000-0000-4000-8000-000000000001', null,
+    'Closed', 'Guest', 18.50, 12.3, 'middle', 'portal',
+    'e6000000-0000-4000-8000-000000000009', 'e7000000-0000-4000-8000-000000000009'
+  ) $$,
+  'P0001', 'round_guest_closed', 'member and coordinator guest creation stops after the RSVP deadline'
+);
+update public.rounds
+set rsvp_deadline_at = null
+where id = 'e4000000-0000-4000-8000-000000000001';
+
 create temporary table guest_updated as
 select * from public.update_round_guest(
   'e1000000-0000-4000-8000-000000000003',
@@ -178,6 +193,15 @@ select is((select score_invalidated from guest_withdrawn), true, 'coordinator wi
 select is((select count(*) from public.participant_score_projections where participant_id = (select participant_id from guest_created)), 0::bigint, 'withdrawal removes only the current score projection');
 select is((select count(*) from public.score_revisions where participant_id = (select participant_id from guest_created)), 1::bigint, 'withdrawal preserves immutable score history');
 select is((select count(*) from public.audit_events where action = 'round.guest_withdrawn'), 1::bigint, 'withdrawal writes an audit event');
+
+select throws_ok(
+  $$ select * from public.withdraw_round_guest(
+    'e1000000-0000-4000-8000-000000000002', 'e4000000-0000-4000-8000-000000000001',
+    (select participant_id from guest_created), 2, true, 'Guest changed plans again', 'mobile',
+    'e6000000-0000-4000-8000-000000000008', 'e7000000-0000-4000-8000-000000000008'
+  ) $$,
+  'P0001', 'guest_not_playing', 'a second withdrawal cannot change a guest already marked Not Playing'
+);
 
 create temporary table guest_withdraw_retry as
 select * from public.withdraw_round_guest(

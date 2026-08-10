@@ -9,6 +9,8 @@ export const coordinatorRoundParticipantRsvpStates = [
 ] as const;
 export type CoordinatorRoundParticipantRsvpState =
   (typeof coordinatorRoundParticipantRsvpStates)[number];
+export type RoundCoordinatorParticipantRsvpState =
+  CoordinatorRoundParticipantRsvpState;
 export type CoordinatorRoundParticipantKind = "member" | "guest";
 
 export type RoundCoordinatorRuleSnapshot = Readonly<{

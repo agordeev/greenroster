@@ -228,6 +228,16 @@ begin
     if locked_round.state <> 'published' then
       raise exception 'round_guest_locked' using errcode = 'P0001';
     end if;
+    if (
+      locked_round.rsvp_deadline_at is not null
+      and changed_at_value >= locked_round.rsvp_deadline_at
+    ) or (
+      locked_round.rsvp_deadline_at is null
+      and locked_round.scheduled_at is not null
+      and changed_at_value >= locked_round.scheduled_at
+    ) then
+      raise exception 'round_guest_closed' using errcode = 'P0001';
+    end if;
     if normalized_source <> 'mobile' then
       raise exception 'guest_source_invalid' using errcode = '22023';
     end if;
@@ -875,6 +885,9 @@ begin
   if locked_participant.version <> p_expected_participant_version then
     raise exception 'guest_version_changed' using errcode = '40001';
   end if;
+  if locked_participant.rsvp_status <> 'playing'::public.round_rsvp_status then
+    raise exception 'guest_not_playing' using errcode = 'P0001';
+  end if;
   if actor_role = 'member' then
     if locked_round.state <> 'published'
       or normalized_source <> 'mobile'
@@ -882,7 +895,7 @@ begin
     then
       raise exception 'guest_actor_not_authorized' using errcode = 'P0003';
     end if;
-  elsif actor_role not in ('coordinator', 'administrator') or normalized_source <> 'portal' then
+  elsif actor_role not in ('coordinator', 'administrator') then
     raise exception 'guest_actor_not_authorized' using errcode = 'P0003';
   end if;
 
