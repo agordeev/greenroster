@@ -9,7 +9,7 @@ The [master spec](./master-spec.md) and [phase documents](./phases/README.md) co
 - **Phase:** 07 — Release hardening
 - **Active slice:** Phase 07 parity closure — comparison ledger, release hardening, and hosted gates.
 - **Status:** In progress
-- **Next:** Commit the verified parity slices and scope/docs updates, apply the five parity migrations to hosted Supabase, run hosted advisors and pgTAP evidence, then deploy and browser-verify the connected Vercel project.
+- **Next:** Obtain the Supabase connector safety approval for the five parity migrations, then run hosted advisors/pgTAP and browser evidence; obtain a Vercel Pro-capable cron environment and deploy the connected project.
 - **Latest evidence:** Clean local reset applies all migrations through `20260810082500_legacy_import_foundation`; schema lint reports no errors; full pgTAP passes 80 files/2,684 tests. Focused parity billing, scorecard, clubhouse, PDF, and scope-boundary tests are green. Web/mobile typechecks pass. Browser verification covers `/sign-in` and the configured `/sign-up` form with no runtime overlay; PDF output was rendered and visually inspected from a generated fixture. Hosted parity migrations and Vercel deployment evidence remain outstanding.
 - **Blockers:**
   - Blocked: public organizer signup in an unconfigured environment. Need: deployment-owned, approved Terms of Use and Privacy Policy versions seeded in `app.current_legal_documents`; the route intentionally withholds account creation until those versions are available.
