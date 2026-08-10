@@ -49,6 +49,16 @@ import {
   runRoundCompletionPreview,
   runRoundReopenMutation,
 } from "@/domain/round-completion";
+import {
+  runCreateRoundGuestMutation,
+  runUpdateRoundGuestMutation,
+  runWithdrawRoundGuestMutation,
+} from "@/domain/round-guest";
+import {
+  executeCreateRoundGuest,
+  executeUpdateRoundGuest,
+  executeWithdrawRoundGuest,
+} from "@/lib/rounds/round-guest-data";
 
 export async function createRoundDraftAction(input: unknown) {
   const requestHeaders = await headers();
@@ -223,4 +233,43 @@ export async function setRoundRsvpAction(input: unknown) {
     execute: executeSetRoundRsvp,
     verifySession: verifyMutationSession,
   });
+}
+
+export async function createRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runCreateRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "portal",
+      execute: executeCreateRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function updateRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runUpdateRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "portal",
+      execute: executeUpdateRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
+}
+
+export async function withdrawRoundGuestAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runWithdrawRoundGuestMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      source: "portal",
+      execute: executeWithdrawRoundGuest,
+      verifySession: verifyMutationSession,
+    },
+  );
 }
