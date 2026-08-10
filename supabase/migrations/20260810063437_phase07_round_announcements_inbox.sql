@@ -124,8 +124,9 @@ create trigger notification_inbox_items_set_updated_at
 before update on public.notification_inbox_items
 for each row execute function app.set_updated_at();
 
-create unique index notification_inbox_items_event_recipient_idx
-on public.notification_inbox_items (outbox_job_id, recipient_membership_id);
+alter table public.notification_inbox_items
+  add constraint notification_inbox_items_event_recipient_unique
+  unique (outbox_job_id, recipient_membership_id);
 create index notification_inbox_items_recipient_created_idx
 on public.notification_inbox_items (group_id, recipient_membership_id, created_at desc, id desc);
 create index notification_inbox_items_unread_idx
@@ -746,7 +747,7 @@ begin
     announcement_record.id,
     eligible.membership_id
   from eligible_recipients as eligible
-  on conflict (outbox_job_id, recipient_membership_id) do nothing;
+  on conflict on constraint notification_inbox_items_event_recipient_unique do nothing;
 
   get diagnostics recipient_count = row_count;
 

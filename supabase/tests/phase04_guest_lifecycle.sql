@@ -130,11 +130,11 @@ set rsvp_deadline_at = now() - interval '1 minute'
 where id = 'e4000000-0000-4000-8000-000000000001';
 select throws_ok(
   $$ select * from public.create_round_guest(
-    'e1000000-0000-4000-8000-000000000002', 'e4000000-0000-4000-8000-000000000001', null,
-    'Closed', 'Guest', 18.50, 12.3, 'middle', 'portal',
+    'e1000000-0000-4000-8000-000000000003', 'e4000000-0000-4000-8000-000000000001', null,
+    'Closed', 'Guest', 18.50, 12.3, 'middle', 'mobile',
     'e6000000-0000-4000-8000-000000000009', 'e7000000-0000-4000-8000-000000000009'
   ) $$,
-  'P0001', 'round_guest_closed', 'member and coordinator guest creation stops after the RSVP deadline'
+  'P0001', 'round_guest_closed', 'member guest creation stops after the RSVP deadline'
 );
 update public.rounds
 set rsvp_deadline_at = null
@@ -197,7 +197,7 @@ select is((select count(*) from public.audit_events where action = 'round.guest_
 select throws_ok(
   $$ select * from public.withdraw_round_guest(
     'e1000000-0000-4000-8000-000000000002', 'e4000000-0000-4000-8000-000000000001',
-    (select participant_id from guest_created), 2, true, 'Guest changed plans again', 'mobile',
+    (select participant_id from guest_created), 3, true, 'Guest changed plans again', 'mobile',
     'e6000000-0000-4000-8000-000000000008', 'e7000000-0000-4000-8000-000000000008'
   ) $$,
   'P0001', 'guest_not_playing', 'a second withdrawal cannot change a guest already marked Not Playing'

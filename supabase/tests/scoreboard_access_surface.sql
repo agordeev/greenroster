@@ -182,7 +182,7 @@ select is(
     'd1100000-0000-4000-8000-000000000002',
     'd1600000-0000-4000-8000-000000000003',
     'd1400000-0000-4000-8000-000000000001',
-    encode(extensions.digest(convert_to('scoreboard-token-a', 'UTF8'), 'sha256'), 'hex'),
+    encode(extensions.digest(convert_to(repeat('a', 43), 'UTF8'), 'sha256'), 'hex'),
     1, now() + interval '1 hour',
     'd1700000-0000-4000-8000-000000000003',
     'd1800000-0000-4000-8000-000000000003'

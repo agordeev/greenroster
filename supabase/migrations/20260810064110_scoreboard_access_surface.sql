@@ -172,12 +172,12 @@ begin
       raise exception 'operation_reused' using errcode = '40001';
     end if;
     return query select
-      existing_grant.id,
-      existing_grant.group_id,
-      existing_grant.round_id,
+      existing_grant.id::uuid,
+      existing_grant.group_id::uuid,
+      existing_grant.round_id::uuid,
       existing_grant.state,
-      existing_grant.expires_at,
-      existing_grant.created_at;
+      existing_grant.expires_at::timestamptz,
+      existing_grant.created_at::timestamptz;
     return;
   end if;
 
@@ -256,12 +256,12 @@ begin
   );
 
   return query select
-    existing_grant.id,
-    existing_grant.group_id,
-    existing_grant.round_id,
+    existing_grant.id::uuid,
+    existing_grant.group_id::uuid,
+    existing_grant.round_id::uuid,
     existing_grant.state,
-    existing_grant.expires_at,
-    existing_grant.created_at;
+    existing_grant.expires_at::timestamptz,
+    existing_grant.created_at::timestamptz;
 end;
 $$;
 
@@ -351,12 +351,12 @@ begin
       raise exception 'operation_reused' using errcode = '40001';
     end if;
     return query select
-      target_grant.id,
-      target_grant.group_id,
-      target_grant.round_id,
+      target_grant.id::uuid,
+      target_grant.group_id::uuid,
+      target_grant.round_id::uuid,
       target_grant.state,
-      target_grant.expires_at,
-      target_grant.revoked_at;
+      target_grant.expires_at::timestamptz,
+      target_grant.revoked_at::timestamptz;
     return;
   end if;
 
@@ -406,12 +406,12 @@ begin
   );
 
   return query select
-    target_grant.id,
-    target_grant.group_id,
-    target_grant.round_id,
+    target_grant.id::uuid,
+    target_grant.group_id::uuid,
+    target_grant.round_id::uuid,
     target_grant.state,
-    target_grant.expires_at,
-    target_grant.revoked_at;
+    target_grant.expires_at::timestamptz,
+    target_grant.revoked_at::timestamptz;
 end;
 $$;
 
