@@ -25,6 +25,8 @@ const row = {
   notes_visible_to_players: true,
   rsvp_deadline_at: "2026-08-14T13:30:00.000Z",
   format: "individual_net" as const,
+  enable_gross_score: true,
+  enable_net_score: true,
   state: "draft" as const,
   version: 2,
   created_at: "2026-08-03T00:00:00.000Z",
@@ -81,6 +83,8 @@ describe("round draft Supabase adapters", () => {
         groupName: "Round Group",
         groupTimeZone: "America/New_York",
         format: "individual_net",
+        enableGrossScore: true,
+        enableNetScore: true,
       }),
     ]);
     expect(mocks.rpc).toHaveBeenCalledWith("list_rounds", {

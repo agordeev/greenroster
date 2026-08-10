@@ -66,6 +66,8 @@ export type RoundDraft = Readonly<{
   notesVisibleToPlayers: boolean;
   rsvpDeadlineAt: string | null;
   format: RoundFormat | null;
+  enableGrossScore?: boolean;
+  enableNetScore?: boolean;
   state: RoundState;
   version: number;
   createdAt?: string;
@@ -83,6 +85,8 @@ export type RoundDraftFormValue = Readonly<{
   notesVisibleToPlayers: boolean;
   rsvpDeadlineLocal: string;
   format: RoundFormat;
+  enableGrossScore?: boolean;
+  enableNetScore?: boolean;
   state: RoundState;
   version: number;
 }>;
@@ -122,6 +126,12 @@ export function roundDraftFormValue(round: RoundDraft): RoundDraftFormValue {
       round.groupTimeZone,
     ),
     format: round.format ?? "individual_net",
+    ...(round.enableGrossScore !== undefined
+      ? { enableGrossScore: round.enableGrossScore }
+      : {}),
+    ...(round.enableNetScore !== undefined
+      ? { enableNetScore: round.enableNetScore }
+      : {}),
     state: round.state,
     version: round.version,
   };

@@ -29,6 +29,7 @@ import {
 } from "@/domain/published-round-edit";
 import { runRoundScoringMutation } from "@/domain/round-scoring";
 import { runRoundScoreMutation } from "@/domain/round-score";
+import { runRoundScoreFieldsMutation } from "@/domain/round-score-fields";
 import { runLiveRoundParticipantNotPlayingMutation } from "@/domain/live-round-participant-rsvp-correction";
 import {
   executePreviewPublishedRoundEdit,
@@ -36,6 +37,7 @@ import {
 } from "@/lib/rounds/published-round-edit-data";
 import { executeOpenRoundScoring } from "@/lib/rounds/round-scoring-data";
 import { executeSetRoundParticipantScore } from "@/lib/rounds/round-score-data";
+import { executeSetRoundScoreFields } from "@/lib/rounds/round-score-fields-data";
 import { executeSetLiveRoundParticipantNotPlaying } from "@/lib/rounds/live-round-participant-rsvp-correction-data";
 import {
   executeCompleteLiveRound,
@@ -155,6 +157,18 @@ export async function setRoundParticipantScoreAction(input: unknown) {
     execute: executeSetRoundParticipantScore,
     verifySession: verifyMutationSession,
   });
+}
+
+export async function setRoundScoreFieldsAction(input: unknown) {
+  const requestHeaders = await headers();
+  return runRoundScoreFieldsMutation(
+    input,
+    requestHeaders.get("x-correlation-id"),
+    {
+      execute: executeSetRoundScoreFields,
+      verifySession: verifyMutationSession,
+    },
+  );
 }
 
 export async function setLiveRoundParticipantNotPlayingAction(input: unknown) {

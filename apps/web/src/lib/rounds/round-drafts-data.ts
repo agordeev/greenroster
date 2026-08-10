@@ -29,6 +29,8 @@ const roundRowSchema = z
     notes_visible_to_players: z.boolean(),
     rsvp_deadline_at: z.string().nullable(),
     format: z.enum(["individual_net", "individual_gross"]).nullable(),
+    enable_gross_score: z.boolean().optional(),
+    enable_net_score: z.boolean().optional(),
     state: z.enum(["draft", "published", "live", "completed", "cancelled"]),
     version: versionSchema,
     created_at: z.string().optional(),
@@ -116,6 +118,12 @@ function roundFromRow(row: z.infer<typeof roundRowSchema>): RoundDraft {
     notesVisibleToPlayers: row.notes_visible_to_players,
     rsvpDeadlineAt: row.rsvp_deadline_at,
     format: row.format,
+    ...(row.enable_gross_score !== undefined
+      ? { enableGrossScore: row.enable_gross_score }
+      : {}),
+    ...(row.enable_net_score !== undefined
+      ? { enableNetScore: row.enable_net_score }
+      : {}),
     state: row.state,
     version: row.version,
     ...(row.created_at !== undefined ? { createdAt: row.created_at } : {}),

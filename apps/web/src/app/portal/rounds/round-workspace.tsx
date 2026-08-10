@@ -15,6 +15,7 @@ import type { RoundCompletionPreview } from "@/domain/round-completion";
 import { PublicationReviewPanel } from "./publication-review";
 import { RoundCancellationPanel } from "./round-cancellation-panel";
 import { RoundDraftForm } from "./round-draft-form";
+import { RoundScoreFieldsPanel } from "./round-score-fields-panel";
 import { RoundReadOnlyDetail } from "./round-read-only-detail";
 import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 import { RoundScoringPanel } from "./round-scoring-panel";
@@ -29,6 +30,8 @@ export function RoundWorkspace({
   initialValue,
   roundId,
   format,
+  enableGrossScore,
+  enableNetScore,
   description,
   state,
   version,
@@ -47,6 +50,8 @@ export function RoundWorkspace({
   initialValue: RoundDraftFormValue;
   roundId: string | null;
   format: RoundFormat | null;
+  enableGrossScore?: boolean;
+  enableNetScore?: boolean;
   description: string;
   state: RoundDraftFormValue["state"];
   version: number;
@@ -174,6 +179,16 @@ export function RoundWorkspace({
         initialValue={initialValue}
         onDirtyChange={setDraftDirty}
       />
+
+      {roundId && format ? (
+        <RoundScoreFieldsPanel
+          roundId={roundId}
+          format={format}
+          enableGrossScore={enableGrossScore}
+          enableNetScore={enableNetScore}
+          version={version}
+        />
+      ) : null}
 
       {roundId &&
       (state === "draft" || state === "published" || state === "live") ? (

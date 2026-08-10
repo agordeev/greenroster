@@ -231,6 +231,16 @@ export default async function RoundsPage({
           format={
             selectedRound?.state === "draft" ? selectedRound.format : null
           }
+          enableGrossScore={
+            selectedRound?.state === "draft"
+              ? selectedRound.enableGrossScore
+              : undefined
+          }
+          enableNetScore={
+            selectedRound?.state === "draft"
+              ? selectedRound.enableNetScore
+              : undefined
+          }
           description={selectedRound?.description ?? "this round"}
           state={selectedRound?.state ?? "draft"}
           version={selectedRound?.version ?? 1}
