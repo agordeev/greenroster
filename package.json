@@ -13,6 +13,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:status": "supabase status",
+    "db:local-legal": "supabase db query --local --file scripts/seed-local-legal.sql",
     "db:test": "supabase test db --local",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
