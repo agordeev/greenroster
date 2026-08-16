@@ -176,6 +176,36 @@ describe("web origin and CSRF boundary", () => {
     expect(response.headers.get("content-security-policy")).toContain(
       "frame-ancestors 'none'",
     );
+    expect(response.headers.get("content-security-policy")).not.toContain(
+      "unsafe-eval",
+    );
+  });
+
+  it("allows React development diagnostics without weakening release CSP", async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    vi.stubEnv("NODE_ENV", "development");
+
+    try {
+      const response = await securityBoundary.proxy(
+        proxyRequest("https://greenroster.example/api/member-imports", {
+          method: "OPTIONS",
+          headers: {
+            Origin: "https://greenroster.example",
+            "Access-Control-Request-Method": "POST",
+          },
+        }),
+      );
+
+      expect(response.headers.get("content-security-policy")).toContain(
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      );
+    } finally {
+      if (previousNodeEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = previousNodeEnv;
+      }
+    }
   });
 
   it("rejects a cross-origin API request before authentication or route work", async () => {
