@@ -19,7 +19,7 @@ GreenRoster has one application environment backed by one hosted Supabase projec
 1. Install JavaScript dependencies with `pnpm install --frozen-lockfile`.
 2. Start Docker, then run `pnpm db:start`.
 3. Copy `apps/web/.env.example` to `apps/web/.env.local` and `apps/mobile/.env.example` to `apps/mobile/.env.local`. Set `NEXT_PUBLIC_SUPABASE_URL` to the local `API_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the local `ANON_KEY`, and `SUPABASE_SECRET_KEY` to the local `SERVICE_ROLE_KEY` printed by `pnpm db:status`; the current local PostgREST stack expects JWT keys for these clients. Replace every other `replace-with-...` value; startup rejects copied placeholders.
-4. Run `pnpm db:local-legal` when you want to exercise organizer signup locally. This writes only synthetic version labels to the local database; it does not approve or publish production legal documents.
+4. Run `pnpm db:local-legal` when you want to exercise organizer signup locally. This writes the checked-in legal document versions to the local database; it does not publish hosted legal documents.
 5. Run `pnpm dev:web` for the web app and `pnpm dev:mobile` for Expo.
 6. From the Expo terminal, press `i` for iOS Simulator or `a` for an Android emulator.
 
