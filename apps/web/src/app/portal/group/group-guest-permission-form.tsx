@@ -10,7 +10,10 @@ import {
 } from "react";
 
 import { updateGroupGuestPermissionAction } from "@/app/actions/groups";
-import { ActionRow } from "@/components/blocks";
+import { ActionRow, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type GroupGuestPermissionFormValue = Readonly<{
   allowMemberGuests: boolean;
@@ -132,10 +135,9 @@ export function GroupGuestPermissionForm({
       noValidate
     >
       <label className="checkbox-field">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={allowMemberGuests}
-          onChange={(event) => setAllowMemberGuests(event.target.checked)}
+          onCheckedChange={(checked) => setAllowMemberGuests(checked === true)}
           disabled={pending}
         />
         <span>Let members who are playing bring guests</span>
@@ -144,7 +146,7 @@ export function GroupGuestPermissionForm({
         Guests don&apos;t need an account and don&apos;t appear in standings.
       </p>
       <label htmlFor="guest-permission-reason">Reason for change</label>
-      <textarea
+      <Textarea
         id="guest-permission-reason"
         value={reason}
         onChange={(event) => setReason(event.target.value)}
@@ -153,25 +155,25 @@ export function GroupGuestPermissionForm({
         required
         disabled={pending}
       />
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
       <ActionRow>
-        <button className="primary-button" type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save guest setting"}
-        </button>
-        <button
-          className="secondary-button"
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={cancel}
           disabled={pending || !dirty}
         >
           Cancel
-        </button>
+        </Button>
       </ActionRow>
     </form>
   );

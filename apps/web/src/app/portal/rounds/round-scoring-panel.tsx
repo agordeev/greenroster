@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { openRoundScoringAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import {
   roundScoringBlockedByDraftChanges,
   roundScoringInputSchema,
@@ -102,25 +103,27 @@ export function RoundScoringPanel({
       />
       <p>Open scoring when players are ready to tee off.</p>
       {roundScoringBlockedByDraftChanges(draftDirty) ? (
-        <p className="form-message error" role="status">
+        <FormMessage role="status">
           Save or discard your changes to the published round before you open
           scoring.
-        </p>
+        </FormMessage>
       ) : null}
       {message ? (
-        <p className={`form-message ${messageTone}`} role="status">
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          role="status"
+        >
           {message}
-        </p>
+        </FormMessage>
       ) : null}
       <div className="form-stack" aria-busy={pending}>
-        <button
-          className="primary-button"
+        <Button
           type="button"
           disabled={pending || roundScoringBlockedByDraftChanges(draftDirty)}
           onClick={openScoring}
         >
           {pending ? "Opening scoring…" : "Open scoring"}
-        </button>
+        </Button>
       </div>
     </section>
   );

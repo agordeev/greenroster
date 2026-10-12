@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ActionRow, EmptyState } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -119,24 +120,27 @@ export default async function PortalReportsPage() {
                       <td>{round.scheduled_at ?? "-"}</td>
                       <td>
                         <span className="action-row">
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=results&round_id=${round.id}`}
-                          >
-                            CSV
-                          </Link>
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=results&format=pdf&round_id=${round.id}`}
-                          >
-                            Results PDF
-                          </Link>
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=scorepad&format=pdf&round_id=${round.id}`}
-                          >
-                            Score pad PDF
-                          </Link>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=results&round_id=${round.id}`}
+                            >
+                              CSV
+                            </Link>
+                          </Button>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=results&format=pdf&round_id=${round.id}`}
+                            >
+                              Results PDF
+                            </Link>
+                          </Button>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=scorepad&format=pdf&round_id=${round.id}`}
+                            >
+                              Score pad PDF
+                            </Link>
+                          </Button>
                         </span>
                       </td>
                     </tr>

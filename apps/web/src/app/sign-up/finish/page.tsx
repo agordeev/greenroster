@@ -16,7 +16,8 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { OrganizerBootstrapForm } from "./organizer-bootstrap-form";
 import { cookies } from "next/headers";
-import { SkipLink } from "@/components/blocks";
+import { FormMessage, SkipLink } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 
 type SignupFinishPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -145,15 +146,15 @@ export default async function SignupFinishPage({
             </p>
           </div>
           {status === "expired" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               Your verification link has expired. Start again to receive a new
               link.
-            </p>
+            </FormMessage>
           ) : status === "auth-unavailable" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               We couldn&apos;t finish setting up your group. Try again in a
               moment.
-            </p>
+            </FormMessage>
           ) : null}
           <OrganizerBootstrapForm
             identityKey={user.id}
@@ -195,9 +196,9 @@ function FinishState({
           {email ? <p>{email}</p> : null}
           <p>{message}</p>
           {actionHref && actionLabel ? (
-            <Link className="primary-button button-link" href={actionHref}>
-              {actionLabel}
-            </Link>
+            <Button asChild>
+              <Link href={actionHref}>{actionLabel}</Link>
+            </Button>
           ) : null}
           <Link className="secondary-link" href="/sign-in">
             Return to sign in

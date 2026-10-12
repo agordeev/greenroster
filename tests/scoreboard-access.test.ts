@@ -123,7 +123,7 @@ describe("scoreboard access contract", () => {
       ),
       "utf8",
     );
-    expect(page).toContain('href="#main-content"');
+    expect(page).toContain("<SkipLink>Skip to live scores</SkipLink>");
     expect(page).toContain("Live scores");
     expect(page).not.toMatch(/quota|membership|role|email|phone|address/iu);
     expect(panel).toContain("revokeScoreboardAccessAction");

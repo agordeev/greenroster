@@ -22,6 +22,12 @@ import {
   shouldAllowMemberFormSubmit,
 } from "@/lib/memberships/member-management";
 import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   buildMemberRosterHref,
   memberRosterHasNoActiveMembers,
@@ -144,13 +150,13 @@ export function MemberManagement({
           onTerminalMessage={showTerminalMessage}
         />
       ) : null}
-      <div
-        className="form-message"
+      <FormMessage
+        tone={terminal.status === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={terminalMessage ? terminal.status : undefined}
       >
         {terminalMessage}
-      </div>
+      </FormMessage>
     </div>
   );
 }
@@ -167,7 +173,7 @@ function MemberRosterFilters({
       <div className="member-roster-filter-grid">
         <label className="field-group member-roster-search">
           <span>Search by name, invite e-mail, or Handicap ID</span>
-          <input
+          <Input
             name="search"
             type="search"
             defaultValue={query.search}
@@ -177,44 +183,44 @@ function MemberRosterFilters({
         </label>
         <label className="field-group">
           <span>Status</span>
-          <select name="status" defaultValue={query.status ?? ""}>
+          <NativeSelect name="status" defaultValue={query.status ?? ""}>
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
+          </NativeSelect>
         </label>
         {query.alphabet ? (
           <input type="hidden" name="alphabet" value={query.alphabet} />
         ) : null}
         <label className="field-group">
           <span>Role</span>
-          <select name="role" defaultValue={query.role ?? ""}>
+          <NativeSelect name="role" defaultValue={query.role ?? ""}>
             <option value="">All roles</option>
             <option value="member">Member</option>
             <option value="coordinator">Coordinator</option>
             <option value="administrator">Administrator</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="field-group">
           <span>Dues</span>
-          <select name="dues" defaultValue={query.dues ?? ""}>
+          <NativeSelect name="dues" defaultValue={query.dues ?? ""}>
             <option value="">All dues</option>
             <option value="paid">Paid</option>
             <option value="unpaid">Not set yet</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="field-group">
           <span>Per page</span>
-          <select name="pageSize" defaultValue={String(query.pageSize)}>
+          <NativeSelect name="pageSize" defaultValue={String(query.pageSize)}>
             <option value="25">25</option>
             <option value="50">50</option>
             <option value="100">100</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="field-group">
           <span>Sort by</span>
-          <select name="sort" defaultValue={query.sort}>
+          <NativeSelect name="sort" defaultValue={query.sort}>
             <option value="name">Name</option>
             <option value="status">Status</option>
             <option value="role">Role</option>
@@ -224,20 +230,20 @@ function MemberRosterFilters({
             <option value="quota">Quota</option>
             <option value="date_added">Date added</option>
             <option value="invitation">Invitation</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="field-group">
           <span>Order</span>
-          <select name="direction" defaultValue={query.direction}>
+          <NativeSelect name="direction" defaultValue={query.direction}>
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
-          </select>
+          </NativeSelect>
         </label>
       </div>
       <div className="member-roster-filter-actions">
-        <button className="secondary-button" type="submit">
+        <Button variant="outline" type="submit">
           Apply filters
-        </button>
+        </Button>
         {memberRosterQueryHasFilters(query) ||
         query.page !== 1 ||
         query.pageSize !== 25 ? (
@@ -1196,7 +1202,7 @@ function MemberEditor({
             />
             <label className="field-group">
               <span>Tee location</span>
-              <select
+              <NativeSelect
                 value={values.teeLocation ?? ""}
                 onChange={(event) =>
                   update(
@@ -1210,13 +1216,14 @@ function MemberEditor({
                 <option value="back">Back</option>
                 <option value="middle">Middle</option>
                 <option value="front">Front</option>
-              </select>
+              </NativeSelect>
             </label>
             <label className="member-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={values.duesPaid}
-                onChange={(event) => update("duesPaid", event.target.checked)}
+                onCheckedChange={(checked) =>
+                  update("duesPaid", checked === true)
+                }
               />
               <span>Dues paid</span>
             </label>
@@ -1308,16 +1315,16 @@ function MemberEditor({
 
           <label className="field-group">
             <span>Reason (optional)</span>
-            <textarea
+            <Textarea
               value={editReason}
               onChange={(event) => setEditReason(event.target.value)}
               maxLength={500}
               rows={3}
             />
           </label>
-          <button className="primary-button" type="submit">
+          <Button type="submit">
             {pending ? "Saving…" : "Save member details"}
-          </button>
+          </Button>
         </fieldset>
       </form>
 
@@ -1339,7 +1346,7 @@ function MemberEditor({
             />
             <label className="field-group">
               <span>Handicap</span>
-              <input
+              <Input
                 type="number"
                 min="-10"
                 max="54"
@@ -1351,7 +1358,7 @@ function MemberEditor({
             </label>
             <label className="field-group">
               <span>Handicap date</span>
-              <input
+              <Input
                 type="date"
                 value={handicapAsOf}
                 onChange={(event) => setHandicapAsOf(event.target.value)}
@@ -1361,7 +1368,7 @@ function MemberEditor({
           </div>
           <label className="field-group">
             <span>Reason (required)</span>
-            <textarea
+            <Textarea
               value={handicapReason}
               onChange={(event) => setHandicapReason(event.target.value)}
               maxLength={500}
@@ -1373,17 +1380,18 @@ function MemberEditor({
             className="invitation-confirmation"
             htmlFor={`member-handicap-confirm-${member.membershipId}`}
           >
-            <input
+            <Checkbox
               id={`member-handicap-confirm-${member.membershipId}`}
-              type="checkbox"
               checked={handicapConfirmed}
-              onChange={(event) => setHandicapConfirmed(event.target.checked)}
+              onCheckedChange={(checked) =>
+                setHandicapConfirmed(checked === true)
+              }
               required
             />
             <span>I confirm this correction.</span>
           </label>
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="submit"
             disabled={
               !handicap ||
@@ -1393,15 +1401,16 @@ function MemberEditor({
             }
           >
             {pending ? "Recording…" : "Save handicap"}
-          </button>
+          </Button>
           {handicapStale ? (
-            <button
-              className="text-button"
+            <Button
+              variant="link"
+              size="inline"
               type="button"
               onClick={reloadStaleHandicap}
             >
               Reload and keep what I typed
-            </button>
+            </Button>
           ) : null}
         </fieldset>
       </form>
@@ -1427,7 +1436,7 @@ function MemberEditor({
             ) : null}
             <label className="field-group">
               <span>Reason (required)</span>
-              <textarea
+              <Textarea
                 value={statusReason}
                 onChange={(event) => setStatusReason(event.target.value)}
                 maxLength={500}
@@ -1439,11 +1448,12 @@ function MemberEditor({
               className="invitation-confirmation"
               htmlFor={`member-status-confirm-${member.membershipId}`}
             >
-              <input
+              <Checkbox
                 id={`member-status-confirm-${member.membershipId}`}
-                type="checkbox"
                 checked={statusConfirmed}
-                onChange={(event) => setStatusConfirmed(event.target.checked)}
+                onCheckedChange={(checked) =>
+                  setStatusConfirmed(checked === true)
+                }
                 required
               />
               <span>
@@ -1451,10 +1461,8 @@ function MemberEditor({
                 notifications.
               </span>
             </label>
-            <button
-              className={
-                nextStatus === "inactive" ? "danger-button" : "secondary-button"
-              }
+            <Button
+              variant={nextStatus === "inactive" ? "destructive" : "outline"}
               type="submit"
             >
               {pending
@@ -1462,7 +1470,7 @@ function MemberEditor({
                 : nextStatus === "inactive"
                   ? "Mark inactive"
                   : "Reactivate member"}
-            </button>
+            </Button>
           </fieldset>
         </form>
       )}
@@ -1473,7 +1481,7 @@ function MemberEditor({
             <legend>Role</legend>
             <label className="field-group">
               <span>Role</span>
-              <select
+              <NativeSelect
                 value={selectedRole}
                 onChange={(event) =>
                   setSelectedRole(event.target.value as typeof selectedRole)
@@ -1482,11 +1490,11 @@ function MemberEditor({
                 <option value="member">Member</option>
                 <option value="coordinator">Coordinator</option>
                 <option value="administrator">Administrator</option>
-              </select>
+              </NativeSelect>
             </label>
             <label className="field-group">
               <span>Reason (required)</span>
-              <textarea
+              <Textarea
                 value={roleReason}
                 onChange={(event) => setRoleReason(event.target.value)}
                 maxLength={500}
@@ -1498,19 +1506,20 @@ function MemberEditor({
               className="invitation-confirmation"
               htmlFor={`member-role-confirm-${member.membershipId}`}
             >
-              <input
+              <Checkbox
                 id={`member-role-confirm-${member.membershipId}`}
-                type="checkbox"
                 checked={roleConfirmed}
-                onChange={(event) => setRoleConfirmed(event.target.checked)}
+                onCheckedChange={(checked) =>
+                  setRoleConfirmed(checked === true)
+                }
                 required
               />
               <span>
                 I understand this changes what they can do right away.
               </span>
             </label>
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="submit"
               disabled={
                 selectedRole === member.role ||
@@ -1519,7 +1528,7 @@ function MemberEditor({
               }
             >
               {pending ? "Working…" : "Save role change"}
-            </button>
+            </Button>
             {selectedRole === member.role ||
             roleReason.trim().length === 0 ||
             !roleConfirmed ? (
@@ -1575,7 +1584,7 @@ function Field({
   return (
     <label className="field-group">
       <span>{label}</span>
-      <input
+      <Input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -1596,10 +1605,9 @@ function Visibility({
 }>) {
   return (
     <label className="member-check">
-      <input
-        type="checkbox"
+      <Checkbox
         checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
+        onCheckedChange={(checked) => onChange(checked === true)}
       />
       <span>{label}</span>
     </label>

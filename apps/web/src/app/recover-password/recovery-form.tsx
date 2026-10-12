@@ -5,6 +5,9 @@ import { useActionState, useEffect, useRef } from "react";
 
 import { requestPasswordResetAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function RecoveryForm() {
   const [state, formAction, pending] = useActionState(
@@ -21,7 +24,7 @@ export function RecoveryForm() {
     <form action={formAction} className="auth-form" noValidate>
       <div className="field-group">
         <label htmlFor="email">Account e-mail</label>
-        <input
+        <Input
           id="email"
           ref={emailRef}
           name="email"
@@ -40,12 +43,16 @@ export function RecoveryForm() {
           </p>
         ) : null}
       </div>
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage
+        tone={state.status === "success" ? "success" : "error"}
+        aria-live="polite"
+        data-status={state.status}
+      >
         {state.message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Sending…" : "Send recovery link"}
-      </button>
+      </Button>
       <Link className="secondary-link" href="/sign-in">
         Return to sign in
       </Link>

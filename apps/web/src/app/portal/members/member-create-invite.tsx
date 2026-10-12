@@ -9,6 +9,12 @@ import {
   issueMembershipInvitationAction,
   setMemberHandicapAction,
 } from "@/app/actions/memberships";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
 import type { MemberRole } from "@/lib/memberships/member-management";
@@ -460,7 +466,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <div className="member-form-grid">
             <label className="field-group" htmlFor="member-create-first-name">
               <span>First name</span>
-              <input
+              <Input
                 id="member-create-first-name"
                 name="firstName"
                 value={draft.firstName}
@@ -471,7 +477,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
             <label className="field-group" htmlFor="member-create-last-name">
               <span>Last name</span>
-              <input
+              <Input
                 id="member-create-last-name"
                 name="lastName"
                 value={draft.lastName}
@@ -482,7 +488,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
             <label className="field-group" htmlFor="member-create-email">
               <span>Invite e-mail</span>
-              <input
+              <Input
                 id="member-create-email"
                 name="invitedEmail"
                 type="email"
@@ -497,7 +503,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
             <label className="field-group" htmlFor="member-create-tee">
               <span>Preferred tee</span>
-              <select
+              <NativeSelect
                 id="member-create-tee"
                 name="teeLocation"
                 value={draft.teeLocation}
@@ -510,11 +516,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <option value="back">Back</option>
                 <option value="middle">Middle</option>
                 <option value="front">Front</option>
-              </select>
+              </NativeSelect>
             </label>
             <label className="field-group" htmlFor="member-create-spouse-first">
               <span>Spouse first name (optional)</span>
-              <input
+              <Input
                 id="member-create-spouse-first"
                 name="spouseFirstName"
                 value={draft.spouseFirstName}
@@ -525,7 +531,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
             <label className="field-group" htmlFor="member-create-spouse-last">
               <span>Spouse last name (optional)</span>
-              <input
+              <Input
                 id="member-create-spouse-last"
                 name="spouseLastName"
                 value={draft.spouseLastName}
@@ -535,18 +541,19 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               />
             </label>
             <label className="member-check" htmlFor="member-create-dues">
-              <input
+              <Checkbox
                 id="member-create-dues"
                 name="duesPaid"
-                type="checkbox"
                 checked={draft.duesPaid}
-                onChange={(event) => update("duesPaid", event.target.checked)}
+                onCheckedChange={(checked) =>
+                  update("duesPaid", checked === true)
+                }
               />
               <span>Dues paid</span>
             </label>
             <label className="field-group" htmlFor="member-create-reason">
               <span>Reason (optional)</span>
-              <input
+              <Input
                 id="member-create-reason"
                 name="reason"
                 value={draft.reason}
@@ -562,7 +569,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-secondary-email"
               >
                 <span>Secondary e-mail</span>
-                <input
+                <Input
                   id="member-create-secondary-email"
                   name="secondaryEmail"
                   type="email"
@@ -575,7 +582,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
               <label className="field-group" htmlFor="member-create-home-phone">
                 <span>Home phone</span>
-                <input
+                <Input
                   id="member-create-home-phone"
                   name="homePhone"
                   type="tel"
@@ -586,7 +593,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
               <label className="field-group" htmlFor="member-create-work-phone">
                 <span>Work phone</span>
-                <input
+                <Input
                   id="member-create-work-phone"
                   name="workPhone"
                   type="tel"
@@ -600,7 +607,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-mobile-phone"
               >
                 <span>Mobile phone</span>
-                <input
+                <Input
                   id="member-create-mobile-phone"
                   name="mobilePhone"
                   type="tel"
@@ -622,7 +629,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-address-line1"
               >
                 <span>Address line 1</span>
-                <input
+                <Input
                   id="member-create-address-line1"
                   name="addressLine1"
                   value={draft.addressLine1}
@@ -637,7 +644,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-address-line2"
               >
                 <span>Address line 2</span>
-                <input
+                <Input
                   id="member-create-address-line2"
                   name="addressLine2"
                   value={draft.addressLine2}
@@ -649,7 +656,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
               <label className="field-group" htmlFor="member-create-city">
                 <span>City</span>
-                <input
+                <Input
                   id="member-create-city"
                   name="city"
                   value={draft.city}
@@ -662,7 +669,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-state-region"
               >
                 <span>State / region</span>
-                <input
+                <Input
                   id="member-create-state-region"
                   name="stateRegion"
                   value={draft.stateRegion}
@@ -677,7 +684,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 htmlFor="member-create-postal-code"
               >
                 <span>Postal code</span>
-                <input
+                <Input
                   id="member-create-postal-code"
                   name="postalCode"
                   value={draft.postalCode}
@@ -687,7 +694,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
               <label className="field-group" htmlFor="member-create-country">
                 <span>Country</span>
-                <input
+                <Input
                   id="member-create-country"
                   name="country"
                   value={draft.country}
@@ -718,12 +725,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 className="member-check"
                 htmlFor="member-create-secondary-visible"
               >
-                <input
+                <Checkbox
                   id="member-create-secondary-visible"
-                  type="checkbox"
                   checked={draft.secondaryEmailVisible}
-                  onChange={(event) =>
-                    update("secondaryEmailVisible", event.target.checked)
+                  onCheckedChange={(checked) =>
+                    update("secondaryEmailVisible", checked === true)
                   }
                 />
                 <span>List secondary e-mail</span>
@@ -732,12 +738,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 className="member-check"
                 htmlFor="member-create-home-visible"
               >
-                <input
+                <Checkbox
                   id="member-create-home-visible"
-                  type="checkbox"
                   checked={draft.homePhoneVisible}
-                  onChange={(event) =>
-                    update("homePhoneVisible", event.target.checked)
+                  onCheckedChange={(checked) =>
+                    update("homePhoneVisible", checked === true)
                   }
                 />
                 <span>List home phone</span>
@@ -746,12 +751,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 className="member-check"
                 htmlFor="member-create-work-visible"
               >
-                <input
+                <Checkbox
                   id="member-create-work-visible"
-                  type="checkbox"
                   checked={draft.workPhoneVisible}
-                  onChange={(event) =>
-                    update("workPhoneVisible", event.target.checked)
+                  onCheckedChange={(checked) =>
+                    update("workPhoneVisible", checked === true)
                   }
                 />
                 <span>List work phone</span>
@@ -760,12 +764,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 className="member-check"
                 htmlFor="member-create-mobile-visible"
               >
-                <input
+                <Checkbox
                   id="member-create-mobile-visible"
-                  type="checkbox"
                   checked={draft.mobilePhoneVisible}
-                  onChange={(event) =>
-                    update("mobilePhoneVisible", event.target.checked)
+                  onCheckedChange={(checked) =>
+                    update("mobilePhoneVisible", checked === true)
                   }
                 />
                 <span>List mobile phone</span>
@@ -774,12 +777,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 className="member-check"
                 htmlFor="member-create-address-listed"
               >
-                <input
+                <Checkbox
                   id="member-create-address-listed"
-                  type="checkbox"
                   checked={draft.addressListed}
-                  onChange={(event) =>
-                    update("addressListed", event.target.checked)
+                  onCheckedChange={(checked) =>
+                    update("addressListed", checked === true)
                   }
                 />
                 <span>List postal address</span>
@@ -788,22 +790,18 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           </fieldset>
         </fieldset>
         <div className="member-create-actions">
-          <button
-            className="primary-button"
-            type="submit"
-            disabled={busy || memberCreated}
-          >
+          <Button type="submit" disabled={busy || memberCreated}>
             {phase === "creating" ? "Adding…" : "Add member"}
-          </button>
+          </Button>
           {memberCreated ? (
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="button"
               onClick={reset}
               disabled={busy}
             >
               Add another member
-            </button>
+            </Button>
           ) : null}
         </div>
       </form>
@@ -827,8 +825,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             />
           </fieldset>
           <div className="member-create-actions">
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="submit"
               disabled={busy || handicapRecorded}
             >
@@ -837,9 +835,10 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 : handicapRecorded
                   ? "Handicap saved"
                   : "Save handicap"}
-            </button>
-            <button
-              className="text-button"
+            </Button>
+            <Button
+              variant="link"
+              size="inline"
               type="button"
               onClick={() =>
                 router.push(
@@ -849,7 +848,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               disabled={busy}
             >
               Open member details
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}
@@ -864,7 +863,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </p>
             <label className="field-group" htmlFor="member-invite-email">
               <span>Invite e-mail</span>
-              <input
+              <Input
                 id="member-invite-email"
                 name="invitedEmail"
                 type="email"
@@ -879,13 +878,12 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </label>
           </fieldset>
           <div className="member-create-actions">
-            <button
-              className="primary-button"
+            <Button
               type="submit"
               disabled={busy || handicapRequiredBeforeInvite}
             >
               {phase === "inviting" ? "Sending…" : "Send invitation"}
-            </button>
+            </Button>
             {handicapRequiredBeforeInvite ? (
               <p className="field-help" role="status">
                 Save the handicap before sending the invitation.
@@ -895,13 +893,13 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         </form>
       ) : null}
 
-      <div
-        className="form-message"
+      <FormMessage
+        tone={messageStatus === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={message ? messageStatus : undefined}
       >
         {message}
-      </div>
+      </FormMessage>
     </section>
   );
 }
@@ -930,7 +928,7 @@ function HandicapFields({
       <div className="member-form-grid">
         <label className="field-group" htmlFor={`${idPrefix}-handicap-id`}>
           <span>Handicap ID (optional)</span>
-          <input
+          <Input
             id={`${idPrefix}-handicap-id`}
             name="handicapId"
             value={draft.handicapId}
@@ -940,7 +938,7 @@ function HandicapFields({
         </label>
         <label className="field-group" htmlFor={`${idPrefix}-handicap-value`}>
           <span>Handicap</span>
-          <input
+          <Input
             id={`${idPrefix}-handicap-value`}
             name="handicap"
             type="number"
@@ -954,7 +952,7 @@ function HandicapFields({
         </label>
         <label className="field-group" htmlFor={`${idPrefix}-handicap-as-of`}>
           <span>Handicap date</span>
-          <input
+          <Input
             id={`${idPrefix}-handicap-as-of`}
             name="handicapAsOf"
             type="date"
@@ -965,7 +963,7 @@ function HandicapFields({
       </div>
       <label className="field-group" htmlFor={`${idPrefix}-handicap-reason`}>
         <span>Reason (required to save a handicap)</span>
-        <textarea
+        <Textarea
           id={`${idPrefix}-handicap-reason`}
           name="handicapReason"
           value={draft.handicapReason}
@@ -978,13 +976,12 @@ function HandicapFields({
         className="member-create-confirmation"
         htmlFor={`${idPrefix}-handicap-confirm`}
       >
-        <input
+        <Checkbox
           id={`${idPrefix}-handicap-confirm`}
           name="handicapConfirmed"
-          type="checkbox"
           checked={draft.handicapConfirmed}
-          onChange={(event) =>
-            onChange("handicapConfirmed", event.target.checked)
+          onCheckedChange={(checked) =>
+            onChange("handicapConfirmed", checked === true)
           }
         />
         <span>I confirm this handicap and its date.</span>

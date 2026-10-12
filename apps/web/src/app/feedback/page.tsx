@@ -1,4 +1,5 @@
 import { InformationShell } from "@/app/information-shell";
+import { Button } from "@/components/ui/button";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 
 export default function FeedbackPage() {
@@ -9,12 +10,13 @@ export default function FeedbackPage() {
           Tell us what you were doing and what you expected to happen. Feedback
           goes to GreenRoster support, not to your group.
         </p>
-        <a
-          className="primary-link"
-          href={`mailto:${webRuntimeEnv.supportEmail}?subject=${encodeURIComponent("GreenRoster product feedback")}`}
-        >
-          Send feedback by e-mail
-        </a>
+        <Button asChild className="mt-6">
+          <a
+            href={`mailto:${webRuntimeEnv.supportEmail}?subject=${encodeURIComponent("GreenRoster product feedback")}`}
+          >
+            Send feedback by e-mail
+          </a>
+        </Button>
       </div>
     </InformationShell>
   );

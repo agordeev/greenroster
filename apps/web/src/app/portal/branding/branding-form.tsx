@@ -6,7 +6,11 @@ import {
   removeBrandingAssetAction,
   uploadBrandingAssetAction,
 } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { BrandingAssetSummary } from "@/domain/clubhouse-content";
 
 type BrandingFormProps = Readonly<{
@@ -156,7 +160,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
       <div className="form-stack">
         <label className="field-group" htmlFor="branding-slot">
           <span>Banner location</span>
-          <select
+          <NativeSelect
             id="branding-slot"
             value={slot}
             onChange={(event) => selectSlot(event.target.value as typeof slot)}
@@ -164,12 +168,12 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           >
             <option value="scoreboard_header">Top of the scoreboard</option>
             <option value="scoreboard_footer">Bottom of the scoreboard</option>
-          </select>
+          </NativeSelect>
         </label>
         {slot === "scoreboard_footer" ? (
           <label className="field-group" htmlFor="branding-order">
             <span>Banner position</span>
-            <select
+            <NativeSelect
               id="branding-order"
               value={displayOrder}
               onChange={(event) => setDisplayOrder(Number(event.target.value))}
@@ -178,13 +182,13 @@ export function BrandingForm({ assets }: BrandingFormProps) {
               <option value={0}>Show this banner first</option>
               <option value={1}>Show this banner second</option>
               <option value={2}>Show this banner third</option>
-            </select>
+            </NativeSelect>
           </label>
         ) : null}
         <label className="field-group" htmlFor="branding-file">
           <span>Upload image</span>
           <small>PNG, JPEG, GIF, BMP, or WebP up to 1 MB.</small>
-          <input
+          <Input
             id="branding-file"
             type="file"
             accept="image/png,image/jpeg,image/gif,image/bmp,image/webp"
@@ -197,7 +201,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
         </label>
         <label className="field-group" htmlFor="branding-alt">
           <span>Describe this image</span>
-          <input
+          <Input
             id="branding-alt"
             value={altText}
             onChange={(event) => setAltText(event.target.value)}
@@ -207,7 +211,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
         </label>
         <label className="field-group" htmlFor="branding-click-url">
           <span>Link to open when someone clicks the banner (optional)</span>
-          <input
+          <Input
             id="branding-click-url"
             type="url"
             placeholder="https://"
@@ -217,36 +221,34 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           />
         </label>
         <label className="checkbox-label">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={decorative}
-            onChange={(event) => setDecorative(event.target.checked)}
+            onCheckedChange={(checked) => setDecorative(checked === true)}
             disabled={pending}
           />{" "}
           <span>This image is decorative and needs no description.</span>
         </label>
-        <button
-          className="primary-button"
+        <Button
           type="button"
           onClick={save}
           disabled={pending || !assetFile || (!decorative && !altText.trim())}
         >
           {pending ? "Saving…" : "Save banner"}
-        </button>
+        </Button>
         {currentAsset ? (
-          <div className="form-message" role="status">
+          <FormMessage role="status">
             Current banner: {currentAsset.altText || "Decorative image"}.
-          </div>
+          </FormMessage>
         ) : null}
         {currentAsset ? (
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="button"
             onClick={removeCurrentAsset}
             disabled={pending}
           >
             Remove current banner
-          </button>
+          </Button>
         ) : null}
         {previewAssetUrl || currentAsset?.assetUrl ? (
           <div
@@ -281,9 +283,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             </a>
           </div>
         ) : null}
-        <p className="form-message" role="status">
-          {feedback}
-        </p>
+        <FormMessage role="status">{feedback}</FormMessage>
       </div>
     </section>
   );

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { setRoundScoreFieldsAction } from "@/app/actions/rounds";
-import { ActionRow, SectionHeading } from "@/components/blocks";
+import { ActionRow, FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { RoundFormat } from "@/domain/round-drafts";
 
 export function RoundScoreFieldsPanel({
@@ -94,21 +96,19 @@ export function RoundScoreFieldsPanel({
       <p className="field-help">Choose which scores to enter for this round.</p>
       <div className="precision-options">
         <label className="bound-choice" htmlFor="round-enable-gross-score">
-          <input
+          <Checkbox
             id="round-enable-gross-score"
-            type="checkbox"
             checked={grossScore}
-            onChange={(event) => setGrossScore(event.target.checked)}
+            onCheckedChange={(checked) => setGrossScore(checked === true)}
             disabled={pending}
           />
           Enter gross scores
         </label>
         <label className="bound-choice" htmlFor="round-enable-net-score">
-          <input
+          <Checkbox
             id="round-enable-net-score"
-            type="checkbox"
             checked={netScore}
-            onChange={(event) => setNetScore(event.target.checked)}
+            onCheckedChange={(checked) => setNetScore(checked === true)}
             disabled={pending || format === "individual_gross"}
           />
           Enter net scores
@@ -119,22 +119,17 @@ export function RoundScoreFieldsPanel({
           Net scores aren&apos;t used in Individual Gross rounds.
         </p>
       ) : null}
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
       <ActionRow>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={save}
-          disabled={pending || !dirty}
-        >
+        <Button type="button" onClick={save} disabled={pending || !dirty}>
           {pending ? "Saving…" : "Save score options"}
-        </button>
+        </Button>
       </ActionRow>
     </section>
   );

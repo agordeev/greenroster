@@ -7,7 +7,16 @@ import {
   previewPublishedRoundEditAction,
   updatePublishedRoundEditAction,
 } from "@/app/actions/rounds";
-import { ActionRow, Field, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  Field,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   previewPublishedRoundEditInputSchema,
   updatePublishedRoundEditInputSchema,
@@ -222,7 +231,7 @@ export function PublishedRoundEditPanel({
             label="Description"
             error={fieldErrors.description}
           >
-            <input
+            <Input
               id="published-round-edit-description"
               value={values.description}
               onChange={(event) => setValue("description", event.target.value)}
@@ -234,7 +243,7 @@ export function PublishedRoundEditPanel({
             label="Venue"
             error={fieldErrors.venue}
           >
-            <input
+            <Input
               id="published-round-edit-venue"
               value={values.venue}
               onChange={(event) => setValue("venue", event.target.value)}
@@ -248,7 +257,7 @@ export function PublishedRoundEditPanel({
             label="Start time"
             error={fieldErrors.scheduledLocal}
           >
-            <input
+            <Input
               id="published-round-edit-scheduled"
               type="datetime-local"
               value={values.scheduledLocal}
@@ -263,7 +272,7 @@ export function PublishedRoundEditPanel({
             label="RSVP deadline"
             error={fieldErrors.rsvpDeadlineLocal}
           >
-            <input
+            <Input
               id="published-round-edit-deadline"
               type="datetime-local"
               value={values.rsvpDeadlineLocal}
@@ -279,7 +288,7 @@ export function PublishedRoundEditPanel({
           label="Round link"
           error={fieldErrors.roundUrl}
         >
-          <input
+          <Input
             id="published-round-edit-url"
             type="url"
             placeholder="https://..."
@@ -293,7 +302,7 @@ export function PublishedRoundEditPanel({
           label="Notes"
           error={fieldErrors.notes}
         >
-          <textarea
+          <Textarea
             id="published-round-edit-notes"
             rows={4}
             maxLength={500}
@@ -303,11 +312,10 @@ export function PublishedRoundEditPanel({
           />
         </Field>
         <label className="bound-choice">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={values.notesVisibleToPlayers}
-            onChange={(event) =>
-              setValue("notesVisibleToPlayers", event.target.checked)
+            onCheckedChange={(checked) =>
+              setValue("notesVisibleToPlayers", checked === true)
             }
             disabled={pending}
           />
@@ -316,40 +324,38 @@ export function PublishedRoundEditPanel({
         {preview ? <ImpactSummary preview={preview} /> : null}
         {preview && preview.changedFields.length > 0 ? (
           <label className="bound-choice">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={announce}
-              onChange={(event) => setAnnounce(event.target.checked)}
+              onCheckedChange={(checked) => setAnnounce(checked === true)}
               disabled={pending}
             />
             E-mail affected players about this change
           </label>
         ) : null}
         {receipt ? <ReceiptSummary receipt={receipt} /> : null}
-        <p
-          className={`form-message ${messageTone}`}
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
           role="status"
           aria-live="polite"
         >
           {message}
-        </p>
+        </FormMessage>
         <ActionRow>
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="button"
             onClick={previewChanges}
             disabled={pending}
           >
             {pending && !preview ? "Previewing…" : "Preview changes"}
-          </button>
-          <button
-            className="primary-button"
+          </Button>
+          <Button
             type="button"
             onClick={applyChanges}
             disabled={pending || !preview || preview.changedFields.length === 0}
           >
             {pending && preview ? "Applying…" : "Apply changes"}
-          </button>
+          </Button>
         </ActionRow>
       </div>
     </section>
@@ -409,12 +415,12 @@ function ReceiptSummary({
   receipt,
 }: Readonly<{ receipt: PublishedRoundEditReceipt }>) {
   return (
-    <aside className="form-message success" role="status">
+    <FormMessage tone="success" role="status">
       Changes applied. Player quotas, handicaps, and tees stay as they were.
       {receipt.notificationCount > 0
         ? ` ${receipt.notificationCount} e-mail${receipt.notificationCount === 1 ? "" : "s"} will be sent.`
         : null}
-    </aside>
+    </FormMessage>
   );
 }
 

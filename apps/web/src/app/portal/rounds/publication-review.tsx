@@ -7,7 +7,9 @@ import {
   previewRoundPublicationAction,
   publishRoundAction,
 } from "@/app/actions/rounds";
-import { ActionRow, SectionHeading } from "@/components/blocks";
+import { ActionRow, FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   publicationMemberName,
   type RoundPublicationMember,
@@ -189,16 +191,15 @@ export function PublicationReviewPanel({
         </ul>
       </div>
 
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
       <ActionRow>
-        <button
-          className="primary-button"
+        <Button
           type="button"
           onClick={() => void publish()}
           disabled={
@@ -206,7 +207,7 @@ export function PublicationReviewPanel({
           }
         >
           {pending ? "Working…" : "Publish round"}
-        </button>
+        </Button>
       </ActionRow>
     </section>
   );
@@ -230,16 +231,15 @@ function PublicationMemberRow({
     <li className="row-item publication-member-row">
       <div>
         <label className="bound-choice">
-          <input
+          <Checkbox
             aria-label={`Exclude ${publicationMemberName(member)}`}
-            type="checkbox"
             checked={
               explicitlyExcluded ||
               (member.eligibilityState === "eligible" && !member.included)
             }
             disabled={disabled}
-            onChange={(event) =>
-              void onToggle(member.membershipId, event.target.checked)
+            onCheckedChange={(checked) =>
+              void onToggle(member.membershipId, checked === true)
             }
           />
           <span>Exclude</span> <strong>{publicationMemberName(member)}</strong>

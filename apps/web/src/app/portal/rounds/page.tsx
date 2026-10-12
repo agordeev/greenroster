@@ -24,6 +24,7 @@ import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-d
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data";
 import { ActionRow, EmptyState, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 
 import { PortalShell } from "../portal-shell";
 import { RoundWorkspace } from "./round-workspace";
@@ -257,9 +258,9 @@ export default async function RoundsPage({
         ) : (
           <>
             <ActionRow>
-              <Link className="primary-link" href="/portal/rounds?new=1">
-                New round
-              </Link>
+              <Button asChild>
+                <Link href="/portal/rounds?new=1">New round</Link>
+              </Button>
             </ActionRow>
           </>
         )}
@@ -336,24 +337,27 @@ export default async function RoundsPage({
                       </span>
                       {round.state === "completed" ? (
                         <span className="action-row">
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=results&round_id=${round.roundId}`}
-                          >
-                            Results CSV
-                          </Link>
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=results&format=pdf&round_id=${round.roundId}`}
-                          >
-                            Results PDF
-                          </Link>
-                          <Link
-                            className="text-button"
-                            href={`/api/portal/exports?kind=scorepad&format=pdf&round_id=${round.roundId}`}
-                          >
-                            Score pad PDF
-                          </Link>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=results&round_id=${round.roundId}`}
+                            >
+                              Results CSV
+                            </Link>
+                          </Button>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=results&format=pdf&round_id=${round.roundId}`}
+                            >
+                              Results PDF
+                            </Link>
+                          </Button>
+                          <Button asChild variant="link" size="inline">
+                            <Link
+                              href={`/api/portal/exports?kind=scorepad&format=pdf&round_id=${round.roundId}`}
+                            >
+                              Score pad PDF
+                            </Link>
+                          </Button>
                         </span>
                       ) : null}
                     </div>

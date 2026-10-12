@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { ActionRow } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 
 export function BillingActions({
   hasCustomer,
@@ -52,22 +53,21 @@ export function BillingActions({
 
   return (
     <ActionRow>
-      <button
-        className="primary-button"
+      <Button
         type="button"
         disabled={busy !== null}
         onClick={() => open("/api/billing/checkout", "checkout")}
       >
         {busy === "checkout" ? "Opening checkout…" : "Start checkout"}
-      </button>
-      <button
-        className="secondary-button"
+      </Button>
+      <Button
+        variant="outline"
         type="button"
         disabled={!hasCustomer || busy !== null}
         onClick={() => open("/api/billing/portal", "portal")}
       >
         {busy === "portal" ? "Opening portal…" : "Manage payment"}
-      </button>
+      </Button>
       {message ? <p role="status">{message}</p> : null}
     </ActionRow>
   );

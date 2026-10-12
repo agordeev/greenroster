@@ -11,6 +11,8 @@ import {
   render,
 } from "react-email";
 
+import { emailTheme } from "./theme";
+
 export type ResultsPublishedEmailInput = Readonly<{
   completedAt: string;
   description: string;
@@ -120,46 +122,46 @@ export async function renderResultsPublishedEmail(
 }
 
 const bodyStyle = {
-  backgroundColor: "#f7f3ea",
-  color: "#22231f",
+  backgroundColor: emailTheme.background,
+  color: emailTheme.foreground,
   fontFamily: "Arial, sans-serif",
   margin: "0",
   padding: "32px 0",
 };
 
 const containerStyle = {
-  backgroundColor: "#fffdf8",
-  border: "1px solid #d9d1c0",
+  backgroundColor: emailTheme.card,
+  border: `1px solid ${emailTheme.border}`,
   margin: "0 auto",
   maxWidth: "560px",
   padding: "32px",
 };
 
 const headingStyle = {
-  color: "#213d2b",
+  color: emailTheme.primary,
   fontSize: "26px",
   fontWeight: "700",
   lineHeight: "1.25",
 };
 
 const textStyle = {
-  color: "#22231f",
+  color: emailTheme.foreground,
   fontSize: "16px",
   lineHeight: "1.6",
 };
 
 const mutedTextStyle = {
-  color: "#595a52",
+  color: emailTheme.mutedForeground,
   fontSize: "14px",
   lineHeight: "1.5",
 };
 
 const linkStyle = {
-  color: "#213d2b",
+  color: emailTheme.primary,
   fontWeight: "700",
 };
 
 const ruleStyle = {
-  borderColor: "#d9d1c0",
+  borderColor: emailTheme.border,
   margin: "24px 0",
 };

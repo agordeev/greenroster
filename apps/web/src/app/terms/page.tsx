@@ -2,14 +2,15 @@ import Link from "next/link";
 
 import { InformationShell } from "@/app/information-shell";
 import { LEGAL_EFFECTIVE_DATE, TERMS_VERSION } from "@/lib/legal-documents";
+import { FormMessage } from "@/components/blocks";
 
 export default function TermsPage() {
   return (
     <InformationShell kicker="Legal" title="Terms of Use">
       <div className="information-copy">
-        <p className="status-note" role="status">
+        <FormMessage tone="info" className="mb-6" role="status">
           Effective {LEGAL_EFFECTIVE_DATE} · Version {TERMS_VERSION}
-        </p>
+        </FormMessage>
         <p>
           GreenRoster is for organizing golf groups, rounds, invitations,
           scores, standings, and results. These are the terms for using it.

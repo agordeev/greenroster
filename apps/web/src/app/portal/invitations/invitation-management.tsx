@@ -9,6 +9,10 @@ import {
   regenerateMembershipInvitationAction,
   revokeMembershipInvitationAction,
 } from "@/app/actions/memberships";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { ManageableInvitation } from "@/lib/invitations/invitation-lifecycle";
 import {
   describeInvitationDelivery,
@@ -206,7 +210,7 @@ function InvitationCard({
           <h3>Send a new link</h3>
           <label className="field-group" htmlFor={`regenerate-reason-${id}`}>
             <span>Reason</span>
-            <input
+            <Input
               id={`regenerate-reason-${id}`}
               name="reason"
               value={regenerationReason}
@@ -215,9 +219,9 @@ function InvitationCard({
             />
           </label>
           <ConfirmationField id={`regenerate-confirm-${id}`} />
-          <button className="secondary-button" type="submit" disabled={pending}>
+          <Button variant="outline" type="submit" disabled={pending}>
             {pending ? "Working…" : "Send new link"}
-          </button>
+          </Button>
         </form>
 
         {canCorrectAddress ? (
@@ -225,7 +229,7 @@ function InvitationCard({
             <h3>Fix the e-mail address</h3>
             <label className="field-group" htmlFor={`correct-email-${id}`}>
               <span>New email address</span>
-              <input
+              <Input
                 id={`correct-email-${id}`}
                 name="invitedEmail"
                 type="email"
@@ -237,7 +241,7 @@ function InvitationCard({
             </label>
             <label className="field-group" htmlFor={`correct-reason-${id}`}>
               <span>Reason</span>
-              <input
+              <Input
                 id={`correct-reason-${id}`}
                 name="reason"
                 value={correctionReason}
@@ -246,13 +250,9 @@ function InvitationCard({
               />
             </label>
             <ConfirmationField id={`correct-confirm-${id}`} />
-            <button
-              className="secondary-button"
-              type="submit"
-              disabled={pending}
-            >
+            <Button variant="outline" type="submit" disabled={pending}>
               {pending ? "Working…" : "Fix and resend"}
-            </button>
+            </Button>
           </form>
         ) : null}
 
@@ -260,7 +260,7 @@ function InvitationCard({
           <h3>Cancel invitation</h3>
           <label className="field-group" htmlFor={`revoke-reason-${id}`}>
             <span>Reason</span>
-            <input
+            <Input
               id={`revoke-reason-${id}`}
               name="reason"
               value={revokeReason}
@@ -269,19 +269,19 @@ function InvitationCard({
             />
           </label>
           <ConfirmationField id={`revoke-confirm-${id}`} />
-          <button className="danger-button" type="submit" disabled={pending}>
+          <Button variant="destructive" type="submit" disabled={pending}>
             {pending ? "Working…" : "Cancel invitation"}
-          </button>
+          </Button>
         </form>
       </div>
 
-      <div
-        className="form-message"
+      <FormMessage
+        tone={messageStatus === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={message ? messageStatus : undefined}
       >
         {message}
-      </div>
+      </FormMessage>
       {invitation.deliveryFailureReason ? (
         <p className="field-help">
           Delivery note: {invitation.deliveryFailureReason}
@@ -294,7 +294,7 @@ function InvitationCard({
 function ConfirmationField({ id }: Readonly<{ id: string }>) {
   return (
     <label className="invitation-confirmation" htmlFor={id}>
-      <input id={id} name="confirmed" type="checkbox" required />
+      <Checkbox id={id} name="confirmed" required />
       <span>I want to make this change.</span>
     </label>
   );

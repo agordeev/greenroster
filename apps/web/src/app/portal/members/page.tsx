@@ -4,6 +4,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { ActionRow } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {
@@ -135,9 +136,9 @@ export default async function MemberManagementPage({
           <>
             {portalContext.role !== "member" ? (
               <ActionRow>
-                <Link className="primary-link" href="/portal/members/new">
-                  Add member
-                </Link>
+                <Button asChild>
+                  <Link href="/portal/members/new">Add member</Link>
+                </Button>
                 <Link className="secondary-link" href="/portal/members/import">
                   Import from CSV
                 </Link>

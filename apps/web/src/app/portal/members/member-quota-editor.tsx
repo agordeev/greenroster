@@ -6,6 +6,11 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { FormEvent } from "react";
 
 import { configureMemberQuotaBootstrapAction } from "@/app/actions/memberships";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { projectMemberQuotaBootstrap } from "@/domain/member-quota-bootstrap";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import type { MemberQuotaBootstrapContext } from "@/lib/memberships/member-quota-bootstrap";
@@ -440,7 +445,7 @@ export function MemberQuotaEditor({
           <div className="member-quota-form-grid">
             <label className="field-group" htmlFor="member-initial-quota">
               <span>Starting quota (optional)</span>
-              <input
+              <Input
                 id="member-initial-quota"
                 inputMode="decimal"
                 type="text"
@@ -456,14 +461,13 @@ export function MemberQuotaEditor({
               className="member-quota-confirmation"
               htmlFor="member-use-initial"
             >
-              <input
+              <Checkbox
                 id="member-use-initial"
-                type="checkbox"
                 checked={draft.useInitialQuota}
                 disabled={draft.initialQuota.trim().length === 0}
-                onChange={(event) => {
-                  initialQuotaChoice.current = event.target.checked;
-                  updateDraft("useInitialQuota", event.target.checked);
+                onCheckedChange={(checked) => {
+                  initialQuotaChoice.current = checked === true;
+                  updateDraft("useInitialQuota", checked === true);
                 }}
               />
               <span>
@@ -479,14 +483,14 @@ export function MemberQuotaEditor({
                 Oldest first. Up to {MAX_MEMBER_QUOTA_SEEDS} values.
               </p>
             </div>
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="button"
               onClick={addSeed}
               disabled={draft.seedTotals.length >= MAX_MEMBER_QUOTA_SEEDS}
             >
               Add seed total
-            </button>
+            </Button>
           </div>
           {draft.seedTotals.length === 0 ? (
             <p className="member-quota-empty-seeds">
@@ -501,7 +505,7 @@ export function MemberQuotaEditor({
                     htmlFor={`member-seed-${index}`}
                   >
                     <span>Seed total {index + 1}</span>
-                    <input
+                    <Input
                       id={`member-seed-${index}`}
                       inputMode="decimal"
                       type="text"
@@ -511,14 +515,14 @@ export function MemberQuotaEditor({
                       }
                     />
                   </label>
-                  <button
-                    className="secondary-button"
+                  <Button
+                    variant="outline"
                     type="button"
                     onClick={() => removeSeed(index)}
                     aria-label={`Remove seed total ${index + 1}`}
                   >
                     Remove
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ol>
@@ -546,7 +550,7 @@ export function MemberQuotaEditor({
             htmlFor="member-quota-reason"
           >
             <span>Reason (required)</span>
-            <textarea
+            <Textarea
               id="member-quota-reason"
               value={draft.reason}
               onChange={(event) => updateDraft("reason", event.target.value)}
@@ -560,11 +564,10 @@ export function MemberQuotaEditor({
             className="member-quota-confirmation"
             htmlFor="member-quota-confirm"
           >
-            <input
+            <Checkbox
               id="member-quota-confirm"
-              type="checkbox"
               checked={confirmed}
-              onChange={(event) => setConfirmed(event.target.checked)}
+              onCheckedChange={(checked) => setConfirmed(checked === true)}
               required
             />
             <span>
@@ -573,28 +576,29 @@ export function MemberQuotaEditor({
             </span>
           </label>
 
-          <button className="primary-button" type="submit">
+          <Button type="submit">
             {pending ? "Saving…" : "Save starting quota"}
-          </button>
+          </Button>
         </fieldset>
       </form>
 
-      <div
-        className="form-message"
+      <FormMessage
+        tone={terminal.status === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={terminal.message ? terminal.status : undefined}
       >
         {terminal.message}
         {terminal.stale ? (
-          <button
-            className="secondary-button member-quota-reload"
+          <Button
+            variant="outline"
+            className="member-quota-reload"
             type="button"
             onClick={reloadAfterStale}
           >
             Reload current values
-          </button>
+          </Button>
         ) : null}
-      </div>
+      </FormMessage>
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { ActionRow, EmptyState } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {
@@ -276,9 +277,9 @@ function renderQuotaRulesNeeded(context: PortalContext) {
         </p>
         {administrator ? (
           <ActionRow>
-            <Link className="primary-link" href="/portal/quota">
-              Choose quota rules
-            </Link>
+            <Button asChild>
+              <Link href="/portal/quota">Choose quota rules</Link>
+            </Button>
           </ActionRow>
         ) : null}
       </section>

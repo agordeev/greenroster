@@ -3,6 +3,7 @@
 ## Selected stack
 
 - **Web and API:** Next.js, React, TypeScript
+- **Web styling:** Tailwind CSS and shadcn/ui (Radix primitives, `radix-nova` style, neutral base colour)
 - **Database, authentication, realtime, and file storage:** Supabase
 - **Billing:** Stripe
 - **Email:** Resend

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 export function BillingEntitlementForm({
   membershipId,
 }: Readonly<{ membershipId: string }>) {
@@ -42,15 +45,15 @@ export function BillingEntitlementForm({
     <form action={submit} className="inline-form">
       <label>
         Access until
-        <input name="expiresAt" type="datetime-local" required />
+        <Input name="expiresAt" type="datetime-local" required />
       </label>
       <label>
         Reason
-        <input name="reason" maxLength={1000} required />
+        <Input name="reason" maxLength={1000} required />
       </label>
-      <button className="secondary-button" type="submit" disabled={busy}>
+      <Button variant="outline" type="submit" disabled={busy}>
         {busy ? "Saving…" : "Give access"}
-      </button>
+      </Button>
       {message ? <p role="status">{message}</p> : null}
     </form>
   );

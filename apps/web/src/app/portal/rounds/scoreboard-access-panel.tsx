@@ -6,7 +6,9 @@ import {
   createScoreboardAccessAction,
   revokeScoreboardAccessAction,
 } from "@/app/actions/scoreboard";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { ScoreboardAccessGrant } from "@/lib/scoreboard/scoreboard-access";
 
 export function ScoreboardAccessPanel({
@@ -122,20 +124,20 @@ export function ScoreboardAccessPanel({
         <div className="form-stack">
           <label className="field-group" htmlFor="scoreboard-access-url">
             <span>Live-scores link</span>
-            <input id="scoreboard-access-url" value={grant.url} readOnly />
+            <Input id="scoreboard-access-url" value={grant.url} readOnly />
           </label>
           <p className="form-help">Copy this link while it’s active.</p>
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="button"
             onClick={copyLink}
             disabled={pending}
           >
             Copy link
-          </button>
+          </Button>
           <label className="field-group" htmlFor="scoreboard-revoke-reason">
             <span>Reason for stopping</span>
-            <input
+            <Input
               id="scoreboard-revoke-reason"
               value={reason}
               maxLength={500}
@@ -143,20 +145,20 @@ export function ScoreboardAccessPanel({
               disabled={pending}
             />
           </label>
-          <button
-            className="danger-button"
+          <Button
+            variant="destructive"
             type="button"
             onClick={revokeLink}
             disabled={pending}
           >
             {pending ? "Stopping sharing…" : "Stop sharing"}
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="form-stack" aria-busy={pending}>
           <label className="field-group" htmlFor="scoreboard-access-expires-at">
             <span>Link works until</span>
-            <input
+            <Input
               id="scoreboard-access-expires-at"
               type="datetime-local"
               value={expiresAt}
@@ -166,20 +168,18 @@ export function ScoreboardAccessPanel({
             />
           </label>
           <p className="form-help">Choose when this link stops working.</p>
-          <button
-            className="primary-button"
-            type="button"
-            onClick={issueLink}
-            disabled={pending}
-          >
+          <Button type="button" onClick={issueLink} disabled={pending}>
             {pending ? "Creating link…" : "Create live-scores link"}
-          </button>
+          </Button>
         </div>
       )}
       {message ? (
-        <p className={`form-message ${messageTone}`} role="status">
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          role="status"
+        >
           {message}
-        </p>
+        </FormMessage>
       ) : null}
     </section>
   );

@@ -1,3 +1,5 @@
+import { FormMessage } from "@/components/blocks";
+
 import { RecoveryForm } from "./recovery-form";
 
 type RecoverPasswordPageProps = {
@@ -27,16 +29,16 @@ export default async function RecoverPasswordPage({
           <p>Enter your account e-mail and we’ll send you a recovery link.</p>
         </div>
         {status === "expired" ? (
-          <p className="form-message recovery-status" role="alert">
+          <FormMessage className="mt-6 max-w-[30rem]" role="alert">
             This recovery link has expired or was already used. Enter your
             e-mail below to get a new one.
-          </p>
+          </FormMessage>
         ) : null}
         {status === "unavailable" ? (
-          <p className="form-message recovery-status" role="alert">
+          <FormMessage className="mt-6 max-w-[30rem]" role="alert">
             We could not open your recovery link just now. Open it again in a
             moment.
-          </p>
+          </FormMessage>
         ) : null}
         <RecoveryForm />
       </section>

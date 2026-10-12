@@ -5,6 +5,9 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { updatePasswordAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function ResetForm() {
@@ -28,17 +31,18 @@ export function ResetForm() {
       <div className="field-group">
         <div className="label-row">
           <label htmlFor="password">New password</label>
-          <button
-            className="text-button"
+          <Button
+            variant="link"
+            size="inline"
             type="button"
             onClick={() => setShowPassword((current) => !current)}
             aria-controls="password confirmPassword"
             aria-pressed={showPassword}
           >
             {showPassword ? "Hide" : "Show"}
-          </button>
+          </Button>
         </div>
-        <input
+        <Input
           id="password"
           ref={passwordRef}
           name="password"
@@ -58,7 +62,7 @@ export function ResetForm() {
       </div>
       <div className="field-group">
         <label htmlFor="confirmPassword">Confirm new password</label>
-        <input
+        <Input
           id="confirmPassword"
           ref={confirmPasswordRef}
           name="confirmPassword"
@@ -78,17 +82,21 @@ export function ResetForm() {
           </p>
         ) : null}
       </div>
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage
+        tone={state.status === "success" ? "success" : "error"}
+        aria-live="polite"
+        data-status={state.status}
+      >
         {state.message}
-      </p>
+      </FormMessage>
       {state.status === "success" ? (
-        <Link className="primary-button button-link" href="/sign-in">
-          Return to sign in
-        </Link>
+        <Button asChild>
+          <Link href="/sign-in">Return to sign in</Link>
+        </Button>
       ) : (
-        <button className="primary-button" type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Updating…" : "Update password"}
-        </button>
+        </Button>
       )}
     </form>
   );

@@ -10,6 +10,8 @@ import {
   render,
 } from "react-email";
 
+import { emailTheme } from "./theme";
+
 export type InvitationDeliveryFailedEmailInput = Readonly<{
   actionUrl: string;
   groupName: string;
@@ -88,43 +90,43 @@ export async function renderInvitationDeliveryFailedEmail(
 }
 
 const bodyStyle = {
-  backgroundColor: "#f7f3ea",
-  color: "#22231f",
+  backgroundColor: emailTheme.background,
+  color: emailTheme.foreground,
   fontFamily: "Arial, sans-serif",
   margin: "0",
   padding: "32px 0",
 };
 
 const containerStyle = {
-  backgroundColor: "#fffdf8",
-  border: "1px solid #d9d1c0",
+  backgroundColor: emailTheme.card,
+  border: `1px solid ${emailTheme.border}`,
   margin: "0 auto",
   maxWidth: "560px",
   padding: "32px",
 };
 
 const headingStyle = {
-  color: "#713333",
+  color: emailTheme.destructive,
   fontSize: "26px",
   fontWeight: "700",
   lineHeight: "1.25",
 };
 
 const textStyle = {
-  color: "#22231f",
+  color: emailTheme.foreground,
   fontSize: "16px",
   lineHeight: "1.6",
 };
 
 const mutedTextStyle = {
-  color: "#595a52",
+  color: emailTheme.mutedForeground,
   fontSize: "14px",
   lineHeight: "1.5",
 };
 
 const buttonStyle = {
-  backgroundColor: "#713333",
-  color: "#ffffff",
+  backgroundColor: emailTheme.destructive,
+  color: emailTheme.primaryForeground,
   display: "inline-block",
   fontSize: "16px",
   fontWeight: "700",

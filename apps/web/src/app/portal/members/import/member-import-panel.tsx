@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
-import { Field } from "@/components/blocks";
+import { Field, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { requestMemberImportApplyAction } from "../../../actions/member-imports";
 import {
@@ -262,13 +265,11 @@ export function MemberImportPanel() {
   return (
     <div className="member-import-panel">
       <div className="member-import-actions">
-        <Link
-          className="secondary-button button-link"
-          href="/api/member-imports/template"
-          prefetch={false}
-        >
-          Download CSV template
-        </Link>
+        <Button asChild variant="outline">
+          <Link href="/api/member-imports/template" prefetch={false}>
+            Download CSV template
+          </Link>
+        </Button>
         <Link className="secondary-link" href="/portal/members">
           Return to members
         </Link>
@@ -276,7 +277,7 @@ export function MemberImportPanel() {
 
       <form onSubmit={submit} className="member-import-form">
         <Field id="member-import-file" label="CSV file" help="Up to 500 rows.">
-          <input
+          <Input
             ref={fileInput}
             id="member-import-file"
             name="file"
@@ -286,9 +287,9 @@ export function MemberImportPanel() {
             disabled={pending}
           />
         </Field>
-        <button className="primary-button" type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Uploading…" : "Upload and check"}
-        </button>
+        </Button>
       </form>
 
       <div className="member-import-result" aria-live="polite">
@@ -306,14 +307,12 @@ export function MemberImportPanel() {
             </p>
             {job ? <JobProgress job={job} /> : <p>Checking every row.</p>}
             {statusMessage ? (
-              <p className="form-message" data-status="error">
-                {statusMessage}
-              </p>
+              <FormMessage data-status="error">{statusMessage}</FormMessage>
             ) : null}
             {job?.state === "ready" ? (
               <form className="member-import-confirm" onSubmit={confirmApply}>
                 <Field id="member-import-reason" label="Reason">
-                  <input
+                  <Input
                     id="member-import-reason"
                     value={applyReason}
                     onChange={(event) => setApplyReason(event.target.value)}
@@ -323,29 +322,27 @@ export function MemberImportPanel() {
                   />
                 </Field>
                 <label className="confirmation-row">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={applyConfirmed}
-                    onChange={(event) =>
-                      setApplyConfirmed(event.target.checked)
+                    onCheckedChange={(checked) =>
+                      setApplyConfirmed(checked === true)
                     }
                     disabled={applyPending}
                   />
                   Add these members and create their invitations.
                 </label>
-                <button
-                  className="primary-button"
+                <Button
                   type="submit"
                   disabled={
                     applyPending || !applyConfirmed || !applyReason.trim()
                   }
                 >
                   {applyPending ? "Confirming…" : "Confirm import"}
-                </button>
+                </Button>
               </form>
             ) : null}
             {applyMessage && job?.state !== "completed" ? (
-              <p className="form-message">{applyMessage}</p>
+              <FormMessage>{applyMessage}</FormMessage>
             ) : null}
           </div>
         ) : response ? (

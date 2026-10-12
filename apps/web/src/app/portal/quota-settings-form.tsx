@@ -4,6 +4,10 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
 import { configureQuotaSettingsAction } from "@/app/actions/groups";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   calculateQuota,
   type PlacementMeritRow,
@@ -328,6 +332,7 @@ export function QuotaSettingsForm({
         ).map(([value, letter, label, detail]) => (
           <label key={value} data-selected={method === value}>
             <input
+              className="absolute opacity-0"
               type="radio"
               name="quotaMethod"
               value={value}
@@ -345,7 +350,7 @@ export function QuotaSettingsForm({
         {method === "moving_average" ? (
           <label className="field-group">
             <span>Rounds to average</span>
-            <input
+            <Input
               type="number"
               min="4"
               max="20"
@@ -379,6 +384,7 @@ export function QuotaSettingsForm({
           {([0, 1, 2] as const).map((value) => (
             <label key={value}>
               <input
+                className="mt-0.5 size-4 flex-none accent-primary"
                 type="radio"
                 name="precision"
                 checked={precision === value}
@@ -410,7 +416,7 @@ export function QuotaSettingsForm({
         <div className="quota-policy-row">
           <label className="field-group">
             <span>Participation merit</span>
-            <input
+            <Input
               value={participationMerit}
               onChange={(event) => setParticipationMerit(event.target.value)}
               inputMode="decimal"
@@ -431,7 +437,7 @@ export function QuotaSettingsForm({
           </label>
           <label className="field-group">
             <span>Standings reset date</span>
-            <input
+            <Input
               type="date"
               value={standingsResetDate}
               onChange={(event) => setStandingsResetDate(event.target.value)}
@@ -461,8 +467,8 @@ export function QuotaSettingsForm({
               no placement points.
             </p>
           </div>
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="button"
             onClick={() =>
               setPlacementMerit((current) => [
@@ -478,14 +484,14 @@ export function QuotaSettingsForm({
             }
           >
             Add placement
-          </button>
+          </Button>
         </div>
         {placementMerit.map((row, index) => (
           <fieldset className="band-row" key={row.id}>
             <legend>Placement rank {index + 1}</legend>
             <label>
               Rank
-              <input
+              <Input
                 type="number"
                 min="1"
                 step="1"
@@ -505,7 +511,7 @@ export function QuotaSettingsForm({
             </label>
             <label>
               Merit points
-              <input
+              <Input
                 value={row.points}
                 inputMode="decimal"
                 aria-label={`Placement row ${index + 1} merit points`}
@@ -521,8 +527,8 @@ export function QuotaSettingsForm({
                 }
               />
             </label>
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="button"
               onClick={() =>
                 setPlacementMerit((current) =>
@@ -531,7 +537,7 @@ export function QuotaSettingsForm({
               }
             >
               Remove
-            </button>
+            </Button>
           </fieldset>
         ))}
         {placementMeritError ? (
@@ -555,8 +561,8 @@ export function QuotaSettingsForm({
               <h3 id="band-editor-title">Adjustment bands</h3>
               <p>Bands are checked in the order listed, from −100 to 100.</p>
             </div>
-            <button
-              className="secondary-button"
+            <Button
+              variant="outline"
               type="button"
               onClick={() =>
                 setBands((current) => [
@@ -573,14 +579,14 @@ export function QuotaSettingsForm({
               }
             >
               Add band
-            </button>
+            </Button>
           </div>
           {bands.map((band, index) => (
             <fieldset className="band-row" key={band.id}>
               <legend>Band {index + 1}</legend>
               <label>
                 Lower
-                <input
+                <Input
                   aria-label={`Band ${index + 1} lower bound`}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
                   aria-describedby={
@@ -596,8 +602,7 @@ export function QuotaSettingsForm({
                 />
               </label>
               <label className="bound-choice">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={band.lowerInclusive}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
                   aria-describedby={
@@ -605,15 +610,15 @@ export function QuotaSettingsForm({
                       ? `quota-band-${index + 1}-error`
                       : undefined
                   }
-                  onChange={(event) =>
-                    updateBand(index, { lowerInclusive: event.target.checked })
+                  onCheckedChange={(checked) =>
+                    updateBand(index, { lowerInclusive: checked === true })
                   }
                 />
                 Include lower
               </label>
               <label>
                 Upper
-                <input
+                <Input
                   aria-label={`Band ${index + 1} upper bound`}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
                   aria-describedby={
@@ -629,8 +634,7 @@ export function QuotaSettingsForm({
                 />
               </label>
               <label className="bound-choice">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={band.upperInclusive}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
                   aria-describedby={
@@ -638,15 +642,15 @@ export function QuotaSettingsForm({
                       ? `quota-band-${index + 1}-error`
                       : undefined
                   }
-                  onChange={(event) =>
-                    updateBand(index, { upperInclusive: event.target.checked })
+                  onCheckedChange={(checked) =>
+                    updateBand(index, { upperInclusive: checked === true })
                   }
                 />
                 Include upper
               </label>
               <label>
                 Adjustment
-                <input
+                <Input
                   aria-label={`Band ${index + 1} quota adjustment`}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
                   aria-describedby={
@@ -710,7 +714,7 @@ export function QuotaSettingsForm({
             </div>
             <label>
               Previous quota
-              <input
+              <Input
                 value={testPriorQuota}
                 onChange={(event) => setTestPriorQuota(event.target.value)}
                 inputMode="decimal"
@@ -718,7 +722,7 @@ export function QuotaSettingsForm({
             </label>
             <label>
               Plus/minus
-              <input
+              <Input
                 value={testPlusMinus}
                 onChange={(event) => setTestPlusMinus(event.target.value)}
                 inputMode="decimal"
@@ -737,20 +741,16 @@ export function QuotaSettingsForm({
 
       <label className="field-group quota-reason">
         <span>Reason for change</span>
-        <input
+        <Input
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           maxLength={500}
           required
         />
       </label>
-      <p
-        className="form-message"
-        aria-live="polite"
-        role={message ? "alert" : undefined}
-      >
+      <FormMessage aria-live="polite" role={message ? "alert" : undefined}>
         {message}
-      </p>
+      </FormMessage>
       <p
         className="quota-validation-summary"
         id="quota-save-summary"
@@ -765,8 +765,7 @@ export function QuotaSettingsForm({
               : ""}
       </p>
       <div className="quota-form-actions">
-        <button
-          className="primary-button"
+        <Button
           type="submit"
           aria-describedby={
             bandError || historyError || meritError
@@ -784,15 +783,15 @@ export function QuotaSettingsForm({
           }
         >
           {pending ? "Saving quota rules…" : "Save quota rules"}
-        </button>
-        <button
-          className="secondary-button"
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={cancelChanges}
           disabled={pending || !dirty}
         >
           Cancel changes
-        </button>
+        </Button>
       </div>
     </form>
   );

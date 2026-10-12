@@ -3,7 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundAnnouncementAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { roundAnnouncementInputSchema } from "@/domain/round-announcement";
 
 export function RoundAnnouncementPanel({
@@ -70,13 +72,16 @@ export function RoundAnnouncementPanel({
         meta={<>{remaining} characters left.</>}
       />
       {message ? (
-        <p className={`form-message ${messageTone}`} role="status">
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          role="status"
+        >
           {message}
-        </p>
+        </FormMessage>
       ) : null}
       <div className="form-stack" aria-busy={pending}>
         <label htmlFor="round-announcement-body">Your update</label>
-        <textarea
+        <Textarea
           id="round-announcement-body"
           value={body}
           maxLength={300}
@@ -88,14 +93,13 @@ export function RoundAnnouncementPanel({
         <p id="round-announcement-help" className="form-help">
           Up to 300 characters.
         </p>
-        <button
-          className="primary-button"
+        <Button
           type="button"
           disabled={pending || body.trim().length === 0}
           onClick={postUpdate}
         >
           {pending ? "Posting update…" : "Post update"}
-        </button>
+        </Button>
       </div>
     </section>
   );

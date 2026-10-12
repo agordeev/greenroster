@@ -7,6 +7,8 @@ import {
   acceptInvitationAction,
   initialInvitationActionState,
 } from "@/app/actions/invitations";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 
 export function InvitationAcceptForm() {
   const [state, formAction, pending] = useActionState(
@@ -17,24 +19,24 @@ export function InvitationAcceptForm() {
   if (state.status === "success") {
     return (
       <div className="invitation-action-success" role="status">
-        <p className="form-message" data-status="success">
+        <FormMessage tone="success" data-status="success">
           {state.message}
-        </p>
-        <Link className="primary-button button-link" href="/member/first-run">
-          Confirm profile and continue
-        </Link>
+        </FormMessage>
+        <Button asChild>
+          <Link href="/member/first-run">Confirm profile and continue</Link>
+        </Button>
       </div>
     );
   }
 
   return (
     <form action={formAction} className="auth-form invitation-action-form">
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage aria-live="polite" data-status={state.status}>
         {state.message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Accepting…" : "Accept invitation"}
-      </button>
+      </Button>
       <Link
         className="secondary-link"
         href="/sign-in?next=%2Finvitations%2Faccept"

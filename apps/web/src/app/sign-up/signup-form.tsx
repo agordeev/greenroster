@@ -5,7 +5,10 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { initialAuthFormState } from "@/app/actions/auth-state";
 import { registerOrganizerAction } from "@/app/actions/auth";
-import { Field } from "@/components/blocks";
+import { Field, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function OrganizerSignupForm() {
@@ -25,12 +28,12 @@ export function OrganizerSignupForm() {
   if (state.status === "success") {
     return (
       <div className="invitation-action-success" role="status">
-        <p className="form-message" data-status="success">
+        <FormMessage tone="success" data-status="success">
           {state.message}
-        </p>
-        <Link className="primary-button button-link" href="/sign-up/finish">
-          Continue to group setup
-        </Link>
+        </FormMessage>
+        <Button asChild>
+          <Link href="/sign-up/finish">Continue to group setup</Link>
+        </Button>
       </div>
     );
   }
@@ -39,7 +42,7 @@ export function OrganizerSignupForm() {
     <form action={formAction} className="auth-form" noValidate>
       <div className="field-group">
         <label htmlFor="email">Account e-mail</label>
-        <input
+        <Input
           id="email"
           ref={emailRef}
           name="email"
@@ -62,17 +65,18 @@ export function OrganizerSignupForm() {
       <div className="field-group">
         <div className="label-row">
           <label htmlFor="password">Password</label>
-          <button
-            className="text-button"
+          <Button
+            variant="link"
+            size="inline"
             type="button"
             onClick={() => setShowPassword((current) => !current)}
             aria-controls="password confirmPassword"
             aria-pressed={showPassword}
           >
             {showPassword ? "Hide" : "Show"}
-          </button>
+          </Button>
         </div>
-        <input
+        <Input
           id="password"
           ref={passwordRef}
           name="password"
@@ -87,7 +91,7 @@ export function OrganizerSignupForm() {
       </div>
 
       <Field id="confirmPassword" label="Confirm password">
-        <input
+        <Input
           id="confirmPassword"
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
@@ -97,24 +101,24 @@ export function OrganizerSignupForm() {
       </Field>
 
       <label className="confirmation-row">
-        <input name="acceptedTerms" type="checkbox" required />
+        <Checkbox name="acceptedTerms" required />
         <span>
           I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
       <label className="confirmation-row">
-        <input name="acceptedPrivacy" type="checkbox" required />
+        <Checkbox name="acceptedPrivacy" required />
         <span>
           I accept the current <Link href="/privacy">Privacy Policy</Link>.
         </span>
       </label>
 
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage aria-live="polite" data-status={state.status}>
         {state.message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Creating your account…" : "Create your account"}
-      </button>
+      </Button>
     </form>
   );
 }

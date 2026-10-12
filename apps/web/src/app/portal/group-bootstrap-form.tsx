@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { bootstrapGroupAction } from "@/app/actions/groups";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
 import { resolveLocalTimeZone } from "@/lib/local-time-zone";
@@ -103,7 +106,7 @@ export function GroupBootstrapForm({
     >
       <div className="field-group">
         <label htmlFor="groupName">Group name</label>
-        <input
+        <Input
           id="groupName"
           ref={nameRef}
           name="groupName"
@@ -123,7 +126,7 @@ export function GroupBootstrapForm({
 
       <div className="field-group">
         <label htmlFor="groupTimeZone">Group time zone</label>
-        <input
+        <Input
           id="groupTimeZone"
           ref={timeZoneRef}
           name="groupTimeZone"
@@ -146,12 +149,12 @@ export function GroupBootstrapForm({
         ) : null}
       </div>
 
-      <p className="form-message" aria-live="polite" data-status="error">
+      <FormMessage aria-live="polite" data-status="error">
         {message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Creating group…" : "Create group and continue"}
-      </button>
+      </Button>
     </form>
   );
 }

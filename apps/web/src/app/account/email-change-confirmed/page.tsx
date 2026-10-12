@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
 import { EmailChangeConfirmationStatus } from "./email-change-confirmation-status";
 
 export default function EmailChangeConfirmedPage() {
@@ -15,9 +16,9 @@ export default function EmailChangeConfirmedPage() {
           </p>
         </div>
         <EmailChangeConfirmationStatus />
-        <Link className="primary-link" href="/account">
-          Open your account
-        </Link>
+        <Button asChild className="mt-6">
+          <Link href="/account">Open your account</Link>
+        </Button>
       </section>
     </main>
   );

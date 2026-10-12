@@ -5,7 +5,9 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { bootstrapOrganizerAction } from "@/app/actions/auth";
-import { Field } from "@/components/blocks";
+import { Field, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
 import { resolveLocalTimeZone } from "@/lib/local-time-zone";
 
@@ -116,7 +118,7 @@ export function OrganizerBootstrapForm({
       noValidate
     >
       <Field id="firstName" label="First name" error={errors.firstName}>
-        <input
+        <Input
           id="firstName"
           name="firstName"
           value={firstName}
@@ -126,7 +128,7 @@ export function OrganizerBootstrapForm({
         />
       </Field>
       <Field id="lastName" label="Last name" error={errors.lastName}>
-        <input
+        <Input
           id="lastName"
           name="lastName"
           value={lastName}
@@ -136,7 +138,7 @@ export function OrganizerBootstrapForm({
         />
       </Field>
       <Field id="groupName" label="Group name" error={errors.groupName}>
-        <input
+        <Input
           id="groupName"
           name="groupName"
           value={groupName}
@@ -150,7 +152,7 @@ export function OrganizerBootstrapForm({
         label="Group time zone"
         error={errors.groupTimeZone}
       >
-        <input
+        <Input
           id="groupTimeZone"
           name="groupTimeZone"
           value={groupTimeZone}
@@ -165,12 +167,12 @@ export function OrganizerBootstrapForm({
         <Link href="/privacy">Privacy Policy</Link>.
       </p>
       {errors.legal ? <p className="field-error">{errors.legal}</p> : null}
-      <p className="form-message" aria-live="polite" data-status="error">
+      <FormMessage aria-live="polite" data-status="error">
         {message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Creating your group…" : "Create your group and continue"}
-      </button>
+      </Button>
     </form>
   );
 }

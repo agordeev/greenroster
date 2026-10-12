@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import { resolveAccountPageSession } from "@/lib/auth/account-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
+import { Button } from "@/components/ui/button";
 
 import { AccountEmailForm } from "./account-email-form";
 
@@ -36,9 +37,9 @@ export default async function AccountPage() {
             Privacy requests
           </Link>
           <form action={signOutAction}>
-            <button className="text-button" type="submit">
+            <Button variant="link" size="inline" type="submit">
               Sign out
-            </button>
+            </Button>
           </form>
         </div>
       </section>
@@ -54,9 +55,7 @@ function RecoverySessionRestricted() {
         <h1>Sign in again to change your account e-mail</h1>
         <p>Sign out, then sign in with your password.</p>
         <form action={signOutAction}>
-          <button className="primary-button" type="submit">
-            Sign out
-          </button>
+          <Button type="submit">Sign out</Button>
         </form>
       </section>
     </main>

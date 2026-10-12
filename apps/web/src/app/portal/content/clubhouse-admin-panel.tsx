@@ -6,7 +6,10 @@ import {
   saveGroupMediaAction,
   saveGroupNewsAction,
 } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { ClubhouseProjection } from "@/domain/clubhouse-content";
 
 export function ClubhouseAdminPanel({
@@ -78,7 +81,7 @@ export function ClubhouseAdminPanel({
       <div className="form-stack">
         <label className="field-group" htmlFor="clubhouse-title">
           <span>Title</span>
-          <input
+          <Input
             id="clubhouse-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
@@ -87,7 +90,7 @@ export function ClubhouseAdminPanel({
         </label>
         <label className="field-group" htmlFor="clubhouse-body">
           <span>News text</span>
-          <textarea
+          <Textarea
             id="clubhouse-body"
             value={body}
             onChange={(event) => setBody(event.target.value)}
@@ -96,17 +99,12 @@ export function ClubhouseAdminPanel({
             disabled={pending}
           />
         </label>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={saveNews}
-          disabled={pending}
-        >
+        <Button type="button" onClick={saveNews} disabled={pending}>
           {pending ? "Saving…" : "Publish news"}
-        </button>
+        </Button>
         <label className="field-group" htmlFor="clubhouse-url">
           <span>Video link</span>
-          <input
+          <Input
             id="clubhouse-url"
             type="url"
             placeholder="https://"
@@ -115,17 +113,15 @@ export function ClubhouseAdminPanel({
             disabled={pending}
           />
         </label>
-        <button
-          className="secondary-button"
+        <Button
+          variant="outline"
           type="button"
           onClick={saveMedia}
           disabled={pending}
         >
           Publish video link
-        </button>
-        <p className="form-message" role="status">
-          {feedback}
-        </p>
+        </Button>
+        <FormMessage role="status">{feedback}</FormMessage>
       </div>
     </section>
   );

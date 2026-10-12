@@ -10,7 +10,10 @@ import {
 } from "react";
 
 import { updateGroupProfileAction } from "@/app/actions/groups";
-import { ActionRow } from "@/components/blocks";
+import { ActionRow, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { isSupportedTimeZone } from "@/lib/groups/group-profile";
 
 export type GroupProfileFormValue = Readonly<{
@@ -215,7 +218,7 @@ export function GroupProfileForm({
       <div className="form-row">
         <div className="field-group">
           <label htmlFor="group-profile-name">Group name</label>
-          <input
+          <Input
             id="group-profile-name"
             ref={nameRef}
             name="groupName"
@@ -240,7 +243,7 @@ export function GroupProfileForm({
         </div>
         <div className="field-group">
           <label htmlFor="group-profile-time-zone">Group time zone</label>
-          <input
+          <Input
             id="group-profile-time-zone"
             ref={timeZoneRef}
             name="groupTimeZone"
@@ -270,7 +273,7 @@ export function GroupProfileForm({
       </div>
       <div className="field-group">
         <label htmlFor="group-profile-reason">Reason for change</label>
-        <textarea
+        <Textarea
           id="group-profile-reason"
           ref={reasonRef}
           name="reason"
@@ -294,25 +297,25 @@ export function GroupProfileForm({
           </p>
         ) : null}
       </div>
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
       <ActionRow>
-        <button className="primary-button" type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save group details"}
-        </button>
-        <button
-          className="secondary-button"
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={cancel}
           disabled={pending || !dirty}
         >
           Cancel
-        </button>
+        </Button>
       </ActionRow>
     </form>
   );

@@ -6,6 +6,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { buildPrivacyRequestMailto } from "@/lib/privacy/privacy-request-links";
 import { hasRecentPrivacyAuthentication } from "@/lib/privacy/privacy-request-auth";
+import { Button } from "@/components/ui/button";
 
 export default async function PrivacyRequestsPage() {
   const session = await resolveAccountPageSession();
@@ -40,9 +41,9 @@ export default async function PrivacyRequestsPage() {
           <p>Choose a request below. We aim to reply within 30 days.</p>
         </div>
         <div className="account-email-actions">
-          <a className="primary-button" href={dataAccessHref}>
-            Request a copy of my data
-          </a>
+          <Button asChild>
+            <a href={dataAccessHref}>Request a copy of my data</a>
+          </Button>
           <a className="secondary-link" href={deletionHref}>
             Request account deletion
           </a>
@@ -67,12 +68,11 @@ function RecoverySessionRestricted() {
         <p className="ledger-kicker">One more step</p>
         <h1>Sign in again to make a privacy request</h1>
         <p>Sign out, then sign in with your password.</p>
-        <Link
-          className="primary-button"
-          href="/sign-in?next=%2Faccount%2Fprivacy"
-        >
-          Return to sign in
-        </Link>
+        <Button asChild>
+          <Link href="/sign-in?next=%2Faccount%2Fprivacy">
+            Return to sign in
+          </Link>
+        </Button>
       </section>
     </main>
   );
@@ -97,12 +97,11 @@ function RecentAuthenticationRequired() {
         <p className="ledger-kicker">One more step</p>
         <h1>Sign in again to make a privacy request</h1>
         <p>Sign out, then sign in again to send one.</p>
-        <Link
-          className="primary-button"
-          href="/sign-in?next=%2Faccount%2Fprivacy"
-        >
-          Return to sign in
-        </Link>
+        <Button asChild>
+          <Link href="/sign-in?next=%2Faccount%2Fprivacy">
+            Return to sign in
+          </Link>
+        </Button>
       </section>
     </main>
   );

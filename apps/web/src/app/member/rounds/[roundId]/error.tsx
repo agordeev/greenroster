@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function Error({
   unstable_retry,
 }: Readonly<{
@@ -12,13 +14,9 @@ export default function Error({
         <p className="ledger-kicker">Your round</p>
         <h1 id="member-round-error">This round is unavailable</h1>
         <p>We couldn&apos;t load this round. Try again.</p>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={unstable_retry}
-        >
+        <Button type="button" onClick={unstable_retry}>
           Try again
-        </button>
+        </Button>
       </section>
     </main>
   );

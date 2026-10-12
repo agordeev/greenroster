@@ -15,6 +15,7 @@ import {
 } from "@/lib/invitations/invitation-acceptance-state";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
+import { Button } from "@/components/ui/button";
 
 import { InvitationAcceptForm } from "./accept-form";
 
@@ -82,9 +83,9 @@ function StatusState({
         <p>{message}</p>
       </div>
       <div className="action-row invitation-recovery-actions">
-        <Link className="primary-link" href="/sign-in">
-          Sign in
-        </Link>
+        <Button asChild>
+          <Link href="/sign-in">Sign in</Link>
+        </Button>
         <Link className="secondary-link" href="/help">
           Get help
         </Link>
@@ -159,12 +160,11 @@ export default async function InvitationAcceptPage({
           </p>
         </div>
         <div className="action-row invitation-recovery-actions">
-          <Link
-            className="primary-link"
-            href="/sign-in?next=%2Finvitations%2Faccept"
-          >
-            Sign in to continue
-          </Link>
+          <Button asChild>
+            <Link href="/sign-in?next=%2Finvitations%2Faccept">
+              Sign in to continue
+            </Link>
+          </Button>
           <Link className="secondary-link" href="/invitations/accept/register">
             Create an account
           </Link>
@@ -307,12 +307,11 @@ export default async function InvitationAcceptPage({
         <InvitationAcceptForm />
       ) : (
         <div className="action-row invitation-recovery-actions">
-          <Link
-            className="primary-link"
-            href="/sign-in?next=%2Finvitations%2Faccept"
-          >
-            Sign in to accept
-          </Link>
+          <Button asChild>
+            <Link href="/sign-in?next=%2Finvitations%2Faccept">
+              Sign in to accept
+            </Link>
+          </Button>
           <Link className="secondary-link" href="/invitations/accept/register">
             Create an account
           </Link>

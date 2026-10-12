@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { setRoundRsvpAction } from "@/app/actions/rounds";
 import type { MemberNextRound } from "@/domain/member-next-round";
 
@@ -85,36 +87,32 @@ export function MemberNextRoundRsvp({
         ) : null}
       </p>
       <div className="action-row" aria-label="Round RSVP">
-        <button
-          className={
-            rsvpStatus === "playing" ? "primary-button" : "secondary-button"
-          }
+        <Button
+          variant={rsvpStatus === "playing" ? "default" : "outline"}
           type="button"
           aria-pressed={rsvpStatus === "playing"}
           disabled={pending}
           onClick={() => changeRsvp("playing")}
         >
           {pendingStatus === "playing" ? "Saving…" : "Playing"}
-        </button>
-        <button
-          className={
-            rsvpStatus === "not_playing" ? "primary-button" : "secondary-button"
-          }
+        </Button>
+        <Button
+          variant={rsvpStatus === "not_playing" ? "default" : "outline"}
           type="button"
           aria-pressed={rsvpStatus === "not_playing"}
           disabled={pending}
           onClick={() => changeRsvp("not_playing")}
         >
           {pendingStatus === "not_playing" ? "Saving…" : "Not playing"}
-        </button>
+        </Button>
       </div>
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
     </div>
   );
 }

@@ -13,7 +13,17 @@ import {
   createRoundDraftAction,
   updateRoundDraftAction,
 } from "@/app/actions/rounds";
-import { ActionRow, Field, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  Field,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   createRoundDraftInputSchema,
   formatRoundFormat,
@@ -325,7 +335,7 @@ export function RoundDraftForm({
           label="Description"
           error={fieldErrors.description}
         >
-          <input
+          <Input
             id={`${prefix}-description`}
             ref={descriptionRef}
             value={description}
@@ -334,7 +344,7 @@ export function RoundDraftForm({
           />
         </Field>
         <Field id={`${prefix}-venue`} label="Venue" error={fieldErrors.venue}>
-          <input
+          <Input
             id={`${prefix}-venue`}
             ref={venueRef}
             value={venue}
@@ -349,7 +359,7 @@ export function RoundDraftForm({
           label="Start time"
           error={fieldErrors.scheduledLocal}
         >
-          <input
+          <Input
             id={`${prefix}-scheduled`}
             ref={scheduledLocalRef}
             type="datetime-local"
@@ -363,7 +373,7 @@ export function RoundDraftForm({
           label="RSVP deadline"
           error={fieldErrors.rsvpDeadlineLocal}
         >
-          <input
+          <Input
             id={`${prefix}-deadline`}
             ref={rsvpDeadlineLocalRef}
             type="datetime-local"
@@ -378,7 +388,7 @@ export function RoundDraftForm({
         label="Round link"
         error={fieldErrors.roundUrl}
       >
-        <input
+        <Input
           id={`${prefix}-url`}
           ref={roundUrlRef}
           type="url"
@@ -389,7 +399,7 @@ export function RoundDraftForm({
         />
       </Field>
       <Field id={`${prefix}-format`} label="Format" error={fieldErrors.format}>
-        <select
+        <NativeSelect
           id={`${prefix}-format`}
           ref={formatRef}
           value={format}
@@ -401,10 +411,10 @@ export function RoundDraftForm({
               {formatRoundFormat(option)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </Field>
       <Field id={`${prefix}-notes`} label="Notes" error={fieldErrors.notes}>
-        <textarea
+        <Textarea
           id={`${prefix}-notes`}
           ref={notesRef}
           rows={4}
@@ -415,34 +425,35 @@ export function RoundDraftForm({
         />
       </Field>
       <label className="bound-choice" htmlFor={`${prefix}-notes-visible`}>
-        <input
+        <Checkbox
           id={`${prefix}-notes-visible`}
-          type="checkbox"
           checked={notesVisibleToPlayers}
-          onChange={(event) => setNotesVisibleToPlayers(event.target.checked)}
+          onCheckedChange={(checked) =>
+            setNotesVisibleToPlayers(checked === true)
+          }
           disabled={disabled}
         />
         Show notes to players after you publish
       </label>
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
+      </FormMessage>
       <ActionRow>
-        <button className="primary-button" type="submit" disabled={disabled}>
+        <Button type="submit" disabled={disabled}>
           {pending ? "Saving…" : isEdit ? "Save draft" : "Create draft"}
-        </button>
-        <button
-          className="secondary-button"
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={cancel}
           disabled={disabled || !dirty}
         >
           Cancel
-        </button>
+        </Button>
       </ActionRow>
     </form>
   );

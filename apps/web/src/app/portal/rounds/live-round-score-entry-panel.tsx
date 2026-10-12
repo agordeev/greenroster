@@ -4,7 +4,10 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantScoreAction } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/blocks";
+import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   roundScoreInputSchema,
   type LiveRoundScoreParticipant,
@@ -249,11 +252,11 @@ function ParticipantScoreEditor({
       </div>
 
       {staleCurrentScore ? (
-        <aside className="form-message error" role="alert">
+        <FormMessage role="alert">
           <strong>Current scores</strong>
           <span>{formatServerValues(staleCurrentScore, fields)}</span>
           <span>Enter your score again to save it.</span>
-        </aside>
+        </FormMessage>
       ) : null}
 
       <form
@@ -281,7 +284,7 @@ function ParticipantScoreEditor({
         {score.version > 0 && !readOnly ? (
           <label className="field-group" htmlFor={`${formId}-reason`}>
             <span>Reason for the change</span>
-            <textarea
+            <Textarea
               id={`${formId}-reason`}
               value={reason}
               onChange={(event) => {
@@ -317,17 +320,16 @@ function ParticipantScoreEditor({
         </dl>
 
         {message ? (
-          <p className={`form-message ${messageTone}`} role="status">
+          <FormMessage
+            tone={messageTone === "success" ? "success" : "error"}
+            role="status"
+          >
             {message}
-          </p>
+          </FormMessage>
         ) : null}
-        <button
-          className="primary-button"
-          type="submit"
-          disabled={readOnly || pending}
-        >
+        <Button type="submit" disabled={readOnly || pending}>
           {pending ? "Saving score…" : "Save score"}
-        </button>
+        </Button>
       </form>
     </article>
   );
@@ -356,7 +358,7 @@ function ScoreFieldInput({
   return (
     <label className="field-group" htmlFor={inputId}>
       <span>{fieldLabels[field]}</span>
-      <input
+      <Input
         id={inputId}
         type="number"
         inputMode="decimal"

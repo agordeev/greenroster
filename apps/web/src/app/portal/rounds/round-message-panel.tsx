@@ -3,7 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundMessageAction } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import type { RoundMessage } from "@/domain/clubhouse-content";
 
 export function RoundMessagePanel({
@@ -73,7 +75,7 @@ export function RoundMessagePanel({
       </div>
       <label className="field-group" htmlFor="round-message-body">
         <span>Write a message</span>
-        <textarea
+        <Textarea
           id="round-message-body"
           value={body}
           maxLength={300}
@@ -85,19 +87,10 @@ export function RoundMessagePanel({
       <p className="form-help" aria-live="polite">
         {300 - body.length} characters left.
       </p>
-      <button
-        className="primary-button"
-        type="button"
-        onClick={submit}
-        disabled={pending}
-      >
+      <Button type="button" onClick={submit} disabled={pending}>
         {pending ? "Posting…" : "Post message"}
-      </button>
-      {feedback ? (
-        <p className="form-message" role="status">
-          {feedback}
-        </p>
-      ) : null}
+      </Button>
+      {feedback ? <FormMessage role="status">{feedback}</FormMessage> : null}
     </section>
   );
 }

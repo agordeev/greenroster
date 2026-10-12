@@ -3,6 +3,9 @@
 import { useState, type FormEvent } from "react";
 
 import { Field } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type GroupActivityFilterProps = Readonly<{
   targetType?: string;
@@ -50,7 +53,7 @@ export function GroupActivityFilterForm({
       onSubmit={handleSubmit}
     >
       <Field id="activity-target-type" label="What changed">
-        <select
+        <NativeSelect
           id="activity-target-type"
           name="target_type"
           value={targetType}
@@ -66,10 +69,10 @@ export function GroupActivityFilterForm({
           <option value="">All changes</option>
           <option value="membership">Member</option>
           <option value="round">Round</option>
-        </select>
+        </NativeSelect>
       </Field>
       <Field id="activity-target-id" label="ID">
-        <input
+        <Input
           id="activity-target-id"
           name="target_id"
           value={targetId}
@@ -83,9 +86,9 @@ export function GroupActivityFilterForm({
           aria-describedby={error ? "activity-filter-error" : undefined}
         />
       </Field>
-      <button className="secondary-button" type="submit">
+      <Button variant="outline" type="submit">
         Apply filter
-      </button>
+      </Button>
       {targetType ? (
         <a className="secondary-link" href="/portal/group">
           Clear filter

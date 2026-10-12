@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { cancelRoundAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { roundCancellationBlockedByDraftChanges } from "@/domain/round-cancellation";
 
 export function RoundCancellationPanel({
@@ -109,9 +111,9 @@ export function RoundCancellationPanel({
           : "e-mails every player in the round."}
       </p>
       {roundCancellationBlockedByDraftChanges(state, draftDirty) ? (
-        <p className="form-message error" role="status">
+        <FormMessage role="status">
           Save or discard your draft changes before you cancel.
-        </p>
+        </FormMessage>
       ) : null}
       <form
         className="form-stack"
@@ -121,7 +123,7 @@ export function RoundCancellationPanel({
       >
         <label className="field-group" htmlFor="round-cancellation-reason">
           <span>Reason</span>
-          <textarea
+          <Textarea
             id="round-cancellation-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -133,19 +135,22 @@ export function RoundCancellationPanel({
           <small id="round-cancellation-help">Required.</small>
         </label>
         {message ? (
-          <p className={`form-message ${messageTone}`} role="status">
+          <FormMessage
+            tone={messageTone === "success" ? "success" : "error"}
+            role="status"
+          >
             {message}
-          </p>
+          </FormMessage>
         ) : null}
-        <button
-          className="danger-button"
+        <Button
+          variant="destructive"
           type="submit"
           disabled={
             pending || roundCancellationBlockedByDraftChanges(state, draftDirty)
           }
         >
           {pending ? "Cancelling…" : "Cancel round"}
-        </button>
+        </Button>
       </form>
     </section>
   );

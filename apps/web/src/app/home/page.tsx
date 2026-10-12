@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ActionRow } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { InformationShell } from "@/app/information-shell";
 
 export default function HomePage() {
@@ -12,9 +13,9 @@ export default function HomePage() {
           Coordinators and administrators also run the group from the portal.
         </p>
         <ActionRow>
-          <Link className="primary-link" href="/sign-in">
-            Open GreenRoster
-          </Link>
+          <Button asChild>
+            <Link href="/sign-in">Open GreenRoster</Link>
+          </Button>
           <Link className="secondary-link" href="/help">
             Read help
           </Link>

@@ -7,7 +7,10 @@ import {
   completeMemberFirstRunAction,
   initialMemberFirstRunActionState,
 } from "@/app/actions/member-profile";
-import { Field } from "@/components/blocks";
+import { Field, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type MemberFirstRunFormProps = Readonly<{
   firstName: string;
@@ -26,12 +29,12 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
   if (state.status === "success") {
     return (
       <div className="invitation-action-success" role="status">
-        <p className="form-message" data-status="success">
+        <FormMessage tone="success" data-status="success">
           {state.message}
-        </p>
-        <Link className="primary-button button-link" href="/member/home">
-          Home
-        </Link>
+        </FormMessage>
+        <Button asChild>
+          <Link href="/member/home">Home</Link>
+        </Button>
       </div>
     );
   }
@@ -43,7 +46,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
       <input name="privacyVersion" type="hidden" value={props.privacyVersion} />
 
       <Field id="firstName" label="First name">
-        <input
+        <Input
           id="firstName"
           name="firstName"
           defaultValue={props.firstName}
@@ -53,7 +56,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
         />
       </Field>
       <Field id="lastName" label="Last name">
-        <input
+        <Input
           id="lastName"
           name="lastName"
           defaultValue={props.lastName}
@@ -64,24 +67,24 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
       </Field>
 
       <label className="confirmation-row">
-        <input name="acceptedTerms" type="checkbox" required />
+        <Checkbox name="acceptedTerms" required />
         <span>
           I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
       <label className="confirmation-row">
-        <input name="acceptedPrivacy" type="checkbox" required />
+        <Checkbox name="acceptedPrivacy" required />
         <span>
           I accept the current <Link href="/privacy">Privacy Policy</Link>.
         </span>
       </label>
 
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage aria-live="polite" data-status={state.status}>
         {state.message}
-      </p>
-      <button className="primary-button" type="submit" disabled={pending}>
+      </FormMessage>
+      <Button type="submit" disabled={pending}>
         {pending ? "Confirming…" : "Confirm profile and continue"}
-      </button>
+      </Button>
     </form>
   );
 }

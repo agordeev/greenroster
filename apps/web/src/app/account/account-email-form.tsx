@@ -4,6 +4,10 @@ import { useActionState, useEffect, useRef } from "react";
 
 import { requestAccountEmailChangeAction } from "@/app/actions/account";
 import { initialAccountEmailChangeState } from "@/lib/auth/account-email-change";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountEmailForm({
   currentEmail,
@@ -33,7 +37,7 @@ export function AccountEmailForm({
 
       <div className="field-group">
         <label htmlFor="new-account-email">New account e-mail</label>
-        <input
+        <Input
           id="new-account-email"
           ref={emailRef}
           name="email"
@@ -60,7 +64,7 @@ export function AccountEmailForm({
       </div>
 
       <label className="account-email-confirmation">
-        <input name="confirmed" type="checkbox" value="true" required />
+        <Checkbox name="confirmed" value="true" required />
         <span>
           I understand my e-mail won&apos;t change until I follow the
           confirmation links.
@@ -70,13 +74,13 @@ export function AccountEmailForm({
         <p className="field-error">Tick the box to continue.</p>
       ) : null}
 
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage aria-live="polite" data-status={state.status}>
         {state.message}
-      </p>
+      </FormMessage>
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Sending…" : "Change account e-mail"}
-      </button>
+      </Button>
     </form>
   );
 }

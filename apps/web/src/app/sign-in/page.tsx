@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { AuthForm } from "./auth-form";
-import { ActionRow, SkipLink } from "@/components/blocks";
+import { ActionRow, FormMessage, SkipLink } from "@/components/blocks";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
 type SignInPageProps = {
@@ -34,21 +34,21 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </div>
 
           {status === "session-expired" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               You have been signed out. Sign in and try again.
-            </p>
+            </FormMessage>
           ) : null}
           {status === "member-link-expired" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               That results link has expired or was already used. Ask your group
               coordinator to send a new results e-mail.
-            </p>
+            </FormMessage>
           ) : null}
           {status === "member-link-unavailable" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               We could not open that results link. Try the link again, or sign
               in with your account e-mail.
-            </p>
+            </FormMessage>
           ) : null}
 
           <AuthForm returnPath={returnPath} />

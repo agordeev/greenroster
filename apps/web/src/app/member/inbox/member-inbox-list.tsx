@@ -2,6 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import { markMemberInboxReadAction } from "@/app/actions/notifications";
 import type { MemberInboxItem } from "@/domain/member-inbox";
 
@@ -63,11 +65,7 @@ export function MemberInboxList({
 
   return (
     <>
-      {message ? (
-        <p className="form-message" role="status">
-          {message}
-        </p>
-      ) : null}
+      {message ? <FormMessage role="status">{message}</FormMessage> : null}
       <div className="member-inbox-list">
         {items.map((item) => (
           <article
@@ -88,8 +86,8 @@ export function MemberInboxList({
               {item.authorDisplayName} · {formatRole(item.authorRole)}
             </p>
             {!item.readAt ? (
-              <button
-                className="secondary-button"
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => markRead(item)}
                 disabled={pending}
@@ -97,7 +95,7 @@ export function MemberInboxList({
                 {pendingItemId === item.inboxItemId
                   ? "Saving…"
                   : "Mark as read"}
-              </button>
+              </Button>
             ) : null}
           </article>
         ))}

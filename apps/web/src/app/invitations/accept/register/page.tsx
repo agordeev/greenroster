@@ -8,6 +8,7 @@ import {
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
+import { Button } from "@/components/ui/button";
 
 import { InvitationRegisterForm } from "./register-form";
 
@@ -83,9 +84,9 @@ export default async function InvitationRegisterPage() {
             and accept it with this one.
           </p>
         </div>
-        <Link className="primary-link" href="/invitations/accept">
-          Review invitation
-        </Link>
+        <Button asChild className="mt-6">
+          <Link href="/invitations/accept">Review invitation</Link>
+        </Button>
       </RegisterFrame>
     );
   }

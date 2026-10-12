@@ -70,8 +70,8 @@ browser wait --load networkidle >/dev/null
 browser fill 'input[name="email"]' "$E2E_EMAIL" >/dev/null
 browser fill 'input[name="password"]' "$E2E_PASSWORD" >/dev/null
 browser fill 'input[name="confirmPassword"]' "$E2E_PASSWORD" >/dev/null
-browser check 'input[name="acceptedTerms"]' >/dev/null
-browser check 'input[name="acceptedPrivacy"]' >/dev/null
+browser click 'label:has(input[name="acceptedTerms"]) [role="checkbox"]' >/dev/null
+browser click 'label:has(input[name="acceptedPrivacy"]) [role="checkbox"]' >/dev/null
 browser focus 'button[type="submit"]' >/dev/null
 browser press Enter >/dev/null
 browser wait --text "Continue to group setup" >/dev/null

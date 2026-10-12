@@ -7,6 +7,11 @@ import {
   setMemberSelfHandicapAction,
   updateMemberSelfProfileAction,
 } from "@/app/actions/member-profile";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type {
   MemberSelfProfile,
   MemberSelfProfileDraft,
@@ -103,9 +108,12 @@ export function MemberSelfProfileForm({
   return (
     <>
       {message ? (
-        <p className={`form-message ${messageTone}`} role="status">
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          role="status"
+        >
           {message}
-        </p>
+        </FormMessage>
       ) : null}
       <section className="page-section" aria-labelledby="profile-details-title">
         <p className="ledger-kicker">Your details</p>
@@ -146,7 +154,7 @@ export function MemberSelfProfileForm({
             />
             <label className="field-group" htmlFor="member-tee-location">
               <span>Preferred tee</span>
-              <select
+              <NativeSelect
                 id="member-tee-location"
                 value={draft.teeLocation ?? ""}
                 onChange={(event) =>
@@ -163,7 +171,7 @@ export function MemberSelfProfileForm({
                 <option value="back">Back</option>
                 <option value="middle">Middle</option>
                 <option value="front">Front</option>
-              </select>
+              </NativeSelect>
             </label>
             <TextField
               id="member-secondary-email"
@@ -275,14 +283,9 @@ export function MemberSelfProfileForm({
               disabled={pending}
             />
           </fieldset>
-          <button
-            className="primary-button"
-            type="button"
-            onClick={saveProfile}
-            disabled={pending}
-          >
+          <Button type="button" onClick={saveProfile} disabled={pending}>
             {pending ? "Saving your profile…" : "Save your profile"}
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -309,7 +312,7 @@ export function MemberSelfProfileForm({
             />
             <label className="field-group" htmlFor="member-handicap-as-of">
               <span>Handicap date</span>
-              <input
+              <Input
                 id="member-handicap-as-of"
                 type="date"
                 value={handicapAsOf}
@@ -334,14 +337,9 @@ export function MemberSelfProfileForm({
             onChange={setHandicapConfirmed}
             disabled={pending}
           />
-          <button
-            className="primary-button"
-            type="button"
-            onClick={saveHandicap}
-            disabled={pending}
-          >
+          <Button type="button" onClick={saveHandicap} disabled={pending}>
             {pending ? "Saving your handicap…" : "Save your handicap"}
-          </button>
+          </Button>
         </div>
       </section>
     </>
@@ -370,7 +368,7 @@ function TextField({
   return (
     <label className="field-group" htmlFor={id}>
       <span>{label}</span>
-      <input
+      <Input
         id={id}
         type={type}
         inputMode={inputMode}
@@ -398,11 +396,10 @@ function CheckField({
 }>) {
   return (
     <label className="checkbox-field" htmlFor={id}>
-      <input
+      <Checkbox
         id={id}
-        type="checkbox"
         checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
+        onCheckedChange={(checked) => onChange(checked === true)}
         disabled={disabled}
       />
       <span>{label}</span>

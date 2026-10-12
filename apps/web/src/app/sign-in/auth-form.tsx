@@ -5,6 +5,9 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { signInAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
+import { FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
   const [state, formAction, pending] = useActionState(
@@ -25,7 +28,7 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
       <input name="returnPath" type="hidden" value={returnPath} />
       <div className="field-group">
         <label htmlFor="email">Account e-mail</label>
-        <input
+        <Input
           id="email"
           ref={emailRef}
           name="email"
@@ -48,17 +51,18 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
       <div className="field-group">
         <div className="label-row">
           <label htmlFor="password">Password</label>
-          <button
-            className="text-button"
+          <Button
+            variant="link"
+            size="inline"
             type="button"
             onClick={() => setShowPassword((current) => !current)}
             aria-controls="password"
             aria-pressed={showPassword}
           >
             {showPassword ? "Hide" : "Show"}
-          </button>
+          </Button>
         </div>
-        <input
+        <Input
           id="password"
           ref={passwordRef}
           name="password"
@@ -77,13 +81,17 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
         ) : null}
       </div>
 
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage
+        tone={state.status === "success" ? "success" : "error"}
+        aria-live="polite"
+        data-status={state.status}
+      >
         {state.message}
-      </p>
+      </FormMessage>
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Verifying…" : "Sign in"}
-      </button>
+      </Button>
 
       <Link className="secondary-link" href="/recover-password">
         Forgot your password?

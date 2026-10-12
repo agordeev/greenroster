@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { EmptyState, SectionHeading } from "@/components/blocks";
+import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
 
 import {
   formatParticipantRsvp,
@@ -109,10 +109,10 @@ export function RoundReadOnlyDetail({
         </section>
 
         {detail.state === "cancelled" ? (
-          <aside className="form-message error" role="status">
+          <FormMessage role="status">
             <strong>Cancellation reason:</strong>{" "}
             {detail.cancellationReason || "No reason given."}
-          </aside>
+          </FormMessage>
         ) : null}
       </section>
 

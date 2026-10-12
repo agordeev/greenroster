@@ -7,7 +7,9 @@ import {
   completeLiveRoundAction,
   reopenCompletedRoundAction,
 } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/blocks";
+import { FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   roundCompletionInputSchema,
   roundReopenInputSchema,
@@ -214,10 +216,10 @@ function RoundCompletePanel({
         <ReadinessList title="Warnings" rows={warnings} tone="warning" />
       ) : null}
       {preview.mobileSyncCheck !== "complete" ? (
-        <p className="form-message error" role="status">
+        <FormMessage role="status">
           Scores entered on phones haven&apos;t finished syncing. You can
           complete the round once they have.
-        </p>
+        </FormMessage>
       ) : null}
       <div className="member-results-table-wrap">
         <table className="member-results-table">
@@ -275,18 +277,20 @@ function RoundCompletePanel({
         </table>
       </div>
       {message ? (
-        <p className={`form-message ${messageTone}`} role="status">
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          role="status"
+        >
           {message}
-        </p>
+        </FormMessage>
       ) : null}
-      <button
-        className="primary-button"
+      <Button
         type="button"
         disabled={pending || !canComplete}
         onClick={complete}
       >
         {pending ? "Completing…" : "Complete round"}
-      </button>
+      </Button>
     </section>
   );
 }
@@ -423,7 +427,7 @@ function RoundReopenPanel({
       >
         <label className="field-group" htmlFor="round-reopen-reason">
           <span>Reason</span>
-          <textarea
+          <Textarea
             id="round-reopen-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -435,13 +439,16 @@ function RoundReopenPanel({
           <small id="round-reopen-help">Required.</small>
         </label>
         {message ? (
-          <p className={`form-message ${messageTone}`} role="status">
+          <FormMessage
+            tone={messageTone === "success" ? "success" : "error"}
+            role="status"
+          >
             {message}
-          </p>
+          </FormMessage>
         ) : null}
-        <button className="danger-button" type="submit" disabled={pending}>
+        <Button variant="destructive" type="submit" disabled={pending}>
           {pending ? "Reopening…" : "Reopen round"}
-        </button>
+        </Button>
       </form>
     </section>
   );

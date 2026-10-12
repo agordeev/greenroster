@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setLiveRoundParticipantNotPlayingAction } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/blocks";
+import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { liveRoundParticipantNotPlayingInputSchema } from "@/domain/live-round-participant-rsvp-correction";
 import type {
   LiveRoundScoreParticipant,
@@ -227,7 +229,7 @@ function ParticipantRsvpCorrection({
         >
           <label className="field-group" htmlFor={`${formId}-reason`}>
             <span>Reason for the change</span>
-            <textarea
+            <Textarea
               id={`${formId}-reason`}
               value={reason}
               onChange={(event) => {
@@ -251,17 +253,20 @@ function ParticipantRsvpCorrection({
             </p>
           ) : null}
           {message ? (
-            <p className={`form-message ${messageTone}`} role="status">
+            <FormMessage
+              tone={messageTone === "success" ? "success" : "error"}
+              role="status"
+            >
               {message}
-            </p>
+            </FormMessage>
           ) : null}
-          <button
-            className="secondary-button"
+          <Button
+            variant="outline"
             type="submit"
             disabled={pending || !canEdit || !scoreReady}
           >
             {pending ? "Saving…" : "Mark not playing"}
-          </button>
+          </Button>
         </form>
       ) : null}
     </article>

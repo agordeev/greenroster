@@ -9,6 +9,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
 import { ActionRow, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
 import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
 import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -217,9 +218,9 @@ export default async function PortalPage() {
             to you.
           </p>
           <ActionRow>
-            <Link className="primary-link" href="/home">
-              Home
-            </Link>
+            <Button asChild>
+              <Link href="/home">Home</Link>
+            </Button>
             <Link className="secondary-link" href="/support">
               Contact support
             </Link>

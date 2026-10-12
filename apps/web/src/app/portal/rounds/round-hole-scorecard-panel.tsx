@@ -4,6 +4,8 @@ import { useMemo, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantHoleScoreAction } from "@/app/actions/rounds";
 import { SectionHeading } from "@/components/blocks";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   roundHoleScoreInputSchema,
   type RoundHoleScoreRow,
@@ -209,7 +211,7 @@ function ParticipantHoleScorecard({
           htmlFor={`hole-reason-${rows[0].participantId}`}
         >
           <span>Reason for the change</span>
-          <input
+          <Input
             id={`hole-reason-${rows[0].participantId}`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -241,7 +243,7 @@ function ParticipantHoleScorecard({
                 <tr key={row.holeNumber}>
                   <td>{row.holeNumber}</td>
                   <td>
-                    <input
+                    <Input
                       aria-label={`Hole ${row.holeNumber} strokes`}
                       inputMode="numeric"
                       min={0}
@@ -255,7 +257,7 @@ function ParticipantHoleScorecard({
                     />
                   </td>
                   <td>
-                    <input
+                    <Input
                       aria-label={`Hole ${row.holeNumber} putts`}
                       inputMode="numeric"
                       min={0}
@@ -269,7 +271,7 @@ function ParticipantHoleScorecard({
                     />
                   </td>
                   <td>
-                    <select
+                    <NativeSelect
                       aria-label={`Hole ${row.holeNumber} fairway`}
                       value={draft.fairway_hit}
                       disabled={!row.canEdit || readOnly || pending}
@@ -284,10 +286,10 @@ function ParticipantHoleScorecard({
                       <option value="">—</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
-                    </select>
+                    </NativeSelect>
                   </td>
                   <td>
-                    <select
+                    <NativeSelect
                       aria-label={`Hole ${row.holeNumber} green`}
                       value={draft.green_in_regulation}
                       disabled={!row.canEdit || readOnly || pending}
@@ -302,10 +304,10 @@ function ParticipantHoleScorecard({
                       <option value="">—</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
-                    </select>
+                    </NativeSelect>
                   </td>
                   <td>
-                    <select
+                    <NativeSelect
                       aria-label={`Hole ${row.holeNumber} sand save`}
                       value={draft.sand_save}
                       disabled={!row.canEdit || readOnly || pending}
@@ -316,10 +318,10 @@ function ParticipantHoleScorecard({
                       <option value="">—</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
-                    </select>
+                    </NativeSelect>
                   </td>
                   <td>
-                    <input
+                    <Input
                       aria-label={`Hole ${row.holeNumber} note`}
                       value={draft.hole_comment}
                       maxLength={500}

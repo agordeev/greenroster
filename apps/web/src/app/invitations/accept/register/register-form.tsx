@@ -7,7 +7,9 @@ import {
   initialInvitationActionState,
   registerInvitationAction,
 } from "@/app/actions/invitations";
-import { Field } from "@/components/blocks";
+import { Field, FormMessage } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function InvitationRegisterForm() {
@@ -21,7 +23,7 @@ export function InvitationRegisterForm() {
     <form action={formAction} className="auth-form" noValidate>
       <div className="field-group">
         <label htmlFor="email">Account e-mail</label>
-        <input
+        <Input
           id="email"
           name="email"
           type="email"
@@ -38,17 +40,18 @@ export function InvitationRegisterForm() {
       <div className="field-group">
         <div className="label-row">
           <label htmlFor="password">Password</label>
-          <button
-            className="text-button"
+          <Button
+            variant="link"
+            size="inline"
             type="button"
             onClick={() => setShowPassword((current) => !current)}
             aria-controls="password confirmPassword"
             aria-pressed={showPassword}
           >
             {showPassword ? "Hide" : "Show"}
-          </button>
+          </Button>
         </div>
-        <input
+        <Input
           id="password"
           name="password"
           type={showPassword ? "text" : "password"}
@@ -62,7 +65,7 @@ export function InvitationRegisterForm() {
       </div>
 
       <Field id="confirmPassword" label="Confirm password">
-        <input
+        <Input
           id="confirmPassword"
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
@@ -71,18 +74,22 @@ export function InvitationRegisterForm() {
         />
       </Field>
 
-      <p className="form-message" aria-live="polite" data-status={state.status}>
+      <FormMessage
+        tone={state.status === "success" ? "success" : "error"}
+        aria-live="polite"
+        data-status={state.status}
+      >
         {state.message}
-      </p>
+      </FormMessage>
 
       {state.status === "success" ? (
-        <Link className="primary-button button-link" href="/invitations/accept">
-          Continue to invitation
-        </Link>
+        <Button asChild>
+          <Link href="/invitations/accept">Continue to invitation</Link>
+        </Button>
       ) : (
-        <button className="primary-button" type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Creating account…" : "Create account"}
-        </button>
+        </Button>
       )}
 
       <Link className="secondary-link" href="/invitations/accept">

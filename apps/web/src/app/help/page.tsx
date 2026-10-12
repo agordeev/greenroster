@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { InformationShell } from "@/app/information-shell";
+import { Button } from "@/components/ui/button";
 
 export default function HelpPage() {
   return (
@@ -21,9 +22,9 @@ export default function HelpPage() {
           looks wrong after you sign in, ask your group administrator or contact
           support. Never share your password.
         </p>
-        <Link className="primary-link" href="/support">
-          Contact support
-        </Link>
+        <Button asChild className="mt-6">
+          <Link href="/support">Contact support</Link>
+        </Button>
       </div>
     </InformationShell>
   );

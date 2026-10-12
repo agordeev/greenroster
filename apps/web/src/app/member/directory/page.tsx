@@ -5,6 +5,8 @@ import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberDirectory } from "@/lib/member/member-directory-data";
 import { SkipLink } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type MemberDirectoryPageProps = Readonly<{
   searchParams: Promise<{
@@ -71,7 +73,7 @@ export default async function MemberDirectoryPage({
             <form className="member-directory-filter" method="get">
               <label className="field-group" htmlFor="member-directory-search">
                 <span>Search the directory</span>
-                <input
+                <Input
                   id="member-directory-search"
                   name="search"
                   defaultValue={search}
@@ -79,9 +81,9 @@ export default async function MemberDirectoryPage({
                   placeholder="Search by name"
                 />
               </label>
-              <button className="secondary-button" type="submit">
+              <Button variant="outline" type="submit">
                 Search members
-              </button>
+              </Button>
             </form>
             <nav
               className="member-directory-letters"

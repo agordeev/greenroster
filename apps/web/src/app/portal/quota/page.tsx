@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { FormMessage } from "@/components/blocks";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { requirePortalPageContext } from "../portal-page-context";
@@ -129,10 +130,10 @@ export default async function QuotaRulesPage() {
         </p>
         {quotaSettingsUnavailable ? (
           <div className="quota-settings-error">
-            <p className="form-message" data-status="error">
+            <FormMessage data-status="error">
               We couldn&apos;t load your quota rules. Refresh the page before
               you make changes.
-            </p>
+            </FormMessage>
             <Link className="secondary-link" href="/portal/quota">
               Reload quota rules
             </Link>

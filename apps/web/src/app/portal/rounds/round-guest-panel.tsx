@@ -8,7 +8,10 @@ import {
   updateRoundGuestAction,
   withdrawRoundGuestAction,
 } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/blocks";
+import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import type {
   RoundCoordinatorParticipant,
   RoundCoordinatorParticipantRsvpState,
@@ -141,7 +144,7 @@ export function RoundGuestPanel({
       <div className="form-row">
         <div className="field-group">
           <label htmlFor="round-guest-first-name">Guest first name</label>
-          <input
+          <Input
             id="round-guest-first-name"
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
@@ -150,7 +153,7 @@ export function RoundGuestPanel({
         </div>
         <div className="field-group">
           <label htmlFor="round-guest-last-name">Guest last name</label>
-          <input
+          <Input
             id="round-guest-last-name"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
@@ -159,7 +162,7 @@ export function RoundGuestPanel({
         </div>
         <div className="field-group">
           <label htmlFor="round-guest-sponsor">Sponsor</label>
-          <select
+          <NativeSelect
             id="round-guest-sponsor"
             value={sponsorMembershipId}
             onChange={(event) => setSponsorMembershipId(event.target.value)}
@@ -174,13 +177,13 @@ export function RoundGuestPanel({
                 {displayName(sponsor)}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="field-group">
           <label htmlFor="round-guest-quota">
             Quota{quotaRequired ? " (required)" : ""}
           </label>
-          <input
+          <Input
             id="round-guest-quota"
             inputMode="decimal"
             value={quota}
@@ -190,7 +193,7 @@ export function RoundGuestPanel({
         </div>
         <div className="field-group">
           <label htmlFor="round-guest-handicap">Handicap</label>
-          <input
+          <Input
             id="round-guest-handicap"
             inputMode="decimal"
             value={handicap}
@@ -200,7 +203,7 @@ export function RoundGuestPanel({
         </div>
         <div className="field-group">
           <label htmlFor="round-guest-tee">Tee</label>
-          <select
+          <NativeSelect
             id="round-guest-tee"
             value={tee}
             onChange={(event) => setTee(event.target.value)}
@@ -211,7 +214,7 @@ export function RoundGuestPanel({
             <option value="back">Back</option>
             <option value="middle">Middle</option>
             <option value="front">Front</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
       <p className="field-help">
@@ -219,15 +222,14 @@ export function RoundGuestPanel({
           ? "Enter a quota before you add a guest to this net round."
           : "You can leave quota blank for this gross round."}
       </p>
-      <p
-        className="form-message"
+      <FormMessage
+        tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"
         data-status={messageTone || undefined}
       >
         {message}
-      </p>
-      <button
-        className="primary-button"
+      </FormMessage>
+      <Button
         type="button"
         onClick={addGuest}
         disabled={
@@ -238,7 +240,7 @@ export function RoundGuestPanel({
         }
       >
         {pending ? "Adding guest…" : "Add guest"}
-      </button>
+      </Button>
     </section>
   );
 }
@@ -297,13 +299,13 @@ function GuestRow({
   return (
     <tr>
       <th scope="row">
-        <input
+        <Input
           aria-label="Guest first name"
           value={firstName}
           onChange={(event) => setFirstName(event.target.value)}
           disabled={pending}
         />
-        <input
+        <Input
           aria-label="Guest last name"
           value={lastName}
           onChange={(event) => setLastName(event.target.value)}
@@ -315,7 +317,7 @@ function GuestRow({
         <small>{message}</small>
       </td>
       <td>
-        <input
+        <Input
           aria-label="Guest quota"
           inputMode="decimal"
           value={quota}
@@ -324,7 +326,7 @@ function GuestRow({
         />
       </td>
       <td>
-        <input
+        <Input
           aria-label="Guest handicap"
           inputMode="decimal"
           value={handicap}
@@ -333,7 +335,7 @@ function GuestRow({
         />
       </td>
       <td>
-        <select
+        <NativeSelect
           aria-label="Guest tee"
           value={tee}
           onChange={(event) => setTee(event.target.value)}
@@ -344,8 +346,8 @@ function GuestRow({
           <option value="back">Back</option>
           <option value="middle">Middle</option>
           <option value="front">Front</option>
-        </select>
-        <input
+        </NativeSelect>
+        <Input
           aria-label="Reason for guest change"
           placeholder="Reason"
           value={reason}
@@ -354,22 +356,22 @@ function GuestRow({
         />
       </td>
       <td>
-        <button
-          className="secondary-button"
+        <Button
+          variant="outline"
           type="button"
           onClick={updateGuest}
           disabled={pending}
         >
           Save
-        </button>
-        <button
-          className="secondary-button"
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={withdrawGuest}
           disabled={pending || guest.rsvpStatus === "not_playing"}
         >
           Withdraw
-        </button>
+        </Button>
       </td>
     </tr>
   );

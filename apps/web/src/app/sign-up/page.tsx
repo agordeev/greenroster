@@ -3,7 +3,7 @@ import Link from "next/link";
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
 
 import { OrganizerSignupForm } from "./signup-form";
-import { SkipLink } from "@/components/blocks";
+import { FormMessage, SkipLink } from "@/components/blocks";
 
 type SignupPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -39,20 +39,20 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </div>
 
           {status === "auth-unavailable" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               We couldn&apos;t create your account. Try again in a moment.
-            </p>
+            </FormMessage>
           ) : status === "expired" ? (
-            <p className="form-message recovery-status" role="alert">
+            <FormMessage className="mt-6 max-w-[30rem]" role="alert">
               Your verification link has expired. Start again to receive a new
               link.
-            </p>
+            </FormMessage>
           ) : null}
 
           {legal ? (
             <OrganizerSignupForm />
           ) : (
-            <div className="form-message" role="alert">
+            <FormMessage role="alert">
               <p>
                 You can&apos;t create a group yet. Our Terms of Use and Privacy
                 Policy aren&apos;t published.
@@ -62,7 +62,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
                 <Link href="/terms">Terms of Use</Link> and{" "}
                 <Link href="/privacy">Privacy Policy</Link> are published.
               </p>
-            </div>
+            </FormMessage>
           )}
 
           <Link className="secondary-link" href="/sign-in">
