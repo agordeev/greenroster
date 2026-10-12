@@ -366,7 +366,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   gap: 1.25rem;
   max-width: 38rem;
 }
-.member-import-form .field-group {
+.member-import-form :is(.field-group, [data-slot="field"]) {
   display: grid;
   gap: 0.5rem;
 }
@@ -417,7 +417,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   padding-top: 1.5rem;
   border-top: 1px solid var(--rule);
 }
-.member-import-confirm .field-group {
+.member-import-confirm :is(.field-group, [data-slot="field"]) {
   display: grid;
   gap: 0.5rem;
 }
@@ -1152,7 +1152,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .portal-empty form {
   margin-top: 2rem;
 }
-.role-denied .action-row {
+.role-denied [data-slot="action-row"] {
   margin-top: 2rem;
 }
 .onboarding-card {
@@ -2545,7 +2545,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .primary-link {
   margin-top: 1.5rem;
 }
-.action-row .primary-link {
+[data-slot="action-row"] .primary-link {
   margin-top: 0;
 }
 .status-note {
@@ -2813,7 +2813,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   content: "";
   display: none;
 }
-.member-quota-seeds .field-group {
+.member-quota-seeds :is(.field-group, [data-slot="field"]) {
   min-width: 0;
 }
 .member-quota-preview {
@@ -2996,7 +2996,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   gap: 0.75rem;
   margin-top: 1.25rem;
 }
-.member-directory-filter .field-group {
+.member-directory-filter :is(.field-group, [data-slot="field"]) {
   flex: 1;
 }
 .member-directory-letters {
@@ -3183,6 +3183,6 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   color: var(--bentgrass);
   text-underline-offset: 0.2em;
 }
-.onboarding-card .section-heading {
+.onboarding-card [data-slot="section-heading"] {
   padding: 1.5rem 0 1rem;
 }
