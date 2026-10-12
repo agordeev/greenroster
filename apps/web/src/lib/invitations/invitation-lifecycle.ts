@@ -15,7 +15,7 @@ const lifecycleInput = z.object({
   operationId: z.uuid(),
 });
 
-const normalizedEmail = z.preprocess(
+export const normalizedEmail = z.preprocess(
   (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
   z.email(),
 );

@@ -74,12 +74,12 @@ export type MemberImportWorkerResult =
     }>
   | Readonly<{ kind: "unavailable"; jobId?: string }>;
 
+type WorkerConfig = Readonly<{ tokenSecret: string; ttlMilliseconds: number }>;
+
 type Dependencies = Readonly<{
   createClient: () => RpcClient | Promise<RpcClient>;
   createId: () => string;
-  getConfig: () =>
-    | Readonly<{ tokenSecret: string; ttlMilliseconds: number }>
-    | Promise<Readonly<{ tokenSecret: string; ttlMilliseconds: number }>>;
+  getConfig: () => WorkerConfig | Promise<WorkerConfig>;
   now: () => Date;
 }>;
 
@@ -117,6 +117,10 @@ export async function runMemberImportWorker(
   if (!parsedClaim.success) return { kind: "unavailable" };
   const claimed = parsedClaim.data[0];
   if (!claimed) return { kind: "empty" };
+  const unavailable = (): MemberImportWorkerResult => ({
+    kind: "unavailable",
+    jobId: claimed.claimed_job_id,
+  });
 
   if (claimed.claimed_state === "validating") {
     const validation = await client.rpc("validate_member_csv_import", {
@@ -124,7 +128,7 @@ export async function runMemberImportWorker(
       p_worker_id: workerId,
     });
     if (failed(validation)) {
-      return { kind: "unavailable", jobId: claimed.claimed_job_id };
+      return unavailable();
     }
     const finalized = await client.rpc(
       "finalize_member_csv_import_validation",
@@ -135,7 +139,7 @@ export async function runMemberImportWorker(
       },
     );
     if (failed(finalized)) {
-      return { kind: "unavailable", jobId: claimed.claimed_job_id };
+      return unavailable();
     }
     const parsedFinalized = finalizationRowsSchema.safeParse(finalized.data);
     const row = parsedFinalized.success ? parsedFinalized.data[0] : undefined;
@@ -144,7 +148,7 @@ export async function runMemberImportWorker(
           kind: row.state === "uploaded" ? "requeued" : row.state,
           jobId: row.finalized_job_id,
         }
-      : { kind: "unavailable", jobId: claimed.claimed_job_id };
+      : unavailable();
   }
 
   const material = await client.rpc("get_member_csv_import_apply_material", {
@@ -152,11 +156,11 @@ export async function runMemberImportWorker(
     p_worker_id: workerId,
   });
   if (failed(material)) {
-    return { kind: "unavailable", jobId: claimed.claimed_job_id };
+    return unavailable();
   }
   const parsedMaterial = materialRowsSchema.safeParse(material.data);
   if (!parsedMaterial.success) {
-    return { kind: "unavailable", jobId: claimed.claimed_job_id };
+    return unavailable();
   }
   const context = parsedMaterial.data[0];
   const config = await dependencies.getConfig();
@@ -196,7 +200,7 @@ export async function runMemberImportWorker(
     p_operation_id: context.apply_operation_id,
   });
   if (failed(applied)) {
-    return { kind: "unavailable", jobId: claimed.claimed_job_id };
+    return unavailable();
   }
   const parsedApplied = applyRowsSchema.safeParse(applied.data);
   const row = parsedApplied.success ? parsedApplied.data[0] : undefined;
@@ -209,5 +213,5 @@ export async function runMemberImportWorker(
           appliedRows: row.applied_rows,
           skippedRows: row.skipped_rows,
         }
-    : { kind: "unavailable", jobId: claimed.claimed_job_id };
+    : unavailable();
 }

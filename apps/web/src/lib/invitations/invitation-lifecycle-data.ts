@@ -6,6 +6,8 @@ import { z } from "zod";
 import {
   buildInvitationAcceptanceUrl,
   createInvitationToken,
+  invitationExpiresAt,
+  uuidFromSha256Hex,
 } from "./invitation-token";
 import {
   getInvitationRuntimeConfig,
@@ -145,25 +147,27 @@ function deterministicInvitationId(operationId: string, previousId: string) {
   const digest = createHash("sha256")
     .update(`greenroster:invitation-lifecycle:${operationId}`, "utf8")
     .digest("hex");
-  const candidate = `${digest.slice(0, 8)}-${digest.slice(8, 12)}-4${digest.slice(13, 16)}-${(8 | (Number.parseInt(digest.slice(16, 17), 16) % 4)).toString(16)}${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
+  const candidate = uuidFromSha256Hex(digest);
   if (candidate !== previousId) return candidate;
 
   return deterministicInvitationId(`${operationId}:retry`, previousId);
 }
 
-function assertClock(now: Date, ttlMilliseconds: number) {
-  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invitation clock returned an invalid time"),
-    });
-  }
-  const expiresAt = new Date(now.getTime() + ttlMilliseconds);
-  if (!Number.isFinite(expiresAt.getTime())) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invitation expiry exceeded the supported date range"),
-    });
-  }
-  return expiresAt;
+function prepareFreshInvitation(
+  input: Readonly<{ invitationId: string; operationId: string }>,
+  config: InvitationRuntimeConfig,
+  now: () => Date,
+) {
+  const freshInvitationId = deterministicInvitationId(
+    input.operationId,
+    input.invitationId,
+  );
+  const token = createInvitationToken({
+    invitationId: freshInvitationId,
+    secret: config.tokenSecret,
+  });
+  const expiresAt = invitationExpiresAt(now(), config.ttlMilliseconds);
+  return { freshInvitationId, token, expiresAt };
 }
 
 function invitationLifecycleResultFromRows(
@@ -254,7 +258,7 @@ export async function executeListManageableInvitations(
   }));
 }
 
-async function executeCorrectInvitation(
+export async function executeCorrectInvitationAddress(
   actorUserId: string,
   input: CorrectInvitationInput,
   correlationId: string,
@@ -264,15 +268,11 @@ async function executeCorrectInvitation(
   const config = dependencies.getRuntimeConfig();
   const client = await dependencies.createClient();
 
-  const freshInvitationId = deterministicInvitationId(
-    input.operationId,
-    input.invitationId,
+  const { freshInvitationId, token, expiresAt } = prepareFreshInvitation(
+    input,
+    config,
+    () => dependencies.now(),
   );
-  const token = createInvitationToken({
-    invitationId: freshInvitationId,
-    secret: config.tokenSecret,
-  });
-  const expiresAt = assertClock(dependencies.now(), config.ttlMilliseconds);
 
   const { data, error } = await client.rpc(
     "correct_membership_invitation_address",
@@ -309,15 +309,11 @@ export async function executeRegenerateInvitation(
   const dependencies = { ...defaultDependencies, ...overrides };
   const config = dependencies.getRuntimeConfig();
   const client = await dependencies.createClient();
-  const freshInvitationId = deterministicInvitationId(
-    input.operationId,
-    input.invitationId,
+  const { freshInvitationId, token, expiresAt } = prepareFreshInvitation(
+    input,
+    config,
+    () => dependencies.now(),
   );
-  const token = createInvitationToken({
-    invitationId: freshInvitationId,
-    secret: config.tokenSecret,
-  });
-  const expiresAt = assertClock(dependencies.now(), config.ttlMilliseconds);
   const { data, error } = await client.rpc("regenerate_membership_invitation", {
     p_actor_user_id: actorUserId,
     p_invitation_id: input.invitationId,
@@ -337,15 +333,6 @@ export async function executeRegenerateInvitation(
     freshInvitationId,
     config,
   );
-}
-
-export async function executeCorrectInvitationAddress(
-  actorUserId: string,
-  input: CorrectInvitationInput,
-  correlationId: string,
-  overrides?: Partial<InvitationLifecycleDataDependencies>,
-): Promise<InvitationLifecycleResult> {
-  return executeCorrectInvitation(actorUserId, input, correlationId, overrides);
 }
 
 export async function executeRevokeInvitation(

@@ -1,7 +1,7 @@
 import type { MutationErrorCode } from "../mutations/result";
+import type { SubmittedMemberImport } from "./member-import-upload";
 
-type MemberImportObservedState =
-  "uploaded" | "validating" | "ready" | "rejected" | "applying" | "completed";
+type MemberImportObservedState = SubmittedMemberImport["state"];
 
 export function memberImportWasRequeuedAfterApply(
   previous: MemberImportObservedState | null,
@@ -21,20 +21,30 @@ export type MemberImportFailurePlan = Readonly<{
   rotateOperationId: boolean;
 }>;
 
+function failurePlan(
+  plan: Partial<MemberImportFailurePlan>,
+): MemberImportFailurePlan {
+  return {
+    accessMessage: "",
+    applyMessage: "",
+    clearConfirmation: false,
+    clearJob: false,
+    refreshStatus: false,
+    rotateOperationId: false,
+    ...plan,
+  };
+}
+
 export function memberImportAccessFailure(
   code: "authentication_required" | "forbidden",
 ): MemberImportFailurePlan {
-  return {
+  return failurePlan({
     accessMessage:
       code === "authentication_required"
         ? "You've been signed out. Sign in again to continue."
         : "You no longer have access to this import.",
-    applyMessage: "",
-    clearConfirmation: false,
     clearJob: true,
-    refreshStatus: false,
-    rotateOperationId: false,
-  };
+  });
 }
 
 export function memberImportApplyFailure(
@@ -45,33 +55,22 @@ export function memberImportApplyFailure(
     return memberImportAccessFailure(code);
   }
   if (code === "stale_version") {
-    return {
-      accessMessage: "",
+    return failurePlan({
       applyMessage: "This import has changed. We're loading its latest status.",
       clearConfirmation: true,
-      clearJob: false,
       refreshStatus: true,
       rotateOperationId: true,
-    };
+    });
   }
-  return {
-    accessMessage: "",
+  return failurePlan({
     applyMessage: `We couldn't start the import. Try again, or contact support with reference ${correlationId}.`,
-    clearConfirmation: false,
-    clearJob: false,
-    refreshStatus: false,
-    rotateOperationId: false,
-  };
+  });
 }
 
 export function memberImportApplyTransportFailure(): MemberImportFailurePlan {
-  return {
-    accessMessage: "",
+  return failurePlan({
     applyMessage:
       "We didn't hear back after you confirmed. We're loading the import's latest status.",
-    clearConfirmation: false,
-    clearJob: false,
     refreshStatus: true,
-    rotateOperationId: false,
-  };
+  });
 }

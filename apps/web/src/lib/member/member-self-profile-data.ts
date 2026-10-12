@@ -19,6 +19,13 @@ type MemberProfileClient = Pick<
   "rpc"
 >;
 
+const positiveVersionSchema = z
+  .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
+  .transform(Number);
+const nonnegativeVersionSchema = z
+  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
+  .transform(Number);
+
 const profileRowSchema = z
   .object({
     membership_id: z.uuid(),
@@ -28,15 +35,9 @@ const profileRowSchema = z
     group_time_zone: z.string().min(1),
     role: z.enum(["member", "coordinator", "administrator"]),
     status: z.enum(["pending", "active", "inactive"]),
-    membership_version: z
-      .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
-    profile_version: z
-      .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
-    contact_version: z
-      .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
+    membership_version: positiveVersionSchema,
+    profile_version: nonnegativeVersionSchema,
+    contact_version: nonnegativeVersionSchema,
     first_name: z.string(),
     last_name: z.string(),
     spouse_first_name: z.string().nullable(),
@@ -66,21 +67,13 @@ const profileRowSchema = z
   })
   .strict();
 
-const profileRowsSchema = z.array(profileRowSchema).length(1);
-
 const updateReceiptSchema = z
   .object({
     membership_id: z.uuid(),
     group_id: z.uuid(),
-    membership_version: z
-      .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
-    profile_version: z
-      .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
-    contact_version: z
-      .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
+    membership_version: positiveVersionSchema,
+    profile_version: nonnegativeVersionSchema,
+    contact_version: nonnegativeVersionSchema,
   })
   .strict();
 
@@ -89,9 +82,7 @@ const handicapReceiptSchema = z
     handicap_record_id: z.uuid(),
     membership_id: z.uuid(),
     group_id: z.uuid(),
-    membership_version: z
-      .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-      .transform(Number),
+    membership_version: positiveVersionSchema,
     handicap_id: z.string().nullable(),
     handicap: z.union([z.number(), z.string()]),
     source: z.enum(["manual", "import"]),
@@ -115,6 +106,13 @@ function mapProfileError(error: SupabaseRpcError): MutationError {
     return new MutationError("validation", { cause: error });
   if (!error.code) return new MutationError("transient", { cause: error });
   return new MutationError("unexpected", { cause: error });
+}
+
+function singleRow<T>(schema: z.ZodType<T>, data: unknown): T {
+  const parsed = z.array(schema).length(1).safeParse(data);
+  if (!parsed.success)
+    throw new MutationError("unexpected", { cause: parsed.error });
+  return parsed.data[0];
 }
 
 function profileFromRow(
@@ -169,10 +167,7 @@ export async function executeReadMemberSelfProfile(
     "resolve_mobile_member_self_profile",
   );
   if (error) throw mapProfileError(error);
-  const parsed = profileRowsSchema.safeParse(data);
-  if (!parsed.success)
-    throw new MutationError("unexpected", { cause: parsed.error });
-  return profileFromRow(parsed.data[0]);
+  return profileFromRow(singleRow(profileRowSchema, data));
 }
 
 export async function executeUpdateMemberSelfProfile(
@@ -213,10 +208,7 @@ export async function executeUpdateMemberSelfProfile(
     },
   );
   if (error) throw mapProfileError(error);
-  const parsed = z.array(updateReceiptSchema).length(1).safeParse(data);
-  if (!parsed.success)
-    throw new MutationError("unexpected", { cause: parsed.error });
-  return parsed.data[0];
+  return singleRow(updateReceiptSchema, data);
 }
 
 export async function executeSetMemberSelfHandicap(
@@ -239,10 +231,7 @@ export async function executeSetMemberSelfHandicap(
     },
   );
   if (error) throw mapProfileError(error);
-  const parsed = z.array(handicapReceiptSchema).length(1).safeParse(data);
-  if (!parsed.success)
-    throw new MutationError("unexpected", { cause: parsed.error });
-  return parsed.data[0];
+  return singleRow(handicapReceiptSchema, data);
 }
 
 export function validateMemberSelfProfileInput(value: unknown) {

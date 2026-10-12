@@ -1,7 +1,11 @@
 import type { Session } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { passwordResetSchema, recoverySchema } from "./auth-validation";
+import {
+  authFieldErrors,
+  passwordResetSchema,
+  recoverySchema,
+} from "./auth-validation";
 import type {
   PasswordRecoveryClaim,
   PasswordRecoveryHandleResolution,
@@ -137,17 +141,6 @@ async function jsonBody(request: Request) {
   }
 }
 
-function fieldErrors(
-  issues: readonly Readonly<{ path: PropertyKey[]; message: string }>[],
-) {
-  const result: Record<string, string[]> = {};
-  for (const issue of issues) {
-    const field = issue.path[0];
-    if (typeof field === "string") (result[field] ??= []).push(issue.message);
-  }
-  return result;
-}
-
 async function resolveRequestHandle(
   request: Request,
   dependencies: MobileRecoveryApiDependencies,
@@ -167,7 +160,7 @@ export async function requestMobileRecoveryWithDependencies(
   const id = correlationId(request);
   const parsed = recoverySchema.safeParse(await jsonBody(request));
   if (!parsed.success) {
-    return failure(id, "validation", 400, fieldErrors(parsed.error.issues));
+    return failure(id, "validation", 400, authFieldErrors(parsed.error));
   }
 
   const state = dependencies.createState();
@@ -219,11 +212,10 @@ export async function exchangeMobileRecoveryCodeWithDependencies(
     if (exchanged.reason === "rate_limited") {
       return failure(id, "rate_limited", 429);
     }
-    return failure(
-      id,
-      exchanged.reason === "unavailable" ? "unavailable" : "expired",
-      exchanged.reason === "unavailable" ? 503 : 409,
-    );
+    if (exchanged.reason === "unavailable") {
+      return failure(id, "unavailable", 503);
+    }
+    return failure(id, "expired", 409);
   }
 
   const verified = await dependencies.verify(
@@ -293,7 +285,7 @@ export async function resetMobileRecoveryPasswordWithDependencies(
   const id = correlationId(request);
   const parsed = passwordResetSchema.safeParse(await jsonBody(request));
   if (!parsed.success) {
-    return failure(id, "validation", 400, fieldErrors(parsed.error.issues));
+    return failure(id, "validation", 400, authFieldErrors(parsed.error));
   }
   const resolved = await resolveRequestHandle(request, dependencies);
   if (resolved.kind === "unauthenticated") {
@@ -323,11 +315,9 @@ export async function resetMobileRecoveryPasswordWithDependencies(
   if (!claimId) {
     const claim = await dependencies.claim(recovery.sessionId, recovery.userId);
     if (!claim.ok) {
-      return failure(
-        operationCorrelationId,
-        claim.reason === "unavailable" ? "unavailable" : "expired",
-        claim.reason === "unavailable" ? 503 : 409,
-      );
+      return claim.reason === "unavailable"
+        ? failure(operationCorrelationId, "unavailable", 503)
+        : failure(operationCorrelationId, "expired", 409);
     }
     claimId = claim.claimId;
   }

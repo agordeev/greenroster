@@ -159,11 +159,8 @@ export async function resolveBillingAdminContext(userId: string): Promise<{
       }),
     )
     .safeParse(contextResult.data);
-  if (
-    contextResult.error ||
-    !context.success ||
-    context.data[0]?.role !== "administrator"
-  ) {
+  const actor = context.success ? context.data[0] : undefined;
+  if (contextResult.error || actor?.role !== "administrator") {
     throw new Error("billing_admin_required");
   }
   const service = createSupabaseServiceClient();
@@ -171,17 +168,33 @@ export async function resolveBillingAdminContext(userId: string): Promise<{
     service
       .from("billing_accounts")
       .select("stripe_customer_id")
-      .eq("group_id", context.data[0].group_id)
+      .eq("group_id", actor.group_id)
       .maybeSingle(),
     service.auth.admin.getUserById(userId),
   ]);
   if (accountResult.error) throw accountResult.error;
   return {
-    groupId: context.data[0].group_id,
+    groupId: actor.group_id,
     email: userResult.data.user?.email ?? null,
     customerId:
       (accountResult.data as { stripe_customer_id?: string | null } | null)
         ?.stripe_customer_id ?? null,
+  };
+}
+
+const checkoutSessionColumns = "id,state,stripe_session_id,stripe_session_url";
+
+function checkoutSessionFromRow(row: {
+  id: string;
+  state: "processing" | "succeeded" | "failed";
+  stripe_session_id: string | null;
+  stripe_session_url: string | null;
+}) {
+  return {
+    id: row.id,
+    state: row.state,
+    stripeSessionId: row.stripe_session_id,
+    stripeSessionUrl: row.stripe_session_url,
   };
 }
 
@@ -205,30 +218,18 @@ export async function beginBillingCheckout(input: {
       operation_id: input.operationId,
       kind: input.kind,
     })
-    .select("id,state,stripe_session_id,stripe_session_url")
+    .select(checkoutSessionColumns)
     .single();
-  if (!result.error) {
-    return {
-      id: result.data.id,
-      state: result.data.state,
-      stripeSessionId: result.data.stripe_session_id,
-      stripeSessionUrl: result.data.stripe_session_url,
-    };
-  }
+  if (!result.error) return checkoutSessionFromRow(result.data);
   if (result.error.code !== "23505") throw result.error;
   const existing = await service
     .from("billing_checkout_sessions")
-    .select("id,state,stripe_session_id,stripe_session_url")
+    .select(checkoutSessionColumns)
     .eq("actor_user_id", input.actorUserId)
     .eq("operation_id", input.operationId)
     .single();
   if (existing.error) throw existing.error;
-  return {
-    id: existing.data.id,
-    state: existing.data.state,
-    stripeSessionId: existing.data.stripe_session_id,
-    stripeSessionUrl: existing.data.stripe_session_url,
-  };
+  return checkoutSessionFromRow(existing.data);
 }
 
 export async function finishBillingCheckout(input: {

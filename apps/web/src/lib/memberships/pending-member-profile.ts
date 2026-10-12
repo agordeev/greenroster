@@ -4,27 +4,21 @@ import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import { runVerifiedMutation } from "../mutations/run-verified-mutation";
 import type { MutationResult } from "../mutations/result";
 
+const trimmedOrNull = (value: unknown) =>
+  value === null || value === undefined
+    ? null
+    : typeof value === "string"
+      ? value.trim() || null
+      : value;
+
 const nullableTrimmedString = (max: number) =>
-  z.preprocess(
-    (value) =>
-      value === null || value === undefined
-        ? null
-        : typeof value === "string"
-          ? value.trim() || null
-          : value,
-    z.string().max(max).nullable(),
-  );
+  z.preprocess(trimmedOrNull, z.string().max(max).nullable());
 
 const nullableName = nullableTrimmedString(100);
 const nullableReason = nullableTrimmedString(500);
 
 const nullableEmail = z.preprocess(
-  (value) =>
-    value === null || value === undefined
-      ? null
-      : typeof value === "string"
-        ? value.trim() || null
-        : value,
+  trimmedOrNull,
   z.string().max(320).toLowerCase().pipe(z.email()).nullable(),
 );
 
@@ -36,26 +30,6 @@ const nullableTeeLocation = z.preprocess(
         ? value.trim().toLowerCase() || null
         : value,
   z.enum(["pro", "back", "middle", "front"]).nullable(),
-);
-
-const nullablePostalCode = z.preprocess(
-  (value) =>
-    value === null || value === undefined
-      ? null
-      : typeof value === "string"
-        ? value.trim() || null
-        : value,
-  z.string().max(32).nullable(),
-);
-
-const nullableCountry = z.preprocess(
-  (value) =>
-    value === null || value === undefined
-      ? null
-      : typeof value === "string"
-        ? value.trim() || null
-        : value,
-  z.string().max(100).nullable(),
 );
 
 const pendingMemberProfileInputSchema = z
@@ -77,8 +51,8 @@ const pendingMemberProfileInputSchema = z
     addressLine2: nullableTrimmedString(200),
     city: nullableTrimmedString(100),
     stateRegion: nullableTrimmedString(100),
-    postalCode: nullablePostalCode,
-    country: nullableCountry,
+    postalCode: nullableTrimmedString(32),
+    country: nullableTrimmedString(100),
     secondaryEmailVisible: z.boolean().default(false),
     homePhoneVisible: z.boolean().default(false),
     workPhoneVisible: z.boolean().default(false),

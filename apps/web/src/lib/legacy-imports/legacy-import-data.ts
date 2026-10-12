@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import type { LegacyImportRow } from "./legacy-csv";
+import type { LegacyImportCsvWarning, LegacyImportRow } from "./legacy-csv";
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
 
@@ -125,12 +125,7 @@ export async function executeCreateLegacyImport(
     sourceFingerprint: string;
     profileDigest: string;
     rows: readonly LegacyImportRow[];
-    warnings: readonly Readonly<{
-      code: string;
-      column?: string;
-      message: string;
-      rowNumber?: number;
-    }>[];
+    warnings: readonly LegacyImportCsvWarning[];
   }>,
   correlationId: string,
   operationId: string,
@@ -197,17 +192,16 @@ export async function executeGetLegacyImport(
   options?: Readonly<{ afterRowNumber?: number; limit?: number }>,
 ): Promise<LegacyImportProjection> {
   const supabase = createSupabaseServiceClient();
-  const { data, error } = options
-    ? await supabase.rpc("get_legacy_import_job", {
-        p_actor_user_id: actorUserId,
-        p_import_job_id: importJobId,
-        p_after_row_number: options.afterRowNumber ?? null,
-        p_limit: options.limit ?? 100,
-      })
-    : await supabase.rpc("get_legacy_import_job", {
-        p_actor_user_id: actorUserId,
-        p_import_job_id: importJobId,
-      });
+  const { data, error } = await supabase.rpc("get_legacy_import_job", {
+    p_actor_user_id: actorUserId,
+    p_import_job_id: importJobId,
+    ...(options
+      ? {
+          p_after_row_number: options.afterRowNumber ?? null,
+          p_limit: options.limit ?? 100,
+        }
+      : {}),
+  });
   if (error) throw mapError(error);
   const parsed = projectionRowsSchema.safeParse(data);
   if (!parsed.success || parsed.data.length === 0) {

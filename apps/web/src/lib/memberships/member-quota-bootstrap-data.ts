@@ -172,13 +172,11 @@ function quotaBandInput(context: z.infer<typeof contextRowSchema>) {
   }));
 }
 
-export async function executeGetMemberQuotaBootstrapContext(
+async function resolveQuotaBootstrapContext(
+  supabase: RpcClient,
   actorUserId: string,
   membershipId: string,
-  overrides?: Partial<MemberQuotaBootstrapDataDependencies>,
-): Promise<MemberQuotaBootstrapContext> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const supabase = await dependencies.createClient();
+): Promise<z.infer<typeof contextRowSchema>> {
   const result = await supabase.rpc(
     "resolve_membership_quota_bootstrap_context",
     {
@@ -197,11 +195,26 @@ export async function executeGetMemberQuotaBootstrapContext(
     throw new MutationError("unexpected", { cause: rows.error });
   }
   const context = rows.data[0];
-  if (!context || context.context_membership_id !== membershipId) {
+  if (context.context_membership_id !== membershipId) {
     throw new MutationError("unexpected", {
       cause: new Error("Membership quota context target mismatch"),
     });
   }
+  return context;
+}
+
+export async function executeGetMemberQuotaBootstrapContext(
+  actorUserId: string,
+  membershipId: string,
+  overrides?: Partial<MemberQuotaBootstrapDataDependencies>,
+): Promise<MemberQuotaBootstrapContext> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  const supabase = await dependencies.createClient();
+  const context = await resolveQuotaBootstrapContext(
+    supabase,
+    actorUserId,
+    membershipId,
+  );
 
   return {
     membershipId: context.context_membership_id,
@@ -240,42 +253,11 @@ export async function executeMemberQuotaBootstrap(
   correlationId: string,
 ): Promise<MemberQuotaBootstrapResult> {
   const supabase = await defaultDependencies.createClient();
-  const contextResult = await supabase.rpc(
-    "resolve_membership_quota_bootstrap_context",
-    {
-      p_actor_user_id: actorUserId,
-      p_membership_id: input.membershipId,
-    },
+  const context = await resolveQuotaBootstrapContext(
+    supabase,
+    actorUserId,
+    input.membershipId,
   );
-
-  if (contextResult.error) {
-    throw mapMemberQuotaBootstrapError(contextResult.error);
-  }
-
-  if (Array.isArray(contextResult.data) && contextResult.data.length === 0) {
-    throw new MutationError("unavailable");
-  }
-
-  const contextRows = contextRowsSchema.safeParse(contextResult.data);
-  if (!contextRows.success) {
-    throw new MutationError("unexpected", { cause: contextRows.error });
-  }
-
-  const context = contextRows.data[0];
-  if (!context) {
-    throw new MutationError("unavailable");
-  }
-  if (contextRows.data.length !== 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Membership quota context returned multiple rows"),
-    });
-  }
-
-  if (context.context_membership_id !== input.membershipId) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Membership quota context target mismatch"),
-    });
-  }
 
   if (
     context.settings_method === null ||
@@ -328,16 +310,6 @@ export async function executeMemberQuotaBootstrap(
   }
 
   const row = resultRows.data[0];
-  if (!row) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Membership quota bootstrap returned no result"),
-    });
-  }
-  if (resultRows.data.length !== 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Membership quota bootstrap returned multiple rows"),
-    });
-  }
 
   return {
     groupId: row.configured_group_id,

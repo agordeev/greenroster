@@ -196,30 +196,19 @@ function rowErrors(
     }
   }
 
-  const invitedEmail = values.invited_email;
-  if (
-    typeof invitedEmail === "string" &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitedEmail)
-  ) {
-    errors.push({
-      code: "invalid_email",
-      column: "invited_email",
-      message: "invited_email must be a valid e-mail address.",
-      rowNumber,
-    });
-  }
-
-  const secondaryEmail = values.secondary_email;
-  if (
-    typeof secondaryEmail === "string" &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(secondaryEmail)
-  ) {
-    errors.push({
-      code: "invalid_email",
-      column: "secondary_email",
-      message: "secondary_email must be a valid e-mail address.",
-      rowNumber,
-    });
+  for (const column of ["invited_email", "secondary_email"] as const) {
+    const email = values[column];
+    if (
+      typeof email === "string" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      errors.push({
+        code: "invalid_email",
+        column,
+        message: `${column} must be a valid e-mail address.`,
+        rowNumber,
+      });
+    }
   }
 
   const tee = values.tee_location;
@@ -240,13 +229,12 @@ function rowErrors(
     ["handicap", -10, 54, 1],
     ...Array.from(
       { length: 20 },
-      (_, index) =>
-        [`seed_total_${index + 1}`, 0, 100, 2] as [
-          string,
-          number,
-          number,
-          number,
-        ],
+      (_, index): [string, number, number, number] => [
+        `seed_total_${index + 1}`,
+        0,
+        100,
+        2,
+      ],
     ),
   ];
   for (const [column, minimum, maximum, precision] of decimalChecks) {

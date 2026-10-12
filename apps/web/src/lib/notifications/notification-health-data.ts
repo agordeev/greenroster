@@ -80,14 +80,10 @@ export type NotificationDeliveryHealth = Readonly<{
 }>;
 
 function mapReadError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0002" || error.code === "P0003") {
-    return new MutationError(
-      error.code === "P0003" ? "forbidden" : "unavailable",
-      {
-        cause: error,
-      },
-    );
-  }
+  if (error.code === "P0003")
+    return new MutationError("forbidden", { cause: error });
+  if (error.code === "P0002")
+    return new MutationError("unavailable", { cause: error });
   if (!error.code) return new MutationError("transient", { cause: error });
   return new MutationError("unexpected", { cause: error });
 }

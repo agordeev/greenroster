@@ -80,19 +80,19 @@ const quotaCurrentSchema = z
   })
   .strict();
 
+const seedTotalSchema = z
+  .object({
+    position: z.number().int().min(1).max(20),
+    point_total: decimalSchema,
+  })
+  .strict();
+
 const quotaAdminSchema = z
   .object({
     initial_quota: decimalSchema.nullable(),
     uses_initial_quota: z.boolean(),
     initial_quota_provenance: z.string().nullable(),
-    seed_totals: z.array(
-      z
-        .object({
-          position: z.number().int().min(1).max(20),
-          point_total: decimalSchema,
-        })
-        .strict(),
-    ),
+    seed_totals: z.array(seedTotalSchema),
     settings: z
       .object({
         version: z.number().int().nonnegative(),
@@ -115,14 +115,7 @@ const quotaHistoryAdminSchema = z
     initial_quota: decimalSchema.nullable(),
     uses_initial_quota: z.boolean(),
     initial_quota_provenance: z.string().nullable(),
-    seed_totals: z.array(
-      z
-        .object({
-          position: z.number().int().min(1).max(20),
-          point_total: decimalSchema,
-        })
-        .strict(),
-    ),
+    seed_totals: z.array(seedTotalSchema),
   })
   .strict();
 
@@ -188,6 +181,13 @@ const rowSchema = z
   })
   .strict();
 
+function mapSeedTotals(seedTotals: z.infer<typeof seedTotalSchema>[]) {
+  return seedTotals.map((seed) => ({
+    position: seed.position,
+    pointTotal: seed.point_total,
+  }));
+}
+
 function mapError(error: SupabaseRpcError): MutationError {
   if (error.code === "P0003")
     return new MutationError("forbidden", { cause: error });
@@ -215,7 +215,7 @@ export async function executeGetMemberDetailProjection(
     throw new MutationError("unexpected", { cause: parsed.error });
   }
   const row = parsed.data[0];
-  if (!row || row.membership_id !== membershipId) {
+  if (row.membership_id !== membershipId) {
     throw new MutationError("unexpected", {
       cause: new Error("Member detail target mismatch"),
     });
@@ -294,10 +294,7 @@ export async function executeGetMemberDetailProjection(
               initialQuota: entry.admin.initial_quota,
               usesInitialQuota: entry.admin.uses_initial_quota,
               initialQuotaProvenance: entry.admin.initial_quota_provenance,
-              seedTotals: entry.admin.seed_totals.map((seed) => ({
-                position: seed.position,
-                pointTotal: seed.point_total,
-              })),
+              seedTotals: mapSeedTotals(entry.admin.seed_totals),
             }
           : null,
       })),
@@ -306,10 +303,7 @@ export async function executeGetMemberDetailProjection(
             initialQuota: admin.initial_quota,
             usesInitialQuota: admin.uses_initial_quota,
             initialQuotaProvenance: admin.initial_quota_provenance,
-            seedTotals: admin.seed_totals.map((seed) => ({
-              position: seed.position,
-              pointTotal: seed.point_total,
-            })),
+            seedTotals: mapSeedTotals(admin.seed_totals),
             settingsVersion: admin.settings.version,
             settingsMethod: admin.settings.method,
             settingsHistoryLength: admin.settings.history_length,

@@ -8,24 +8,12 @@ import type {
 } from "../../domain/round-detail";
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericSnapshotSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
-
-const positiveIntegerSchema = z
-  .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid positive integer.");
-
-const nonNegativeIntegerSchema = z
-  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid non-negative integer.");
+import {
+  mapRoundReadError,
+  nonNegativeIntegerSchema,
+  numericValueSchema,
+  positiveIntegerSchema,
+} from "./rpc-shared";
 
 const instantSchema = z.string().datetime({ offset: true }).nullable();
 const jsonObjectSchema = z.record(z.string(), z.unknown());
@@ -83,9 +71,9 @@ const participantSchema = z
     last_name: z.string().nullable(),
     rsvp_status: z.enum(["no_response", "playing", "not_playing"]),
     version: positiveIntegerSchema,
-    quota_snapshot: numericSnapshotSchema,
+    quota_snapshot: numericValueSchema,
     quota_snapshot_source: jsonObjectSchema.nullable(),
-    handicap_snapshot: numericSnapshotSchema,
+    handicap_snapshot: numericValueSchema,
     handicap_snapshot_source: z.enum(["manual", "import"]).nullable(),
     handicap_snapshot_as_of: z
       .string()
@@ -112,24 +100,6 @@ const envelopeSchema = z
     counts: countsSchema,
   })
   .strict();
-
-type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
-
-function mapRoundDetailError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0003") {
-    return new MutationError("forbidden", { cause: error });
-  }
-  if (error.code === "P0002") {
-    return new MutationError("unavailable", { cause: error });
-  }
-  if (error.code === "P0001") {
-    return new MutationError("locked", { cause: error });
-  }
-  if (!error.code) {
-    return new MutationError("transient", { cause: error });
-  }
-  return new MutationError("unexpected", { cause: error });
-}
 
 function participantFromRow(
   row: z.infer<typeof participantSchema>,
@@ -163,7 +133,7 @@ export async function executeReadCoordinatorRoundDetail(
     p_actor_user_id: actorUserId,
     p_round_id: roundId,
   });
-  if (error) throw mapRoundDetailError(error);
+  if (error) throw mapRoundReadError(error);
 
   const parsed = envelopeSchema.safeParse(data);
   if (!parsed.success) {

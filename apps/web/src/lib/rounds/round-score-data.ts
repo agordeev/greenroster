@@ -9,14 +9,7 @@ import type {
 } from "../../domain/round-score";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericValueSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
+import { numericValueSchema, safePositiveInteger } from "./rpc-shared";
 
 const roundScoreRowsSchema = z
   .array(
@@ -87,6 +80,34 @@ function scoreFieldErrors(
   }
 }
 
+function currentScoreFromDetails(
+  details: string | null | undefined,
+): RoundScoreCurrentState | undefined {
+  if (!details) return undefined;
+  try {
+    const parsed = scoreStateRowSchema.safeParse(JSON.parse(details));
+    if (!parsed.success) return undefined;
+    const row = parsed.data;
+    const version =
+      typeof row.version === "number" ? row.version : Number(row.version);
+    if (!Number.isSafeInteger(version) || version < 0) return undefined;
+    return {
+      participantId: row.participant_id,
+      version,
+      revisionId: row.revision_id,
+      grossScore: row.gross_score,
+      netScore: row.net_score,
+      golfPoints: row.golf_points,
+      manualMerit: row.manual_merit,
+      plusMinus: row.plus_minus,
+      rankingValue: row.ranking_value,
+      changedAt: row.changed_at,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function mapRoundScoreError(error: SupabaseRpcError): MutationError {
   if (error.code === "P0003") {
     return new MutationError("forbidden", { cause: error });
@@ -98,36 +119,10 @@ function mapRoundScoreError(error: SupabaseRpcError): MutationError {
     return new MutationError("locked", { cause: error });
   }
   if (error.code === "40001") {
-    let details: RoundScoreCurrentState | undefined;
-    if (error.details) {
-      try {
-        const parsed = scoreStateRowSchema.safeParse(JSON.parse(error.details));
-        if (parsed.success) {
-          const row = parsed.data;
-          const version =
-            typeof row.version === "number" ? row.version : Number(row.version);
-          if (Number.isSafeInteger(version) && version >= 0) {
-            details = {
-              participantId: row.participant_id,
-              version,
-              revisionId: row.revision_id,
-              grossScore: row.gross_score,
-              netScore: row.net_score,
-              golfPoints: row.golf_points,
-              manualMerit: row.manual_merit,
-              plusMinus: row.plus_minus,
-              rankingValue: row.ranking_value,
-              changedAt: row.changed_at,
-            };
-          }
-        }
-      } catch {
-        details = undefined;
-      }
-    }
+    const currentScore = currentScoreFromDetails(error.details);
     return new MutationError("stale_version", {
       cause: error,
-      ...(details ? { details: { currentScore: details } } : {}),
+      ...(currentScore ? { details: { currentScore } } : {}),
     });
   }
   if (error.code === "23505") {
@@ -151,16 +146,6 @@ function mapRoundScoreError(error: SupabaseRpcError): MutationError {
     return new MutationError("transient", { cause: error });
   }
   return new MutationError("unexpected", { cause: error });
-}
-
-function safeVersion(value: number | string): number {
-  const version = typeof value === "number" ? value : Number(value);
-  if (!Number.isSafeInteger(version) || version < 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invalid score version."),
-    });
-  }
-  return version;
 }
 
 export async function executeSetRoundParticipantScore(
@@ -192,7 +177,7 @@ export async function executeSetRoundParticipantScore(
     participantId: row.participant_id,
     roundId: row.round_id,
     groupId: row.group_id,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid score version."),
     revisionId: row.revision_id,
     grossScore: row.gross_score,
     netScore: row.net_score,

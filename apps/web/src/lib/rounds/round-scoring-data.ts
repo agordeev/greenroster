@@ -8,6 +8,7 @@ import type {
 } from "../../domain/round-scoring";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
+import { safePositiveInteger } from "./rpc-shared";
 
 const roundScoringRowsSchema = z
   .array(
@@ -24,16 +25,6 @@ const roundScoringRowsSchema = z
   .length(1);
 
 type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
-
-function safePositiveInteger(value: number | string): number {
-  const parsed = typeof value === "number" ? value : Number(value);
-  if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invalid scoring-open version."),
-    });
-  }
-  return parsed;
-}
 
 function scoringFieldErrors(
   message: string | undefined,
@@ -111,7 +102,7 @@ export async function executeOpenRoundScoring(
     roundId: row.round_id,
     groupId: row.group_id,
     state: row.state,
-    version: safePositiveInteger(row.version),
+    version: safePositiveInteger(row.version, "Invalid scoring-open version."),
     openedAt: row.opened_at,
   };
 }

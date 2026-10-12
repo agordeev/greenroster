@@ -6,6 +6,7 @@ import {
   buildInvitationAcceptanceUrl,
   createInvitationId,
   createInvitationToken,
+  invitationExpiresAt,
 } from "./invitation-token";
 import { getInvitationRuntimeConfig } from "./invitation-runtime-config";
 import type {
@@ -109,20 +110,10 @@ export async function executeIssueInvitation(
     invitationId,
     secret: config.tokenSecret,
   });
-  const now = dependencies.now();
-
-  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invitation clock returned an invalid time"),
-    });
-  }
-
-  const expiresAt = new Date(now.getTime() + config.ttlMilliseconds);
-  if (!Number.isFinite(expiresAt.getTime())) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invitation expiry exceeded the supported date range"),
-    });
-  }
+  const expiresAt = invitationExpiresAt(
+    dependencies.now(),
+    config.ttlMilliseconds,
+  );
 
   const client = await dependencies.createClient();
   const { data, error } = await client.rpc("issue_membership_invitation", {

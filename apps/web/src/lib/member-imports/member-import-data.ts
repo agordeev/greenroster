@@ -11,20 +11,22 @@ import type {
   MemberImportApplyReceipt,
 } from "./member-import-apply";
 
+const importStateSchema = z.enum([
+  "uploaded",
+  "validating",
+  "ready",
+  "rejected",
+  "applying",
+  "completed",
+]);
+
 const rowsSchema = z
   .array(
     z
       .object({
         import_job_id: z.uuid(),
         group_id: z.uuid(),
-        state: z.enum([
-          "uploaded",
-          "validating",
-          "ready",
-          "rejected",
-          "applying",
-          "completed",
-        ]),
+        state: importStateSchema,
         total_rows: z.number().int().positive(),
         revision: z.number().int().positive(),
       })
@@ -89,14 +91,7 @@ const jobProjectionRowsSchema = z.array(
     .object({
       import_job_id: z.uuid(),
       group_id: z.uuid(),
-      state: z.enum([
-        "uploaded",
-        "validating",
-        "ready",
-        "rejected",
-        "applying",
-        "completed",
-      ]),
+      state: importStateSchema,
       total_rows: z.number().int().nonnegative(),
       valid_rows: z.number().int().nonnegative(),
       invalid_rows: z.number().int().nonnegative(),

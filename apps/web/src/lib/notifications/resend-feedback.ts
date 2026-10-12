@@ -49,11 +49,6 @@ const bouncedEventSchema = commonEventSchema.extend({
   type: z.literal("email.bounced"),
 });
 
-function eventSchema(type: SupportedResendEventType) {
-  if (type === "email.bounced") return bouncedEventSchema;
-  return commonEventSchema.extend({ type: z.literal(type) });
-}
-
 export function parseResendFeedbackPayload(
   payload: unknown,
 ): ResendFeedbackParseResult {
@@ -69,11 +64,6 @@ export function parseResendFeedbackPayload(
   }
 
   const supportedType = type.data.type as SupportedResendEventType;
-  const parsed = eventSchema(supportedType).safeParse(payload);
-  if (!parsed.success) return { kind: "invalid" };
-
-  const event = parsed.data;
-  let bounceType: string | null = null;
   if (supportedType === "email.bounced") {
     const bounced = bouncedEventSchema.safeParse(payload);
     if (!bounced.success) return { kind: "invalid" };
@@ -87,17 +77,31 @@ export function parseResendFeedbackPayload(
     ) {
       return { kind: "invalid" };
     }
-    bounceType = normalizedBounceType;
+    return {
+      kind: "feedback",
+      event: {
+        bounceType: normalizedBounceType,
+        eventType: supportedType,
+        occurredAt: bounced.data.created_at,
+        providerMessageId: bounced.data.data.email_id,
+        recipientAddress: bounced.data.data.to[0].trim().toLowerCase(),
+      },
+    };
   }
+
+  const parsed = commonEventSchema
+    .extend({ type: z.literal(supportedType) })
+    .safeParse(payload);
+  if (!parsed.success) return { kind: "invalid" };
 
   return {
     kind: "feedback",
     event: {
-      bounceType,
+      bounceType: null,
       eventType: supportedType,
-      occurredAt: event.created_at,
-      providerMessageId: event.data.email_id,
-      recipientAddress: event.data.to[0].trim().toLowerCase(),
+      occurredAt: parsed.data.created_at,
+      providerMessageId: parsed.data.data.email_id,
+      recipientAddress: parsed.data.data.to[0].trim().toLowerCase(),
     },
   };
 }

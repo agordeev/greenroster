@@ -4,10 +4,12 @@ import { executeListManageableInvitations } from "../invitations/invitation-life
 import type { ManageableInvitation } from "../invitations/invitation-lifecycle";
 import { executeListManageableMembers } from "../memberships/member-management-data";
 import type { ManageableMember } from "../memberships/member-management";
-import { executeReadMemberOfficialResults } from "../rounds/member-results-data";
+import {
+  executeReadMemberOfficialResults,
+  executeReadMemberStandings,
+} from "../rounds/member-results-data";
 import { executeListRoundDrafts } from "../rounds/round-drafts-data";
 import type { RoundDraft } from "../../domain/round-drafts";
-import { executeReadMemberStandings } from "../rounds/member-results-data";
 import {
   executeReadNotificationDeliveryHealth,
   type NotificationDeliveryHealth,

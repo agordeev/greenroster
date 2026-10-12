@@ -272,28 +272,26 @@ export async function executeReadBrandingAssetsForActor(
     throw new MutationError("unexpected", { cause: parsed.error });
 
   return Promise.all(
-    parsed.data.flatMap((row) => {
-      const storagePath = row.storage_path;
-      if (!storagePath) return [];
-      return [
-        (async () => {
-          const signed = await supabase.storage
-            .from("group-branding")
-            .createSignedUrl(storagePath, 60 * 60);
-          return {
-            assetId: row.asset_id,
-            slot: row.slot,
-            storagePath,
-            assetUrl: signed.data?.signedUrl ?? null,
-            altText: row.alt_text,
-            decorative: row.decorative,
-            clickUrl: row.click_url,
-            displayOrder: row.display_order,
-            version: row.version,
-          };
-        })(),
-      ];
-    }),
+    parsed.data
+      .flatMap((row) =>
+        row.storage_path ? [{ row, storagePath: row.storage_path }] : [],
+      )
+      .map(async ({ row, storagePath }) => {
+        const signed = await supabase.storage
+          .from("group-branding")
+          .createSignedUrl(storagePath, 60 * 60);
+        return {
+          assetId: row.asset_id,
+          slot: row.slot,
+          storagePath,
+          assetUrl: signed.data?.signedUrl ?? null,
+          altText: row.alt_text,
+          decorative: row.decorative,
+          clickUrl: row.click_url,
+          displayOrder: row.display_order,
+          version: row.version,
+        };
+      }),
   );
 }
 

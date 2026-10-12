@@ -9,24 +9,12 @@ import type {
 } from "../../domain/round-score";
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericValueSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
-
-const nonNegativeIntegerSchema = z
-  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid non-negative integer.");
-
-const positiveIntegerSchema = z
-  .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid positive integer.");
+import {
+  mapRoundReadError,
+  nonNegativeIntegerSchema,
+  numericValueSchema,
+  positiveIntegerSchema,
+} from "./rpc-shared";
 
 const instantSchema = z.string().datetime({ offset: true }).nullable();
 
@@ -69,24 +57,6 @@ const liveRoundScoreRowSchema = z
     can_author_manual_merit: z.boolean(),
   })
   .strict();
-
-type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
-
-function mapLiveScoreReadError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0003") {
-    return new MutationError("forbidden", { cause: error });
-  }
-  if (error.code === "P0002") {
-    return new MutationError("unavailable", { cause: error });
-  }
-  if (error.code === "P0001") {
-    return new MutationError("locked", { cause: error });
-  }
-  if (!error.code) {
-    return new MutationError("transient", { cause: error });
-  }
-  return new MutationError("unexpected", { cause: error });
-}
 
 function scoreFromRow(
   row: z.infer<typeof liveRoundScoreRowSchema>,
@@ -152,7 +122,7 @@ export async function executeReadLiveRoundScores(
     p_actor_user_id: actorUserId,
     p_round_id: roundId,
   });
-  if (error) throw mapLiveScoreReadError(error);
+  if (error) throw mapRoundReadError(error);
 
   const parsed = z.array(liveRoundScoreRowSchema).safeParse(data);
   if (!parsed.success) {

@@ -21,12 +21,12 @@ export function verifyStripeWebhookSignature(
   }
   const signed = `${timestamp}.${payload}`;
   const expected = createHmac("sha256", secret).update(signed).digest("hex");
+  const expectedBytes = Buffer.from(expected, "hex");
   const candidates = parts
     .filter((part) => part.startsWith("v1="))
     .map((part) => part.slice(3));
   return candidates.some((candidate) => {
     if (!/^[0-9a-f]{64}$/i.test(candidate)) return false;
-    const expectedBytes = Buffer.from(expected, "hex");
     const candidateBytes = Buffer.from(candidate, "hex");
     return timingSafeEqual(expectedBytes, candidateBytes);
   });

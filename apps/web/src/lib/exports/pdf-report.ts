@@ -52,6 +52,17 @@ export function createReportPdf(
   return createPdfPages(lines);
 }
 
+function personName(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+): string {
+  return [firstName, lastName].filter(Boolean).join(" ");
+}
+
+function roundTitle(round: MemberOfficialRound): string {
+  return round.description ?? "Round";
+}
+
 export function createMemberRosterPdf(
   metadata: ReportMetadata,
   rows: readonly ManageableMemberRosterRow[],
@@ -60,7 +71,7 @@ export function createMemberRosterPdf(
     title: "GreenRoster member list",
     columns: ["Member", "Status", "Role", "Dues", "Tee", "Handicap", "Quota"],
     rows: rows.map((row) => [
-      [row.firstName, row.lastName].filter(Boolean).join(" "),
+      personName(row.firstName, row.lastName),
       row.status,
       row.role,
       row.duesPaid ? "Paid" : "Unpaid",
@@ -87,7 +98,7 @@ export function createStandingsPdf(
       columns: ["Rank", "Member", "Merit", "Rounds", "Projected quota"],
       rows: rows.map((row) => [
         row.standing_rank ?? "-",
-        [row.first_name, row.last_name].filter(Boolean).join(" "),
+        personName(row.first_name, row.last_name),
         row.merit_total ?? "0",
         row.rounds_played,
         row.projected_quota ?? "-",
@@ -98,7 +109,7 @@ export function createStandingsPdf(
 
 function resultRows(rows: readonly MemberOfficialResult[]) {
   return rows.map((row) => [
-    [row.first_name, row.last_name].filter(Boolean).join(" "),
+    personName(row.first_name, row.last_name),
     row.participant_kind,
     row.rsvp_status,
     row.competition_rank ?? "-",
@@ -118,11 +129,11 @@ export function createOfficialResultsPdf(
   return createReportPdf(
     {
       ...metadata,
-      reportingWindow: `${round.description ?? "Round"} official results`,
+      reportingWindow: `${roundTitle(round)} official results`,
       containsPrivateData: false,
     },
     {
-      title: `GreenRoster official results: ${round.description ?? "Round"}`,
+      title: `GreenRoster official results: ${roundTitle(round)}`,
       columns: [
         "Player",
         "Kind",
@@ -147,11 +158,11 @@ export function createScorepadPdf(
   return createReportPdf(
     {
       ...metadata,
-      reportingWindow: `${round.description ?? "Round"} score pad`,
+      reportingWindow: `${roundTitle(round)} score pad`,
       containsPrivateData: false,
     },
     {
-      title: `GreenRoster points score pad: ${round.description ?? "Round"}`,
+      title: `GreenRoster points score pad: ${roundTitle(round)}`,
       columns: [
         "Player",
         "Gross",
@@ -162,7 +173,7 @@ export function createScorepadPdf(
         "Official",
       ],
       rows: rows.map((row) => [
-        [row.first_name, row.last_name].filter(Boolean).join(" "),
+        personName(row.first_name, row.last_name),
         row.gross_score ?? "-",
         row.net_score ?? "-",
         row.quota_snapshot ?? "-",
@@ -196,7 +207,7 @@ function pdfLiteral(value: string): string {
 
 function createPdfPages(lines: readonly string[]): Uint8Array {
   const linesPerPage = 45;
-  const pageLines = [] as string[][];
+  const pageLines: string[][] = [];
   for (let index = 0; index < lines.length; index += linesPerPage) {
     pageLines.push(lines.slice(index, index + linesPerPage));
   }

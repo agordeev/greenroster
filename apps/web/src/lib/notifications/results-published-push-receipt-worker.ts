@@ -306,17 +306,14 @@ export async function runResultsPublishedPushReceiptWorker(
       : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
-  let providerResponse: ExpoPushReceiptProviderResponse;
-  try {
-    providerResponse = await dependencies
-      .createProvider()
-      .getReceipts([row.provider_message_id]);
-  } catch {
+  const recordRetry = async (
+    safeError: ReceiptFailureCode,
+  ): Promise<InvitationEmailWorkerResult> => {
     const recorded = await recordFailure(
       client,
       row.receipt_id,
       claimToken,
-      "provider_unavailable",
+      safeError,
       retryAtWithBackoff(
         dependencies.now(),
         config.retrySeconds,
@@ -326,6 +323,15 @@ export async function runResultsPublishedPushReceiptWorker(
     return recorded
       ? { deliveryId: row.delivery_id, kind: "retryable" }
       : { deliveryId: row.delivery_id, kind: "unavailable" };
+  };
+
+  let providerResponse: ExpoPushReceiptProviderResponse;
+  try {
+    providerResponse = await dependencies
+      .createProvider()
+      .getReceipts([row.provider_message_id]);
+  } catch {
+    return recordRetry("provider_unavailable");
   }
 
   const parsedTransport =
@@ -348,22 +354,11 @@ export async function runResultsPublishedPushReceiptWorker(
   }
   const transport = parsedTransport.data;
   if (transport.statusCode === 429 || transport.statusCode >= 500) {
-    const recorded = await recordFailure(
-      client,
-      row.receipt_id,
-      claimToken,
+    return recordRetry(
       transport.statusCode === 429
         ? "provider_rate_limited"
         : "provider_unavailable",
-      retryAtWithBackoff(
-        dependencies.now(),
-        config.retrySeconds,
-        row.attempt_number,
-      ),
     );
-    return recorded
-      ? { deliveryId: row.delivery_id, kind: "retryable" }
-      : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
   const parsedResponse = expoReceiptResponseSchema.safeParse(transport.body);
@@ -385,22 +380,7 @@ export async function runResultsPublishedPushReceiptWorker(
   }
 
   const receipt = parsedResponse.data.data[row.provider_message_id];
-  if (!receipt) {
-    const recorded = await recordFailure(
-      client,
-      row.receipt_id,
-      claimToken,
-      "provider_unavailable",
-      retryAtWithBackoff(
-        dependencies.now(),
-        config.retrySeconds,
-        row.attempt_number,
-      ),
-    );
-    return recorded
-      ? { deliveryId: row.delivery_id, kind: "retryable" }
-      : { deliveryId: row.delivery_id, kind: "unavailable" };
-  }
+  if (!receipt) return recordRetry("provider_unavailable");
 
   if (receipt.status === "error") {
     if (isInvalidDeviceReceipt(receipt)) {

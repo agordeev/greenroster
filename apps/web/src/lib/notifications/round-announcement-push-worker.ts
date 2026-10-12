@@ -382,6 +382,26 @@ async function runRoundPushWorker(
       : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
+  const recordRetry = async (
+    safeError: PushFailureCode,
+  ): Promise<RoundAnnouncementPushWorkerResult> => {
+    const recorded = await recordFailure(
+      client,
+      mode.failureRpc,
+      row.delivery_id,
+      claimToken,
+      safeError,
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
+    );
+    return recorded
+      ? { deliveryId: row.delivery_id, kind: "retryable" }
+      : { deliveryId: row.delivery_id, kind: "unavailable" };
+  };
+
   const message = mode.buildMessage(row);
   let providerResponse: Readonly<{ statusCode: number; body: unknown }>;
   try {
@@ -449,23 +469,11 @@ async function runRoundPushWorker(
   }
   const transport = parsedTransport.data;
   if (transport.statusCode === 429 || transport.statusCode >= 500) {
-    const recorded = await recordFailure(
-      client,
-      mode.failureRpc,
-      row.delivery_id,
-      claimToken,
+    return recordRetry(
       transport.statusCode === 429
         ? "provider_rate_limited"
         : "provider_unavailable",
-      retryAtWithBackoff(
-        dependencies.now(),
-        config.retrySeconds,
-        row.attempt_number,
-      ),
     );
-    return recorded
-      ? { deliveryId: row.delivery_id, kind: "retryable" }
-      : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
   const parsedResponse = expoResponseSchema.safeParse(transport.body);
@@ -488,21 +496,7 @@ async function runRoundPushWorker(
   if (ticket.status === "error") {
     const failure = failureFromTicket(ticket);
     if (failure.kind === "retryable") {
-      const recorded = await recordFailure(
-        client,
-        mode.failureRpc,
-        row.delivery_id,
-        claimToken,
-        "provider_rate_limited",
-        retryAtWithBackoff(
-          dependencies.now(),
-          config.retrySeconds,
-          row.attempt_number,
-        ),
-      );
-      return recorded
-        ? { deliveryId: row.delivery_id, kind: "retryable" }
-        : { deliveryId: row.delivery_id, kind: "unavailable" };
+      return recordRetry("provider_rate_limited");
     }
     if (failure.kind === "invalid") {
       try {

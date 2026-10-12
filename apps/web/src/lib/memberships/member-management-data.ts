@@ -207,7 +207,14 @@ function oneRow<T>(schema: z.ZodType<T>, data: unknown): T {
   const parsed = z.array(schema).length(1).safeParse(data);
   if (!parsed.success)
     throw new MutationError("unexpected", { cause: parsed.error });
-  return parsed.data[0] as T;
+  return parsed.data[0];
+}
+
+async function connect(
+  overrides?: Partial<MemberManagementDataDependencies>,
+): Promise<RpcClient> {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  return dependencies.createClient();
 }
 
 function mapMember(row: z.infer<typeof memberRowSchema>): ManageableMember {
@@ -236,8 +243,7 @@ export async function executeListManageableMembers(
   actorUserId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<readonly ManageableMember[]> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("list_manageable_members", {
     p_actor_user_id: actorUserId,
   });
@@ -284,8 +290,7 @@ export async function executeListManageableMemberRoster(
     totalCount: number;
   }>
 > {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc(
     "list_manageable_member_roster",
     memberRosterRpcArgs(actorUserId, query),
@@ -307,8 +312,7 @@ export async function executeGetManageableMember(
   membershipId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<ManageableMember> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("get_manageable_member", {
     p_actor_user_id: actorUserId,
     p_membership_id: membershipId,
@@ -323,8 +327,7 @@ export async function executeGetMemberPrivateContactDetail(
   correlationId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<MemberPrivateContact> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc(
     "get_member_private_contact_detail",
     {
@@ -364,8 +367,7 @@ export async function executeEditMember(
   correlationId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<MemberEditResult> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("edit_member", {
     p_actor_user_id: actorUserId,
     p_membership_id: input.membershipId,
@@ -420,8 +422,7 @@ export async function executeSetMemberStatus(
   correlationId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<MemberStatusResult> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("set_member_status", {
     p_actor_user_id: actorUserId,
     p_membership_id: input.membershipId,
@@ -455,8 +456,7 @@ export async function executeChangeMemberRole(
   correlationId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<MemberRoleResult> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("change_member_role", {
     p_actor_user_id: actorUserId,
     p_membership_id: input.membershipId,
@@ -490,8 +490,7 @@ export async function executeSetMemberHandicap(
   correlationId: string,
   overrides?: Partial<MemberManagementDataDependencies>,
 ): Promise<MemberHandicapResult> {
-  const dependencies = { ...defaultDependencies, ...overrides };
-  const client = await dependencies.createClient();
+  const client = await connect(overrides);
   const { data, error } = await client.rpc("set_member_handicap", {
     p_actor_user_id: actorUserId,
     p_membership_id: input.membershipId,

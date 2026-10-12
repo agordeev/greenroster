@@ -299,10 +299,7 @@ function text(value: unknown): string | null {
 }
 
 function normalizeHeader(value: unknown): string | null {
-  const normalized = text(value)?.toLowerCase() ?? null;
-  return normalized && HEADER_PATTERN.test(normalized)
-    ? normalized
-    : normalized;
+  return text(value)?.toLowerCase() ?? null;
 }
 
 function normalizedValue(value: string): string | null {

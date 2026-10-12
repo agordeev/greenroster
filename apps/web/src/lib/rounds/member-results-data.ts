@@ -4,14 +4,7 @@ import { z } from "zod";
 
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericSnapshotSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
+import { numericValueSchema } from "./rpc-shared";
 
 const integerSchema = z
   .union([z.number().int(), z.string().regex(/^\d+$/u)])
@@ -42,18 +35,18 @@ const resultRowSchema = z
     rsvp_status: z.enum(["no_response", "playing", "not_playing"]),
     rsvp_changed_at: instantSchema.nullable(),
     score_revision_id: z.uuid().nullable(),
-    golf_points: numericSnapshotSchema,
-    gross_score: numericSnapshotSchema,
-    net_score: numericSnapshotSchema,
-    quota_snapshot: numericSnapshotSchema,
-    plus_minus: numericSnapshotSchema,
-    ranking_value: numericSnapshotSchema,
+    golf_points: numericValueSchema,
+    gross_score: numericValueSchema,
+    net_score: numericValueSchema,
+    quota_snapshot: numericValueSchema,
+    plus_minus: numericValueSchema,
+    ranking_value: numericValueSchema,
     competition_rank: positiveIntegerSchema.nullable(),
-    participation_merit: numericSnapshotSchema,
-    placement_merit: numericSnapshotSchema,
-    manual_merit: numericSnapshotSchema,
-    generated_merit: numericSnapshotSchema,
-    total_merit: numericSnapshotSchema,
+    participation_merit: numericValueSchema,
+    placement_merit: numericValueSchema,
+    manual_merit: numericValueSchema,
+    generated_merit: numericValueSchema,
+    total_merit: numericValueSchema,
   })
   .strict();
 
@@ -81,12 +74,12 @@ const standingsRowSchema = z
     membership_id: z.uuid(),
     first_name: z.string().nullable(),
     last_name: z.string().nullable(),
-    merit_total: numericSnapshotSchema,
+    merit_total: numericValueSchema,
     rounds_played: integerSchema,
     standing_rank: positiveIntegerSchema.nullable(),
     is_actor: z.boolean(),
     quota_projection_ready: z.boolean(),
-    projected_quota: numericSnapshotSchema,
+    projected_quota: numericValueSchema,
     projection_source: z.record(z.string(), z.unknown()),
     uses_initial_quota_next: z.boolean(),
     eligible_quota_count: integerSchema,
@@ -109,10 +102,10 @@ const quotaHistoryRowSchema = z
     completed_at: instantSchema,
     round_description: z.string().nullable(),
     format: z.enum(["individual_net", "individual_gross"]),
-    point_total: numericSnapshotSchema,
-    plus_minus: numericSnapshotSchema,
-    quota_before: numericSnapshotSchema,
-    quota_after: numericSnapshotSchema,
+    point_total: numericValueSchema,
+    plus_minus: numericValueSchema,
+    quota_before: numericValueSchema,
+    quota_after: numericValueSchema,
     method: z.enum(["moving_average", "best_10_of_20", "previous_plus_minus"]),
     source: z.record(z.string(), z.unknown()),
     counts_in_standings: z.boolean(),
@@ -122,13 +115,11 @@ const quotaHistoryRowSchema = z
 type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
 
 function mapReadError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0002" || error.code === "P0003") {
-    return new MutationError(
-      error.code === "P0003" ? "forbidden" : "unavailable",
-      {
-        cause: error,
-      },
-    );
+  if (error.code === "P0003") {
+    return new MutationError("forbidden", { cause: error });
+  }
+  if (error.code === "P0002") {
+    return new MutationError("unavailable", { cause: error });
   }
   if (!error.code) return new MutationError("transient", { cause: error });
   return new MutationError("unexpected", { cause: error });

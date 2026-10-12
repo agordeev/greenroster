@@ -102,11 +102,6 @@ export async function executeCreatePendingMemberProfile(
   }
 
   const row = rows.data[0];
-  if (!row) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Pending member profile create returned no result"),
-    });
-  }
 
   return {
     membershipId: row.created_membership_id,

@@ -9,6 +9,7 @@ import type {
 } from "./scoreboard-access";
 import {
   createScoreboardToken,
+  SCOREBOARD_TOKEN_KEY_VERSION,
   scoreboardTokenDigest,
 } from "./scoreboard-token";
 import { MutationError } from "../mutations/result";
@@ -142,7 +143,7 @@ export async function executeCreateScoreboardAccess(
     p_access_id: input.operationId,
     p_round_id: input.roundId,
     p_token_digest: scoreboardTokenDigest(rawToken),
-    p_token_key_version: 1,
+    p_token_key_version: SCOREBOARD_TOKEN_KEY_VERSION,
     p_expires_at: input.expiresAt,
     p_correlation_id: correlationId,
     p_operation_id: input.operationId,

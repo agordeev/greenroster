@@ -112,6 +112,20 @@ function oneRow(data: unknown): unknown {
   return data;
 }
 
+async function callAcceptanceRpc(
+  client: InvitationAcceptanceRpcClient,
+  functionName: string,
+  args: Readonly<Record<string, unknown>>,
+): Promise<
+  Readonly<{ data: unknown; error: InvitationAcceptanceRpcError | null }>
+> {
+  try {
+    return await client.rpc(functionName, args);
+  } catch (error) {
+    throw new InvitationAcceptanceDataError("unavailable", error);
+  }
+}
+
 function mapRpcError(
   error: InvitationAcceptanceRpcError,
 ): InvitationAcceptanceDataError {
@@ -151,19 +165,15 @@ export async function previewMembershipInvitation(
 ): Promise<InvitationPreview> {
   const dependencies = { ...defaultDependencies, ...overrides };
   const client = await dependencies.createClient();
-  let result: Readonly<{
-    data: unknown;
-    error: InvitationAcceptanceRpcError | null;
-  }>;
-  try {
-    result = await client.rpc("preview_membership_invitation", {
+  const result = await callAcceptanceRpc(
+    client,
+    "preview_membership_invitation",
+    {
       p_auth_user_id: authUserId,
       p_invitation_id: invitationId,
       p_token_digest: tokenDigest,
-    });
-  } catch (error) {
-    throw new InvitationAcceptanceDataError("unavailable", error);
-  }
+    },
+  );
   if (result.error) throw mapRpcError(result.error);
   const parsed = previewRowSchema.safeParse(oneRow(result.data));
   if (!parsed.success) {
@@ -203,21 +213,17 @@ export async function acceptMembershipInvitation(
 ): Promise<InvitationAcceptance> {
   const dependencies = { ...defaultDependencies, ...overrides };
   const client = await dependencies.createClient();
-  let result: Readonly<{
-    data: unknown;
-    error: InvitationAcceptanceRpcError | null;
-  }>;
-  try {
-    result = await client.rpc("accept_membership_invitation", {
+  const result = await callAcceptanceRpc(
+    client,
+    "accept_membership_invitation",
+    {
       p_invitation_id: input.invitationId,
       p_token_digest: input.tokenDigest,
       p_auth_user_id: input.userId,
       p_correlation_id: input.correlationId,
       p_operation_id: input.operationId,
-    });
-  } catch (error) {
-    throw new InvitationAcceptanceDataError("unavailable", error);
-  }
+    },
+  );
   if (result.error) throw mapRpcError(result.error);
   const parsed = acceptanceRowSchema.safeParse(oneRow(result.data));
   if (!parsed.success) {

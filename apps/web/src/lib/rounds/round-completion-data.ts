@@ -15,19 +15,11 @@ import {
 } from "../../domain/round-completion";
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericValueSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
-
-const nonNegativeIntegerSchema = z
-  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid non-negative integer.");
+import {
+  mapRoundReadError,
+  nonNegativeIntegerSchema,
+  numericValueSchema,
+} from "./rpc-shared";
 
 const positiveIntegerSchema = nonNegativeIntegerSchema.refine(
   (value) => value > 0,
@@ -197,22 +189,6 @@ function mapRoundCompletionError(error: SupabaseRpcError): MutationError {
   return new MutationError("unexpected", { cause: error });
 }
 
-function mapPreviewError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0003") {
-    return new MutationError("forbidden", { cause: error });
-  }
-  if (error.code === "P0002") {
-    return new MutationError("unavailable", { cause: error });
-  }
-  if (error.code === "P0001") {
-    return new MutationError("locked", { cause: error });
-  }
-  if (!error.code) {
-    return new MutationError("transient", { cause: error });
-  }
-  return new MutationError("unexpected", { cause: error });
-}
-
 function previewParticipantFromRow(
   row: z.infer<typeof participantSchema>,
 ): RoundCompletionParticipant {
@@ -289,7 +265,7 @@ async function verifyCoordinatorRoundContext(
     p_actor_user_id: actorUserId,
     p_round_id: input.roundId,
   });
-  if (error) throw mapPreviewError(error);
+  if (error) throw mapRoundReadError(error);
   const parsed = contextEnvelopeSchema.safeParse(data);
   if (!parsed.success || parsed.data.round.group_id !== input.groupId) {
     throw new MutationError("forbidden", {
@@ -313,7 +289,7 @@ export async function executePreviewLiveRoundCompletion(
     p_round_id: input.roundId,
     p_group_id: input.groupId,
   });
-  if (error) throw mapPreviewError(error);
+  if (error) throw mapRoundReadError(error);
   const parsed = previewEnvelopeSchema.safeParse(data);
   if (!parsed.success) {
     throw new MutationError("unexpected", { cause: parsed.error });

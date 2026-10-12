@@ -9,6 +9,7 @@ import type {
 import type { RoundScoreCurrentState } from "../../domain/round-score";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
+import { safePositiveInteger } from "./rpc-shared";
 
 const liveRoundParticipantNotPlayingRowsSchema = z
   .array(
@@ -161,16 +162,6 @@ function mapLiveRoundParticipantNotPlayingError(
   return new MutationError("unexpected", { cause: error });
 }
 
-function safeVersion(value: number | string): number {
-  const version = typeof value === "number" ? value : Number(value);
-  if (!Number.isSafeInteger(version) || version < 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invalid participant version."),
-    });
-  }
-  return version;
-}
-
 export async function executeSetLiveRoundParticipantNotPlaying(
   actorUserId: string,
   input: LiveRoundParticipantNotPlayingExecutionInput,
@@ -206,7 +197,7 @@ export async function executeSetLiveRoundParticipantNotPlaying(
     participantId: row.participant_id,
     membershipId: row.membership_id,
     rsvpStatus: row.rsvp_status,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid participant version."),
     scoreInvalidated: row.score_invalidated,
     changedAt: row.changed_at,
   };

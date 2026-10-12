@@ -9,6 +9,7 @@ import type {
 } from "../../domain/round-rsvp";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
+import { safePositiveInteger } from "./rpc-shared";
 
 const roundRsvpRowsSchema = z
   .array(
@@ -110,16 +111,6 @@ function mapRoundRsvpError(error: SupabaseRpcError): MutationError {
   return new MutationError("unexpected", { cause: error });
 }
 
-function safeVersion(value: number | string): number {
-  const version = typeof value === "number" ? value : Number(value);
-  if (!Number.isSafeInteger(version) || version < 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invalid participant version."),
-    });
-  }
-  return version;
-}
-
 function participantFromRow(
   row: z.infer<typeof roundParticipantRowsSchema>[number],
 ): RoundParticipantRead {
@@ -133,7 +124,7 @@ function participantFromRow(
     firstName: row.first_name,
     lastName: row.last_name,
     rsvpStatus: row.rsvp_status,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid participant version."),
     quotaSnapshot: row.quota_snapshot,
     quotaSnapshotSource: row.quota_snapshot_source,
     handicapSnapshot: row.handicap_snapshot,
@@ -189,7 +180,7 @@ export async function executeSetRoundRsvp(
     participantId: row.participant_id,
     membershipId: row.membership_id,
     rsvpStatus: row.rsvp_status,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid participant version."),
     changedAt: row.changed_at,
   };
 }

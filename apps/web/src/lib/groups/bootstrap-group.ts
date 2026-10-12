@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import { runVerifiedMutation } from "../mutations/run-verified-mutation";
 import type { MutationResult } from "../mutations/result";
+import { isSupportedTimeZone } from "./group-profile";
 
 const groupBootstrapInputSchema = z
   .object({
@@ -27,15 +28,6 @@ export type GroupBootstrapDependencies = Readonly<{
     correlationId: string,
   ) => Promise<GroupBootstrapResult>;
 }>;
-
-function isSupportedTimeZone(value: string) {
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function runGroupBootstrapMutation(
   rawInput: unknown,

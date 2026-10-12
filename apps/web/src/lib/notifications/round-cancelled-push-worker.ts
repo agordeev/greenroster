@@ -368,6 +368,25 @@ export async function runRoundCancelledPushWorker(
   const description = row.round_description.replace(/[\r\n]+/gu, " ").trim();
   const summary = `${description} was cancelled: ${cancellationReason}`;
 
+  const recordRetry = async (
+    safeError: PushFailureCode,
+  ): Promise<RoundCancelledPushWorkerResult> => {
+    const recorded = await recordFailure(
+      client,
+      row.delivery_id,
+      claimToken,
+      safeError,
+      retryAtWithBackoff(
+        dependencies.now(),
+        config.retrySeconds,
+        row.attempt_number,
+      ),
+    );
+    return recorded
+      ? { deliveryId: row.delivery_id, kind: "retryable" }
+      : { deliveryId: row.delivery_id, kind: "unavailable" };
+  };
+
   let providerResponse: ExpoPushProviderResponse;
   try {
     providerResponse = await dependencies.createProvider().send(
@@ -433,22 +452,11 @@ export async function runRoundCancelledPushWorker(
   }
   const transport = parsedTransport.data;
   if (transport.statusCode === 429 || transport.statusCode >= 500) {
-    const recorded = await recordFailure(
-      client,
-      row.delivery_id,
-      claimToken,
+    return recordRetry(
       transport.statusCode === 429
         ? "provider_rate_limited"
         : "provider_unavailable",
-      retryAtWithBackoff(
-        dependencies.now(),
-        config.retrySeconds,
-        row.attempt_number,
-      ),
     );
-    return recorded
-      ? { deliveryId: row.delivery_id, kind: "retryable" }
-      : { deliveryId: row.delivery_id, kind: "unavailable" };
   }
 
   const parsedResponse = expoResponseSchema.safeParse(transport.body);
@@ -470,20 +478,7 @@ export async function runRoundCancelledPushWorker(
   if (ticket.status === "error") {
     const failure = failureFromTicket(ticket);
     if (failure.kind === "retryable") {
-      const recorded = await recordFailure(
-        client,
-        row.delivery_id,
-        claimToken,
-        "provider_rate_limited",
-        retryAtWithBackoff(
-          dependencies.now(),
-          config.retrySeconds,
-          row.attempt_number,
-        ),
-      );
-      return recorded
-        ? { deliveryId: row.delivery_id, kind: "retryable" }
-        : { deliveryId: row.delivery_id, kind: "unavailable" };
+      return recordRetry("provider_rate_limited");
     }
     const code =
       failure.kind === "invalid" ? "provider_invalid" : "provider_rejected";

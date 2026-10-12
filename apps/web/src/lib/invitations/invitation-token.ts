@@ -2,6 +2,8 @@ import "server-only";
 
 import { createHash, createHmac, randomUUID } from "node:crypto";
 
+import { MutationError } from "../mutations/result";
+
 export const INVITATION_TOKEN_KEY_VERSION = 1 as const;
 export const INVITATION_ACCEPTANCE_PATH = "/invitations/accept/start" as const;
 
@@ -49,6 +51,25 @@ export function createInvitationToken(
 
 export function createInvitationId(): string {
   return randomUUID();
+}
+
+export function uuidFromSha256Hex(digest: string): string {
+  return `${digest.slice(0, 8)}-${digest.slice(8, 12)}-4${digest.slice(13, 16)}-${(8 | (Number.parseInt(digest.slice(16, 17), 16) % 4)).toString(16)}${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
+}
+
+export function invitationExpiresAt(now: Date, ttlMilliseconds: number): Date {
+  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) {
+    throw new MutationError("unexpected", {
+      cause: new Error("Invitation clock returned an invalid time"),
+    });
+  }
+  const expiresAt = new Date(now.getTime() + ttlMilliseconds);
+  if (!Number.isFinite(expiresAt.getTime())) {
+    throw new MutationError("unexpected", {
+      cause: new Error("Invitation expiry exceeded the supported date range"),
+    });
+  }
+  return expiresAt;
 }
 
 export type InvitationAcceptanceUrlInput = Readonly<{

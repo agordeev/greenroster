@@ -4,24 +4,18 @@ import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import { runVerifiedMutation } from "../mutations/run-verified-mutation";
 import type { MutationResult } from "../mutations/result";
 
+const trimmedOrNull = (value: unknown) =>
+  value === null || value === undefined
+    ? null
+    : typeof value === "string"
+      ? value.trim() || null
+      : value;
+
 const nullableText = (max: number) =>
-  z.preprocess(
-    (value) =>
-      value === null || value === undefined
-        ? null
-        : typeof value === "string"
-          ? value.trim() || null
-          : value,
-    z.string().max(max).nullable(),
-  );
+  z.preprocess(trimmedOrNull, z.string().max(max).nullable());
 
 const nullableEmail = z.preprocess(
-  (value) =>
-    value === null || value === undefined
-      ? null
-      : typeof value === "string"
-        ? value.trim() || null
-        : value,
+  trimmedOrNull,
   z.string().max(320).toLowerCase().pipe(z.email()).nullable(),
 );
 
@@ -338,16 +332,30 @@ export function canChangeMemberRole(
   return actorRole === "administrator" && target.status === "active";
 }
 
+function runMemberMutation<TInput, TResult>(
+  inputSchema: z.ZodType<TInput>,
+  rawInput: unknown,
+  correlationCandidate: string | null | undefined,
+  dependencies: MemberMutationDependencies<TInput, TResult>,
+): Promise<MutationResult<TResult>> {
+  return runVerifiedMutation(rawInput, correlationCandidate, {
+    execute: dependencies.execute,
+    inputSchema,
+    verifySession: dependencies.verifySession,
+  });
+}
+
 export async function runMemberEditMutation(
   rawInput: unknown,
   correlationCandidate: string | null | undefined,
   dependencies: MemberMutationDependencies<MemberEditInput, MemberEditResult>,
 ): Promise<MutationResult<MemberEditResult>> {
-  return runVerifiedMutation(rawInput, correlationCandidate, {
-    execute: dependencies.execute,
-    inputSchema: memberEditInputSchema,
-    verifySession: dependencies.verifySession,
-  });
+  return runMemberMutation(
+    memberEditInputSchema,
+    rawInput,
+    correlationCandidate,
+    dependencies,
+  );
 }
 
 export async function runMemberStatusMutation(
@@ -358,11 +366,12 @@ export async function runMemberStatusMutation(
     MemberStatusResult
   >,
 ): Promise<MutationResult<MemberStatusResult>> {
-  return runVerifiedMutation(rawInput, correlationCandidate, {
-    execute: dependencies.execute,
-    inputSchema: memberStatusInputSchema,
-    verifySession: dependencies.verifySession,
-  });
+  return runMemberMutation(
+    memberStatusInputSchema,
+    rawInput,
+    correlationCandidate,
+    dependencies,
+  );
 }
 
 export async function runMemberRoleMutation(
@@ -370,11 +379,12 @@ export async function runMemberRoleMutation(
   correlationCandidate: string | null | undefined,
   dependencies: MemberMutationDependencies<MemberRoleInput, MemberRoleResult>,
 ): Promise<MutationResult<MemberRoleResult>> {
-  return runVerifiedMutation(rawInput, correlationCandidate, {
-    execute: dependencies.execute,
-    inputSchema: memberRoleInputSchema,
-    verifySession: dependencies.verifySession,
-  });
+  return runMemberMutation(
+    memberRoleInputSchema,
+    rawInput,
+    correlationCandidate,
+    dependencies,
+  );
 }
 
 export async function runMemberHandicapMutation(
@@ -385,9 +395,10 @@ export async function runMemberHandicapMutation(
     MemberHandicapResult
   >,
 ): Promise<MutationResult<MemberHandicapResult>> {
-  return runVerifiedMutation(rawInput, correlationCandidate, {
-    execute: dependencies.execute,
-    inputSchema: memberHandicapInputSchema,
-    verifySession: dependencies.verifySession,
-  });
+  return runMemberMutation(
+    memberHandicapInputSchema,
+    rawInput,
+    correlationCandidate,
+    dependencies,
+  );
 }

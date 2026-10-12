@@ -11,14 +11,7 @@ import type {
 } from "../../domain/round-guest";
 import { MutationError, type MutationFieldErrors } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
-
-const numericValue = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform(String)
-  .nullable();
+import { numericValueSchema, safePositiveInteger } from "./rpc-shared";
 
 const guestRows = z
   .array(
@@ -34,9 +27,9 @@ const guestRows = z
         last_name: z.string(),
         rsvp_status: z.enum(["playing", "not_playing"]),
         version: z.union([z.number().int().positive(), z.string()]),
-        quota_snapshot: numericValue,
+        quota_snapshot: numericValueSchema,
         quota_snapshot_source: z.record(z.string(), z.unknown()).nullable(),
-        handicap_snapshot: numericValue,
+        handicap_snapshot: numericValueSchema,
         handicap_snapshot_source: z.enum(["manual", "import"]).nullable(),
         handicap_snapshot_as_of: z.string().nullable(),
         tee_snapshot: z.string().nullable(),
@@ -67,16 +60,6 @@ const withdrawalRows = z
   .length(1);
 
 type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
-
-function safeVersion(value: number | string): number {
-  const version = typeof value === "number" ? value : Number(value);
-  if (!Number.isSafeInteger(version) || version < 1) {
-    throw new MutationError("unexpected", {
-      cause: new Error("Invalid guest version."),
-    });
-  }
-  return version;
-}
 
 function fieldErrors(
   message: string | undefined,
@@ -145,7 +128,7 @@ function mapGuestRow(
     firstName: row.first_name,
     lastName: row.last_name,
     rsvpStatus: row.rsvp_status,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid guest version."),
     quotaSnapshot: row.quota_snapshot,
     quotaSnapshotSource: row.quota_snapshot_source,
     handicapSnapshot: row.handicap_snapshot,
@@ -240,7 +223,7 @@ export async function executeWithdrawRoundGuest(
     membershipId: row.membership_id,
     sponsorMembershipId: row.sponsor_membership_id,
     rsvpStatus: row.rsvp_status,
-    version: safeVersion(row.version),
+    version: safePositiveInteger(row.version, "Invalid guest version."),
     scoreInvalidated: row.score_invalidated,
     changedAt: row.changed_at,
   };

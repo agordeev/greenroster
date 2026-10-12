@@ -1,7 +1,5 @@
 import "server-only";
 
-import { randomUUID } from "node:crypto";
-import { Resend } from "resend";
 import { z } from "zod";
 
 import {
@@ -9,16 +7,14 @@ import {
   type ResultsPublishedEmail,
 } from "../../emails/results-published";
 import {
-  isRetryableProviderFailure,
-  providerFailureCode,
-  retryAtWithBackoff,
+  defaultClaimedEmailDependencies,
+  recordProviderFailure,
   type InvitationEmailWorkerResult,
   type NotificationEmailProvider,
   type NotificationEmailWorkerConfig,
-  type NotificationPermanentFailureCode,
   type NotificationFailureCode,
+  type NotificationPermanentFailureCode,
   type NotificationRpcClient,
-  type ProviderEmailMessage,
 } from "./invitation-email-worker";
 
 export type ResultsPublishedEmailWorkerDependencies = Readonly<{
@@ -157,12 +153,7 @@ class InvalidMemberMagicLinkError extends Error {
 }
 
 const defaultDependencies: ResultsPublishedEmailWorkerDependencies = {
-  createClaimToken: randomUUID,
-  createClient: async () => {
-    const { createSupabaseServiceClient } =
-      await import("../supabase/service-client");
-    return createSupabaseServiceClient();
-  },
+  ...defaultClaimedEmailDependencies,
   createMagicLink: async ({ email, redirectTo }) => {
     const { createSupabaseServiceClient } =
       await import("../supabase/service-client");
@@ -188,22 +179,6 @@ const defaultDependencies: ResultsPublishedEmailWorkerDependencies = {
     }
     return { tokenHash, userId };
   },
-  createProvider: (apiKey) => {
-    const resend = new Resend(apiKey);
-    return {
-      send: (message: ProviderEmailMessage, options) =>
-        resend.emails.send(
-          {
-            from: message.from,
-            to: message.to,
-            subject: message.subject,
-            html: message.html,
-            text: message.text,
-          },
-          options,
-        ),
-    };
-  },
   getConfig: async () => {
     const { webRuntimeEnv } = await import("../runtime-env");
     return {
@@ -214,7 +189,6 @@ const defaultDependencies: ResultsPublishedEmailWorkerDependencies = {
       retrySeconds: webRuntimeEnv.notificationEmailRetrySeconds,
     };
   },
-  now: () => new Date(),
   readMagicLinkState: async (client, input) => {
     const result = await client.rpc("read_results_member_magic_link", {
       p_delivery_id: input.deliveryId,
@@ -337,23 +311,22 @@ async function recordResultsEmailFailure(
   }
 }
 
-function permanentFailure(
+async function permanentFailure(
   client: NotificationRpcClient,
   deliveryId: string,
   claimToken: string,
   code: NotificationPermanentFailureCode,
 ): Promise<InvitationEmailWorkerResult> {
-  return recordResultsEmailFailure(
+  const recorded = await recordResultsEmailFailure(
     client,
     deliveryId,
     claimToken,
     code,
     null,
-  ).then((recorded) =>
-    recorded
-      ? { kind: "failed_permanent", code, deliveryId }
-      : { kind: "unavailable", deliveryId },
   );
+  return recorded
+    ? { kind: "failed_permanent", code, deliveryId }
+    : { kind: "unavailable", deliveryId };
 }
 
 export async function runResultsPublishedEmailWorker(
@@ -376,20 +349,12 @@ export async function runResultsPublishedEmailWorker(
   if (parsedClaim.kind === "empty") return parsedClaim;
   if (parsedClaim.kind === "invalid") return { kind: "unavailable" };
   if (parsedClaim.kind === "invalid_claim") {
-    const recorded = await recordResultsEmailFailure(
+    return permanentFailure(
       client,
       parsedClaim.deliveryId,
       claimToken,
       "invalid_claim",
-      null,
     );
-    return recorded
-      ? {
-          kind: "failed_permanent",
-          code: "invalid_claim",
-          deliveryId: parsedClaim.deliveryId,
-        }
-      : { kind: "unavailable", deliveryId: parsedClaim.deliveryId };
   }
   const row = parsedClaim.row;
 
@@ -409,6 +374,23 @@ export async function runResultsPublishedEmailWorker(
         }
       : { kind: "unavailable", deliveryId: row.delivery_id };
   }
+
+  const recordFailure = (
+    safeError: NotificationFailureCode,
+    retryAtValue: string | null,
+  ) =>
+    recordResultsEmailFailure(
+      client,
+      row.delivery_id,
+      claimToken,
+      safeError,
+      retryAtValue,
+    );
+  const retry = {
+    attemptNumber: row.attempt_number,
+    now: dependencies.now,
+    retrySeconds: config.retrySeconds,
+  };
 
   const magicLinkState = await dependencies.readMagicLinkState(client, {
     claimToken,
@@ -462,29 +444,7 @@ export async function runResultsPublishedEmailWorker(
       tokenExpiresAt = expiresAt.toISOString();
     }
   } catch (error) {
-    const retryable = isRetryableProviderFailure(error);
-    const code = providerFailureCode(error);
-    const recorded = await recordResultsEmailFailure(
-      client,
-      row.delivery_id,
-      claimToken,
-      code,
-      retryable
-        ? retryAtWithBackoff(
-            dependencies.now(),
-            config.retrySeconds,
-            row.attempt_number,
-          )
-        : null,
-    );
-    if (!recorded) return { kind: "unavailable", deliveryId: row.delivery_id };
-    return retryable
-      ? { kind: "retryable", deliveryId: row.delivery_id }
-      : {
-          kind: "failed_permanent",
-          code: "provider_rejected",
-          deliveryId: row.delivery_id,
-        };
+    return recordProviderFailure(recordFailure, row.delivery_id, error, retry);
   }
 
   if (!tokenHash) return { kind: "unavailable", deliveryId: row.delivery_id };
@@ -550,30 +510,12 @@ export async function runResultsPublishedEmailWorker(
     }
 
     if (response.error) {
-      const retryable = isRetryableProviderFailure(response.error);
-      const code = providerFailureCode(response.error);
-      const recorded = await recordResultsEmailFailure(
-        client,
+      return recordProviderFailure(
+        recordFailure,
         row.delivery_id,
-        claimToken,
-        code,
-        retryable
-          ? retryAtWithBackoff(
-              dependencies.now(),
-              config.retrySeconds,
-              row.attempt_number,
-            )
-          : null,
+        response.error,
+        retry,
       );
-      if (!recorded)
-        return { kind: "unavailable", deliveryId: row.delivery_id };
-      return retryable
-        ? { kind: "retryable", deliveryId: row.delivery_id }
-        : {
-            kind: "failed_permanent",
-            code: "provider_rejected",
-            deliveryId: row.delivery_id,
-          };
     }
 
     if (!response.data) {
@@ -595,28 +537,6 @@ export async function runResultsPublishedEmailWorker(
     }
     return { kind: "sent", deliveryId: row.delivery_id, providerMessageId };
   } catch (error) {
-    const retryable = isRetryableProviderFailure(error);
-    const code = providerFailureCode(error);
-    const recorded = await recordResultsEmailFailure(
-      client,
-      row.delivery_id,
-      claimToken,
-      code,
-      retryable
-        ? retryAtWithBackoff(
-            dependencies.now(),
-            config.retrySeconds,
-            row.attempt_number,
-          )
-        : null,
-    );
-    if (!recorded) return { kind: "unavailable", deliveryId: row.delivery_id };
-    return retryable
-      ? { kind: "retryable", deliveryId: row.delivery_id }
-      : {
-          kind: "failed_permanent",
-          code: "provider_rejected",
-          deliveryId: row.delivery_id,
-        };
+    return recordProviderFailure(recordFailure, row.delivery_id, error, retry);
   }
 }

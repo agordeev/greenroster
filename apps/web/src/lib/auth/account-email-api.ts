@@ -9,10 +9,6 @@ import type {
   VerifiedAccountEmailSession,
 } from "./account-email-api-core";
 
-type AccessTokenVerification = Awaited<
-  ReturnType<typeof verifyAccountEmailAccessToken>
->;
-
 function bearerToken(authorization: string | null): string | null {
   const match = authorization?.match(/^Bearer ([^\s]+)$/);
   return match?.[1] ?? null;
@@ -148,4 +144,6 @@ const defaultDependencies: AccountEmailApiDependencies = {
 
 export const accountEmailApiDependencies = defaultDependencies;
 
-export type AccountEmailAccessTokenVerification = AccessTokenVerification;
+export type AccountEmailAccessTokenVerification = Awaited<
+  ReturnType<typeof verifyAccountEmailAccessToken>
+>;

@@ -3,11 +3,7 @@ import { z } from "zod";
 import type { VerifiedMutationSession } from "../auth/verify-mutation-session";
 import { runVerifiedMutation } from "../mutations/run-verified-mutation";
 import type { MutationResult } from "../mutations/result";
-
-const normalizedEmail = z.preprocess(
-  (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-  z.email(),
-);
+import { normalizedEmail } from "./invitation-lifecycle";
 
 export const issueInvitationInputSchema = z
   .object({

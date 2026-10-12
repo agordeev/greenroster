@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { resolveCorrelationId } from "../mutations/correlation";
+import { authFieldErrors } from "./auth-validation";
 import type { PasswordRecoveryState } from "./password-recovery-state";
 
 const accountEmailSchema = z
@@ -94,17 +95,6 @@ function failure(
   });
 }
 
-function validationFieldErrors(
-  issues: readonly Readonly<{ path: PropertyKey[]; message: string }>[],
-) {
-  const result: Record<string, string[]> = {};
-  for (const issue of issues) {
-    const field = issue.path[0];
-    if (typeof field === "string") (result[field] ??= []).push(issue.message);
-  }
-  return result;
-}
-
 async function parseJson(request: Request): Promise<unknown> {
   try {
     return await request.json();
@@ -162,7 +152,7 @@ export async function handleAccountEmailRequest(
       correlationId,
       "validation",
       400,
-      validationFieldErrors(parsed.error.issues),
+      authFieldErrors(parsed.error),
     );
   }
   const parsedCurrent = accountEmailSchema.safeParse(
@@ -199,9 +189,6 @@ export async function handleAccountEmailRequest(
   // Provider 403 responses deny the requested address operation rather than
   // proving this session came from GreenRoster's recovery registry. Keep them
   // in the neutral validation bucket instead of showing recovery-only copy.
-  if (provider.status === 403) {
-    return failure(correlationId, "validation", 400);
-  }
   if (provider.status < 200 || provider.status >= 300) {
     return failure(correlationId, "validation", 400);
   }

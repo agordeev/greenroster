@@ -8,25 +8,16 @@ import type {
 } from "../../domain/member-round-detail";
 import { MutationError } from "../mutations/result";
 import { createSupabaseServiceClient } from "../supabase/service-client";
+import {
+  mapRoundReadError,
+  nonNegativeIntegerSchema,
+  numericValueSchema,
+  positiveIntegerSchema,
+} from "./rpc-shared";
 
 type SupabaseRpcError = Readonly<{ code?: string; message?: string }>;
 
 const instantSchema = z.string().datetime({ offset: true });
-const positiveIntegerSchema = z
-  .union([z.number().int().positive(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid positive integer.");
-const nonNegativeIntegerSchema = z
-  .union([z.number().int().nonnegative(), z.string().regex(/^\d+$/u)])
-  .transform((value) => Number(value))
-  .refine(Number.isSafeInteger, "Invalid non-negative integer.");
-const numericSnapshotSchema = z
-  .union([
-    z.number().finite(),
-    z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
-  ])
-  .transform((value) => String(value))
-  .nullable();
 
 const detailRowSchema = z
   .object({
@@ -61,8 +52,8 @@ const guestSchema = z
     last_name: z.string().min(1),
     rsvp_status: z.enum(["playing", "not_playing"]),
     version: positiveIntegerSchema,
-    quota_snapshot: numericSnapshotSchema,
-    handicap_snapshot: numericSnapshotSchema,
+    quota_snapshot: numericValueSchema,
+    handicap_snapshot: numericValueSchema,
     tee_snapshot: z.enum(["pro", "back", "middle", "front"]).nullable(),
     duplicate_like: z.boolean(),
     changed_at: instantSchema,
@@ -80,20 +71,6 @@ const guestContextSchema = z
   })
   .strict();
 
-function mapReadError(error: SupabaseRpcError): MutationError {
-  if (error.code === "P0003") {
-    return new MutationError("forbidden", { cause: error });
-  }
-  if (error.code === "P0002") {
-    return new MutationError("unavailable", { cause: error });
-  }
-  if (error.code === "P0001") {
-    return new MutationError("locked", { cause: error });
-  }
-  if (!error.code) return new MutationError("transient", { cause: error });
-  return new MutationError("unexpected", { cause: error });
-}
-
 export async function executeReadMemberRoundDetail(
   client: Readonly<{
     rpc: (
@@ -108,7 +85,7 @@ export async function executeReadMemberRoundDetail(
   const result = await client.rpc("read_mobile_round_detail", {
     p_round_id: roundId,
   });
-  if (result.error) throw mapReadError(result.error);
+  if (result.error) throw mapRoundReadError(result.error);
   const parsed = z.array(detailRowSchema).length(1).safeParse(result.data);
   if (!parsed.success)
     throw new MutationError("unexpected", { cause: parsed.error });
@@ -146,7 +123,7 @@ export async function executeReadMemberRoundGuestContext(
     p_actor_user_id: actorUserId,
     p_round_id: roundId,
   });
-  if (result.error) throw mapReadError(result.error);
+  if (result.error) throw mapRoundReadError(result.error);
   const parsed = guestContextSchema.safeParse(result.data);
   if (!parsed.success)
     throw new MutationError("unexpected", { cause: parsed.error });

@@ -38,10 +38,11 @@ export async function resolvePasswordRecoveryIntent(stateHash: string) {
       .eq("state_hash", stateHash)
       .maybeSingle();
     if (error) return { ok: false as const };
-    if (!data || data.consumed_at) {
-      return { intent: null, ok: true as const };
-    }
-    if (new Date(data.expires_at).getTime() <= Date.now()) {
+    if (
+      !data ||
+      data.consumed_at ||
+      new Date(data.expires_at).getTime() <= Date.now()
+    ) {
       return { intent: null, ok: true as const };
     }
     return {

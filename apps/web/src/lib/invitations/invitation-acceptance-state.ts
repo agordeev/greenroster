@@ -3,6 +3,8 @@ import "server-only";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
+import { uuidFromSha256Hex } from "./invitation-token";
+
 export const INVITATION_ACCEPTANCE_COOKIE = "greenroster_invitation";
 export const INVITATION_ACCEPTANCE_COOKIE_PATH = "/invitations";
 export const DEFAULT_INVITATION_ACCEPTANCE_COOKIE_MAX_AGE_SECONDS = 15 * 60;
@@ -85,7 +87,7 @@ export function invitationAcceptanceOperationId(
       "utf8",
     )
     .digest("hex");
-  return `${digest.slice(0, 8)}-${digest.slice(8, 12)}-4${digest.slice(13, 16)}-${(8 | (Number.parseInt(digest.slice(16, 17), 16) % 4)).toString(16)}${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
+  return uuidFromSha256Hex(digest);
 }
 
 export function createInvitationAcceptanceCookieValue(
@@ -122,15 +124,13 @@ export function readInvitationAcceptanceCookieValue(
   }
   const decoded = decodeBase64Url(encodedPayload);
   if (!decoded) return null;
-  const parsed = cookiePayloadSchema.safeParse(
-    (() => {
-      try {
-        return JSON.parse(decoded);
-      } catch {
-        return null;
-      }
-    })(),
-  );
+  let json: unknown;
+  try {
+    json = JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+  const parsed = cookiePayloadSchema.safeParse(json);
   if (!parsed.success || parsed.data.expiresAt <= now) return null;
   return parsed.data;
 }
