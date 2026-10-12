@@ -1,30 +1,27 @@
 :root {
-  --scorecard: #f4f1e8;
-  --ledger: #fbfaf5;
-  --inset: #eeeadf;
-  --graphite: #20251f;
-  --pencil: #5d665c;
-  --quiet: #667066;
-  --bentgrass: #285a3a;
-  --bentgrass-hover: #1f4930;
-  --sand: #d8ccb1;
-  --rule: rgba(32, 37, 31, 0.15);
-  --rule-soft: rgba(32, 37, 31, 0.08);
-  --focus: #417a54;
-  --flag: #a23d32;
-  --field: #fffefb;
-  --ink: var(--graphite);
-  --paper: var(--ledger);
+  --scorecard: var(--background);
+  --ledger: var(--card);
+  --inset: var(--muted);
+  --graphite: var(--foreground);
+  --pencil: var(--muted-foreground);
+  --quiet: var(--muted-foreground);
+  --bentgrass: var(--primary);
+  --bentgrass-hover: color-mix(in oklab, var(--primary) 90%, transparent);
+  --sand: var(--border);
+  --rule: var(--border);
+  --rule-soft: color-mix(in oklab, var(--border) 50%, transparent);
+  --focus: var(--ring);
+  --flag: var(--destructive);
+  --field: var(--card);
+  --ink: var(--foreground);
+  --paper: var(--card);
   --control: 2.75rem;
-  --font-club: "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --font-ledger: Georgia, "Times New Roman", serif;
+  --font-club: var(--font-sans);
+  --font-ledger: var(--font-sans);
 }
 
 * {
   box-sizing: border-box;
-}
-:focus-visible {
-  outline-color: revert;
 }
 html {
   background: var(--scorecard);
@@ -41,7 +38,7 @@ a {
 }
 :where(h1, h2, h3, h4) {
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 :where(h3) {
   font-size: 1.125rem;
@@ -83,7 +80,7 @@ select {
   padding-right: 2.25rem;
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%235d665c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23636363' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
 }
@@ -98,7 +95,7 @@ input:not([type="checkbox"], [type="radio"]):focus,
 select:focus,
 textarea:focus {
   border-color: var(--focus);
-  box-shadow: 0 0 0 3px rgba(65, 122, 84, 0.16);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 30%, transparent);
 }
 input:disabled,
 select:disabled,
@@ -210,7 +207,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.5rem 0 0.875rem;
   font-family: var(--font-ledger);
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
@@ -311,7 +308,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .text-button:focus-visible,
 .secondary-button:focus-visible,
 .danger-button:focus-visible {
-  outline: 3px solid rgba(65, 122, 84, 0.3);
+  outline: 3px solid var(--ring);
   outline-offset: 3px;
 }
 .secondary-link {
@@ -381,7 +378,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-import-denied h2 {
   margin: 0 0 0.75rem;
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-import-result [data-status="success"] {
   border-color: var(--bentgrass);
@@ -523,7 +520,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-inbox-item-heading time,
 .member-inbox-author {
@@ -542,7 +539,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-home-round .invitation-summary {
   margin-bottom: 0;
@@ -577,7 +574,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-home-results-summary h3 {
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-home-results-summary h2 {
   font-size: 1.5rem;
@@ -618,7 +615,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.75rem 0 1rem;
   font-family: var(--font-ledger);
   font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.05;
 }
@@ -770,7 +767,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   background: var(--inset);
 }
 .account-menu summary:focus-visible {
-  outline: 3px solid rgba(65, 122, 84, 0.3);
+  outline: 3px solid var(--ring);
   outline-offset: 3px;
 }
 .account-avatar {
@@ -792,7 +789,8 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--ledger);
-  box-shadow: 0 1rem 2.5rem rgb(31 41 33 / 12%);
+  box-shadow: 0 1rem 2.5rem
+    color-mix(in oklab, var(--foreground) 12%, transparent);
 }
 .account-menu-identity {
   display: grid;
@@ -847,7 +845,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 }
 .account-menu-panel a:focus-visible,
 .account-menu-panel button:focus-visible {
-  outline: 3px solid rgba(65, 122, 84, 0.3);
+  outline: 3px solid var(--ring);
   outline-offset: -3px;
 }
 .portal-main {
@@ -873,7 +871,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.625rem 0 1rem;
   font-family: var(--font-ledger);
   font-size: clamp(1.75rem, 3vw, 2.5rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
@@ -907,7 +905,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .portal-card > strong {
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .portal-card > small {
@@ -929,7 +927,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   border-top: 1px solid var(--rule);
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .portal-ledger > h2 + p {
   margin: 0;
@@ -991,7 +989,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .portal-table-wrap tbody th {
   font-family: var(--font-ledger);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 @media (max-width: 720px) {
   .billing-access-table table,
@@ -1103,7 +1101,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .dashboard-summary-card strong {
   font-family: var(--font-ledger);
   font-size: 2rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .dashboard-summary-card small {
   color: var(--bentgrass);
@@ -1133,13 +1131,13 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 }
 .dashboard-action-summary span > strong {
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .dashboard-action-summary > strong {
   color: var(--bentgrass);
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .dashboard-action-summary--clear > strong {
   color: var(--pencil);
@@ -1221,7 +1219,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .quota-test h3 {
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .band-editor-heading p,
 .quota-policy-note {
@@ -1303,7 +1301,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   opacity: 0;
 }
 .quota-methods label:focus-within {
-  outline: 3px solid rgba(65, 122, 84, 0.25);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 .quota-methods small {
@@ -1434,7 +1432,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .invitation-management-empty p {
   margin-bottom: 0;
@@ -1461,7 +1459,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .invitation-status {
   color: var(--bentgrass);
@@ -1502,7 +1500,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .invitation-confirmation {
   display: flex;
@@ -1550,7 +1548,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.35rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-create-step {
   color: var(--quiet);
@@ -1584,7 +1582,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin-bottom: 0.25rem;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-create-form .member-contact-fieldset {
   padding: 1rem;
@@ -1646,7 +1644,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-list-heading span {
   color: var(--quiet);
@@ -1764,7 +1762,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-roster-table tbody th {
   font-family: var(--font-ledger);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-roster-table tbody th a {
   color: inherit;
@@ -1802,7 +1800,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-roster-card-heading a {
   text-decoration: none;
@@ -1849,7 +1847,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   color: var(--graphite);
   font-family: var(--font-ledger);
   font-size: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-roster-empty p {
   margin: 0;
@@ -1939,7 +1937,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin-bottom: 0.25rem;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-form-grid {
   display: grid;
@@ -2089,7 +2087,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .section-heading > p {
   margin: 0;
@@ -2118,7 +2116,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   color: var(--bentgrass);
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
   text-underline-offset: 0.2em;
 }
 .row-item p {
@@ -2208,7 +2206,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .publication-member-row .bound-choice {
   margin: 0;
@@ -2264,7 +2262,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .group-activity-heading time {
   color: var(--quiet);
@@ -2391,7 +2389,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-detail-subheading {
   margin: 0.35rem 0 0;
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-detail-heading h2 {
   font-size: 1.5rem;
@@ -2486,7 +2484,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-detail-seed-list strong {
   color: var(--bentgrass);
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 @media (max-width: 720px) {
@@ -2521,7 +2519,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.625rem 0 1.5rem;
   font-family: var(--font-ledger);
   font-size: clamp(1.75rem, 3vw, 2.5rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
@@ -2535,7 +2533,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   color: var(--ink);
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .action-row {
   display: flex;
@@ -2697,7 +2695,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-quota-seed-heading h3 {
   margin: 0.35rem 0 0;
   font-family: var(--font-ledger);
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-quota-editor-heading h2 {
   font-size: 1.5rem;
@@ -2766,7 +2764,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin-bottom: 0.25rem;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-quota-form-grid {
   display: grid;
@@ -2874,7 +2872,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.375rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-results-table-wrap {
   position: relative;
@@ -2910,7 +2908,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   color: var(--bentgrass);
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-results-guest {
   display: block;
@@ -2959,7 +2957,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
 .member-stats-summary strong {
   font-family: var(--font-ledger);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-read-empty {
   color: var(--pencil);
@@ -3038,7 +3036,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0.35rem 0 0;
   font-family: var(--font-ledger);
   font-size: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-directory-meta {
   margin: 0.4rem 0 0;
@@ -3083,7 +3081,7 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   margin: 0;
   font-family: var(--font-ledger);
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 .member-preference-row p {
   margin: 0.35rem 0 0;
