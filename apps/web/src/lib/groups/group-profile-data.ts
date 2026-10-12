@@ -62,7 +62,7 @@ function groupProfileFieldErrors(
       return { groupTimeZone: ["Enter a time zone such as America/New_York."] };
     case "group_profile_reason_required":
     case "group_profile_reason_invalid":
-      return { reason: ["Add a reason for this group profile change."] };
+      return { reason: ["Add a reason for this change."] };
     case "group_profile_input_invalid":
       return { expectedGroupVersion: ["Refresh before saving."] };
     default:

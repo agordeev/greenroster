@@ -52,8 +52,7 @@ export function MembershipRoleChangeEmailDocument(
             <strong>{newRole}</strong>.
           </Text>
           <Text style={mutedTextStyle}>
-            This change takes effect immediately. Sign in to GreenRoster to see
-            what your new role lets you do.
+            Sign in to GreenRoster to see what your new role lets you do.
           </Text>
           <Button href={input.actionUrl} style={buttonStyle}>
             Open GreenRoster
@@ -82,7 +81,7 @@ export function buildMembershipRoleChangeEmail(
       "",
       `Your role changed from ${oldRole} to ${newRole}.`,
       "",
-      "This change takes effect immediately. Sign in to GreenRoster to see what your new role lets you do.",
+      "Sign in to GreenRoster to see what your new role lets you do.",
       "",
       `Open GreenRoster: ${input.actionUrl}`,
       "",

@@ -82,7 +82,7 @@ export const brandingAssetInputSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["displayOrder"],
-        message: "Keep scoreboard headers in the first position.",
+        message: "A banner at the top of the scoreboard must be first.",
       });
     }
   });

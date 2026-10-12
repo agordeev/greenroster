@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { validateMobileRuntimeEnv } from "../apps/mobile/src/lib/validate-runtime-env";
 import {
   validateInvitationRuntimeEnv,
   validateWebRuntimeEnv,
@@ -189,65 +188,5 @@ describe("web runtime configuration", () => {
         SUPPORT_EMAIL: "not-an-address",
       }),
     ).toThrowError("SUPPORT_EMAIL must be a valid e-mail address");
-  });
-});
-
-describe("mobile runtime configuration", () => {
-  const validEnvironment = {
-    EXPO_PUBLIC_APP_URL: "https://app.example.com",
-    EXPO_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-    EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
-  };
-
-  it("returns validated public configuration", () => {
-    expect(validateMobileRuntimeEnv(validEnvironment)).toEqual({
-      appUrl: "https://app.example.com",
-      supabaseUrl: "https://example.supabase.co",
-      supabasePublishableKey: "publishable-key",
-    });
-  });
-
-  it("names a missing publishable key", () => {
-    expect(() =>
-      validateMobileRuntimeEnv({
-        ...validEnvironment,
-        EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: undefined,
-      }),
-    ).toThrowError(
-      "Missing required environment variable: EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    );
-  });
-
-  it("requires the mobile application URL to be an origin", () => {
-    expect(() =>
-      validateMobileRuntimeEnv({
-        ...validEnvironment,
-        EXPO_PUBLIC_APP_URL: "https://app.example.com/mobile?preview=true",
-      }),
-    ).toThrowError("EXPO_PUBLIC_APP_URL must be an HTTP or HTTPS origin");
-  });
-
-  it("fails when the app root imports missing runtime configuration", async () => {
-    vi.stubEnv("EXPO_PUBLIC_SUPABASE_URL", "");
-    vi.stubEnv("EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
-    vi.stubEnv("EXPO_PUBLIC_APP_URL", "http://127.0.0.1:3000");
-
-    await expect(
-      import("../apps/mobile/src/lib/runtime-env"),
-    ).rejects.toThrowError(
-      "Missing required environment variable: EXPO_PUBLIC_SUPABASE_URL",
-    );
-  });
-
-  it("rejects a copied publishable-key placeholder", () => {
-    expect(() =>
-      validateMobileRuntimeEnv({
-        ...validEnvironment,
-        EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-          "replace-with-local-publishable-key",
-      }),
-    ).toThrowError(
-      "Replace placeholder environment variable: EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    );
   });
 });

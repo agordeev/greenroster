@@ -10,6 +10,7 @@ const contextSchema = z
   .array(
     z
       .object({
+        membership_id: z.uuid(),
         group_id: z.uuid(),
         role: z.enum(["member", "coordinator", "administrator"]),
       })

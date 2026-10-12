@@ -29,7 +29,7 @@ export function MemberInboxList({
           operationId,
         });
       } catch {
-        setMessage("We could not mark that update. Try again.");
+        setMessage("We couldn't mark that update as read. Try again.");
         setPendingItemId(null);
         return;
       }
@@ -76,11 +76,7 @@ export function MemberInboxList({
           >
             <div className="member-inbox-item-heading">
               <div>
-                <p className="ledger-kicker">
-                  {item.readAt
-                    ? "You have opened this update"
-                    : "You have a new update"}
-                </p>
+                <p className="ledger-kicker">{item.readAt ? "Read" : "New"}</p>
                 <h2>{item.roundDescription ?? "Your round"}</h2>
               </div>
               <time dateTime={item.createdAt}>
@@ -113,7 +109,7 @@ export function MemberInboxList({
 function formatInboxTimestamp(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);

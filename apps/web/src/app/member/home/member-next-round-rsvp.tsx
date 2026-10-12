@@ -79,7 +79,7 @@ export function MemberNextRoundRsvp({
   return (
     <div className="member-home-rsvp-controls">
       <p className="field-help">
-        Current response: <strong>{formatRsvp(rsvpStatus)}</strong>
+        Your answer: <strong>{formatRsvp(rsvpStatus)}</strong>
         {changedAt ? (
           <span> Updated {formatRsvpChangedAt(changedAt, groupTimeZone)}</span>
         ) : null}
@@ -128,9 +128,9 @@ export function formatRsvp(
 }
 
 export function formatRsvpChangedAt(value: string, timeZone: string): string {
-  return `${new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone,
-  }).format(new Date(value))} (${timeZone})`;
+  }).format(new Date(value));
 }

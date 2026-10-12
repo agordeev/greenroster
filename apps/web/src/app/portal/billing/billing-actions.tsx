@@ -33,8 +33,7 @@ export function BillingActions({
       };
       if (!response.ok || !result.ok) {
         setMessage(
-          result.error?.message ??
-            "You cannot open billing right now. Try again.",
+          result.error?.message ?? "We couldn't open billing. Try again.",
         );
         return;
       }
@@ -42,12 +41,10 @@ export function BillingActions({
       if (url) {
         window.location.assign(url);
       } else {
-        setMessage(
-          "You can refresh Billing after payment finishes processing.",
-        );
+        setMessage("Refresh this page once your payment has gone through.");
       }
     } catch {
-      setMessage("You cannot open billing right now. Try again.");
+      setMessage("We couldn't open billing. Try again.");
     } finally {
       setBusy(null);
     }

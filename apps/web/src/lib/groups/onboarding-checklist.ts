@@ -13,11 +13,11 @@ export function buildOnboardingChecklist(
   return [
     {
       key: "group-profile",
-      label: "Complete the group profile",
+      label: "Set your group name and time zone",
       status: groupProfileComplete ? "complete" : "not-configured",
       detail: groupProfileComplete
         ? "Your group name and time zone are set."
-        : "Add the required group name and time zone.",
+        : "Add your group name and time zone.",
     },
     {
       key: "rules",

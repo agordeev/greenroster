@@ -14,7 +14,7 @@ const uuidSchema = z.uuid();
 const localDateTimeSchema = z
   .string()
   .trim()
-  .refine(isLocalDateTimeOrBlank, "Enter a valid local date and time.");
+  .refine(isLocalDateTimeOrBlank, "Enter a valid date and time.");
 const roundUrlSchema = z
   .string()
   .trim()

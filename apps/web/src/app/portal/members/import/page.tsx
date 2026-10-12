@@ -67,10 +67,8 @@ export default async function MemberImportPage() {
         ) : (
           <>
             <p>
-              Download the template, fill it in, and upload one CSV file. Rows
-              whose e-mail already belongs to a member or pending invitation are
-              skipped. Nothing is added until every other row is valid and you
-              confirm. Either every row is added or none are.
+              Download the template, fill it in, and upload it as a CSV file. We
+              skip rows for people who are already members or already invited.
             </p>
             <MemberImportPanel />
           </>

@@ -22,12 +22,9 @@ export function OfficialResultsPanel({
       >
         <p className="ledger-kicker">Published results</p>
         <h2 id="official-results-unavailable-title">
-          Official results are unavailable
+          We couldn&apos;t load the official results
         </h2>
-        <p>
-          Official results could not be loaded. Refresh the page before you use
-          the rankings, scores, or merit totals.
-        </p>
+        <p>Refresh the page to see rankings, scores, and merit totals.</p>
       </section>
     );
   }
@@ -62,15 +59,15 @@ export function OfficialResultsPanel({
         {formatDate(
           data.results[0]?.completed_at ?? null,
           data.round.group_time_zone,
-        )}{" "}
-        ({data.round.group_time_zone}). These results are read-only.
+        )}
+        .
       </p>
       {winners.length > 0 ? (
         <aside
           className="member-results-winner"
           aria-labelledby="portal-winner-title"
         >
-          <p className="ledger-kicker">Winner summary</p>
+          <p className="ledger-kicker">Winner</p>
           <h3 id="portal-winner-title">
             {winners.map(displayName).join(" and ")} —{" "}
             {winners.length > 1
@@ -80,9 +77,7 @@ export function OfficialResultsPanel({
         </aside>
       ) : null}
       {data.results.length === 0 ? (
-        <EmptyState>
-          The round is completed, but no official results are available.
-        </EmptyState>
+        <EmptyState>This round is complete, but it has no results.</EmptyState>
       ) : (
         <div className="member-results-table-wrap">
           <table className="member-results-table">
@@ -173,7 +168,7 @@ function formatValue(value: string | null) {
 function formatDate(value: string | null, timeZone: string) {
   if (!value) return "not available";
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
       timeZone,

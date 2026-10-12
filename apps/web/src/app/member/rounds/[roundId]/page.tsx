@@ -51,13 +51,13 @@ export default async function MemberRoundPage({
         <section className="auth-ledger" aria-labelledby="member-round-title">
           <nav className="member-results-nav" aria-label="Member navigation">
             <Link className="secondary-link" href="/member/home">
-              Open your home
+              Home
             </Link>
             <Link className="secondary-link" href="/member/standings">
               Open standings and history
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
           </nav>
           <p className="ledger-kicker">Your round</p>
@@ -84,7 +84,7 @@ export default async function MemberRoundPage({
             </div>
             {detail.rsvpDeadlineAt ? (
               <div>
-                <dt>Response deadline</dt>
+                <dt>RSVP deadline</dt>
                 <dd>
                   {formatDateTime(detail.rsvpDeadlineAt, detail.groupTimeZone)}
                 </dd>
@@ -109,7 +109,7 @@ export default async function MemberRoundPage({
               aria-labelledby="your-response-title"
             >
               <p className="ledger-kicker">Your response</p>
-              <h2 id="your-response-title">Playing status</h2>
+              <h2 id="your-response-title">Are you playing?</h2>
               {detail.state === "published" ? (
                 <MemberNextRoundRsvp
                   roundId={detail.roundId}
@@ -121,7 +121,7 @@ export default async function MemberRoundPage({
               ) : (
                 <p className="field-help">
                   You are {formatParticipantStatus(detail.participantStatus)}.
-                  You cannot change your response after scoring opens.
+                  You can&apos;t change your answer once scoring has opened.
                 </p>
               )}
             </section>
@@ -135,7 +135,7 @@ export default async function MemberRoundPage({
               <p className="ledger-kicker">Round day</p>
               <h2 id="round-day-access-title">Your round is live</h2>
               <p className="field-help">
-                You use the GreenRoster app to enter scores and manage guests.
+                Open the GreenRoster app to enter scores and manage guests.
               </p>
             </section>
           ) : null}
@@ -152,7 +152,7 @@ function formatRound(format: MemberRoundDetail["format"]): string {
 function formatState(state: MemberRoundDetail["state"]): string {
   if (state === "live") return "Your round is live";
   if (state === "cancelled") {
-    return "You cannot respond because this round is cancelled";
+    return "This round is cancelled, so you can't respond";
   }
   return "You can update your response";
 }
@@ -167,11 +167,11 @@ function formatParticipantStatus(
 
 function formatDateTime(value: string | null, timeZone: string): string {
   if (!value) return "Time to be announced";
-  return `${new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",
     timeZone,
-  }).format(new Date(value))} (${timeZone})`;
+  }).format(new Date(value));
 }
 
 function MemberRoundUnavailable() {
@@ -182,12 +182,10 @@ function MemberRoundUnavailable() {
         aria-labelledby="member-round-error-title"
       >
         <p className="ledger-kicker">Your round</p>
-        <h1 id="member-round-error-title">
-          You cannot open this round right now
-        </h1>
+        <h1 id="member-round-error-title">We couldn&apos;t load this round</h1>
         <p>Return to your home and try again.</p>
         <Link className="secondary-link" href="/member/home">
-          Open your home
+          Home
         </Link>
       </section>
     </main>

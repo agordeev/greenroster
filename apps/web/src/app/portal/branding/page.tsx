@@ -38,8 +38,8 @@ export default async function BrandingPage() {
         <p className="ledger-kicker">Group branding</p>
         <h1 id="branding-title">Branding</h1>
         <p>
-          Upload an image for your clubhouse scoreboard. Optional links must use
-          HTTPS.
+          Upload an image for your clubhouse scoreboard. Links must start with
+          https://.
         </p>
         <BrandingForm assets={assets} />
       </section>

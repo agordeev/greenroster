@@ -7,6 +7,7 @@ import type { ManageableMember } from "../memberships/member-management";
 import {
   executeReadMemberOfficialResults,
   executeReadMemberStandings,
+  isQuotaRulesMissing,
 } from "../rounds/member-results-data";
 import { executeListRoundDrafts } from "../rounds/round-drafts-data";
 import type { RoundDraft } from "../../domain/round-drafts";
@@ -81,7 +82,11 @@ export async function executePortalDashboardData(
 
   const [rounds, standings] = await Promise.all([
     dependencies.listRounds(actorUserId),
-    dependencies.readStandings(actorUserId),
+    // A new group has no quota rules yet; its counts still load.
+    dependencies.readStandings(actorUserId).catch((error: unknown) => {
+      if (isQuotaRulesMissing(error)) return [];
+      throw error;
+    }),
   ]);
   const completedRound = selectMostRecentCompletedRound(rounds);
   const officialResults = completedRound

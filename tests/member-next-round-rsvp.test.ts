@@ -19,6 +19,6 @@ describe("member next-round RSVP display", () => {
   it("formats the server-confirmed timestamp in the group zone", () => {
     expect(
       formatRsvpChangedAt("2026-08-03T13:30:00.000Z", "America/New_York"),
-    ).toBe("Aug 3, 2026, 9:30 AM (America/New_York)");
+    ).toBe("Aug 3, 2026, 9:30 AM");
   });
 });

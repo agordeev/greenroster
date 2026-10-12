@@ -63,7 +63,7 @@ export function RoundScoreFieldsPanel({
           operationId: currentOperationId,
         });
       } catch {
-        setMessage("Your score options weren't saved. Try again.");
+        setMessage("We couldn't save your score options. Try again.");
         setMessageTone("error");
         return;
       }
@@ -86,15 +86,12 @@ export function RoundScoreFieldsPanel({
   return (
     <section className="page-section" aria-labelledby="score-fields-title">
       <SectionHeading
-        kicker="Format setup"
+        kicker="Scoring"
         title="Score options"
         titleId="score-fields-title"
-        meta="You are editing a draft."
+        meta="Draft"
       />
-      <p className="field-help">
-        Choose which totals you can enter when you score this round. Golf points
-        are entered for every player.
-      </p>
+      <p className="field-help">Choose which scores to enter for this round.</p>
       <div className="precision-options">
         <label className="bound-choice" htmlFor="round-enable-gross-score">
           <input
@@ -104,7 +101,7 @@ export function RoundScoreFieldsPanel({
             onChange={(event) => setGrossScore(event.target.checked)}
             disabled={pending}
           />
-          You can enter a gross score
+          Enter gross scores
         </label>
         <label className="bound-choice" htmlFor="round-enable-net-score">
           <input
@@ -114,12 +111,12 @@ export function RoundScoreFieldsPanel({
             onChange={(event) => setNetScore(event.target.checked)}
             disabled={pending || format === "individual_gross"}
           />
-          You can enter a net score
+          Enter net scores
         </label>
       </div>
       {format === "individual_gross" ? (
         <p className="field-help">
-          You cannot enter a net score for Individual Gross.
+          Net scores aren&apos;t used in Individual Gross rounds.
         </p>
       ) : null}
       <p

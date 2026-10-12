@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { signOutAction } from "@/app/actions/auth";
 import { InformationFooter } from "@/app/information-footer";
+
+import { AccountMenu } from "./account-menu";
 
 type PortalRole = "member" | "coordinator" | "administrator";
 
@@ -82,6 +83,20 @@ const secondaryNav: readonly (readonly NavItem[])[] = [
   ],
   [
     {
+      href: "/portal/standings",
+      label: "Standings",
+      sections: ["standings"],
+      roles: organizers,
+    },
+    {
+      href: "/portal/reports",
+      label: "Reports",
+      sections: ["reports"],
+      roles: organizers,
+    },
+  ],
+  [
+    {
       href: "/portal/group",
       label: "Group",
       sections: ["group"],
@@ -132,7 +147,7 @@ export function PortalShell({
 }>) {
   const visibleRole = role
     ? roleLabel[role]
-    : (roleStatus ?? "Access not resolved");
+    : (roleStatus ?? "Role unavailable");
   const allowed = (item: NavItem) =>
     role ? item.roles.includes(role) : item.roles === everyone;
   const tabs = (
@@ -175,25 +190,7 @@ export function PortalShell({
           ))}
         </nav>
 
-        <div className="account-block">
-          <details className="account-menu">
-            <summary>Account</summary>
-            <div>
-              <span>{email}</span>
-              <strong>{visibleRole}</strong>
-              <Link href="/account">Account e-mail</Link>
-              <Link href="/account/privacy">Privacy requests</Link>
-              <Link href="/help">Help</Link>
-              <Link href="/privacy">Privacy Policy</Link>
-              <Link href="/terms">Terms of Use</Link>
-            </div>
-          </details>
-          <form action={signOutAction}>
-            <button className="text-button" type="submit">
-              Sign out
-            </button>
-          </form>
-        </div>
+        <AccountMenu email={email} role={visibleRole} />
       </header>
       {tabs.length > 1 ? (
         <nav className="portal-tabs" aria-label="Section">

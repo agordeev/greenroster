@@ -45,7 +45,7 @@ export function projectMemberQuotaBootstrap(
       roundHalfAwayFromZero(rounded, 2)
     ) {
       throw new Error(
-        "Enter an initial quota with no more than the group's quota decimal places.",
+        "Enter a starting quota with no more decimal places than your group uses.",
       );
     }
   }

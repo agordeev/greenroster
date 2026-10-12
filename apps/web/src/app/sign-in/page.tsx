@@ -30,12 +30,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </div>
 
           <div className="auth-heading">
-            <p className="ledger-kicker">Clubhouse access</p>
-            <h1 id="sign-in-title">Sign in as yourself</h1>
-            <p>
-              Use the e-mail address on your own account. There is no shared
-              group password.
-            </p>
+            <p className="ledger-kicker">Welcome back</p>
+            <h1 id="sign-in-title">Sign in to GreenRoster</h1>
+            <p>Sign in to see your rounds and standings.</p>
           </div>
 
           {status === "session-expired" ? (
@@ -66,24 +63,19 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
         <aside className="auth-context" aria-label="About GreenRoster">
           <div className="scorecard-rule" />
-          <p className="context-number">01</p>
-          <h2>Your access comes from your own membership.</h2>
-          <p>
-            Your role and group come from your membership, not from a link or a
-            group selector.
-          </p>
+          <h2>Your next round, recent results, and where you stand.</h2>
           <dl>
             <div>
-              <dt>Sign-in</dt>
-              <dd>Your account e-mail and password</dd>
+              <dt>Rounds</dt>
+              <dd>RSVP for your next round</dd>
             </div>
             <div>
-              <dt>Groups</dt>
-              <dd>One group for now</dd>
+              <dt>Results</dt>
+              <dd>See how you finished</dd>
             </div>
             <div>
-              <dt>Your role</dt>
-              <dd>Set by your membership</dd>
+              <dt>Standings</dt>
+              <dd>Follow your quota and Order of Merit</dd>
             </div>
           </dl>
         </aside>

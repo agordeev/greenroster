@@ -8,9 +8,8 @@ export default function HomePage() {
     <InformationShell kicker="Home" title="Your group, rounds, and roster">
       <div className="information-copy">
         <p>
-          Everyone signs in with their own account, and your group access comes
-          from your membership. Administrators and coordinators use the portal;
-          members use the member pages.
+          Sign in to see your next round, recent results, and where you stand.
+          Coordinators and administrators also run the group from the portal.
         </p>
         <ActionRow>
           <Link className="primary-link" href="/sign-in">

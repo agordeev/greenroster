@@ -89,7 +89,7 @@ function correctionFieldErrors(
     case "rsvp_version_invalid":
       return {
         expectedParticipantVersion: [
-          "Refresh the live round before trying this correction again.",
+          "This round has changed. Refresh the page and try again.",
         ],
       };
     case "score_version_invalid":
@@ -106,14 +106,14 @@ function correctionFieldErrors(
       };
     case "rsvp_change_confirmation_required":
       return {
-        confirmed: ["Confirm the participant correction before saving."],
+        confirmed: ["Confirm the change before saving."],
       };
     case "rsvp_change_reason_required":
-      return { reason: ["Add a reason between 1 and 500 characters."] };
+      return { reason: ["Add a reason for this change."] };
     case "participant_not_found":
     case "round_not_found":
       return {
-        participantId: ["This live participant is no longer available."],
+        participantId: ["This player is no longer in the round."],
       };
     default:
       return undefined;

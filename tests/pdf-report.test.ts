@@ -25,7 +25,7 @@ describe("PDF reports", () => {
     const text = new TextDecoder().decode(pdf);
     expect(text.startsWith("%PDF-1.4")).toBe(true);
     expect(text).toContain("Group: Ada's Group");
-    expect(text).toContain("Private data: No");
+    expect(text).toContain("Contains private data: No");
     expect(text).toContain("Ada Lovelace");
     expect(text.endsWith("%%EOF\n")).toBe(true);
   });
@@ -82,7 +82,7 @@ describe("PDF reports", () => {
     );
     const text = new TextDecoder().decode(pdf);
     expect(text).toContain("points score pad");
-    expect(text).toContain("Private data: No");
+    expect(text).toContain("Contains private data: No");
     expect(text).toContain("Official");
   });
 });

@@ -75,7 +75,7 @@ export async function handlePortalExport(
   );
   if (!format.success) return jsonError("Choose a report format.", 400);
   if (kind.data === "scorepad" && format.data !== "pdf") {
-    return jsonError("The score pad is available as a PDF report.", 400);
+    return jsonError("The score pad is only available as a PDF.", 400);
   }
 
   let session: Awaited<ReturnType<typeof verifyMutationSession>>;
@@ -89,9 +89,10 @@ export async function handlePortalExport(
   try {
     context = await dependencies.resolveContext();
   } catch {
-    return jsonError("Your group is unavailable right now.", 503);
+    return jsonError("We couldn't load your group. Try again.", 503);
   }
-  if (!context) return jsonError("Your access does not include exports.", 403);
+  if (!context)
+    return jsonError("You don't have permission to download exports.", 403);
 
   const correlationId =
     request.headers.get("x-correlation-id") ?? crypto.randomUUID();
@@ -174,7 +175,7 @@ export async function handlePortalExport(
       filter: url.searchParams.toString(),
     });
   } catch {
-    return jsonError("Your export is unavailable right now.", 503);
+    return jsonError("We couldn't create your export. Try again.", 503);
   }
 
   const body: BodyInit =

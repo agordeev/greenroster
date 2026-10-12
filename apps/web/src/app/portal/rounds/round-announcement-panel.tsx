@@ -38,7 +38,7 @@ export function RoundAnnouncementPanel({
       try {
         result = await postRoundAnnouncementAction(parsed.data);
       } catch {
-        setMessage("You can't post this update right now. Try again.");
+        setMessage("We couldn't post your update. Try again.");
         setMessageTone("error");
         return;
       }
@@ -69,7 +69,6 @@ export function RoundAnnouncementPanel({
         titleId="round-announcement-title"
         meta={<>{remaining} characters left.</>}
       />
-      <p>Post a short update for everyone in this round.</p>
       {message ? (
         <p className={`form-message ${messageTone}`} role="status">
           {message}

@@ -62,7 +62,7 @@ export function PublicationReviewPanel({
       }
       setReview(result.data);
     } catch {
-      setMessage("Players could not be checked. Try again.");
+      setMessage("We couldn't check the player list. Try again.");
       setMessageTone("error");
     } finally {
       setPending(false);
@@ -79,7 +79,7 @@ export function PublicationReviewPanel({
     const { summary } = review;
     if (summary.missingQuotaCount > 0) {
       setMessage(
-        "Add quota for each player or exclude them before you publish.",
+        "Some players have no quota. Give them one or exclude them before you publish.",
       );
       setMessageTone("error");
       return;
@@ -130,7 +130,7 @@ export function PublicationReviewPanel({
       setMessageTone("success");
       router.refresh();
     } catch {
-      setMessage("The round wasn't published. Try again.");
+      setMessage("We couldn't publish the round. Try again.");
       setMessageTone("error");
     } finally {
       setPending(false);
@@ -143,18 +143,14 @@ export function PublicationReviewPanel({
       aria-labelledby="publication-review-title"
     >
       <SectionHeading
-        kicker="Publication review"
+        kicker="Before you publish"
         title="Player list"
         titleId="publication-review-title"
         meta={
           format === "individual_net" ? "Individual Net" : "Individual Gross"
         }
       />
-      <p>
-        When you publish, every included member starts as{" "}
-        <strong>No response</strong>. Members can then respond in the app or on
-        the web.
-      </p>
+      <p>Everyone on this list is invited when you publish.</p>
 
       <dl className="publication-summary" aria-label="Player summary">
         <SummaryItem
@@ -252,12 +248,12 @@ function PublicationMemberRow({
           {ineligible
             ? `Not eligible: ${member.eligibilityReason ?? "no reason given"}`
             : explicitlyExcluded
-              ? "Excluded before publication"
+              ? "Excluded"
               : member.included
                 ? missingQuota
                   ? "Included · quota missing"
-                  : "Included · starts as No response"
-                : "Excluded before publication"}
+                  : "Included"
+                : "Excluded"}
         </p>
       </div>
       <div className="row-meta">

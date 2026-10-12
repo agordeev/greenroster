@@ -94,7 +94,7 @@ export function RoundWorkspace({
           >
             <p className="ledger-kicker">Round detail</p>
             <h2 id="round-detail-unavailable-title">
-              Round detail is unavailable
+              We couldn&apos;t load this round
             </h2>
             <p>Refresh the page to see the round details and player list.</p>
           </section>
@@ -161,11 +161,11 @@ export function RoundWorkspace({
             >
               <p className="ledger-kicker">Round day</p>
               <h2 id="live-scoreboard-unavailable-title">
-                Live scorecard is unavailable
+                We couldn&apos;t load the live scorecard
               </h2>
               <p>
-                Scores could not be loaded. Refresh the page before you check
-                the leaderboard or enter a correction.
+                Refresh the page before you check the leaderboard or change a
+                score.
               </p>
             </section>
           ) : (
@@ -190,7 +190,7 @@ export function RoundWorkspace({
             >
               <p className="ledger-kicker">Scoring</p>
               <h2 id="round-hole-scorecard-unavailable-title">
-                Hole scorecard is unavailable
+                We couldn&apos;t load the hole scorecard
               </h2>
               <p>Refresh the page to enter or review hole details.</p>
             </section>
@@ -258,13 +258,11 @@ export function RoundWorkspace({
             className="page-section"
             aria-labelledby="publication-review-unavailable-title"
           >
-            <p className="ledger-kicker">Publication review</p>
+            <p className="ledger-kicker">Before you publish</p>
             <h2 id="publication-review-unavailable-title">
-              Publication review is unavailable
+              We couldn&apos;t check the player list
             </h2>
-            <p>
-              Players could not be checked. Refresh the page before you publish.
-            </p>
+            <p>Refresh the page before you publish.</p>
           </section>
         ) : (
           <PublicationReviewPanel

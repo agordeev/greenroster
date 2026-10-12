@@ -313,16 +313,16 @@ function MemberRosterContent({
   if (pageOutOfRange) {
     return (
       <div className="member-roster-empty" role="status">
-        <h3>This page is past the end of the list</h3>
+        <h3>No members on this page</h3>
         <p>
-          These members fill {totalPages} page{totalPages === 1 ? "" : "s"}.
-          Open the first page to continue.
+          These members fill {totalPages} page{totalPages === 1 ? "" : "s"}. Go
+          back to the first page.
         </p>
         <Link
           className="secondary-link"
           href={buildMemberRosterHref(query, { page: 1, membership: null })}
         >
-          Open first page
+          Go to first page
         </Link>
       </div>
     );
@@ -354,10 +354,6 @@ function MemberRosterContent({
       {noActiveMembers ? (
         <div className="member-roster-empty" role="status">
           <h3>No active members</h3>
-          <p>
-            No one is active yet. Pending and inactive members are listed below
-            for follow-up.
-          </p>
         </div>
       ) : null}
       <p className="member-roster-result-summary" aria-live="polite">
@@ -611,7 +607,7 @@ function formatRosterQuota(member: ManageableMemberRosterRow) {
   );
   if (member.currentQuota === null) {
     return [
-      member.usesInitialQuota ? "Initial quota pending" : "Not set yet",
+      member.usesInitialQuota ? "Starting quota pending" : "Not set yet",
       initialQuotaUsage,
     ].join(" · ");
   }
@@ -638,9 +634,7 @@ function formatInvitation(member: ManageableMemberRosterRow) {
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date unavailable";
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
 }
 
 function MemberEditor({
@@ -959,7 +953,7 @@ function MemberEditor({
     if (!canChangeRole || selectedRole === member.role) return;
     const normalizedRoleReason = roleReason.trim();
     if (!roleConfirmed || normalizedRoleReason.length === 0) {
-      onTerminalMessage("error", "Add a reason and confirm the access change.");
+      onTerminalMessage("error", "Add a reason and confirm the role change.");
       return;
     }
     if (
@@ -1071,7 +1065,7 @@ function MemberEditor({
         },
         () =>
           window.confirm(
-            "Discard your other unsaved changes before recording this handicap?",
+            "Discard your other unsaved changes before saving this handicap?",
           ),
       )
     ) {
@@ -1120,7 +1114,7 @@ function MemberEditor({
           resetHandicapForm();
           onTerminalMessage(
             "success",
-            `Manual handicap ${result.data.handicap} recorded as of ${result.data.asOf}.`,
+            `Handicap ${result.data.handicap} saved, dated ${result.data.asOf}.`,
           );
           router.refresh();
           return;
@@ -1155,7 +1149,7 @@ function MemberEditor({
     <div className="member-editor">
       <div className="member-editor-heading">
         <div>
-          <p className="ledger-kicker">Member detail</p>
+          <p className="ledger-kicker">Member</p>
           <h2>{formatMemberName(member)}</h2>
         </div>
         <span className={`member-status member-status-${member.status}`}>
@@ -1171,14 +1165,6 @@ function MemberEditor({
         <div>
           <dt>Dues</dt>
           <dd>{member.duesPaid ? "Paid" : "Not set yet"}</dd>
-        </div>
-        <div>
-          <dt>Update numbers</dt>
-          <dd>
-            profile {member.profileVersion} · contact{" "}
-            {privateContact.contactVersion} · membership{" "}
-            {member.membershipVersion}
-          </dd>
         </div>
       </dl>
 
@@ -1341,10 +1327,9 @@ function MemberEditor({
         noValidate
       >
         <fieldset disabled={pending || !canEdit}>
-          <legend>Record manual handicap</legend>
+          <legend>Enter a handicap</legend>
           <p className="field-help">
-            Each correction is saved with its date. Earlier handicaps stay in
-            the history below.
+            Earlier handicaps stay in the history below.
           </p>
           <div className="member-form-grid">
             <Field
@@ -1365,7 +1350,7 @@ function MemberEditor({
               />
             </label>
             <label className="field-group">
-              <span>As-of date</span>
+              <span>Handicap date</span>
               <input
                 type="date"
                 value={handicapAsOf}
@@ -1395,10 +1380,7 @@ function MemberEditor({
               onChange={(event) => setHandicapConfirmed(event.target.checked)}
               required
             />
-            <span>
-              I confirm this correction. It will stay in the member&apos;s
-              handicap history.
-            </span>
+            <span>I confirm this correction.</span>
           </label>
           <button
             className="secondary-button"
@@ -1410,7 +1392,7 @@ function MemberEditor({
               !handicapConfirmed
             }
           >
-            {pending ? "Recording…" : "Record handicap"}
+            {pending ? "Recording…" : "Save handicap"}
           </button>
           {handicapStale ? (
             <button
@@ -1418,7 +1400,7 @@ function MemberEditor({
               type="button"
               onClick={reloadStaleHandicap}
             >
-              Reload and keep my entries
+              Reload and keep what I typed
             </button>
           ) : null}
         </fieldset>
@@ -1435,7 +1417,7 @@ function MemberEditor({
             <legend>Member status</legend>
             {restrictedTarget ? (
               <p className="field-help">
-                Coordinators cannot change administrators.
+                Only administrators can change another administrator.
               </p>
             ) : null}
             {member.membershipId === actorMembershipId ? (
@@ -1488,7 +1470,7 @@ function MemberEditor({
       {canChangeRole ? (
         <form className="member-role-form" onSubmit={submitRole} noValidate>
           <fieldset disabled={pending}>
-            <legend>Role and access</legend>
+            <legend>Role</legend>
             <label className="field-group">
               <span>Role</span>
               <select
@@ -1523,7 +1505,9 @@ function MemberEditor({
                 onChange={(event) => setRoleConfirmed(event.target.checked)}
                 required
               />
-              <span>I understand this changes their access right away.</span>
+              <span>
+                I understand this changes what they can do right away.
+              </span>
             </label>
             <button
               className="secondary-button"
@@ -1550,8 +1534,7 @@ function MemberEditor({
 
       {dirty ? (
         <p className="field-help" role="status">
-          You have unsaved changes. You&apos;ll be asked to confirm before
-          leaving.
+          You have unsaved changes.
         </p>
       ) : null}
     </div>

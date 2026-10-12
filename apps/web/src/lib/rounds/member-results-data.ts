@@ -125,6 +125,16 @@ function mapReadError(error: SupabaseRpcError): MutationError {
   return new MutationError("unexpected", { cause: error });
 }
 
+// A group that has not chosen quota rules yet has no standings to read. Pages
+// show that as a setup step, not as a failed load.
+export function isQuotaRulesMissing(error: unknown): boolean {
+  if (!(error instanceof MutationError) || error.code !== "unavailable") {
+    return false;
+  }
+  const cause = error.cause as SupabaseRpcError | undefined;
+  return cause?.message === "quota_settings_unavailable";
+}
+
 function parseRows<T>(data: unknown, schema: z.ZodType<T>): T[] {
   const parsed = z.array(schema).safeParse(data);
   if (!parsed.success)

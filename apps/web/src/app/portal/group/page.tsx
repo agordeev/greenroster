@@ -23,6 +23,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { GroupActivityFilterForm } from "./group-activity-filter";
 import { PortalShell } from "../portal-shell";
+import { timeZoneLabel } from "@/lib/time-zone-label";
 
 const contextSchema = z
   .array(
@@ -81,8 +82,8 @@ export default async function GroupRolesActivityPage({
           className="portal-ledger role-denied"
           aria-labelledby="group-denied-title"
         >
-          <p className="ledger-kicker">Group administration</p>
-          <h1 id="group-denied-title">Group administration is not available</h1>
+          <p className="ledger-kicker">Your group</p>
+          <h1 id="group-denied-title">You can&apos;t open this page</h1>
           <p>
             You can see the group directory in the app. Only coordinators and
             administrators can see who runs the group and what changed.
@@ -112,7 +113,7 @@ export default async function GroupRolesActivityPage({
           aria-labelledby="group-filter-error-title"
         >
           <p className="ledger-kicker">What changed</p>
-          <h1 id="group-filter-error-title">Activity filter needs attention</h1>
+          <h1 id="group-filter-error-title">Check the filter</h1>
           <p>{activityFilterErrorMessage(query.filterError)}</p>
           <ActionRow>
             <Link className="secondary-link" href="/portal/group">
@@ -157,7 +158,7 @@ export default async function GroupRolesActivityPage({
         className="portal-ledger group-roles-activity"
         aria-labelledby="group-title"
       >
-        <p className="ledger-kicker">Group administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="group-title">Group</h1>
         <p>
           See who runs your group and what changed recently. To change a role,
@@ -166,7 +167,7 @@ export default async function GroupRolesActivityPage({
 
         <section className="page-section" aria-labelledby="profile-title">
           <SectionHeading
-            kicker="Group profile"
+            kicker="Group details"
             title="Group name and time zone"
             titleId="profile-title"
           />
@@ -189,7 +190,7 @@ export default async function GroupRolesActivityPage({
               </div>
               <div>
                 <dt>Group time zone</dt>
-                <dd>{projection.group.timeZone}</dd>
+                <dd>{timeZoneLabel(projection.group.timeZone)}</dd>
               </div>
             </dl>
           )}
@@ -214,11 +215,11 @@ export default async function GroupRolesActivityPage({
             />
           ) : (
             <p>
-              Guests added by members are currently{" "}
+              Members{" "}
               <strong>
-                {guestPermission.allowMemberGuests ? "allowed" : "disabled"}
-              </strong>
-              . Only an administrator can change this setting.
+                {guestPermission.allowMemberGuests ? "can" : "can’t"}
+              </strong>{" "}
+              bring guests right now. Only an administrator can change this.
             </p>
           )}
         </section>
@@ -295,7 +296,7 @@ export default async function GroupRolesActivityPage({
             <EmptyState>
               {query.targetType
                 ? "No changes match this filter. Clear the filter to see everything."
-                : "No changes have been recorded yet."}
+                : "Nothing has changed yet."}
             </EmptyState>
           ) : (
             <ol className="group-activity-list">
@@ -319,11 +320,8 @@ export default async function GroupRolesActivityPage({
                           : "Done automatically"}
                       </dd>
                     </div>
-                    <div>
-                      <dt>Source</dt>
-                      <dd>{item.source}</dd>
-                    </div>
-                    {item.target ? (
+                    {item.target?.type === "membership" ||
+                    item.target?.type === "round" ? (
                       <div>
                         <dt>Item</dt>
                         <dd>
@@ -334,20 +332,9 @@ export default async function GroupRolesActivityPage({
                               <code>{item.target.id}</code>
                             </>
                           ) : null}
-                          {item.target.version !== null
-                            ? ` · edit ${item.target.version}`
-                            : null}
                         </dd>
                       </div>
                     ) : null}
-                    <div>
-                      <dt>Reference</dt>
-                      <dd>
-                        <code className="group-activity-id">
-                          {item.correlationId}
-                        </code>
-                      </dd>
-                    </div>
                     {item.reason ? (
                       <div>
                         <dt>Reason</dt>
@@ -355,19 +342,22 @@ export default async function GroupRolesActivityPage({
                       </div>
                     ) : null}
                   </dl>
-                  <div
-                    className="group-activity-summary"
-                    aria-label="Change summary"
-                  >
-                    <span>
-                      Before:{" "}
-                      {formatActivitySummary(item.before) ?? "Not available"}
-                    </span>
-                    <span>
-                      After:{" "}
-                      {formatActivitySummary(item.after) ?? "Not available"}
-                    </span>
-                  </div>
+                  {formatActivitySummary(item.before) ||
+                  formatActivitySummary(item.after) ? (
+                    <div
+                      className="group-activity-summary"
+                      aria-label="Change summary"
+                    >
+                      <span>
+                        Before:{" "}
+                        {formatActivitySummary(item.before) ?? "Not available"}
+                      </span>
+                      <span>
+                        After:{" "}
+                        {formatActivitySummary(item.after) ?? "Not available"}
+                      </span>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ol>
@@ -447,11 +437,11 @@ function renderGroupError(error: unknown, context?: PortalContext) {
       currentSection="group"
     >
       <section className="portal-ledger" aria-labelledby="group-error-title">
-        <p className="ledger-kicker">Group administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="group-error-title">
           {forbidden
-            ? "Group activity is not available"
-            : "Group roles and activity could not be loaded"}
+            ? "You can't open this page"
+            : "We couldn't load this page"}
         </h1>
         <p>
           {forbidden

@@ -64,7 +64,7 @@ const sharedQuotaSettingsFields = {
           message:
             error instanceof Error
               ? error.message
-              : "Review the ordered placement merit rows.",
+              : "Check the placement rows.",
           path: ["placementMerit"],
         });
       }
@@ -121,7 +121,7 @@ const methodCInputSchema = z
         message:
           error instanceof Error
             ? error.message
-            : "Review the complete Method C adjustment bands.",
+            : "Check the adjustment bands.",
         path: ["bands"],
       });
     }

@@ -71,11 +71,11 @@ export default async function InvitationManagementPage({
       currentSection="invitations"
     >
       <section className="portal-ledger" aria-labelledby="invitations-title">
-        <p className="ledger-kicker">Member administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="invitations-title">Invitations</h1>
         <p>
           {deliveryFilter === "action-required"
-            ? "Review invitations whose email bounced or was blocked from sending."
+            ? "Invitations that bounced or couldn't be sent."
             : "Send a new link, fix an address, or cancel an invitation."}{" "}
           Only administrators can fix an address.
         </p>
@@ -143,7 +143,7 @@ function renderLifecycleError(error: unknown, context?: PortalContext) {
 
   const title =
     error instanceof MutationError && error.code === "forbidden"
-      ? "Invitation management is not available"
+      ? "You can't manage invitations"
       : "Invitations could not be loaded";
   const message =
     error instanceof MutationError && error.code === "forbidden"
@@ -159,7 +159,7 @@ function renderLifecycleError(error: unknown, context?: PortalContext) {
         : { roleStatus: "Access unavailable", timeZone: "" })}
     >
       <section className="portal-ledger" aria-labelledby="invitations-error">
-        <p className="ledger-kicker">Member administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="invitations-error">{title}</h1>
         <p>{message}</p>
       </section>

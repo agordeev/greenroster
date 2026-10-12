@@ -37,7 +37,7 @@ describe("organizer signup page", () => {
 
     const rendered = pageText(page);
     expect(rendered).toContain(
-      "The Terms of Use and Privacy Policy are not published yet",
+      "Our Terms of Use and Privacy Policy aren't published",
     );
     expect(rendered).toContain("The sign-up form will appear");
     expect(rendered).toContain('"/terms"');
@@ -54,7 +54,7 @@ describe("organizer signup page", () => {
       searchParams: Promise.resolve({}),
     });
 
-    expect(pageText(page)).toContain("terms-v1");
-    expect(pageText(page)).toContain("privacy-v1");
+    expect(pageText(page)).not.toContain("aren't published");
+    expect(pageText(page)).not.toContain("The sign-up form will appear");
   });
 });

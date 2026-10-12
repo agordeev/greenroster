@@ -36,15 +36,15 @@ export default async function MemberInboxPage() {
         <section className="auth-ledger" aria-labelledby="member-inbox-title">
           <nav className="member-results-nav" aria-label="Member navigation">
             <Link className="secondary-link" href="/member/home">
-              Open your home
+              Home
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Your inbox</p>
-            <h1 id="member-inbox-title">Round updates for you</h1>
+            <h1 id="member-inbox-title">Round updates</h1>
             <p className="member-home-intro">
               Updates from your coordinators and administrators appear here.
             </p>
@@ -64,12 +64,10 @@ function MemberInboxUnavailable() {
         aria-labelledby="member-inbox-unavailable-title"
       >
         <p className="ledger-kicker">Your inbox</p>
-        <h1 id="member-inbox-unavailable-title">
-          You can’t open your inbox right now
-        </h1>
+        <h1 id="member-inbox-unavailable-title">We couldn’t load your inbox</h1>
         <p>Refresh this page and try again.</p>
         <Link className="secondary-link" href="/member/home">
-          Open your home
+          Home
         </Link>
       </section>
     </main>

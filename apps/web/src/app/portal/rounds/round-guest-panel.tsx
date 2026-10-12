@@ -102,15 +102,12 @@ export function RoundGuestPanel({
   return (
     <section className="page-section" aria-labelledby="round-guests-title">
       <SectionHeading
-        kicker="Guest management"
+        kicker="Guests"
         title="Guests"
         titleId="round-guests-title"
         meta={state === "live" ? "Live round" : "Published round"}
       />
-      <p>
-        Add a guest to this round with the sponsor, quota, handicap, and tee you
-        want to use.
-      </p>
+      <p>Add a guest to this round.</p>
 
       {guests.length > 0 ? (
         <div className="round-detail-table-wrap">

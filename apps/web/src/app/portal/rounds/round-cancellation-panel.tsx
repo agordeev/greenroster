@@ -43,12 +43,10 @@ export function RoundCancellationPanel({
       return;
     }
     const notificationSummary =
-      state === "draft"
-        ? "No one is notified, because this round hasn't been published."
-        : "Players will be notified.";
+      state === "draft" ? "No one is notified." : "Players will be notified.";
     if (
       !window.confirm(
-        `Cancel “${description}”? RSVP and scoring will be disabled. ${notificationSummary}`,
+        `Cancel “${description}”? RSVP and scoring will be turned off. ${notificationSummary}`,
       )
     ) {
       return;
@@ -65,7 +63,7 @@ export function RoundCancellationPanel({
           operationId: operationId.current,
         });
       } catch {
-        setMessage("The round wasn't cancelled. Try again.");
+        setMessage("We couldn't cancel the round. Try again.");
         setMessageTone("error");
         return;
       }
@@ -107,8 +105,8 @@ export function RoundCancellationPanel({
         Cancelling keeps the round and its history, turns off RSVP and scoring,
         and{" "}
         {state === "draft"
-          ? "sends no e-mails, because the round was never published."
-          : "sends a required e-mail to every published player."}
+          ? "sends no e-mails."
+          : "e-mails every player in the round."}
       </p>
       {roundCancellationBlockedByDraftChanges(state, draftDirty) ? (
         <p className="form-message error" role="status">
@@ -132,9 +130,7 @@ export function RoundCancellationPanel({
             disabled={pending}
             aria-describedby="round-cancellation-help"
           />
-          <small id="round-cancellation-help">
-            Required. Kept with the cancelled round. Up to 500 characters.
-          </small>
+          <small id="round-cancellation-help">Required.</small>
         </label>
         {message ? (
           <p className={`form-message ${messageTone}`} role="status">

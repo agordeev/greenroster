@@ -39,7 +39,7 @@ export function ClubhouseAdminPanel({
       setTitle("");
       setBody("");
       newsOperation.current = null;
-      setFeedback("You published your news.");
+      setFeedback("News published.");
     });
   }
   function saveMedia() {
@@ -64,7 +64,7 @@ export function ClubhouseAdminPanel({
       setTitle("");
       setUrl("");
       mediaOperation.current = null;
-      setFeedback("You published your video link.");
+      setFeedback("Video link published.");
     });
   }
   return (
@@ -86,7 +86,7 @@ export function ClubhouseAdminPanel({
           />
         </label>
         <label className="field-group" htmlFor="clubhouse-body">
-          <span>News body</span>
+          <span>News text</span>
           <textarea
             id="clubhouse-body"
             value={body}

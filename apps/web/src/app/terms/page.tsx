@@ -11,57 +11,54 @@ export default function TermsPage() {
           Effective {LEGAL_EFFECTIVE_DATE} · Version {TERMS_VERSION}
         </p>
         <p>
-          You use GreenRoster to organize golf groups, rounds, invitations,
-          scores, standings, and results.
+          GreenRoster is for organizing golf groups, rounds, invitations,
+          scores, standings, and results. These are the terms for using it.
         </p>
-        <h2>You protect your account</h2>
+        <h2>Your account</h2>
         <ul>
-          <li>You give accurate information when you create your account.</li>
+          <li>Give accurate information when you create your account.</li>
           <li>
-            You keep your password, sign-in links, and verification codes
-            private.
+            Keep your password, sign-in links, and verification codes private.
           </li>
           <li>
-            You contact support if someone uses your account without your
+            Contact support if someone uses your account without your
             permission.
           </li>
         </ul>
-        <h2>You respect your group</h2>
+        <h2>Your group</h2>
         <ul>
           <li>
-            You join only groups that invite you or that you are allowed to
-            create.
+            Join only groups that invite you or that you are allowed to create.
           </li>
           <li>
-            You follow your group&apos;s rules and enter RSVP choices and scores
+            Follow your group&apos;s rules, and enter your RSVPs and scores
             honestly.
           </li>
           <li>
-            You do not misuse GreenRoster, disrupt another golfer&apos;s access,
+            Don&apos;t misuse GreenRoster, disrupt another golfer&apos;s access,
             or upload unlawful content.
           </li>
           <li>
-            You understand that an authorized coordinator can correct a score or
-            reopen a round, and you see the resulting standings and results.
+            A coordinator can correct a score or reopen a round. Standings and
+            results update to match.
           </li>
         </ul>
-        <h2>You choose your messages</h2>
+        <h2>Messages</h2>
         <p>
-          You receive messages that your group needs to run rounds. You choose
-          whether you receive optional e-mail and push messages in your
-          notification choices.
+          We send the messages your group needs to run rounds. You choose
+          whether to get optional e-mail and push messages in your notification
+          preferences.
         </p>
-        <h2>You can leave</h2>
+        <h2>Leaving</h2>
         <p>
-          You can stop using GreenRoster at any time. You can request a copy of
-          your information or request account deletion from{" "}
+          You can stop using GreenRoster at any time. To get a copy of your
+          information or delete your account, go to{" "}
           <Link href="/account/privacy">Privacy requests</Link>.
         </p>
-        <h2>You review changes</h2>
+        <h2>Changes to these terms</h2>
         <p>
-          You review a new version of these Terms of Use when GreenRoster asks
-          you to accept an update. You keep using GreenRoster only after you
-          accept the current version.
+          When these Terms of Use change, we ask you to accept the new version.
+          You need to accept it to keep using GreenRoster.
         </p>
       </div>
     </InformationShell>

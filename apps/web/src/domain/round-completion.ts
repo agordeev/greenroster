@@ -34,8 +34,8 @@ export const roundReopenInputSchema = z
     reason: z
       .string()
       .trim()
-      .min(1, "Add a reason between 1 and 500 characters.")
-      .max(500, "Add a reason between 1 and 500 characters."),
+      .min(1, "Add a reason of up to 500 characters.")
+      .max(500, "Add a reason of up to 500 characters."),
     expectedRoundVersion: z.number().int().positive(),
     confirmed: z.literal(true),
     operationId: uuidSchema,
@@ -212,7 +212,7 @@ export function roundCompletionFieldErrors(
     case "round_reopen_confirmation_required":
       return { confirmed: ["Confirm reopening after reviewing the impact."] };
     case "round_reopen_reason_required":
-      return { reason: ["Add a reason between 1 and 500 characters."] };
+      return { reason: ["Add a reason of up to 500 characters."] };
     case "round_version_invalid":
     case "round_version_changed":
       return {
@@ -220,7 +220,11 @@ export function roundCompletionFieldErrors(
       };
     case "round_completion_context_required":
     case "round_not_found":
-      return { roundId: ["Select a round in this group and refresh."] };
+      return {
+        roundId: [
+          "We couldn't find that round. Refresh the page and try again.",
+        ],
+      };
     default:
       return undefined;
   }

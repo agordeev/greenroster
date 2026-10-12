@@ -67,7 +67,7 @@ function rsvpFieldErrors(
         expectedParticipantVersion: ["Refresh this round before responding."],
       };
     case "rsvp_source_invalid":
-      return { source: ["Use a supported response source."] };
+      return { source: ["We couldn't save your response. Try again."] };
     case "rsvp_status_invalid":
       return { rsvpStatus: ["Choose Playing or Not Playing."] };
     case "round_not_found":

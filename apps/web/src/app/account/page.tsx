@@ -50,13 +50,9 @@ function RecoverySessionRestricted() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Sign in normally first</p>
+        <p className="ledger-kicker">One more step</p>
         <h1>Sign in again to change your account e-mail</h1>
-        <p>
-          You signed in from a password reset link, which cannot change account
-          details. Sign out, then sign in normally before you request an e-mail
-          change.
-        </p>
+        <p>Sign out, then sign in with your password.</p>
         <form action={signOutAction}>
           <button className="primary-button" type="submit">
             Sign out

@@ -118,7 +118,7 @@ export function MemberImportPanel() {
             applyFailurePlan(memberImportAccessFailure(body.status));
             return;
           }
-          setStatusMessage("Can't get the latest status. Retrying…");
+          setStatusMessage("We can't get the latest status. Trying again…");
           retry();
           return;
         }
@@ -134,7 +134,7 @@ export function MemberImportPanel() {
           setApplyConfirmed(false);
           applyOperationId.current = crypto.randomUUID();
           setApplyMessage(
-            "Quota settings changed, so every row was checked again. Review the import and confirm again.",
+            "Your quota rules changed, so we checked every row again. Look over the import and confirm again.",
           );
         }
         observedJobState.current = body.job.state;
@@ -144,7 +144,7 @@ export function MemberImportPanel() {
         }
       } catch {
         if (!cancelled) {
-          setStatusMessage("Can't get the latest status. Retrying…");
+          setStatusMessage("We can't get the latest status. Trying again…");
           retry();
         }
       }
@@ -231,7 +231,7 @@ export function MemberImportPanel() {
           setApplyConfirmed(false);
           applyOperationId.current = crypto.randomUUID();
           setApplyMessage(
-            "Quota settings changed, so every row is being checked again. Review the import and confirm again.",
+            "Your quota rules changed, so we're checking every row again. Look over the import and confirm again.",
           );
         } else {
           setApplyMessage(
@@ -275,11 +275,7 @@ export function MemberImportPanel() {
       </div>
 
       <form onSubmit={submit} className="member-import-form">
-        <Field
-          id="member-import-file"
-          label="CSV file"
-          help="UTF-8, up to 500 rows and 2 MiB. Every row is checked before you confirm. If any row has an error, no members are added."
-        >
+        <Field id="member-import-file" label="CSV file" help="Up to 500 rows.">
           <input
             ref={fileInput}
             id="member-import-file"
@@ -298,7 +294,7 @@ export function MemberImportPanel() {
       <div className="member-import-result" aria-live="polite">
         {accessMessage ? (
           <div data-status="error">
-            <h2>Import access unavailable</h2>
+            <h2>You can&apos;t import members</h2>
             <p>{accessMessage}</p>
           </div>
         ) : response?.ok ? (
@@ -306,14 +302,9 @@ export function MemberImportPanel() {
             <h2>{job ? formatJobState(job.state) : "Checking your file"}</h2>
             <p>
               Your file has {response.job.totalRows}{" "}
-              {response.job.totalRows === 1 ? "row" : "rows"}. Reference{" "}
-              <code>{response.job.jobId}</code>
+              {response.job.totalRows === 1 ? "row" : "rows"}.
             </p>
-            {job ? (
-              <JobProgress job={job} />
-            ) : (
-              <p>Checking every row. This page updates automatically.</p>
-            )}
+            {job ? <JobProgress job={job} /> : <p>Checking every row.</p>}
             {statusMessage ? (
               <p className="form-message" data-status="error">
                 {statusMessage}
@@ -340,8 +331,7 @@ export function MemberImportPanel() {
                     }
                     disabled={applyPending}
                   />
-                  Add every valid member and create their invitations. If
-                  anything fails, none are added.
+                  Add these members and create their invitations.
                 </label>
                 <button
                   className="primary-button"
@@ -378,8 +368,8 @@ export function MemberImportPanel() {
               </ul>
             ) : (
               <p>
-                The import is unavailable right now. Try again. If it keeps
-                failing, send this reference to support:{" "}
+                We couldn&apos;t run the import. Try again. If it keeps failing,
+                send this reference to support:{" "}
                 <code>{response.correlationId}</code>
               </p>
             )}
@@ -423,10 +413,7 @@ function JobProgress({ job }: Readonly<{ job: JobProjection }>) {
         </div>
       </dl>
       {job.state === "ready" ? (
-        <p>
-          Check the counts, then confirm to add every valid row. Skipped rows
-          are left out.
-        </p>
+        <p>Check the counts, then confirm to add every valid row.</p>
       ) : null}
       {job.rows.some((row) => row.errors.length > 0) ? (
         <ul>

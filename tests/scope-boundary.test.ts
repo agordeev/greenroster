@@ -16,7 +16,7 @@ type DeferredScopeToken = Readonly<{
 
 function collectRouteFiles(
   root: string,
-  kind: "mobile" | "web",
+  kind: "web",
   relativeDirectory = "",
 ): readonly RouteFile[] {
   const directory = `${root}${relativeDirectory ? `/${relativeDirectory}` : ""}`;
@@ -97,14 +97,8 @@ function routeSegments(route: string): readonly string[] {
 const webAppRoot = fileURLToPath(
   new URL("../apps/web/src/app/", import.meta.url),
 );
-const mobileAppRoot = fileURLToPath(
-  new URL("../apps/mobile/src/app/", import.meta.url),
-);
 const webSourceRoot = fileURLToPath(
   new URL("../apps/web/src/", import.meta.url),
-);
-const mobileSourceRoot = fileURLToPath(
-  new URL("../apps/mobile/src/", import.meta.url),
 );
 const migrationRoot = fileURLToPath(
   new URL("../supabase/migrations/", import.meta.url),
@@ -188,10 +182,7 @@ describe("approved parity boundary", () => {
   });
 
   it("does not expose deferred capability route segments", () => {
-    const routeFiles = [
-      ...collectRouteFiles(webAppRoot, "web"),
-      ...collectRouteFiles(mobileAppRoot, "mobile"),
-    ];
+    const routeFiles = [...collectRouteFiles(webAppRoot, "web")];
     const deferredSegments = new Set([
       "advanced",
       "best-ball",
@@ -213,10 +204,7 @@ describe("approved parity boundary", () => {
   });
 
   it("does not expose still-deferred capability controls or links in app sources", () => {
-    const sourceFiles = [
-      ...collectSourceFiles(webSourceRoot),
-      ...collectSourceFiles(mobileSourceRoot),
-    ];
+    const sourceFiles = [...collectSourceFiles(webSourceRoot)];
     const violations = sourceFiles.flatMap((file) => {
       if (file.endsWith("/lib/billing/stripe-config.ts")) return [];
       const source = readSource(file);

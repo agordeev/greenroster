@@ -11,13 +11,8 @@ out/
 dist/
 coverage/
 scripts/e2e/agent-browser/artifacts/
-.expo/
-web-build/
 *.tsbuildinfo
 
-apps/mobile/android/
-apps/mobile/ios/
-apps/mobile/expo-env.d.ts
 
 supabase/.branches/
 supabase/.temp/

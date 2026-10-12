@@ -52,7 +52,7 @@ export async function runAccountEmailChange(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Review the highlighted fields.",
+      message: "Check the highlighted fields.",
       fieldErrors: z.flattenError(parsed.error).fieldErrors,
     };
   }

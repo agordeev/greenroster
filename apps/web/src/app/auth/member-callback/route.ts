@@ -67,7 +67,7 @@ function callbackLandingPage(): Response {
           .catch(() => window.location.replace(fallback));
       })();
     </script>
-    <noscript><p>JavaScript is required to confirm this one-time link.</p></noscript>
+    <noscript><p>Turn on JavaScript to open this link.</p></noscript>
   </body>
 </html>`,
     {

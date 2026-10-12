@@ -123,7 +123,7 @@ export default async function MemberManagementPage({
       currentSection="members"
     >
       <section className="portal-ledger" aria-labelledby="members-title">
-        <p className="ledger-kicker">Member administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="members-title">Members</h1>
         {selectedMember ? (
           <p>
@@ -133,10 +133,6 @@ export default async function MemberManagementPage({
           </p>
         ) : (
           <>
-            <p>
-              Add members, update their details, mark them active or inactive,
-              and change roles where your access allows.
-            </p>
             {portalContext.role !== "member" ? (
               <ActionRow>
                 <Link className="primary-link" href="/portal/members/new">
@@ -254,7 +250,7 @@ function renderError(error: unknown, context?: PortalContext) {
       currentSection="members"
     >
       <section className="portal-ledger" aria-labelledby="members-error">
-        <p className="ledger-kicker">Member administration</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="members-error">
           {forbidden
             ? "You don't have access to members"

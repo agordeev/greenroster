@@ -109,20 +109,20 @@ export async function runLegacyImportUpload(
   } catch {
     return failure(correlationId, {
       code: "invalid_form",
-      message: "Upload one CSV file with its source profile.",
+      message: "Upload one CSV file and say where it came from.",
     });
   }
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     return failure(correlationId, {
       code: "file_required",
-      message: "You choose a non-empty CSV file.",
+      message: "Choose a CSV file that isn't empty.",
     });
   }
   if (file.size > LEGACY_IMPORT_MAX_BYTES) {
     return failure(correlationId, {
       code: "file_too_large",
-      message: `You upload a CSV of ${LEGACY_IMPORT_MAX_BYTES / (1024 * 1024)} MiB or less.`,
+      message: `Upload a CSV file of ${LEGACY_IMPORT_MAX_BYTES / (1024 * 1024)} MB or smaller.`,
     });
   }
 
@@ -132,7 +132,7 @@ export async function runLegacyImportUpload(
   } catch {
     return failure(correlationId, {
       code: "profile_invalid",
-      message: "You provide a valid source profile before you upload the file.",
+      message: "Choose where this file came from before you upload it.",
     });
   }
   const profile = validateLegacyImportProfile(profileInput);
@@ -156,7 +156,7 @@ export async function runLegacyImportUpload(
   } catch {
     return failure(correlationId, {
       code: "invalid_encoding",
-      message: "You upload a UTF-8 CSV file.",
+      message: "Save the file as UTF-8 CSV, then upload it again.",
     });
   }
   const parsed = parseProfiledLegacyCsv(source, profile.profile);
@@ -170,13 +170,13 @@ export async function runLegacyImportUpload(
   if (parsed.rows.length === 0) {
     return failure(correlationId, {
       code: "row_required",
-      message: "You add at least one row below the CSV header.",
+      message: "Add at least one row below the header row.",
     });
   }
   if (parsed.rows.length > LEGACY_IMPORT_MAX_ROWS) {
     return failure(correlationId, {
       code: "row_limit",
-      message: `You upload at most ${LEGACY_IMPORT_MAX_ROWS} rows at a time.`,
+      message: `Upload up to ${LEGACY_IMPORT_MAX_ROWS} rows at a time.`,
     });
   }
 

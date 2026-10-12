@@ -33,7 +33,7 @@ export default async function SignupFinishPage({
   } catch {
     return (
       <FinishState
-        title="You cannot continue right now"
+        title="We couldn't continue"
         message="Try again in a moment to finish setting up your group."
       />
     );
@@ -42,7 +42,7 @@ export default async function SignupFinishPage({
   if (userResult.error && isAuthRetryableFetchError(userResult.error)) {
     return (
       <FinishState
-        title="You cannot continue right now"
+        title="We couldn't continue"
         message="Try again in a moment to finish setting up your group."
       />
     );
@@ -56,7 +56,7 @@ export default async function SignupFinishPage({
     return (
       <FinishState
         title="Verify your account e-mail"
-        message="Check your account e-mail, then open the verification link to continue."
+        message="Check your inbox and open the link we sent you to continue."
         email={user.email}
       />
     );
@@ -66,7 +66,7 @@ export default async function SignupFinishPage({
   if (!claims || claims.sub !== user.id) {
     return (
       <FinishState
-        title="You cannot continue right now"
+        title="We couldn't continue"
         message="Try again in a moment to finish setting up your group."
       />
     );
@@ -86,7 +86,7 @@ export default async function SignupFinishPage({
     return (
       <FinishState
         title="You cannot continue with this account"
-        message="Ask a group administrator to review your access."
+        message="Ask a group administrator for help."
         email={user.email}
       />
     );
@@ -96,7 +96,7 @@ export default async function SignupFinishPage({
   if (!legal) {
     return (
       <FinishState
-        title="You cannot set up your group right now"
+        title="We couldn't set up your group"
         message="Try again in a moment to finish setting up your group."
         email={user.email}
       />
@@ -117,7 +117,7 @@ export default async function SignupFinishPage({
   if (!legalAccepted) {
     return (
       <FinishState
-        title="Review your account agreements"
+        title="Accept the current Terms and Privacy Policy"
         message="Start your account setup again to accept the current Terms of Use and Privacy Policy."
         email={user.email}
         actionHref="/sign-up"
@@ -142,7 +142,7 @@ export default async function SignupFinishPage({
             <h1 id="finish-title">Add your group details</h1>
             <p>
               You are signed in as {user.email ?? "your account"}. Add your name
-              and group details to become the group’s administrator.
+              and group details.
             </p>
           </div>
           {status === "expired" ? (
@@ -152,7 +152,7 @@ export default async function SignupFinishPage({
             </p>
           ) : status === "auth-unavailable" ? (
             <p className="form-message recovery-status" role="alert">
-              You cannot finish setting up your group right now. Try again in a
+              We couldn&apos;t finish setting up your group. Try again in a
               moment.
             </p>
           ) : null}

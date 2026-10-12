@@ -29,7 +29,7 @@ describe("quota settings form rules", () => {
         null,
         "Band 1 and band 2 have a gap or overlap at their shared boundary.",
       ],
-      summary: "Resolve the highlighted Method C gap or overlap.",
+      summary: "Fix the highlighted gap or overlap between bands.",
     });
   });
 
@@ -67,7 +67,7 @@ describe("quota settings form rules", () => {
       ]),
     ).toEqual({
       rowErrors: ["The first band must include -100."],
-      summary: "Resolve the highlighted Method C gap or overlap.",
+      summary: "Fix the highlighted gap or overlap between bands.",
     });
   });
 

@@ -7,20 +7,19 @@ export default function HelpPage() {
     <InformationShell kicker="Help" title="Help with your group">
       <div className="information-copy">
         <p>
-          Admin access is tied to your own account. The group and role in the
-          portal come from your membership, and you cannot choose them in the
-          browser.
+          Sign in with your own e-mail and password. Your group&apos;s
+          administrator decides what you can do in the group.
         </p>
         <h2>Setting up a new group</h2>
         <p>
-          Enter the group’s name and time zone. Your administrator membership is
-          created at the same time, so a group is never left half set up.
+          Enter your group’s name and time zone. You become the group’s
+          administrator as soon as you create it.
         </p>
-        <h2>Access questions</h2>
+        <h2>If you can&apos;t get in</h2>
         <p>
-          A member-only or inactive account cannot open admin pages. If the role
-          shown after you sign in looks wrong, contact support. Never share your
-          password.
+          Only coordinators and administrators can open the portal. If your role
+          looks wrong after you sign in, ask your group administrator or contact
+          support. Never share your password.
         </p>
         <Link className="primary-link" href="/support">
           Contact support

@@ -38,7 +38,11 @@ function scoringFieldErrors(
         expectedRoundVersion: ["Refresh the round before opening scoring."],
       };
     case "round_not_found":
-      return { roundId: ["Select a round in this group and refresh."] };
+      return {
+        roundId: [
+          "We couldn't find that round. Refresh the page and try again.",
+        ],
+      };
     default:
       return undefined;
   }

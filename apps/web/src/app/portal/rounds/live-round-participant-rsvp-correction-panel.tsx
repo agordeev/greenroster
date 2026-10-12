@@ -36,9 +36,8 @@ export function LiveRoundParticipantRsvpCorrectionPanel({
         meta={<>{playingParticipants.length} playing</>}
       />
       <p>
-        Use this if a playing player has to be marked not playing after their
-        score was entered. Their score comes off the live leaderboard but stays
-        in the round history. Add a reason, then confirm before you save.
+        Use this when a player with a score turns out not to be playing. Their
+        score comes off the live leaderboard.
       </p>
       {playingParticipants.length === 0 ? (
         <EmptyState>No players are playing right now.</EmptyState>
@@ -94,9 +93,7 @@ function ParticipantRsvpCorrection({
     if (pending || !canEdit) return;
     const normalizedReason = reason.trim();
     if (!scoreReady) {
-      setMessage(
-        "A score must be entered before you can make this correction.",
-      );
+      setMessage("You can only do this for a player who has a score.");
       setMessageTone("error");
       return;
     }
@@ -107,7 +104,7 @@ function ParticipantRsvpCorrection({
     }
     if (
       !window.confirm(
-        `Mark ${playerLabel} not playing? Their score will come off the live leaderboard and stay in the round history.`,
+        `Mark ${playerLabel} not playing? Their score will come off the live leaderboard.`,
       )
     ) {
       return;
@@ -125,7 +122,7 @@ function ParticipantRsvpCorrection({
       operationId: operationId.current,
     });
     if (!parsed.success) {
-      setMessage("Check the correction reason, then try again.");
+      setMessage("Check the reason, then try again.");
       setMessageTone("error");
       return;
     }
@@ -137,7 +134,7 @@ function ParticipantRsvpCorrection({
       try {
         result = await setLiveRoundParticipantNotPlayingAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("We couldn't save this change. Try again.");
         setMessageTone("error");
         return;
       }
@@ -167,7 +164,7 @@ function ParticipantRsvpCorrection({
           setMessage(
             result.error.code === "stale_version"
               ? "This player's score changed. The current score is shown below. Refresh the page and confirm again."
-              : "This round no longer accepts this correction. Refresh the page.",
+              : "You can't make this change to the round any more. Refresh the page.",
           );
           router.refresh();
         }
@@ -179,7 +176,7 @@ function ParticipantRsvpCorrection({
       setReason("");
       setMessage(
         result.data.scoreInvalidated
-          ? "Marked not playing. The score was removed from the live results and kept in the round history."
+          ? "Marked not playing. The score was removed from the live results."
           : "Marked not playing.",
       );
       setMessageTone("success");
@@ -196,7 +193,7 @@ function ParticipantRsvpCorrection({
           <p>
             {rsvpStatus === "playing"
               ? "Playing"
-              : "Not playing. Score entry is locked."}
+              : "Not playing, so you can't enter scores."}
           </p>
         </div>
         <p>{rsvpStatus === "playing" ? "Playing" : "Not playing"}</p>
@@ -229,7 +226,7 @@ function ParticipantRsvpCorrection({
           noValidate
         >
           <label className="field-group" htmlFor={`${formId}-reason`}>
-            <span>Correction reason</span>
+            <span>Reason for the change</span>
             <textarea
               id={`${formId}-reason`}
               value={reason}
@@ -245,13 +242,12 @@ function ParticipantRsvpCorrection({
               aria-describedby={`${formId}-help`}
             />
             <small id={`${formId}-help`} className="field-help">
-              Required. This removes the live score but keeps it in the round
-              history.
+              Required.
             </small>
           </label>
           {!scoreReady ? (
             <p className="field-help">
-              A score must be entered before this correction can be made.
+              You can only do this for a player who has a score.
             </p>
           ) : null}
           {message ? (
@@ -264,14 +260,10 @@ function ParticipantRsvpCorrection({
             type="submit"
             disabled={pending || !canEdit || !scoreReady}
           >
-            {pending ? "Saving correction…" : "Mark not playing"}
+            {pending ? "Saving…" : "Mark not playing"}
           </button>
         </form>
-      ) : (
-        <p className="form-message success" role="status">
-          This player is not playing. Score entry is locked.
-        </p>
-      )}
+      ) : null}
     </article>
   );
 }

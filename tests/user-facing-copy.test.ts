@@ -18,8 +18,6 @@ const screens = [
   "apps/web/src/app",
   "apps/web/src/components",
   "apps/web/src/emails",
-  "apps/mobile/src/app",
-  "apps/mobile/src/components",
 ];
 // Legal documents use their own vocabulary.
 const skipped = ["apps/web/src/app/privacy/", "apps/web/src/app/terms/"];

@@ -39,7 +39,7 @@ export function RoundScoringPanel({
     }
     if (
       !window.confirm(
-        `Open scoring for “${description}”? The round will go live and score entry will be turned on.`,
+        `Open scoring for “${description}”? The round goes live and you can start entering scores.`,
       )
     ) {
       return;
@@ -63,7 +63,7 @@ export function RoundScoringPanel({
       try {
         result = await openRoundScoringAction(parsed.data);
       } catch {
-        setMessage("Scoring didn't open. Try again.");
+        setMessage("We couldn't open scoring. Try again.");
         setMessageTone("error");
         return;
       }
@@ -100,11 +100,7 @@ export function RoundScoringPanel({
         titleId="open-round-scoring-title"
         meta="Published"
       />
-      <p>
-        Opening scoring makes this round live and turns on score entry. Open it
-        when players are ready to be scored. The change is kept in the round
-        history.
-      </p>
+      <p>Open scoring when players are ready to tee off.</p>
       {roundScoringBlockedByDraftChanges(draftDirty) ? (
         <p className="form-message error" role="status">
           Save or discard your changes to the published round before you open

@@ -34,17 +34,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </div>
 
           <div className="auth-heading">
-            <p className="ledger-kicker">Organizer signup</p>
+            <p className="ledger-kicker">New group</p>
             <h1 id="sign-up-title">Start your group</h1>
-            <p>
-              Create your account, then add your group details and open your
-              administrator portal.
-            </p>
+            <p>Create your account, then set up your group.</p>
           </div>
 
           {status === "auth-unavailable" ? (
             <p className="form-message recovery-status" role="alert">
-              You cannot create your account right now. Try again in a moment.
+              We couldn&apos;t create your account. Try again in a moment.
             </p>
           ) : status === "expired" ? (
             <p className="form-message recovery-status" role="alert">
@@ -54,20 +51,17 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           ) : null}
 
           {legal ? (
-            <OrganizerSignupForm
-              privacyVersion={legal.privacyVersion}
-              termsVersion={legal.termsVersion}
-            />
+            <OrganizerSignupForm />
           ) : (
             <div className="form-message" role="alert">
               <p>
-                Organizer sign-up is paused. The Terms of Use and Privacy Policy
-                are not published yet.
+                You can&apos;t create a group yet. Our Terms of Use and Privacy
+                Policy aren&apos;t published.
               </p>
               <p>
-                Read the current <Link href="/terms">Terms of Use</Link> and{" "}
-                <Link href="/privacy">Privacy Policy</Link>. The sign-up form
-                will appear once both are published.
+                The sign-up form will appear here once the{" "}
+                <Link href="/terms">Terms of Use</Link> and{" "}
+                <Link href="/privacy">Privacy Policy</Link> are published.
               </p>
             </div>
           )}

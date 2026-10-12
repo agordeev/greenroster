@@ -85,14 +85,11 @@ function RoundCompletePanel({
         className="page-section"
         aria-labelledby="round-completion-unavailable-title"
       >
-        <p className="ledger-kicker">Completion review</p>
+        <p className="ledger-kicker">Before you complete</p>
         <h2 id="round-completion-unavailable-title">
-          Completion check is unavailable
+          We couldn&apos;t check this round
         </h2>
-        <p>
-          The completion check could not be loaded. Refresh the page before you
-          complete this round.
-        </p>
+        <p>Refresh the page before you complete this round.</p>
       </section>
     );
   }
@@ -107,7 +104,7 @@ function RoundCompletePanel({
     setMessageTone("");
     if (!canComplete) {
       setMessage(
-        "Fix every blocker and make sure all mobile scores are synced before you complete the round.",
+        "Fix everything under “Fix these first”, and wait for scores entered on phones to sync, before you complete the round.",
       );
       setMessageTone("error");
       return;
@@ -138,7 +135,7 @@ function RoundCompletePanel({
       try {
         result = await completeLiveRoundAction(parsed.data);
       } catch {
-        setMessage("The round wasn't completed. Try again.");
+        setMessage("We couldn't complete the round. Try again.");
         setMessageTone("error");
         return;
       }
@@ -171,18 +168,18 @@ function RoundCompletePanel({
       aria-busy={pending}
     >
       <SectionHeading
-        kicker="Completion review"
+        kicker="Before you complete"
         title="Review and complete round"
         titleId="round-completion-title"
         meta="Live round"
       />
       <p>
-        Check the list below. Blank optional scores are warnings. Anything
-        marked as a blocker must be fixed before you can complete the round.
+        Check the list below. You need to fix everything under “Fix these first”
+        before you can complete the round.
       </p>
       <div className="round-completion-summary" aria-live="polite">
         <strong>
-          {canComplete ? "Ready for confirmation" : "Completion is blocked"}
+          {canComplete ? "Ready to complete" : "Can't complete yet"}
         </strong>
         <span>
           {preview.participants.length} playing player
@@ -199,17 +196,15 @@ function RoundCompletePanel({
         <h3 id="round-completion-consequences-title">
           {preview.consequences.winnerCount > 0
             ? `${preview.consequences.winnerCount} winner${preview.consequences.winnerCount === 1 ? "" : "s"}${preview.consequences.winnerIsTie ? " (tied)" : ""}`
-            : "No ranked winner yet"}
+            : "No winner yet"}
         </h3>
         <p>
           Completing this round changes{" "}
-          {preview.consequences.memberQuotaImpactCount} member quota change
+          {preview.consequences.memberQuotaImpactCount} member quota
           {preview.consequences.memberQuotaImpactCount === 1
             ? ""
             : "s"} and {preview.consequences.standingImpactCount} standing
-          change
-          {preview.consequences.standingImpactCount === 1 ? "" : "s"}. Check
-          each player below before you confirm.
+          {preview.consequences.standingImpactCount === 1 ? "" : "s"}.
         </p>
       </aside>
       {blockers.length > 0 ? (
@@ -220,8 +215,8 @@ function RoundCompletePanel({
       ) : null}
       {preview.mobileSyncCheck !== "complete" ? (
         <p className="form-message error" role="status">
-          Mobile scores are not synced yet ({preview.mobileSyncCheck}).
-          Completion is blocked.
+          Scores entered on phones haven&apos;t finished syncing. You can
+          complete the round once they have.
         </p>
       ) : null}
       <div className="member-results-table-wrap">
@@ -235,8 +230,8 @@ function RoundCompletePanel({
               <th scope="col">Player</th>
               <th scope="col">Points</th>
               <th scope="col">Plus/minus</th>
-              <th scope="col">Quota effect</th>
-              <th scope="col">Standing effect</th>
+              <th scope="col">Quota change</th>
+              <th scope="col">Standing change</th>
               <th scope="col">Merit earned</th>
             </tr>
           </thead>
@@ -339,7 +334,7 @@ function RoundReopenPanel({
     }
     if (
       !window.confirm(
-        `Reopen “${description}”? Merit and completion results will be removed, but the history stays on record.`,
+        `Reopen “${description}”? Its official results and merit points are withdrawn until you complete it again.`,
       )
     ) {
       return;
@@ -364,7 +359,7 @@ function RoundReopenPanel({
       try {
         result = await reopenCompletedRoundAction(parsed.data);
       } catch {
-        setMessage("The round wasn't reopened. Try again.");
+        setMessage("We couldn't reopen the round. Try again.");
         setMessageTone("error");
         return;
       }
@@ -399,10 +394,7 @@ function RoundReopenPanel({
         titleId="round-reopen-title"
         meta="Completed"
       />
-      <p>
-        Reopening returns the round to live so you can correct scores. Earlier
-        score changes and official results stay in the history.
-      </p>
+      <p>Reopening returns the round to live so you can correct scores.</p>
       <aside
         className="member-results-winner"
         aria-labelledby="round-reopen-consequences-title"
@@ -411,16 +403,16 @@ function RoundReopenPanel({
         <h3 id="round-reopen-consequences-title">
           {winners.length > 0
             ? `${winners.map(displayName).join(" and ")} — ${winners.length > 1 ? "tied " : ""}winner at rank 1`
-            : "No ranked winner in the current results"}
+            : "No winner in the current results"}
         </h3>
         <p>
-          This withdraws {officialResults?.results.length ?? "the current"}{" "}
+          Reopening withdraws {officialResults?.results.length ?? "the current"}{" "}
           official{" "}
           {officialResults?.results.length === 1 ? "result" : "results"},
-          removes {memberResultCount} member quota history{" "}
-          {memberResultCount === 1 ? "entry" : "entries"}, and recalculates
-          standings. Guests removed: {guestResultCount}. Result e-mails that
-          haven’t gone out are cancelled. Earlier history stays on record.
+          including {guestResultCount} for guests. It takes this round out of
+          the quota history of {memberResultCount}{" "}
+          {memberResultCount === 1 ? "member" : "members"} and recalculates
+          standings. Result e-mails that haven’t gone out are cancelled.
         </p>
       </aside>
       <form
@@ -440,9 +432,7 @@ function RoundReopenPanel({
             disabled={pending}
             aria-describedby="round-reopen-help"
           />
-          <small id="round-reopen-help">
-            Required. Kept in the round history. Up to 500 characters.
-          </small>
+          <small id="round-reopen-help">Required.</small>
         </label>
         {message ? (
           <p className={`form-message ${messageTone}`} role="status">
@@ -499,7 +489,6 @@ function ReadinessList({
             <strong>
               {readinessLabel(row.blockerCode ?? row.warningCode)}
             </strong>
-            {row.participantId ? ` · ${row.participantId}` : ""}
           </li>
         ))}
       </ul>

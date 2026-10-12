@@ -64,17 +64,17 @@ function scoreFieldErrors(
       };
     case "score_field_disabled":
       return {
-        changedFields: ["This score field is not enabled for the round."],
+        changedFields: ["This score isn't used in this round."],
       };
     case "score_field_invalid":
-      return { changedFields: ["Enter a valid value for the selected field."] };
+      return { changedFields: ["Enter a valid score."] };
     case "score_correction_reason_required":
-      return { reason: ["Add a reason when correcting a confirmed score."] };
+      return { reason: ["Add a reason to change a saved score."] };
     case "score_reason_invalid":
-      return { reason: ["Use a reason between 1 and 500 characters."] };
+      return { reason: ["Keep the reason to 500 characters or fewer."] };
     case "participant_not_found":
     case "round_not_found":
-      return { participantId: ["This participant is no longer available."] };
+      return { participantId: ["This player is no longer in the round."] };
     default:
       return undefined;
   }

@@ -1,5 +1,5 @@
 name = "implementer"
-description = "GreenRoster implementation specialist for bounded Next.js, Expo, and TypeScript changes with focused validation."
+description = "GreenRoster implementation specialist for bounded Next.js and TypeScript changes with focused validation."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"

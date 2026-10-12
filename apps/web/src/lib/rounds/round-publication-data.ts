@@ -47,40 +47,42 @@ function publicationFieldErrors(
 ): MutationFieldErrors | undefined {
   switch (message) {
     case "round_not_found":
-      return { roundId: ["Select a round in this group and refresh."] };
+      return {
+        roundId: [
+          "We couldn't find that round. Refresh the page and try again.",
+        ],
+      };
     case "round_state_locked":
       return { roundId: ["This round can no longer be published."] };
     case "publication_review_stale":
       return {
-        roundId: [
-          "The participant review is out of date. Refresh and review it again.",
-        ],
+        roundId: ["The player list has changed. Refresh and check it again."],
       };
     case "publication_incomplete":
       return {
         roundId: [
-          "Add a description, scheduled start, and supported format before publishing.",
+          "Add a description, start time, and format before publishing.",
         ],
       };
     case "publication_quota_settings_missing":
       return {
-        roundId: ["Configure the group quota settings before publishing Net."],
+        roundId: [
+          "Choose your group's quota rules before you publish a net round.",
+        ],
       };
     case "publication_quota_not_ready":
       return {
-        roundId: ["Every included member needs a ready quota for Net."],
+        roundId: [
+          "Every included member needs a quota before you publish a net round.",
+        ],
       };
     case "publication_participant_ineligible":
       return {
-        roundId: [
-          "Remove or resolve the ineligible active members before publishing.",
-        ],
+        roundId: ["Exclude the members who aren't eligible before publishing."],
       };
     case "publication_participant_invalid":
       return {
-        excludedMembershipIds: [
-          "Refresh the participant review before publishing.",
-        ],
+        excludedMembershipIds: ["Refresh the player list before publishing."],
       };
     default:
       return undefined;

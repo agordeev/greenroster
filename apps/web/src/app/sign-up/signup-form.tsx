@@ -8,15 +8,7 @@ import { registerOrganizerAction } from "@/app/actions/auth";
 import { Field } from "@/components/ui";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
-type OrganizerSignupFormProps = Readonly<{
-  termsVersion: string;
-  privacyVersion: string;
-}>;
-
-export function OrganizerSignupForm({
-  termsVersion,
-  privacyVersion,
-}: OrganizerSignupFormProps) {
+export function OrganizerSignupForm() {
   const [state, formAction, pending] = useActionState(
     registerOrganizerAction,
     initialAuthFormState,
@@ -38,12 +30,6 @@ export function OrganizerSignupForm({
         </p>
         <Link className="primary-button button-link" href="/sign-up/finish">
           Continue to group setup
-        </Link>
-        <Link
-          className="secondary-link"
-          href="/sign-in?next=%2Fsign-up%2Ffinish"
-        >
-          Return to sign in
         </Link>
       </div>
     );
@@ -96,7 +82,7 @@ export function OrganizerSignupForm({
           required
         />
         <p id="password-help" className="field-help">
-          Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
+          Use a password of at least {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>
 
@@ -113,15 +99,13 @@ export function OrganizerSignupForm({
       <label className="confirmation-row">
         <input name="acceptedTerms" type="checkbox" required />
         <span>
-          You accept the current <Link href="/terms">Terms of Use</Link>{" "}
-          (version {termsVersion}).
+          I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
       <label className="confirmation-row">
         <input name="acceptedPrivacy" type="checkbox" required />
         <span>
-          You accept the current <Link href="/privacy">Privacy Policy</Link>{" "}
-          (version {privacyVersion}).
+          I accept the current <Link href="/privacy">Privacy Policy</Link>.
         </span>
       </label>
 

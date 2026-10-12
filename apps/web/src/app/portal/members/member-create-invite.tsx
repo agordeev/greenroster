@@ -80,7 +80,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       setHandicapRecorded(false);
       setPhase(recovery.createdMembershipId ? "ready" : "idle");
       setMessageStatus("success");
-      setMessage("Draft restored.");
+      setMessage("Your unsaved changes are back.");
       createOperation.current = recovery.createOperation;
       inviteOperation.current = recovery.inviteOperation;
       handicapOperation.current = recovery.handicapOperation;
@@ -242,15 +242,15 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     const handicap = draft.handicap.trim();
     const asOf = draft.handicapAsOf.trim();
     if (!handicap || !asOf) {
-      setError("Enter a handicap and date before recording it.");
+      setError("Enter a handicap and date before saving it.");
       return;
     }
     if (!draft.handicapReason.trim()) {
-      setError("Add a reason before recording the handicap.");
+      setError("Add a reason before saving the handicap.");
       return;
     }
     if (!draft.handicapConfirmed) {
-      setError("Confirm the handicap details before recording them.");
+      setError("Confirm the handicap details before saving them.");
       return;
     }
 
@@ -266,7 +266,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     );
     const operationId = handicapOperation.current.operationId;
     if (!operationId) {
-      setError("We couldn't record the handicap. Try again.");
+      setError("We couldn't save the handicap. Try again.");
       return;
     }
 
@@ -283,11 +283,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           return;
         }
         setMessageStatus("success");
-        setMessage("Handicap recorded. You can now send the invitation.");
+        setMessage("Handicap saved. You can now send the invitation.");
         setHandicapRecorded(true);
         setPhase("ready");
       } catch {
-        setError("We couldn't record the handicap. Try again.");
+        setError("We couldn't save the handicap. Try again.");
       }
     });
   }
@@ -298,7 +298,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
 
     if (handicapRequiredBeforeInvite) {
       setError(
-        "Record the handicap before sending the invitation, or clear the handicap fields.",
+        "Save the handicap before sending the invitation, or clear the handicap fields.",
       );
       return;
     }
@@ -453,9 +453,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           {memberCreated ? "Step 2 of 2" : "Step 1 of 2"}
         </span>
       </div>
-      <p className="member-create-copy">
-        Add the member first. Then send their invitation.
-      </p>
 
       <form className="member-create-form" onSubmit={submitCreate} noValidate>
         <fieldset disabled={busy || memberCreated}>
@@ -704,8 +701,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <fieldset className="member-contact-fieldset">
             <legend>Handicap (optional)</legend>
             <p className="field-help">
-              Enter the handicap here. It is recorded in a separate step after
-              you add the member.
+              Enter the handicap here. You&apos;ll save it in the next step,
+              after you add the member.
             </p>
             <HandicapFields
               draft={draft}
@@ -788,9 +785,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <span>List postal address</span>
               </label>
             </div>
-            <small className="field-help">
-              Contact details stay private unless you choose to list them.
-            </small>
           </fieldset>
         </fieldset>
         <div className="member-create-actions">
@@ -821,9 +815,9 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           noValidate
         >
           <fieldset disabled={busy || handicapRecorded}>
-            <legend>Record handicap</legend>
+            <legend>Save handicap</legend>
             <p>
-              Member added. If you entered a handicap, record it before sending
+              Member added. If you entered a handicap, save it before sending
               the invitation.
             </p>
             <HandicapFields
@@ -841,8 +835,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               {phase === "recording-handicap"
                 ? "Recording…"
                 : handicapRecorded
-                  ? "Handicap recorded"
-                  : "Record handicap"}
+                  ? "Handicap saved"
+                  : "Save handicap"}
             </button>
             <button
               className="text-button"
@@ -865,8 +859,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <fieldset disabled={busy || handicapRequiredBeforeInvite}>
             <legend>Send invitation</legend>
             <p>
-              This member is pending (ID <code>{createdMembershipId}</code>). No
-              invitation is sent until you send it.
+              This member hasn&apos;t been invited yet. Send the invitation when
+              you&apos;re ready.
             </p>
             <label className="field-group" htmlFor="member-invite-email">
               <span>Invite e-mail</span>
@@ -894,7 +888,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </button>
             {handicapRequiredBeforeInvite ? (
               <p className="field-help" role="status">
-                Record the handicap before sending the invitation.
+                Save the handicap before sending the invitation.
               </p>
             ) : null}
           </div>
@@ -959,7 +953,7 @@ function HandicapFields({
           />
         </label>
         <label className="field-group" htmlFor={`${idPrefix}-handicap-as-of`}>
-          <span>As of date</span>
+          <span>Handicap date</span>
           <input
             id={`${idPrefix}-handicap-as-of`}
             name="handicapAsOf"
@@ -970,7 +964,7 @@ function HandicapFields({
         </label>
       </div>
       <label className="field-group" htmlFor={`${idPrefix}-handicap-reason`}>
-        <span>Reason (required to record)</span>
+        <span>Reason (required to save a handicap)</span>
         <textarea
           id={`${idPrefix}-handicap-reason`}
           name="handicapReason"

@@ -92,7 +92,7 @@ describe("member quota bootstrap projection", () => {
         ...base,
         initialQuota: "20.05",
       }),
-    ).toThrow("no more than the group's quota decimal places");
+    ).toThrow("no more decimal places than your group uses");
     expect(() =>
       projectMemberQuotaBootstrap({
         ...base,

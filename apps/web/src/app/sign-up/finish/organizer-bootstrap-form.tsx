@@ -148,7 +148,6 @@ export function OrganizerBootstrapForm({
       <Field
         id="groupTimeZone"
         label="Group time zone"
-        help="Round times and reminders use this time zone."
         error={errors.groupTimeZone}
       >
         <input
@@ -161,8 +160,9 @@ export function OrganizerBootstrapForm({
         />
       </Field>
       <p className="field-help">
-        You already accept the current <Link href="/terms">Terms of Use</Link>{" "}
-        and <Link href="/privacy">Privacy Policy</Link>.
+        You&apos;ve already accepted the current{" "}
+        <Link href="/terms">Terms of Use</Link> and{" "}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
       {errors.legal ? <p className="field-error">{errors.legal}</p> : null}
       <p className="form-message" aria-live="polite" data-status="error">

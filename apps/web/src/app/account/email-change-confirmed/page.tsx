@@ -10,9 +10,8 @@ export default function EmailChangeConfirmedPage() {
           <p className="ledger-kicker">Your account</p>
           <h1 id="email-confirmed-title">Continue your e-mail change</h1>
           <p>
-            If you came from a confirmation link, we received your confirmation.
-            Check your inbox for any other confirmation messages before you use
-            the new address.
+            Check both inboxes for another confirmation message and follow that
+            link too before you use the new address.
           </p>
         </div>
         <EmailChangeConfirmationStatus />

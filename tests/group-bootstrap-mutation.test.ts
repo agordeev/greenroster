@@ -143,7 +143,7 @@ describe("group bootstrap mutation boundary", () => {
 
     expect(response.ok ? null : response.error).toMatchObject({
       code: "validation",
-      message: "Review the highlighted fields and try again.",
+      message: "Check the highlighted fields and try again.",
     });
   });
 

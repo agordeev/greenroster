@@ -39,17 +39,13 @@ export function MemberDetailSections({
       <div className="member-detail-heading">
         <p className="ledger-kicker">Member history</p>
         <h2 id="member-detail-sections-title">Full history</h2>
-        <p>
-          Review this member&apos;s account, invitations, notifications, quota,
-          handicap, and activity. Nothing here can be edited.
-        </p>
       </div>
 
       <DetailSection title="Account" id="member-detail-account">
         <dl className="member-detail-definition-list">
           <Definition label="Account e-mail">
             {projection.accountEmail ??
-              "No account is linked to this member yet."}
+              "This member hasn't created an account yet."}
           </Definition>
         </dl>
       </DetailSection>
@@ -116,9 +112,6 @@ export function MemberDetailSections({
               "Not set yet"
             )}
           </Definition>
-          <Definition label="Update number">
-            {String(projection.quota.projectionVersion)}
-          </Definition>
         </dl>
 
         <h4 className="member-detail-subheading">Quota history</h4>
@@ -140,16 +133,13 @@ export function MemberDetailSections({
         )}
 
         {administratorQuota ? (
-          <AdministratorQuotaDetails
-            details={administratorQuota}
-            timeZone={timeZone}
-          />
+          <AdministratorQuotaDetails details={administratorQuota} />
         ) : projection.actorRole === "coordinator" ? (
           <p className="member-detail-restricted-note">
-            Only administrators can see the quota inputs.
+            Only administrators can see how this quota was set up.
           </p>
         ) : (
-          <EmptyState>Administrator quota inputs are unavailable.</EmptyState>
+          <EmptyState>We couldn&apos;t load the quota setup.</EmptyState>
         )}
       </DetailSection>
 
@@ -266,7 +256,7 @@ function InvitationRecord({
       <article className="member-detail-event-card">
         <h4>{formatInvitationStatus(invitation.status)}</h4>
         <dl className="member-detail-definition-list">
-          <Definition label="Invited address">
+          <Definition label="Invited e-mail">
             {invitation.invitedEmail}
           </Definition>
           <Definition label="Role">{formatRole(invitation.role)}</Definition>
@@ -291,9 +281,6 @@ function InvitationRecord({
               <Timestamp value={invitation.expiredAt} timeZone={timeZone} />
             </Definition>
           ) : null}
-          <Definition label="Update number">
-            {String(invitation.version)}
-          </Definition>
         </dl>
       </article>
     </li>
@@ -314,7 +301,6 @@ function DeliveryRecord({
           </Definition>
           <Definition label="Recipient">{delivery.recipientAddress}</Definition>
           <Definition label="Channel">{delivery.channel}</Definition>
-          <Definition label="Attempts">{String(delivery.attempts)}</Definition>
           <Definition label="Created">
             <Timestamp value={delivery.createdAt} timeZone={timeZone} />
           </Definition>
@@ -327,7 +313,7 @@ function DeliveryRecord({
             </Definition>
           ) : null}
           {delivery.failureReason ? (
-            <Definition label="Failure reason">
+            <Definition label="Why it failed">
               {delivery.failureReason}
             </Definition>
           ) : null}
@@ -396,23 +382,17 @@ function QuotaHistoryRecord({
           <Definition label="Changed">
             <Timestamp value={entry.occurredAt} timeZone={timeZone} />
           </Definition>
-          <Definition label="Update number">
-            {String(entry.projectionVersion)}
-          </Definition>
-          <Definition label="Settings update number">
-            {String(entry.settingsVersion)}
-          </Definition>
           <Definition label="Source">{entry.source}</Definition>
           {entry.reason ? (
             <Definition label="Reason">{entry.reason}</Definition>
           ) : null}
           {showAdministratorDetails && entry.administratorDetails ? (
-            <Definition label="Administrator inputs">
-              Initial quota: {entry.administratorDetails.initialQuota ?? "none"}
-              ;{" "}
+            <Definition label="Quota setup">
+              Starting quota:{" "}
+              {entry.administratorDetails.initialQuota ?? "none"};{" "}
               {entry.administratorDetails.usesInitialQuota
-                ? "initial quota in use"
-                : "initial quota not in use"}
+                ? "starting quota in use"
+                : "starting quota not in use"}
               ; {entry.administratorDetails.seedTotals.length} seed total
               {entry.administratorDetails.seedTotals.length === 1 ? "" : "s"}
             </Definition>
@@ -439,11 +419,6 @@ function ActivityRecord({
           {activity.reason ? (
             <Definition label="Reason">{activity.reason}</Definition>
           ) : null}
-          {activity.targetVersion !== null ? (
-            <Definition label="Update number">
-              {String(activity.targetVersion)}
-            </Definition>
-          ) : null}
         </dl>
       </article>
     </li>
@@ -452,48 +427,43 @@ function ActivityRecord({
 
 function AdministratorQuotaDetails({
   details,
-  timeZone,
 }: Readonly<{
   details: NonNullable<MemberDetailProjection["quota"]["administratorDetails"]>;
-  timeZone?: string;
 }>) {
   return (
     <div className="member-detail-admin-quota">
-      <h4>Administrator quota inputs</h4>
+      <h4>Quota setup</h4>
       <dl className="member-detail-definition-list">
-        <Definition label="Initial quota">
-          {details.initialQuota ?? "Not configured"}
+        <Definition label="Starting quota">
+          {details.initialQuota ?? "Not set"}
         </Definition>
-        <Definition label="Initial quota use">
+        <Definition label="Starting quota use">
           {details.initialQuota === null
-            ? "Not configured"
+            ? "Not set"
             : details.usesInitialQuota
               ? "In use"
               : "Not in use"}
         </Definition>
-        <Definition label="Initial quota source">
+        <Definition label="Starting quota source">
           {details.initialQuotaProvenance ?? "Not set yet"}
         </Definition>
         <Definition label="Calculation method">
           {details.settingsMethod
             ? formatQuotaMethod(details.settingsMethod)
-            : "Not configured"}
+            : "Not set"}
         </Definition>
         <Definition label="History length">
           {details.settingsHistoryLength === null
-            ? "Not configured"
+            ? "Not set"
             : String(details.settingsHistoryLength)}
         </Definition>
         <Definition label="Precision">
           {details.settingsPrecision === null
-            ? "Not configured"
+            ? "Not set"
             : `${details.settingsPrecision} decimal place${details.settingsPrecision === 1 ? "" : "s"}`}
         </Definition>
         <Definition label="Rounding rule">
-          {details.settingsRoundingRule ?? "Not configured"}
-        </Definition>
-        <Definition label="Settings update number">
-          {String(details.settingsVersion)}
+          {details.settingsRoundingRule ?? "Not set"}
         </Definition>
       </dl>
       {details.seedTotals.length === 0 ? (
@@ -511,9 +481,6 @@ function AdministratorQuotaDetails({
           </ol>
         </>
       )}
-      {timeZone ? (
-        <p className="member-detail-time-zone">Group time zone: {timeZone}</p>
-      ) : null}
     </div>
   );
 }
@@ -598,7 +565,7 @@ export function formatMemberDetailDeliveryState(
       ? `Not sent — ${formatSuppressionReason(delivery.suppressionReason)}`
       : "Not sent";
   }
-  if (state === "retryable") return "Failed, will retry";
+  if (state === "retryable") return "Failed — we&apos;ll try again";
   if (state === "cancelled") return "Cancelled";
   if (state === "queued") return "Queued";
   if (state === "sending") return "Sending";
@@ -608,7 +575,7 @@ export function formatMemberDetailDeliveryState(
 function formatSuppressionReason(
   reason: NonNullable<MemberDetailDelivery["suppressionReason"]>,
 ) {
-  return reason === "bounce" ? "Hard bounce" : "Complaint";
+  return reason === "bounce" ? "Bounced" : "Complaint";
 }
 
 function formatHandicapSource(source: MemberDetailHandicap["source"]) {
@@ -635,7 +602,7 @@ function formatQuotaMethod(
 
 function formatQuotaProvenance(source: Readonly<Record<string, unknown>>) {
   const kind = typeof source.kind === "string" ? source.kind : null;
-  if (kind === "initial_quota") return "Initial quota";
+  if (kind === "initial_quota") return "Starting quota";
   if (kind === "seed_history") return "Seed history";
   if (kind === "official_history") return "From official results";
   if (kind === "not_ready") return "Not ready";

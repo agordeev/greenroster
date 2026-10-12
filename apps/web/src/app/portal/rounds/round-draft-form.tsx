@@ -155,7 +155,7 @@ export function RoundDraftForm({
     setFieldErrors({});
 
     if (isEdit && !dirty) {
-      setMessage("Change a field before you save.");
+      setMessage("Nothing has changed yet.");
       setMessageTone("error");
       return;
     }
@@ -188,7 +188,7 @@ export function RoundDraftForm({
       if (firstField) requestFocus(firstField);
       setMessage(
         nextErrors[firstField ?? "description"] ??
-          "Review the highlighted fields.",
+          "Check the highlighted fields.",
       );
       setMessageTone("error");
       return;
@@ -228,7 +228,7 @@ export function RoundDraftForm({
               operationId: operationId.current,
             });
       } catch {
-        setMessage("Your round wasn't saved. Try again.");
+        setMessage("We couldn't save your round. Try again.");
         setMessageTone("error");
         return;
       }
@@ -317,12 +317,8 @@ export function RoundDraftForm({
       <SectionHeading
         kicker={isEdit ? "Edit draft" : "New draft"}
         title={isEdit ? "Round details" : "New round"}
-        meta={isEdit ? "Saved, not published" : "Not published yet"}
+        meta={isEdit ? "Draft" : "Not published yet"}
       />
-      <p className="field-help">
-        Enter times in your group’s time zone
-        {value.groupTimeZone ? `, ${value.groupTimeZone}` : ""}.
-      </p>
       <div className="form-row">
         <Field
           id={`${prefix}-description`}
@@ -350,7 +346,7 @@ export function RoundDraftForm({
       <div className="form-row">
         <Field
           id={`${prefix}-scheduled`}
-          label="Scheduled start"
+          label="Start time"
           error={fieldErrors.scheduledLocal}
         >
           <input
@@ -379,7 +375,7 @@ export function RoundDraftForm({
       </div>
       <Field
         id={`${prefix}-url`}
-        label="Round URL"
+        label="Round link"
         error={fieldErrors.roundUrl}
       >
         <input

@@ -100,7 +100,7 @@ describe("member round page", () => {
 
     expect(rendered).toContain("Your round is live");
     expect(rendered).toContain(
-      "You use the GreenRoster app to enter scores and manage guests.",
+      "Open the GreenRoster app to enter scores and manage guests.",
     );
     expect(mocks.rsvp).not.toHaveBeenCalled();
     expect(rendered).not.toContain("Save score");

@@ -21,7 +21,7 @@ function RegisterFrame({ children }: Readonly<{ children: React.ReactNode }>) {
           </span>
           <div>
             <p className="eyebrow">GreenRoster</p>
-            <p className="brand-note">Invitation account setup</p>
+            <p className="brand-note">Create your account</p>
           </div>
         </div>
         {children}
@@ -40,7 +40,7 @@ export default async function InvitationRegisterPage() {
     return (
       <RegisterFrame>
         <div className="auth-heading">
-          <p className="ledger-kicker">Membership invitation</p>
+          <p className="ledger-kicker">Invitation</p>
           <h1 id="register-title">Invitation link unavailable</h1>
           <p>
             Open the original invitation link again or ask a coordinator to
@@ -62,10 +62,10 @@ export default async function InvitationRegisterPage() {
     return (
       <RegisterFrame>
         <div className="auth-heading">
-          <p className="ledger-kicker">Membership invitation</p>
-          <h1 id="register-title">Account check unavailable</h1>
+          <p className="ledger-kicker">Invitation</p>
+          <h1 id="register-title">We couldn&apos;t check your account</h1>
           <p>
-            Try again in a moment. Your invitation is still saved in this
+            Try again in a moment. Your invitation is still open in this
             browser.
           </p>
         </div>
@@ -77,11 +77,10 @@ export default async function InvitationRegisterPage() {
       <RegisterFrame>
         <div className="auth-heading">
           <p className="ledger-kicker">Already signed in</p>
-          <h1 id="register-title">Continue with your signed-in account</h1>
+          <h1 id="register-title">You already have an account</h1>
           <p>
-            You are already signed in on this browser. Review the invitation and
-            accept it with this account. Creating a new account here will not
-            connect to this sign-in.
+            You&apos;re already signed in on this browser. Check the invitation
+            and accept it with this one.
           </p>
         </div>
         <Link className="primary-link" href="/invitations/accept">
@@ -94,10 +93,10 @@ export default async function InvitationRegisterPage() {
   return (
     <RegisterFrame>
       <div className="auth-heading">
-        <p className="ledger-kicker">Membership invitation</p>
+        <p className="ledger-kicker">Invitation</p>
         <h1 id="register-title">Create your GreenRoster account</h1>
         <p>
-          Use an e-mail address you can open and a passphrase of at least{" "}
+          Use an e-mail address you can open and a password of at least{" "}
           {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>

@@ -60,18 +60,15 @@ export default async function MemberDirectoryPage({
         >
           <nav className="member-results-nav" aria-label="Member navigation">
             <Link className="secondary-link" href="/member/home">
-              Open your home
+              Home
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Your group directory</p>
             <h1 id="member-directory-title">{directory.group.name}</h1>
-            <p className="member-home-intro">
-              You see the contact details that each member chooses to share.
-            </p>
             <form className="member-directory-filter" method="get">
               <label className="field-group" htmlFor="member-directory-search">
                 <span>Search the directory</span>
@@ -200,11 +197,11 @@ function MemberDirectoryUnavailable() {
       >
         <p className="ledger-kicker">Your group directory</p>
         <h1 id="member-directory-error-title">
-          You can’t open the directory right now
+          We couldn’t load the directory
         </h1>
         <p>Refresh this page and try again.</p>
         <Link className="secondary-link" href="/member/home">
-          Open your home
+          Home
         </Link>
       </section>
     </main>

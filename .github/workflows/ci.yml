@@ -24,9 +24,6 @@ jobs:
       CRON_SECRET: ci-only-synthetic-notification-cron-secret
       NOTIFICATION_EMAIL_MAX_ATTEMPTS: 3
       NOTIFICATION_EMAIL_RETRY_SECONDS: 300
-      EXPO_PUBLIC_APP_URL: http://127.0.0.1:3000
-      EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

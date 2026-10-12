@@ -86,7 +86,7 @@ function MemberResultsContent({
               Notification preferences
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
           </nav>
           <p className="ledger-kicker">Official results</p>
@@ -99,7 +99,6 @@ function MemberResultsContent({
               results[0]?.completed_at ?? null,
               round.group_time_zone,
             )}
-            {round.group_time_zone ? ` (${round.group_time_zone})` : ""}
           </p>
           <p className="member-results-format-note">
             Ranked by{" "}
@@ -110,10 +109,10 @@ function MemberResultsContent({
               className="member-results-winner"
               aria-labelledby="winner-title"
             >
-              <p className="ledger-kicker">Winner summary</p>
+              <p className="ledger-kicker">Winner</p>
               <h2 id="winner-title">
-                {winners.map(displayName).join(" and ")} — tied at rank{" "}
-                {winnerRank}
+                {winners.map(displayName).join(" and ")}
+                {winners.length > 1 ? " (tied)" : ""}
               </h2>
             </section>
           ) : null}
@@ -243,10 +242,6 @@ function MemberResultsUnavailable() {
         <section className="auth-ledger">
           <p className="ledger-kicker">Official results</p>
           <h1>These results are not available</h1>
-          <p>
-            The round may have been reopened, the link may be incomplete, or
-            your membership no longer has access to this group.
-          </p>
           <Link className="secondary-link" href="/member/home">
             Return to your home
           </Link>

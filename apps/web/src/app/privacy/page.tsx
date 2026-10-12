@@ -10,59 +10,54 @@ export default function PrivacyPage() {
           Effective {LEGAL_EFFECTIVE_DATE} · Version {PRIVACY_VERSION}
         </p>
         <p>
-          You share the information that you need to use GreenRoster, including
-          your account e-mail, name, group membership, RSVP choices, scores,
-          results, and any optional directory details you add.
+          To use GreenRoster you share some information with us: your account
+          e-mail, name, group membership, RSVPs, scores, results, and any
+          optional directory details you add.
         </p>
-        <h2>You see how GreenRoster uses your information</h2>
+        <h2>How we use your information</h2>
         <ul>
           <li>
-            You get account access, invitations, round updates, standings, and
-            results from the information you provide.
+            We use it to give you account access, invitations, round updates,
+            standings, and results.
           </li>
           <li>
-            You receive push messages when you enable mobile notifications, and
-            you allow the app to save the device information needed to deliver
-            them.
+            If you turn on notifications in the app, we save the device
+            information needed to deliver push messages.
           </li>
           <li>
-            You receive optional messages only when your notification choices
+            We send optional messages only when your notification preferences
             allow them.
           </li>
           <li>
-            You see the group information your coordinator shares with you, and
-            you understand that coordinators use group information to run
-            rounds.
+            Your coordinators use group information to run rounds, and you see
+            the group information they share with you.
           </li>
         </ul>
-        <h2>You keep control of your information</h2>
+        <h2>Your choices</h2>
         <ul>
           <li>
-            You change the profile and notification choices that GreenRoster
-            lets you edit.
+            You can change your profile details and notification preferences in
+            GreenRoster.
           </li>
           <li>
-            You request a copy of your information or request account deletion
-            through the privacy request links below.
+            You can request a copy of your information, or ask us to delete your
+            account, from the privacy requests link below.
           </li>
           <li>
-            You understand that GreenRoster keeps the sporting and audit history
-            needed to preserve group results after direct account details are
-            removed.
+            After your account details are removed, we keep the scores, results,
+            and change history your group needs to preserve its results.
           </li>
         </ul>
-        <h2>You see how long information stays</h2>
+        <h2>How long we keep information</h2>
         <p>
-          You get direct account and contact details removed or anonymized when
-          you complete an approved deletion request. You see expired invitations
-          removed after 30 days and completed message delivery history removed
-          after 90 days.
+          When we complete an approved deletion request, we remove or anonymize
+          your account and contact details. We remove expired invitations after
+          30 days and completed message delivery history after 90 days.
         </p>
-        <h2>You can ask questions</h2>
+        <h2>Questions</h2>
         <p>
-          You can contact support from the{" "}
-          <Link href="/support">support page</Link> if you have a question about
-          your information.
+          If you have a question about your information, contact us from the{" "}
+          <Link href="/support">support page</Link>.
         </p>
         <Link className="primary-link" href="/account/privacy">
           Open privacy requests

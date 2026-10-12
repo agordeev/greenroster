@@ -19,10 +19,9 @@ export function MemberNotificationPreferences({
       aria-labelledby="member-notifications-title"
     >
       <p className="ledger-kicker">Notification preferences</p>
-      <h2 id="member-notifications-title">Choose where updates arrive</h2>
+      <h2 id="member-notifications-title">How you get updates</h2>
       <p className="member-results-intro">
-        You cannot change these settings on the web. Open the GreenRoster app to
-        change them.
+        To change these, open the GreenRoster app.
       </p>
       {preferences === null ? (
         <p className="member-read-empty" role="status">
@@ -34,11 +33,7 @@ export function MemberNotificationPreferences({
           <section className="member-preference-row" key={preference.category}>
             <div>
               <h3>{formatCategory(preference.category)}</h3>
-              <p>
-                {preference.mandatory
-                  ? "Required for account or round safety."
-                  : "Optional."}
-              </p>
+              <p>{preference.mandatory ? "Always on." : "Optional."}</p>
             </div>
             <dl>
               <div>
@@ -66,7 +61,7 @@ export function MemberNotificationPreferences({
         ))
       )}
       <p className="member-read-note">
-        Cancellation and security messages cannot be turned off.
+        You always get cancellation and account security messages.
       </p>
     </section>
   );

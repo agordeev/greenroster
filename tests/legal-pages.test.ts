@@ -16,8 +16,8 @@ describe("public legal pages", () => {
 
     expect(source).toContain('title="Terms of Use"');
     expect(source).toContain("TERMS_VERSION");
-    expect(source).toContain("You protect your account");
-    expect(source).toContain("You review a new version");
+    expect(source).toContain("Your account");
+    expect(source).toContain("Changes to these terms");
     expect(source).not.toContain("awaiting approval");
   });
 
@@ -26,8 +26,8 @@ describe("public legal pages", () => {
 
     expect(source).toContain('title="Privacy Policy"');
     expect(source).toContain("PRIVACY_VERSION");
-    expect(source).toContain("You keep control of your information");
-    expect(source).toContain("You request a copy");
+    expect(source).toContain("Your choices");
+    expect(source).toContain("You can request a copy");
     expect(source).not.toContain("awaiting approval");
   });
 });

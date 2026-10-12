@@ -3,7 +3,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Preview,
   Text,
@@ -66,11 +65,6 @@ export function RoundCancelledEmailDocument(input: RoundCancelledEmailInput) {
             <br />
             <strong>Reason:</strong> {cancellationReason}
           </Text>
-          <Hr style={ruleStyle} />
-          <Text style={mutedTextStyle}>
-            You do not need to respond to this round. Sign in to GreenRoster if
-            you need to review its details.
-          </Text>
         </Container>
       </Body>
     </Html>
@@ -93,8 +87,6 @@ export function buildRoundCancelledEmail(
       description,
       `Scheduled for: ${scheduledAt}`,
       `Reason: ${cancellationReason}`,
-      "",
-      "You do not need to respond to this round. Sign in to GreenRoster if you need to review its details.",
     ].join("\n"),
   };
 }
@@ -136,15 +128,4 @@ const textStyle = {
   color: "#22231f",
   fontSize: "16px",
   lineHeight: "1.6",
-};
-
-const mutedTextStyle = {
-  color: "#595a52",
-  fontSize: "14px",
-  lineHeight: "1.5",
-};
-
-const ruleStyle = {
-  borderColor: "#d9d1c0",
-  margin: "24px 0",
 };

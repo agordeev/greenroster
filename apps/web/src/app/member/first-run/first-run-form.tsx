@@ -30,7 +30,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
           {state.message}
         </p>
         <Link className="primary-button button-link" href="/member/home">
-          Open your home
+          Home
         </Link>
       </div>
     );
@@ -66,15 +66,13 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
       <label className="confirmation-row">
         <input name="acceptedTerms" type="checkbox" required />
         <span>
-          I accept the current <Link href="/terms">Terms of Use</Link> (version{" "}
-          {props.termsVersion}).
+          I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
       <label className="confirmation-row">
         <input name="acceptedPrivacy" type="checkbox" required />
         <span>
-          I accept the current <Link href="/privacy">Privacy Policy</Link>{" "}
-          (version {props.privacyVersion}).
+          I accept the current <Link href="/privacy">Privacy Policy</Link>.
         </span>
       </label>
 

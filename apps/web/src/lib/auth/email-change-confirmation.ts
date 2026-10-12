@@ -33,6 +33,6 @@ export function resolveEmailChangeConfirmation(
   return {
     status: "submitted",
     message:
-      "Your confirmation was received. Follow the link in any other message we sent, then reload your account page.",
+      "We got your confirmation. If we sent you a second message, follow its link too, then reload your account page.",
   };
 }

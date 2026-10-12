@@ -50,7 +50,7 @@ export function AccountEmailForm({
         />
         <p id="new-account-email-help" className="field-help">
           This changes the address you sign in with, and where we send recovery
-          links and GreenRoster notifications. Your memberships stay the same.
+          links and GreenRoster notifications.
         </p>
         {state.fieldErrors?.email ? (
           <p id="new-account-email-error" className="field-error">
@@ -62,8 +62,8 @@ export function AccountEmailForm({
       <label className="account-email-confirmation">
         <input name="confirmed" type="checkbox" value="true" required />
         <span>
-          I understand the change is not complete until I finish the
-          confirmation steps.
+          I understand my e-mail won&apos;t change until I follow the
+          confirmation links.
         </span>
       </label>
       {state.fieldErrors?.confirmed ? (
@@ -75,7 +75,7 @@ export function AccountEmailForm({
       </p>
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Requesting confirmation…" : "Change account e-mail"}
+        {pending ? "Sending…" : "Change account e-mail"}
       </button>
     </form>
   );

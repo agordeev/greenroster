@@ -36,7 +36,7 @@ describe("CSV exports", () => {
       },
     ]);
 
-    expect(csv).toContain('"Membership ID","First name","Last name"');
+    expect(csv).toContain('"Member ID","First name","Last name"');
     expect(csv).toContain('"Ada","Lovelace","active","member","Yes"');
   });
 });

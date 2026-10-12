@@ -126,23 +126,22 @@ export default async function MemberHomePage() {
               Notification preferences
             </Link>
             <Link className="secondary-link" href="/member/inbox">
-              Open your inbox
+              Inbox
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
             <Link className="secondary-link" href="/member/directory">
-              Open your directory
+              Directory
             </Link>
           </nav>
           <div className="auth-heading">
-            <p className="ledger-kicker">Member home</p>
+            <p className="ledger-kicker">Home</p>
             <h1 id="member-home-title">
               {groupResult.data?.name ?? "Your GreenRoster group"}
             </h1>
             <p className="member-home-intro">
-              Your membership is active and your profile is complete. You can
-              return here whenever you sign in to GreenRoster.
+              Your next round, recent results, and where you stand.
             </p>
             {nextRound ? (
               <NextRoundCard round={nextRound} />
@@ -167,7 +166,7 @@ export default async function MemberHomePage() {
             <MemberClubhouseSummary projection={clubhouseResult} />
             <MemberNotificationPreferences preferences={preferences} />
             <Link className="secondary-link" href="/account">
-              Manage account e-mail
+              Change account e-mail
             </Link>
           </div>
         </section>
@@ -186,7 +185,7 @@ function MemberClubhouseSummary({
     >
       <div className="member-home-round-heading">
         <p className="ledger-kicker">Clubhouse</p>
-        <h2 id="clubhouse-title">News and videos for you</h2>
+        <h2 id="clubhouse-title">News and videos</h2>
       </div>
       {!projection ? (
         <p className="member-read-empty">
@@ -272,7 +271,7 @@ function MemberHomeResultsSummary({
           {winners.length > 0 ? (
             <p>
               Winner{winners.length === 1 ? "" : "s"}:{" "}
-              {winners.map(displayName).join(" and ")} at rank {winnerRank}
+              {winners.map(displayName).join(" and ")}
             </p>
           ) : null}
           <Link
@@ -282,7 +281,7 @@ function MemberHomeResultsSummary({
               encodeURIComponent(recentResult.history.round_id)
             }
           >
-            Open official result
+            See full results
           </Link>
         </article>
       ) : history === null ? (
@@ -343,7 +342,7 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
   return (
     <section className="member-home-round" aria-labelledby="next-round-title">
       <div className="member-home-round-heading">
-        <p className="ledger-kicker">Next published round</p>
+        <p className="ledger-kicker">Next round</p>
         <h2 id="next-round-title">{round.description ?? "Golf round"}</h2>
       </div>
       <dl className="invitation-summary" aria-label="Next round details">
@@ -398,11 +397,11 @@ function formatRound(format: MemberNextRound["format"]): string {
 }
 
 function formatGroupDateTime(value: string, timeZone: string): string {
-  return `${new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",
     timeZone,
-  }).format(new Date(value))} (${timeZone})`;
+  }).format(new Date(value));
 }
 
 function MemberHomeUnavailable() {
@@ -417,7 +416,7 @@ function MemberHomeUnavailable() {
         className="auth-shell auth-shell-single invitation-shell"
       >
         <section className="auth-ledger">
-          <p className="ledger-kicker">Member home</p>
+          <p className="ledger-kicker">Home</p>
           <h1>We could not load your home page</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
         </section>

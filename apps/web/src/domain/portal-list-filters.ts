@@ -79,5 +79,5 @@ export function describeInvitationDelivery(
 
   return invitation.deliveryState
     ? `Latest delivery: ${deliveryStateLabel(invitation.deliveryState)}`
-    : "Delivery has not started";
+    : "Not sent yet";
 }

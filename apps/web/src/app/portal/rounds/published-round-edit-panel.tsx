@@ -105,7 +105,7 @@ export function PublishedRoundEditPanel({
     if (!parsed.success) {
       const errors = errorsFromIssues(parsed.error.issues);
       setFieldErrors(errors);
-      setMessage(firstError(errors) ?? "Review the highlighted fields.");
+      setMessage(firstError(errors) ?? "Check the highlighted fields.");
       setMessageTone("error");
       return;
     }
@@ -115,7 +115,7 @@ export function PublishedRoundEditPanel({
       try {
         result = await previewPublishedRoundEditAction(parsed.data);
       } catch {
-        setMessage("Changes couldn't be previewed. Try again.");
+        setMessage("We couldn't preview your changes. Try again.");
         setMessageTone("error");
         return;
       }
@@ -133,8 +133,8 @@ export function PublishedRoundEditPanel({
       setAnnounce(false);
       setMessage(
         result.data.changedFields.length === 0
-          ? "No changes found. Edit a field, then preview again."
-          : "Check the impact below before you apply this change.",
+          ? "Nothing has changed. Edit something, then preview again."
+          : "Check what changes below before you apply.",
       );
       setMessageTone(
         result.data.changedFields.length === 0 ? "error" : "success",
@@ -159,7 +159,7 @@ export function PublishedRoundEditPanel({
     if (!parsed.success) {
       const errors = errorsFromIssues(parsed.error.issues);
       setFieldErrors(errors);
-      setMessage(firstError(errors) ?? "Review the highlighted fields.");
+      setMessage(firstError(errors) ?? "Check the highlighted fields.");
       setMessageTone("error");
       return;
     }
@@ -169,7 +169,7 @@ export function PublishedRoundEditPanel({
       try {
         result = await updatePublishedRoundEditAction(parsed.data);
       } catch {
-        setMessage("Your changes weren't applied. Try again.");
+        setMessage("We couldn't apply your changes. Try again.");
         setMessageTone("error");
         return;
       }
@@ -214,10 +214,7 @@ export function PublishedRoundEditPanel({
         titleId="published-round-edit-title"
         meta="Preview before you apply"
       />
-      <p>
-        Format, players, guests, and scores stay as they are. Preview the
-        changes before you apply them.
-      </p>
+      <p>Preview your changes before you apply them.</p>
       <div className="form-stack" aria-busy={pending}>
         <div className="form-row">
           <Field
@@ -248,7 +245,7 @@ export function PublishedRoundEditPanel({
         <div className="form-row">
           <Field
             id="published-round-edit-scheduled"
-            label="Scheduled start"
+            label="Start time"
             error={fieldErrors.scheduledLocal}
           >
             <input
@@ -279,7 +276,7 @@ export function PublishedRoundEditPanel({
         </div>
         <Field
           id="published-round-edit-url"
-          label="Round URL"
+          label="Round link"
           error={fieldErrors.roundUrl}
         >
           <input
@@ -364,7 +361,7 @@ function ImpactSummary({
 }: Readonly<{ preview: PublishedRoundEditPreview }>) {
   return (
     <section aria-labelledby="published-round-edit-impact-title">
-      <p className="ledger-kicker">Impact preview</p>
+      <p className="ledger-kicker">Preview</p>
       <h3 id="published-round-edit-impact-title">What this changes</h3>
       <p>
         {preview.affectedParticipantCount} affected player
@@ -372,7 +369,7 @@ function ImpactSummary({
       </p>
       <ImpactList label="Changed details" values={preview.changedFields} />
       <ImpactList
-        label="Significant changes"
+        label="Changes players should know about"
         values={preview.materialCategories}
       />
       <ImpactList

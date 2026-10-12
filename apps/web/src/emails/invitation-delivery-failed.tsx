@@ -4,7 +4,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Preview,
   Text,
@@ -52,11 +51,6 @@ export function InvitationDeliveryFailedEmailDocument(
           <Button href={input.actionUrl} style={buttonStyle}>
             Open invitations
           </Button>
-          <Hr style={ruleStyle} />
-          <Text style={mutedTextStyle}>
-            It stays on your invitations list, marked as needing action, until
-            you fix it or resolve it.
-          </Text>
         </Container>
       </Body>
     </Html>
@@ -79,8 +73,6 @@ export function buildInvitationDeliveryFailedEmail(
       "Check the e-mail address, fix it, and send a new link from the invitations page.",
       "",
       `Open invitations: ${input.actionUrl}`,
-      "",
-      "It stays on your invitations list, marked as needing action, until you fix it or resolve it.",
     ].join("\n"),
   };
 }
@@ -139,9 +131,4 @@ const buttonStyle = {
   lineHeight: "1",
   padding: "14px 20px",
   textDecoration: "none",
-};
-
-const ruleStyle = {
-  borderColor: "#d9d1c0",
-  margin: "24px 0",
 };

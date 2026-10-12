@@ -33,7 +33,7 @@ export function createMemberRosterCsv(
 ): string {
   return createCsv(
     [
-      "Membership ID",
+      "Member ID",
       "First name",
       "Last name",
       "Status",
@@ -44,7 +44,7 @@ export function createMemberRosterCsv(
       "Handicap source",
       "Handicap as of",
       "Quota",
-      "Quota effective at",
+      "Quota in effect since",
       "Date added",
       "Invitation",
     ],
@@ -70,15 +70,15 @@ export function createMemberRosterCsv(
 export function createStandingsCsv(rows: readonly MemberStanding[]): string {
   return createCsv(
     [
-      "Membership ID",
+      "Member ID",
       "First name",
       "Last name",
-      "Standing rank",
+      "Rank",
       "Merit total",
       "Rounds played",
-      "Projected quota",
+      "Current quota",
       "Quota ready",
-      "Quota history count",
+      "Rounds in quota history",
     ],
     rows.map((row) => [
       row.membership_id,
@@ -107,11 +107,11 @@ export function createOfficialResultsCsv(
       "Round ID",
       "Round",
       "Format",
-      "Scheduled at",
-      "Completed at",
-      "Participant ID",
+      "Scheduled",
+      "Completed",
+      "Player ID",
       "Player",
-      "Participant kind",
+      "Player type",
       "RSVP",
       "Rank",
       "Points",

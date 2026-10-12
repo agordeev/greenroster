@@ -69,7 +69,7 @@ export function validateLegacyImportProfile(
       errors: [
         {
           code: "profile_required",
-          message: "Choose a legacy import profile.",
+          message: "Choose where this file came from.",
         },
       ],
     };
@@ -329,9 +329,7 @@ export function parseProfiledLegacyCsv(
   if (records.length === 0)
     return {
       ok: false,
-      errors: [
-        { code: "empty_file", message: "You upload an empty CSV file." },
-      ],
+      errors: [{ code: "empty_file", message: "This CSV file is empty." }],
     };
 
   const headers = records[0].map((header) => header.trim().toLowerCase());
@@ -344,7 +342,7 @@ export function parseProfiledLegacyCsv(
     errors.push({
       code: "duplicate_header",
       column: header,
-      message: `You repeat the ${header} column.`,
+      message: `The ${header} column appears more than once.`,
     });
   }
   const requiredHeaders = new Set([
@@ -357,7 +355,7 @@ export function parseProfiledLegacyCsv(
       errors.push({
         code: "missing_header",
         column: header,
-        message: `You do not include the ${header} column.`,
+        message: `The ${header} column is missing.`,
       });
   }
   for (const header of headers) {
@@ -365,7 +363,7 @@ export function parseProfiledLegacyCsv(
       warnings.push({
         code: "unmapped_header",
         column: header,
-        message: `You leave the ${header} column unmapped, so you will not import it.`,
+        message: `The ${header} column isn't matched to a field, so it won't be imported.`,
       });
   }
   if (errors.length > 0) return { ok: false, errors };
@@ -378,7 +376,7 @@ export function parseProfiledLegacyCsv(
     if (record.length !== headers.length) {
       errors.push({
         code: "column_count",
-        message: `You provide a different number of columns on row ${rowNumber} than in the header.`,
+        message: `Row ${rowNumber} has a different number of columns than the header row.`,
         rowNumber,
       });
       continue;

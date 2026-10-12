@@ -35,7 +35,7 @@ const safeMessages: Readonly<Record<MutationErrorCode, string>> = {
   authentication_required: "You've been signed out. Sign in again to continue.",
   forbidden: "You don't have permission to do this.",
   unavailable: "We couldn't find that. Refresh the page to see what's current.",
-  validation: "Review the highlighted fields and try again.",
+  validation: "Check the highlighted fields and try again.",
   operation_reused:
     "This change was already submitted with different details. Refresh the page and try again.",
   stale_version:

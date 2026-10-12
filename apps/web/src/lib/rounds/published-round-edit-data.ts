@@ -51,7 +51,7 @@ function publishedRoundEditFieldErrors(
     case "round_description_invalid":
       return { description: ["Add a description for this round."] };
     case "round_scheduled_at_invalid":
-      return { scheduledLocal: ["Enter a valid local date and time."] };
+      return { scheduledLocal: ["Enter a valid date and time."] };
     case "round_rsvp_deadline_invalid":
       return {
         rsvpDeadlineLocal: [

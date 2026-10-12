@@ -187,7 +187,7 @@ function ScoreboardUnavailable() {
         >
           <p className="ledger-kicker">Live scores</p>
           <h1 id="scoreboard-unavailable-title">
-            You can’t view this round right now.
+            These live scores aren’t available.
           </h1>
           <p>Ask your group coordinator for a current link.</p>
         </section>

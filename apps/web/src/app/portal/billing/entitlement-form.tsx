@@ -28,11 +28,11 @@ export function BillingEntitlementForm({
       };
       setMessage(
         result.ok
-          ? "You gave this member temporary access."
-          : (result.error?.message ?? "You cannot update access right now."),
+          ? "Temporary access given."
+          : (result.error?.message ?? "We couldn't update access. Try again."),
       );
     } catch {
-      setMessage("You cannot update access right now. Try again.");
+      setMessage("We couldn't update access. Try again.");
     } finally {
       setBusy(false);
     }
@@ -45,7 +45,7 @@ export function BillingEntitlementForm({
         <input name="expiresAt" type="datetime-local" required />
       </label>
       <label>
-        Why you are giving access
+        Reason
         <input name="reason" maxLength={1000} required />
       </label>
       <button className="secondary-button" type="submit" disabled={busy}>

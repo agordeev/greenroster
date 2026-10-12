@@ -22,7 +22,7 @@ export function validateBandFormRows(
     validateRowNumbers(band),
   );
   if (rowErrors.some(Boolean)) {
-    return { rowErrors, summary: "Resolve the highlighted band values." };
+    return { rowErrors, summary: "Fix the highlighted bands." };
   }
 
   const parsed = bands.map((band) => ({
@@ -52,7 +52,7 @@ export function validateBandFormRows(
   if (rowErrors.some(Boolean)) {
     return {
       rowErrors,
-      summary: "Resolve the highlighted Method C gap or overlap.",
+      summary: "Fix the highlighted gap or overlap between bands.",
     };
   }
 
@@ -62,7 +62,7 @@ export function validateBandFormRows(
   } catch (error) {
     rowErrors[0] =
       error instanceof Error ? error.message : "Review the adjustment bands.";
-    return { rowErrors, summary: "Resolve the highlighted band values." };
+    return { rowErrors, summary: "Fix the highlighted bands." };
   }
 }
 

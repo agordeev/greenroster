@@ -6,11 +6,11 @@ const requestCopy: Record<
 > = {
   data_access: {
     subject: "GreenRoster data access request",
-    body: "Please provide a copy of the personal data associated with my GreenRoster account.\n\nAccount e-mail: ",
+    body: "Please send me a copy of the personal data linked to my GreenRoster account.\n\nAccount e-mail: ",
   },
   account_deletion: {
     subject: "GreenRoster account deletion request",
-    body: "Please process deletion of my GreenRoster account. I understand that direct identifiers are removed or anonymized within 30 days unless a documented legal hold applies, while pseudonymized sporting history and audit records are retained.\n\nAccount e-mail: ",
+    body: "Please delete my GreenRoster account. I understand that my account and contact details are removed or anonymized within 30 days unless a legal hold applies, and that scores, results, and change history are kept in a form that doesn't identify me directly.\n\nAccount e-mail: ",
   },
 };
 

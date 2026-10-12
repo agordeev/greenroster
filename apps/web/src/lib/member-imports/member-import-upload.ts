@@ -86,13 +86,13 @@ export async function runMemberImportUpload(
   if (!(file instanceof File) || file.size === 0) {
     return validationFailure(correlationId, {
       code: "file_required",
-      message: "Choose a non-empty CSV file.",
+      message: "Choose a CSV file that isn't empty.",
     });
   }
   if (file.size > MAX_MEMBER_IMPORT_BYTES) {
     return validationFailure(correlationId, {
       code: "file_too_large",
-      message: "The CSV must be 2 MiB or smaller.",
+      message: "The CSV must be 2 MB or smaller.",
     });
   }
 

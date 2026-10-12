@@ -138,11 +138,10 @@ export function GroupGuestPermissionForm({
           onChange={(event) => setAllowMemberGuests(event.target.checked)}
           disabled={pending}
         />
-        <span>Let active Playing members bring guests to a round</span>
+        <span>Let members who are playing bring guests</span>
       </label>
       <p className="field-help">
-        Guests have no account or contact details and get no notifications. They
-        never count as members or in standings totals.
+        Guests don&apos;t need an account and don&apos;t appear in standings.
       </p>
       <label htmlFor="guest-permission-reason">Reason for change</label>
       <textarea

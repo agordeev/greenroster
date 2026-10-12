@@ -11,7 +11,7 @@ export default function Error({
       <section className="auth-ledger" aria-labelledby="member-round-error">
         <p className="ledger-kicker">Your round</p>
         <h1 id="member-round-error">This round is unavailable</h1>
-        <p>Try again to load your round details.</p>
+        <p>We couldn&apos;t load this round. Try again.</p>
         <button
           className="primary-button"
           type="button"

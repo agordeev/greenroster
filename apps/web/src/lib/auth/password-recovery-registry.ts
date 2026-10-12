@@ -57,38 +57,6 @@ export async function resolvePasswordRecoveryIntent(stateHash: string) {
   }
 }
 
-export async function registerMobilePasswordRecoverySession(
-  stateHash: string,
-  emailHash: string,
-  handleHash: string,
-  resetOperationId: string,
-  sessionId: string,
-  userId: string,
-  expiresAt: Date,
-) {
-  const supabase = createSupabaseServiceClient();
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      const { data, error } = await supabase.rpc(
-        "register_mobile_password_recovery_session",
-        {
-          p_email_hash: emailHash,
-          p_expires_at: expiresAt.toISOString(),
-          p_handle_hash: handleHash,
-          p_reset_operation_id: resetOperationId,
-          p_session_id: sessionId,
-          p_state_hash: stateHash,
-          p_user_id: userId,
-        },
-      );
-      if (!error && data === true) return true;
-    } catch {
-      // Retry once with the same opaque handle and operation identifier.
-    }
-  }
-  return false;
-}
-
 export type PasswordRecoveryHandleResolution =
   | Readonly<{ ok: false }>
   | Readonly<{ handle: null; ok: true }>

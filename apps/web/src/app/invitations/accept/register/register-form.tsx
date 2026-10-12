@@ -31,8 +31,7 @@ export function InvitationRegisterForm() {
           required
         />
         <p id="registration-email-help" className="field-help">
-          Use the invited address or another address you can open. The
-          invitation joins the account that accepts it.
+          Use the invited address or another address you can open.
         </p>
       </div>
 
@@ -58,7 +57,7 @@ export function InvitationRegisterForm() {
           required
         />
         <p id="registration-password-help" className="field-help">
-          Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
+          Use a password of at least {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>
 

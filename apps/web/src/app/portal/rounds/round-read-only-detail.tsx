@@ -21,7 +21,7 @@ export function RoundReadOnlyDetail({
   return (
     <section className="page-section" aria-labelledby="round-detail-title">
       <SectionHeading
-        kicker="Round detail"
+        kicker="Round"
         title={detail.description || "Untitled round"}
         titleId="round-detail-title"
         meta={formatRoundState(detail.state)}
@@ -41,12 +41,12 @@ export function RoundReadOnlyDetail({
         aria-labelledby="round-detail-overview-title"
       >
         <p className="ledger-kicker">Overview</p>
-        <h3 id="round-detail-overview-title">Published details</h3>
+        <h3 id="round-detail-overview-title">Details</h3>
         <dl className="publication-summary round-detail-summary">
           <SummaryItem label="Status" value={formatRoundState(detail.state)} />
           <SummaryItem
             label="Scheduled"
-            value={`${formatRoundSchedule(detail.scheduledAt, detail.groupTimeZone)} (${detail.groupTimeZone})`}
+            value={`${formatRoundSchedule(detail.scheduledAt, detail.groupTimeZone)}`}
           />
           <SummaryItem label="Venue" value={detail.venue || "Not provided"} />
           <SummaryItem
@@ -76,14 +76,14 @@ export function RoundReadOnlyDetail({
         {detail.roundUrl ? (
           <p>
             <Link href={detail.roundUrl} rel="noreferrer" target="_blank">
-              Open round URL
+              Open round link
             </Link>
           </p>
         ) : null}
 
         <section aria-labelledby="round-detail-rule-snapshot-title">
           <p className="ledger-kicker">Rules</p>
-          <h3 id="round-detail-rule-snapshot-title">Rules as published</h3>
+          <h3 id="round-detail-rule-snapshot-title">Rules for this round</h3>
           {detail.ruleSnapshot ? (
             <dl className="publication-summary round-detail-summary">
               <SummaryItem
@@ -101,10 +101,6 @@ export function RoundReadOnlyDetail({
                     ? "Not set"
                     : String(detail.ruleSnapshot.quotaPrecision)
                 }
-              />
-              <SummaryItem
-                label="Rules changes"
-                value={String(detail.ruleSnapshot.settingsVersion)}
               />
             </dl>
           ) : (
@@ -125,13 +121,9 @@ export function RoundReadOnlyDetail({
         aria-labelledby="round-detail-players-title"
       >
         <p className="ledger-kicker">Players</p>
-        <h3 id="round-detail-players-title">Players as published</h3>
-        <p>
-          Quota, handicap, tee, and RSVP below are locked as published. Later
-          changes to a member’s profile don’t change them.
-        </p>
+        <h3 id="round-detail-players-title">Players</h3>
         {detail.participants.length === 0 ? (
-          <EmptyState>No players were published for this round.</EmptyState>
+          <EmptyState>This round has no players.</EmptyState>
         ) : (
           <div className="publication-member-list round-detail-table-wrap">
             <table>

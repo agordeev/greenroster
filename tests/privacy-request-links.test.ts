@@ -11,7 +11,7 @@ describe("privacy request links", () => {
         "data_access",
       ),
     ).toBe(
-      "mailto:privacy@example.test?subject=GreenRoster%20data%20access%20request&body=Please%20provide%20a%20copy%20of%20the%20personal%20data%20associated%20with%20my%20GreenRoster%20account.%0A%0AAccount%20e-mail%3A%20member%40example.test",
+      "mailto:privacy@example.test?subject=GreenRoster%20data%20access%20request&body=Please%20send%20me%20a%20copy%20of%20the%20personal%20data%20linked%20to%20my%20GreenRoster%20account.%0A%0AAccount%20e-mail%3A%20member%40example.test",
     );
   });
 
@@ -22,6 +22,6 @@ describe("privacy request links", () => {
         "member@example.test",
         "account_deletion",
       ),
-    ).toContain("pseudonymized%20sporting%20history");
+    ).toContain("scores%2C%20results%2C%20and%20change%20history%20are%20kept");
   });
 });

@@ -90,10 +90,7 @@ export default async function RoundsPage({
           <h1 id="rounds-denied-title">
             Only coordinators and administrators manage rounds
           </h1>
-          <p>
-            You can respond to published rounds in the app. Only coordinators
-            and administrators can set up or change rounds.
-          </p>
+          <p>You can respond to published rounds in the app.</p>
           <ActionRow>
             <Link className="secondary-link" href="/portal">
               Return to portal home
@@ -249,7 +246,7 @@ export default async function RoundsPage({
       currentSection="rounds"
     >
       <section className="portal-ledger" aria-labelledby="rounds-title">
-        <p className="ledger-kicker">Coordinator tools</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="rounds-title">Rounds</h1>
         {selectedRound || creating ? (
           <p>
@@ -259,10 +256,6 @@ export default async function RoundsPage({
           </p>
         ) : (
           <>
-            <p>
-              Only coordinators see a draft until you publish it. Times use your
-              group’s time zone, <strong>{portalContext.timeZone}</strong>.
-            </p>
             <ActionRow>
               <Link className="primary-link" href="/portal/rounds?new=1">
                 New round
@@ -438,7 +431,7 @@ function renderRoundError(error: unknown, context?: PortalContext) {
       currentSection="rounds"
     >
       <section className="portal-ledger" aria-labelledby="round-error-title">
-        <p className="ledger-kicker">Coordinator tools</p>
+        <p className="ledger-kicker">Your group</p>
         <h1 id="round-error-title">
           {forbidden
             ? "Only coordinators and administrators manage rounds"
@@ -446,7 +439,7 @@ function renderRoundError(error: unknown, context?: PortalContext) {
         </h1>
         <p>
           {forbidden
-            ? "Your role doesn’t include coordinator or administrator access."
+            ? "You can respond to published rounds in the app."
             : "Refresh the page and try again."}
         </p>
       </section>

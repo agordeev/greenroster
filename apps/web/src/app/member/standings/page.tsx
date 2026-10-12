@@ -68,7 +68,7 @@ function MemberStandingsContent({
               Notification preferences
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              Open your profile
+              Profile
             </Link>
           </nav>
           <p className="ledger-kicker">Standings and history</p>
@@ -144,8 +144,8 @@ function MemberStandingsContent({
               </div>
             )}
             <p className="member-read-note">
-              Earlier rounds stay in quota history. The reset date only affects
-              rounds played and Order of Merit totals.
+              The reset date only affects rounds played and Order of Merit
+              totals.
             </p>
           </section>
           <section
@@ -222,7 +222,7 @@ function MemberStandingsUnavailable() {
       >
         <section className="auth-ledger">
           <p className="ledger-kicker">Standings and history</p>
-          <h1>Your standings could not be loaded</h1>
+          <h1>We couldn&apos;t load your standings</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
           <Link className="secondary-link" href="/member/home">
             Return to your home

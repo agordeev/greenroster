@@ -66,11 +66,7 @@ export default async function PortalReportsPage() {
       <section className="portal-ledger" aria-labelledby="reports-title">
         <p className="ledger-kicker">Exports</p>
         <h1 id="reports-title">Reports</h1>
-        <p>
-          Download member, standings, and round reports as CSV or PDF. Each file
-          shows your group, when it was made, the time zone, the reporting
-          period, and a private data label.
-        </p>
+        <p>Download member, standings, and round reports as CSV or PDF.</p>
         <ActionRow>
           <Link
             className="secondary-link"

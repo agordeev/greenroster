@@ -128,7 +128,7 @@ export default async function PortalPage() {
         email={userData.user.email}
         kicker="Organizer portal"
         title="We couldn't check your group access"
-        message="The service is temporarily unavailable. Sign out and try again."
+        message="We couldn't load your group. Sign out and try again."
       />
     );
   }
@@ -142,7 +142,7 @@ export default async function PortalPage() {
           email={userData.user.email}
           kicker="Organizer portal"
           title="We couldn't check your group access"
-          message="The service is temporarily unavailable. Sign out and try again."
+          message="We couldn't load your group. Sign out and try again."
         />
       );
     }
@@ -152,8 +152,8 @@ export default async function PortalPage() {
         <PortalState
           email={userData.user.email}
           kicker="Access unavailable"
-          title="Your group access is not active"
-          message="You're signed in, but you don't have an active group membership. Ask a group administrator to review your access."
+          title="You're not an active member of a group"
+          message="Ask a group administrator for help."
         />
       );
     }
@@ -168,10 +168,7 @@ export default async function PortalPage() {
         <section className="portal-ledger">
           <p className="ledger-kicker">First-time setup</p>
           <h1>Set up your group</h1>
-          <p>
-            Your account is ready. Create your group, and you&apos;ll be its
-            administrator.
-          </p>
+          <p>Create your group, and you&apos;ll be its administrator.</p>
           <GroupBootstrapForm identityKey={userData.user.id} />
         </section>
       </PortalShell>
@@ -190,7 +187,7 @@ export default async function PortalPage() {
         email={userData.user.email}
         kicker="Organizer portal"
         title="We couldn't load your group"
-        message="The service is temporarily unavailable. Sign out and try again."
+        message="We couldn't load your group. Sign out and try again."
       />
     );
   }
@@ -249,10 +246,7 @@ export default async function PortalPage() {
         <section className="portal-ledger">
           <p className="ledger-kicker">Getting started</p>
           <h1>We couldn&apos;t load your setup progress</h1>
-          <p>
-            Your setup progress isn&apos;t available right now. Refresh the page
-            to keep setting up your group.
-          </p>
+          <p>Refresh the page to keep setting up your group.</p>
         </section>
       </PortalShell>
     );
@@ -285,6 +279,7 @@ export default async function PortalPage() {
         <p>Set up your group, then run your rounds from here.</p>
         <PortalDashboardSummaryCard
           summary={dashboardSummary}
+          timeZone={timeZone}
           unavailable={dashboardUnavailable}
         />
         <OnboardingChecklist items={checklist} />
@@ -295,9 +290,11 @@ export default async function PortalPage() {
 
 function PortalDashboardSummaryCard({
   summary,
+  timeZone,
   unavailable,
 }: Readonly<{
   summary: PortalDashboardSummary | null;
+  timeZone: string;
   unavailable: boolean;
 }>) {
   return (
@@ -309,12 +306,11 @@ function PortalDashboardSummaryCard({
         kicker="At a glance"
         title="Roster, results, and standings"
         titleId="dashboard-summary-title"
-        meta="Current counts for your group"
       />
       {unavailable ? (
         <p className="dashboard-summary-unavailable" data-status="error">
-          Your roster and invitation counts couldn&apos;t load. The checklist
-          below still works. Refresh to try again.
+          We couldn&apos;t load your member and invitation counts. Refresh to
+          try again.
         </p>
       ) : summary ? (
         <>
@@ -326,7 +322,7 @@ function PortalDashboardSummaryCard({
             >
               <span>Pending members</span>
               <strong>{summary.membershipCounts.pending}</strong>
-              <small>Review roster</small>
+              <small>See members</small>
             </Link>
             <Link
               className="dashboard-summary-card"
@@ -335,7 +331,7 @@ function PortalDashboardSummaryCard({
             >
               <span>Active members</span>
               <strong>{summary.membershipCounts.active}</strong>
-              <small>Review roster</small>
+              <small>See members</small>
             </Link>
             <Link
               className="dashboard-summary-card"
@@ -344,7 +340,7 @@ function PortalDashboardSummaryCard({
             >
               <span>Inactive members</span>
               <strong>{summary.membershipCounts.inactive}</strong>
-              <small>Review roster</small>
+              <small>See members</small>
             </Link>
           </div>
           <Link
@@ -382,15 +378,14 @@ function PortalDashboardSummaryCard({
                 kicker="Delivery"
                 title="Notifications"
                 titleId="dashboard-notification-health-title"
-                meta="Totals only"
               />
-              <div className="dashboard-summary-grid">
+              <div className="dashboard-summary-grid" data-columns="4">
                 <div className="dashboard-summary-card">
                   <span>Waiting to send</span>
                   <strong>{summary.notificationHealth.queueDepth}</strong>
                   <small>
                     {summary.notificationHealth.oldestQueuedAt
-                      ? `Waiting since ${formatHealthTimestamp(summary.notificationHealth.oldestQueuedAt)}`
+                      ? `Waiting since ${formatHealthTimestamp(summary.notificationHealth.oldestQueuedAt, timeZone)}`
                       : "Nothing waiting"}
                   </small>
                 </div>
@@ -415,24 +410,18 @@ function PortalDashboardSummaryCard({
                     {formatHealthRate(
                       summary.notificationHealth.pushInvalidTokenRate,
                     )}{" "}
-                    of devices no longer valid
+                    of phones no longer reachable
                   </small>
                 </div>
                 <div className="dashboard-summary-card">
                   <span>Confirmations failed</span>
                   <strong>{summary.notificationHealth.receiptFailures}</strong>
-                  <small>
-                    Checked{" "}
-                    {formatHealthTimestamp(
-                      summary.notificationHealth.sampledAt,
-                    )}
-                  </small>
                 </div>
               </div>
             </section>
           ) : null}
           {summary.completedResult !== undefined || summary.standingsSummary ? (
-            <div className="dashboard-summary-grid">
+            <div className="dashboard-summary-grid" data-columns="2">
               <Link
                 className="dashboard-summary-card"
                 href={
@@ -468,7 +457,7 @@ function PortalDashboardSummaryCard({
                   <small>
                     {summary.standingsSummary.leader
                       ? `${summary.standingsSummary.leader.meritTotal ?? "0"} merit · ${summary.standingsSummary.memberCount} active members`
-                      : `${summary.standingsSummary.memberCount} active members · Enter results to rank members`}
+                      : `${summary.standingsSummary.memberCount} active members · Complete a round to rank members`}
                   </small>
                 </Link>
               ) : null}
@@ -483,7 +472,7 @@ function PortalDashboardSummaryCard({
 function formatDashboardDate(value: string | null, timeZone: string) {
   if (!value) return "date unavailable";
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeZone,
     }).format(new Date(value));
@@ -492,12 +481,12 @@ function formatDashboardDate(value: string | null, timeZone: string) {
   }
 }
 
-function formatHealthTimestamp(value: string) {
+function formatHealthTimestamp(value: string, timeZone: string) {
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
-      timeZone: "UTC",
+      timeZone: timeZone || "UTC",
     }).format(new Date(value));
   } catch {
     return "time unavailable";

@@ -85,12 +85,12 @@ export function RoundHoleScorecardPanel({
       />
       <p>
         Enter strokes, putts, fairways, greens, sand saves, and an optional note
-        for each hole. This doesn’t change points or standings.
+        for each hole.
       </p>
       {message ? <p role="status">{message}</p> : null}
       {byParticipant.length === 0 ? (
         <p className="empty-state">
-          Hole details appear once players join this round.
+          Hole details appear once this round has players.
         </p>
       ) : (
         <div className="row-list">
@@ -163,7 +163,7 @@ function ParticipantHoleScorecard({
       operationId: crypto.randomUUID(),
     });
     if (!parsed.success) {
-      onMessage("Review the hole values and try again.");
+      onMessage("Check the hole details and try again.");
       return;
     }
     startTransition(async () => {
@@ -201,23 +201,20 @@ function ParticipantHoleScorecard({
           {displayName(rows[0])}
           {rows[0].participantKind === "guest" ? " · Guest" : ""}
         </h3>
-        <p>{readOnly ? "Read only" : "You can edit"}</p>
+        <p>{readOnly ? "View only" : "You can edit"}</p>
       </div>
       {!readOnly ? (
         <label
           className="field-group"
           htmlFor={`hole-reason-${rows[0].participantId}`}
         >
-          <span>Correction reason</span>
+          <span>Reason for the change</span>
           <input
             id={`hole-reason-${rows[0].participantId}`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             maxLength={500}
           />
-          <small className="field-help">
-            Add a reason when you replace a saved value.
-          </small>
         </label>
       ) : null}
       <div className="table-scroll">

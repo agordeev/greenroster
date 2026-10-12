@@ -194,10 +194,10 @@ export function calculateQuota(input: CalculateQuotaInput): QuotaCalculation {
   }
 
   if (input.historyLength !== undefined) {
-    throw new Error("Remove the history length for Method C.");
+    throw new Error("Remove the history length for Previous plus/minus.");
   }
   if (input.plusMinus === undefined)
-    throw new Error("Enter a plus/minus value for Method C.");
+    throw new Error("Enter a plus/minus value for Previous plus/minus.");
   const bands = input.adjustmentBands ?? [];
   validateAdjustmentBands(bands);
   const plusMinus = parseHundredths(input.plusMinus, -100, 100, "Plus/minus");

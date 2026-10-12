@@ -84,7 +84,7 @@ function roundDraftFieldErrors(
 ): MutationFieldErrors | undefined {
   switch (message) {
     case "round_scheduled_at_invalid":
-      return { scheduledLocal: ["Enter a valid local date and time."] };
+      return { scheduledLocal: ["Enter a valid date and time."] };
     case "round_rsvp_deadline_invalid":
       return {
         rsvpDeadlineLocal: [
@@ -98,7 +98,7 @@ function roundDraftFieldErrors(
     case "round_input_invalid":
       return { expectedRoundVersion: ["Refresh before saving."] };
     case "round_format_invalid":
-      return { format: ["Choose a supported round format."] };
+      return { format: ["Choose a round format."] };
     default:
       return undefined;
   }

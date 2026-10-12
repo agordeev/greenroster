@@ -123,19 +123,18 @@ export default async function QuotaRulesPage() {
         <p className="ledger-kicker">Settings</p>
         <h1 id="quota-settings-title">Quota rules</h1>
         <p>
-          New rules apply to rounds you publish after saving. Rounds already
-          published keep the rules they were published with. A standings reset
-          date changes which results count toward standings right away. Results
-          and quota history stay the same.
+          New rules apply to rounds you publish from now on. Rounds you&apos;ve
+          already published keep their rules. A new standings reset date takes
+          effect right away: it changes which results count toward standings.
         </p>
         {quotaSettingsUnavailable ? (
           <div className="quota-settings-error">
             <p className="form-message" data-status="error">
-              Your quota settings couldn&apos;t load. Refresh the page before
+              We couldn&apos;t load your quota rules. Refresh the page before
               you make changes.
             </p>
             <Link className="secondary-link" href="/portal/quota">
-              Reload quota settings
+              Reload quota rules
             </Link>
           </div>
         ) : (

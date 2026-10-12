@@ -77,7 +77,7 @@ function StatusState({
   return (
     <InvitationFrame>
       <div className="auth-heading">
-        <p className="ledger-kicker">Membership invitation</p>
+        <p className="ledger-kicker">Invitation</p>
         <h1 id="invitation-title">{title}</h1>
         <p>{message}</p>
       </div>
@@ -107,7 +107,9 @@ export default async function InvitationAcceptPage({
     return (
       <StatusState
         title={
-          status === "invalid" ? "Invitation link not recognized" : undefined
+          status === "invalid"
+            ? "This invitation link didn&apos;t work"
+            : undefined
         }
         message={
           status === "invalid"
@@ -139,8 +141,8 @@ export default async function InvitationAcceptPage({
   if (authUnavailable) {
     return (
       <StatusState
-        title="Account check unavailable"
-        message="Try again in a moment. Your invitation is still saved in this browser."
+        title="We couldn't check your account"
+        message="Try again in a moment. Your invitation is still open in this browser."
       />
     );
   }
@@ -149,12 +151,11 @@ export default async function InvitationAcceptPage({
     return (
       <InvitationFrame>
         <div className="auth-heading">
-          <p className="ledger-kicker">Membership invitation</p>
+          <p className="ledger-kicker">Invitation</p>
           <h1 id="invitation-title">Sign in to review your invitation</h1>
           <p>
-            Sign in or create an account to see the group, who invited you, the
-            invited e-mail address, the role, and when it expires. Your
-            invitation stays saved in this browser while you do.
+            Sign in or create an account to see who invited you and which group
+            you&apos;re joining.
           </p>
         </div>
         <div className="action-row invitation-recovery-actions">
@@ -236,15 +237,15 @@ export default async function InvitationAcceptPage({
     return (
       <StatusState
         title="Finish resetting your password first"
-        message="You signed in from a password reset link, so you cannot accept an invitation yet. Finish resetting your password, then sign out, sign in normally, and open this invitation again."
+        message="You signed in with a password reset link, so you can't accept an invitation yet. Finish resetting your password, sign in with it, and open this invitation again."
       />
     );
   }
   if (recoveryState === "unavailable") {
     return (
       <StatusState
-        title="Account check unavailable"
-        message="Try again in a moment. Your invitation is still saved in this browser."
+        title="We couldn't check your account"
+        message="Try again in a moment. Your invitation is still open in this browser."
       />
     );
   }
@@ -257,15 +258,11 @@ export default async function InvitationAcceptPage({
   return (
     <InvitationFrame>
       <div className="auth-heading">
-        <p className="ledger-kicker">Membership invitation</p>
+        <p className="ledger-kicker">Invitation</p>
         <h1 id="invitation-title">
           {preview.memberFirstName}, you’re invited to {preview.groupName}
         </h1>
-        <p>
-          Check the details below before you accept. The invitation joins the
-          account you are signed in with, even if its e-mail address is
-          different.
-        </p>
+        <p>Check the details below before you accept.</p>
       </div>
 
       <dl className="invitation-summary">
@@ -290,13 +287,13 @@ export default async function InvitationAcceptPage({
           <dd>{accountEmail ?? "Not signed in"}</dd>
         </div>
         <div>
-          <dt>E-mail match</dt>
+          <dt>Your e-mail</dt>
           <dd>
             {emailMatches === null
               ? "Sign in to continue"
               : emailMatches
                 ? "Matches the invitation"
-                : "Different from the invitation. It will still join this account"}
+                : "Different from the invitation. You'll still join with this account"}
           </dd>
         </div>
       </dl>

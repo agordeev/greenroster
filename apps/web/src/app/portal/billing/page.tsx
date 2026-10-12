@@ -45,7 +45,7 @@ export default async function BillingPage() {
         >
           <p className="ledger-kicker">Billing</p>
           <h1 id="billing-denied-title">You cannot manage billing</h1>
-          <p>Your administrator can manage the plan and member access.</p>
+          <p>Only administrators can manage the plan and member access.</p>
           <Link className="secondary-link" href="/portal">
             Return to portal home
           </Link>
@@ -66,6 +66,7 @@ export default async function BillingPage() {
     return <BillingError />;
   }
   const snapshot = billing.snapshot;
+  const timeZone = groupResult.data.time_zone;
   return (
     <PortalShell
       email={userResult.data.user.email ?? ""}
@@ -90,8 +91,8 @@ export default async function BillingPage() {
             <strong>{formatStatus(snapshot.subscriptionStatus)}</strong>
             <small>
               {snapshot.paymentActionRequired
-                ? "You need to update payment."
-                : "You have no payment action."}
+                ? "Update your payment method."
+                : "Nothing to pay right now."}
             </small>
           </div>
           <div className="portal-card">
@@ -103,19 +104,15 @@ export default async function BillingPage() {
           </div>
           <div className="portal-card">
             <span>Trial ends</span>
-            <strong>{formatInstant(snapshot.trialEndsAt)}</strong>
+            <strong>{formatDay(snapshot.trialEndsAt, timeZone)}</strong>
             <small>
-              {snapshot.customerReference
-                ? `Customer ${snapshot.customerReference}`
-                : "You have not connected Stripe yet."}
+              {snapshot.customerReference ? null : "Payment isn't set up yet."}
             </small>
           </div>
         </div>
 
         {snapshot.paymentActionRequired ? (
-          <p role="alert">
-            You need to update your payment method before members keep access.
-          </p>
+          <p role="alert">Update your payment method so members keep access.</p>
         ) : null}
         {snapshot.failedWebhookCount > 0 ? (
           <p role="alert">
@@ -127,9 +124,9 @@ export default async function BillingPage() {
 
         <h2>Member access</h2>
         {billing.members.length === 0 ? (
-          <p>You have no active members yet.</p>
+          <p>No active members yet.</p>
         ) : (
-          <div className="portal-table-wrap">
+          <div className="portal-table-wrap billing-access-table">
             <table>
               <thead>
                 <tr>
@@ -146,9 +143,11 @@ export default async function BillingPage() {
                 {billing.members.map((member) => (
                   <tr key={member.membershipId}>
                     <th scope="row">{member.name}</th>
-                    <td>{formatStatus(member.status)}</td>
-                    <td>{formatInstant(member.expiresAt)}</td>
-                    <td>{member.source}</td>
+                    <td data-label="Access">{formatStatus(member.status)}</td>
+                    <td data-label="Ends">
+                      {formatInstant(member.expiresAt, timeZone)}
+                    </td>
+                    <td data-label="Source">{formatStatus(member.source)}</td>
                     <td>
                       <BillingEntitlementForm
                         membershipId={member.membershipId}
@@ -162,10 +161,7 @@ export default async function BillingPage() {
         )}
 
         <h2>Invoices</h2>
-        <p>
-          After Stripe sends your payment update, you can open receipts from
-          this page.
-        </p>
+        <p>Receipts appear here after your payment goes through.</p>
       </section>
     </PortalShell>
   );
@@ -177,20 +173,39 @@ function formatStatus(value: string) {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
-function formatInstant(value: string | null) {
+// Billing dates read in the group's own time zone, like round times do.
+function formatInstant(value: string | null, timeZone: string) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
-  }).format(new Date(value));
+  return formatIn(value, timeZone, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatDay(value: string | null, timeZone: string) {
+  if (!value) return "—";
+  return formatIn(value, timeZone, { dateStyle: "medium" });
+}
+
+function formatIn(
+  value: string,
+  timeZone: string,
+  options: Intl.DateTimeFormatOptions,
+) {
+  try {
+    return new Intl.DateTimeFormat("en-US", { ...options, timeZone }).format(
+      new Date(value),
+    );
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      ...options,
+      timeZone: "UTC",
+    }).format(new Date(value));
+  }
 }
 
 function BillingError() {
   return (
     <section className="portal-ledger" aria-labelledby="billing-error-title">
       <p className="ledger-kicker">Billing</p>
-      <h1 id="billing-error-title">You cannot load billing right now</h1>
+      <h1 id="billing-error-title">We couldn&apos;t load billing</h1>
       <p>Try again in a moment.</p>
       <Link className="secondary-link" href="/portal/billing">
         Try again

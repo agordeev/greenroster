@@ -66,9 +66,9 @@ function fieldErrors(
 ): MutationFieldErrors | undefined {
   switch (message) {
     case "guest_first_name_invalid":
-      return { firstName: ["Choose a first name for your guest."] };
+      return { firstName: ["Enter your guest's first name."] };
     case "guest_last_name_invalid":
-      return { lastName: ["Choose a last name for your guest."] };
+      return { lastName: ["Enter your guest's last name."] };
     case "guest_quota_required":
       return { quotaSnapshot: ["Enter a quota for your guest in this round."] };
     case "guest_version_changed":

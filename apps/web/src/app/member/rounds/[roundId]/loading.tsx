@@ -7,8 +7,8 @@ export default function Loading() {
     >
       <section className="auth-ledger" aria-labelledby="member-round-loading">
         <p className="ledger-kicker">Your round</p>
-        <h1 id="member-round-loading">Your round is loading</h1>
-        <p>We’re loading your round details.</p>
+        <h1 id="member-round-loading">Loading your round</h1>
+        <p>One moment.</p>
       </section>
     </main>
   );

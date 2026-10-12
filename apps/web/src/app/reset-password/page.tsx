@@ -11,15 +11,14 @@ export default function ResetPasswordPage() {
           </span>
           <div>
             <p className="eyebrow">GreenRoster</p>
-            <p className="brand-note">Protected account change</p>
+            <p className="brand-note">Password reset</p>
           </div>
         </div>
         <div className="auth-heading">
           <p className="ledger-kicker">One-time link</p>
           <h1 id="reset-title">Choose a new password</h1>
           <p>
-            Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
-            This link can only be used to change your password.
+            Use a password of at least {MINIMUM_PASSWORD_LENGTH} characters.
           </p>
         </div>
         <ResetForm />

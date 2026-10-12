@@ -28,9 +28,8 @@ export function LiveRoundScoreboard({
         }
       />
       <p>
-        Scores below are the latest saved scores. Missing means no score yet,
-        which is not the same as zero. Refresh the page if a score looks out of
-        date.
+        Missing means no score yet, not zero. Refresh the page if a score looks
+        out of date.
       </p>
       {participants.length === 0 ? (
         <EmptyState>No players are available to score yet.</EmptyState>
@@ -81,7 +80,7 @@ function ScoreRow({
       ? "Locked"
       : participant.score.version === 0
         ? "Missing"
-        : "Confirmed";
+        : "Saved";
 
   return (
     <tr data-score-state={scoreState.toLowerCase()}>
@@ -127,7 +126,7 @@ function formatSignedScore(value: string | null): string {
 function formatTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "recently";
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);

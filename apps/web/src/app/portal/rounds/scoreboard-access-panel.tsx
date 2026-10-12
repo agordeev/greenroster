@@ -26,7 +26,7 @@ export function ScoreboardAccessPanel({
     setMessageTone("");
     const expiry = new Date(expiresAt);
     if (!expiresAt || Number.isNaN(expiry.getTime()) || expiry <= new Date()) {
-      setMessage("Choose a future time before you share this round.");
+      setMessage("Choose a time in the future.");
       setMessageTone("error");
       return;
     }
@@ -40,7 +40,7 @@ export function ScoreboardAccessPanel({
           operationId: createOperationId.current,
         });
       } catch {
-        setMessage("You can't share this round right now. Try again.");
+        setMessage("We couldn't create the link. Try again.");
         setMessageTone("error");
         return;
       }
@@ -53,9 +53,7 @@ export function ScoreboardAccessPanel({
       }
       createOperationId.current = null;
       setGrant(result.data);
-      setMessage(
-        "You can share this live-scores link until the time you chose.",
-      );
+      setMessage("Your live-scores link is ready.");
       setMessageTone("success");
     });
   }
@@ -79,7 +77,7 @@ export function ScoreboardAccessPanel({
           operationId: revokeOperationId.current,
         });
       } catch {
-        setMessage("You can't stop sharing this link right now. Try again.");
+        setMessage("We couldn't stop sharing this link. Try again.");
         setMessageTone("error");
         return;
       }
@@ -92,7 +90,7 @@ export function ScoreboardAccessPanel({
       }
       revokeOperationId.current = null;
       setGrant(null);
-      setMessage("You stopped sharing this live-scores link.");
+      setMessage("This live-scores link no longer works.");
       setMessageTone("success");
     });
   }
@@ -101,10 +99,10 @@ export function ScoreboardAccessPanel({
     if (!grant?.url) return;
     try {
       await navigator.clipboard.writeText(grant.url);
-      setMessage("You copied the live-scores link.");
+      setMessage("Link copied.");
       setMessageTone("success");
     } catch {
-      setMessage("You can copy the link from the field above.");
+      setMessage("We couldn't copy the link. Copy it from the field above.");
       setMessageTone("error");
     }
   }
@@ -117,7 +115,8 @@ export function ScoreboardAccessPanel({
         titleId="scoreboard-access-title"
       />
       <p>
-        You can share a read-only link for a clubhouse screen or guest browser.
+        Share a view-only link to show live scores on a clubhouse screen or with
+        guests.
       </p>
       {grant?.url ? (
         <div className="form-stack">
@@ -135,7 +134,7 @@ export function ScoreboardAccessPanel({
             Copy link
           </button>
           <label className="field-group" htmlFor="scoreboard-revoke-reason">
-            <span>Why are you stopping sharing?</span>
+            <span>Reason for stopping</span>
             <input
               id="scoreboard-revoke-reason"
               value={reason}
@@ -156,7 +155,7 @@ export function ScoreboardAccessPanel({
       ) : (
         <div className="form-stack" aria-busy={pending}>
           <label className="field-group" htmlFor="scoreboard-access-expires-at">
-            <span>Stop sharing at</span>
+            <span>Link works until</span>
             <input
               id="scoreboard-access-expires-at"
               type="datetime-local"

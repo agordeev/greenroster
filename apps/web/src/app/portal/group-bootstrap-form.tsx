@@ -63,7 +63,7 @@ export function GroupBootstrapForm({
           operationId: operationId.current,
         });
       } catch {
-        setMessage("The service is temporarily unavailable. Try again.");
+        setMessage("We couldn't create your group. Try again.");
         return;
       }
 
@@ -139,9 +139,6 @@ export function GroupBootstrapForm({
           }
           required
         />
-        <p id="group-time-zone-help" className="field-help">
-          Round times and reminders use this time zone.
-        </p>
         {errors.groupTimeZone ? (
           <p id="group-time-zone-error" className="field-error">
             {errors.groupTimeZone}

@@ -41,9 +41,13 @@ function fieldErrors(message: string | undefined): MutationFieldErrors | null {
       return { expectedRoundVersion: ["Refresh the draft before saving."] };
     case "score_field_capabilities_required":
     case "score_field_capability_invalid":
-      return { enableNetScore: ["Choose the fields you want to enter."] };
+      return { enableNetScore: ["Choose the scores you want to enter."] };
     case "round_not_found":
-      return { roundId: ["Choose a draft in this group."] };
+      return {
+        roundId: [
+          "We couldn't find that draft. Refresh the page and try again.",
+        ],
+      };
     default:
       return null;
   }

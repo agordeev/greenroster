@@ -135,7 +135,9 @@ export function MemberQuotaEditor({
       }
       setConfirmed(false);
       setTerminal({
-        message: recovery.message ?? "Draft restored. Confirm before retrying.",
+        message:
+          recovery.message ??
+          "Your unsaved changes are back. Confirm again before you save.",
         status: "success",
         stale: false,
       });
@@ -178,7 +180,7 @@ export function MemberQuotaEditor({
     } catch (error) {
       return {
         projection: null,
-        error: error instanceof Error ? error.message : "Review the values.",
+        error: error instanceof Error ? error.message : "Check the values.",
       };
     }
   }, [context, draft, settingsReady]);
@@ -270,7 +272,7 @@ export function MemberQuotaEditor({
     }
     if (preview.error || !preview.projection) {
       setTerminal({
-        message: preview.error ?? "Review the values before saving.",
+        message: preview.error ?? "Check the values before saving.",
         status: "error",
         stale: false,
       });
@@ -295,7 +297,7 @@ export function MemberQuotaEditor({
     operation.current = nextOperation;
     if (!nextOperation.operationId) {
       setTerminal({
-        message: "Could not save. Try again.",
+        message: "We couldn't save your changes. Try again.",
         status: "error",
         stale: false,
       });
@@ -341,7 +343,7 @@ export function MemberQuotaEditor({
           setConfirmed(false);
           setTerminal({
             message:
-              "Quota settings or this member's details changed. Reload to see the latest values, then confirm again before saving.",
+              "The quota rules or this member's details have changed. Reload to see the latest, then confirm again before saving.",
             status: "error",
             stale: true,
           });
@@ -374,11 +376,11 @@ export function MemberQuotaEditor({
     >
       <div className="member-quota-editor-heading">
         <div>
-          <p className="ledger-kicker">Administrator-only quota setup</p>
+          <p className="ledger-kicker">Quota setup</p>
           <h2 id="member-quota-title">Quota and seed history</h2>
         </div>
         <span className="member-quota-editor-badge">
-          {settingsReady ? "Configured" : "Setup required"}
+          {settingsReady ? "Ready" : "Needs setup"}
         </span>
       </div>
 
@@ -400,12 +402,12 @@ export function MemberQuotaEditor({
                   dateStyle: "medium",
                   timeStyle: "short",
                   timeZone: "UTC",
-                }).format(new Date(context.projectionEffectiveAt))} UTC`
+                }).format(new Date(context.projectionEffectiveAt))}`
               : ""}
           </dd>
         </div>
         <div>
-          <dt>Initial quota</dt>
+          <dt>Starting quota</dt>
           <dd>
             {context.initialQuota ?? "Not set"}
             {context.usesInitialQuota ? " · used" : " · not used"}
@@ -418,19 +420,12 @@ export function MemberQuotaEditor({
           <dt>Settings</dt>
           <dd>{formatSettings(context)}</dd>
         </div>
-        <div>
-          <dt>Update numbers</dt>
-          <dd>
-            quota {context.projectionVersion} · settings{" "}
-            {context.settingsVersion}
-          </dd>
-        </div>
       </dl>
 
       {!settingsReady ? (
         <p className="member-quota-setup-note">
-          Set up the group&apos;s quota method before you enter member quota
-          inputs. <Link href="/portal/quota">Open group quota settings</Link>
+          Choose your group&apos;s quota rules before you set a member&apos;s
+          starting quota. <Link href="/portal/quota">Open quota rules</Link>
         </p>
       ) : null}
 
@@ -439,13 +434,12 @@ export function MemberQuotaEditor({
           <legend>Starting quota for this member</legend>
           <p className="member-quota-copy">
             Seed totals are starting point totals, entered oldest first, that
-            the group&apos;s quota method uses. They are not rounds, results, or
-            participation.
+            the group&apos;s quota method uses.
           </p>
 
           <div className="member-quota-form-grid">
             <label className="field-group" htmlFor="member-initial-quota">
-              <span>Initial quota (optional)</span>
+              <span>Starting quota (optional)</span>
               <input
                 id="member-initial-quota"
                 inputMode="decimal"
@@ -538,9 +532,6 @@ export function MemberQuotaEditor({
               <p className="ledger-kicker" id="member-quota-preview-title">
                 Preview
               </p>
-              <p className="field-help">
-                The quota is recalculated when you save.
-              </p>
             </div>
             <output aria-live="polite">
               {preview.projection?.quota ?? "Not ready"}
@@ -626,15 +617,15 @@ function formatProjectionSource(source: Readonly<Record<string, unknown>>) {
   const label = (() => {
     switch (kind) {
       case "initial_quota":
-        return "Initial quota";
+        return "Starting quota";
       case "seed_history":
         return "Seed history";
       case "method_c_chain":
-        return "Method C adjustments";
+        return "Previous plus/minus adjustments";
       case "official_history":
         return "From official results";
       case "manual_override":
-        return "Manual override";
+        return "Set by an administrator";
       default:
         return "Not ready";
     }
@@ -653,9 +644,9 @@ function formatProjectionSource(source: Readonly<Record<string, unknown>>) {
 function formatInitialQuotaProvenance(provenance: string) {
   switch (provenance) {
     case "member_bootstrap":
-      return "member bootstrap";
+      return "entered for this member";
     case "administrator_override":
-      return "administrator override";
+      return "set by an administrator";
     default:
       return provenance.replaceAll("_", " ");
   }
@@ -667,7 +658,7 @@ function formatSettings(context: MemberQuotaBootstrapContext) {
     context.settingsPrecision === null ||
     context.settingsRoundingRule === null
   ) {
-    return "Not configured";
+    return "Not set";
   }
   const method =
     context.settingsMethod === "moving_average"
@@ -679,5 +670,5 @@ function formatSettings(context: MemberQuotaBootstrapContext) {
     context.settingsMethod === "previous_plus_minus"
       ? ` · ${context.adjustmentBands.length} adjustment bands`
       : "";
-  return `${method} · ${context.settingsPrecision} decimals · half away from zero${bands}`;
+  return `${method} · ${context.settingsPrecision} decimals · halves round away from zero${bands}`;
 }

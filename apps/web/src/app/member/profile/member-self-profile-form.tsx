@@ -94,7 +94,7 @@ export function MemberSelfProfileForm({
       }));
       setHandicapConfirmed(false);
       setHandicapReason("");
-      setMessage("Your handicap is saved for this group.");
+      setMessage("Your handicap is saved.");
       setMessageTone("success");
       router.refresh();
     });
@@ -110,9 +110,6 @@ export function MemberSelfProfileForm({
       <section className="page-section" aria-labelledby="profile-details-title">
         <p className="ledger-kicker">Your details</p>
         <h2 id="profile-details-title">Keep your details up to date</h2>
-        <p className="member-read-note">
-          Choose which contact details your group can see.
-        </p>
         <div className="form-stack" aria-busy={pending}>
           <div className="form-row">
             <TextField
@@ -148,7 +145,7 @@ export function MemberSelfProfileForm({
               disabled={pending}
             />
             <label className="field-group" htmlFor="member-tee-location">
-              <span>Tee location</span>
+              <span>Preferred tee</span>
               <select
                 id="member-tee-location"
                 value={draft.teeLocation ?? ""}
@@ -272,7 +269,7 @@ export function MemberSelfProfileForm({
             />
             <CheckField
               id="member-address-listed"
-              label="List your postal address"
+              label="Show your postal address to your group"
               checked={draft.addressListed}
               onChange={(value) => updateDraft("addressListed", value)}
               disabled={pending}
@@ -292,9 +289,6 @@ export function MemberSelfProfileForm({
       <section className="page-section" aria-labelledby="handicap-title">
         <p className="ledger-kicker">Your handicap</p>
         <h2 id="handicap-title">Update your handicap</h2>
-        <p className="member-read-note">
-          Enter your handicap and the date it applies from.
-        </p>
         <div className="form-stack" aria-busy={pending}>
           <div className="form-row">
             <TextField
@@ -335,7 +329,7 @@ export function MemberSelfProfileForm({
           </div>
           <CheckField
             id="member-handicap-confirmed"
-            label="You confirm this handicap and date"
+            label="I confirm this handicap and date are correct"
             checked={handicapConfirmed}
             onChange={setHandicapConfirmed}
             disabled={pending}

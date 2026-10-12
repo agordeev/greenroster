@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { EmptyState } from "@/components/ui";
+import { ActionRow, EmptyState } from "@/components/ui";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
-import { executeReadMemberStandings } from "@/lib/rounds/member-results-data";
+import {
+  executeReadMemberStandings,
+  isQuotaRulesMissing,
+} from "@/lib/rounds/member-results-data";
 import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -64,9 +67,7 @@ export default async function PortalStandingsPage() {
           aria-labelledby="standings-denied-title"
         >
           <p className="ledger-kicker">Order of Merit</p>
-          <h1 id="standings-denied-title">
-            Portal standings are not available
-          </h1>
+          <h1 id="standings-denied-title">You can&apos;t open this page</h1>
           <p>
             You can see standings from your member home. Only coordinators and
             administrators can open this page.
@@ -85,6 +86,9 @@ export default async function PortalStandingsPage() {
     // Only coordinator and administrator contexts reach this service read.
     standings = await executeReadMemberStandings(session.userId);
   } catch (error) {
+    if (isQuotaRulesMissing(error)) {
+      return renderQuotaRulesNeeded(portalContext);
+    }
     return renderStandingsError(error, portalContext);
   }
 
@@ -108,9 +112,8 @@ export default async function PortalStandingsPage() {
         <p className="ledger-kicker">Order of Merit</p>
         <h1 id="portal-standings-title">Standings</h1>
         <p>
-          Merit totals, ranks, rounds played, and quota projections for{" "}
-          {context?.group_name ?? portalContext.groupName}. The reset date
-          changes only the current standings. Quota history is kept separately.
+          Merit totals, ranks, rounds played, and current quotas for{" "}
+          {context?.group_name ?? portalContext.groupName}.
         </p>
         <p>
           <Link
@@ -143,12 +146,6 @@ export default async function PortalStandingsPage() {
             <span>Reset date</span>
             <strong>
               {formatResetDate(context?.standings_reset_date ?? null)}
-            </strong>
-          </div>
-          <div>
-            <span>Time zone</span>
-            <strong>
-              {context?.group_time_zone ?? portalContext.timeZone}
             </strong>
           </div>
         </section>
@@ -206,8 +203,7 @@ export default async function PortalStandingsPage() {
             </div>
           )}
           <p className="member-read-note">
-            Ranks and totals cover the current standings period. Guests and
-            starting quota figures never count as members or rounds played.
+            Ranks and totals cover rounds since the reset date.
           </p>
         </section>
       </section>
@@ -257,6 +253,39 @@ async function resolvePortalContext(): Promise<PortalContext> {
   };
 }
 
+function renderQuotaRulesNeeded(context: PortalContext) {
+  const administrator = context.role === "administrator";
+  return (
+    <PortalShell
+      email={context.email}
+      groupName={context.groupName}
+      role={context.role}
+      timeZone={context.timeZone}
+      currentSection="standings"
+    >
+      <section
+        className="portal-ledger"
+        aria-labelledby="standings-setup-title"
+      >
+        <p className="ledger-kicker">Order of Merit</p>
+        <h1 id="standings-setup-title">Standings</h1>
+        <p>
+          {administrator
+            ? "Choose your quota rules to start your standings. Members appear here after that."
+            : "Your standings start once an administrator chooses your group's quota rules."}
+        </p>
+        {administrator ? (
+          <ActionRow>
+            <Link className="primary-link" href="/portal/quota">
+              Choose quota rules
+            </Link>
+          </ActionRow>
+        ) : null}
+      </section>
+    </PortalShell>
+  );
+}
+
 function renderStandingsError(error: unknown, context?: PortalContext) {
   if (
     error instanceof MutationError &&
@@ -283,7 +312,7 @@ function renderStandingsError(error: unknown, context?: PortalContext) {
         <p className="ledger-kicker">Order of Merit</p>
         <h1 id="standings-error-title">
           {forbidden
-            ? "Portal standings are not available"
+            ? "You can&apos;t open this page"
             : "Standings could not be loaded"}
         </h1>
         <p>
@@ -306,9 +335,9 @@ function displayName(firstName: string | null, lastName: string | null) {
 }
 
 function formatResetDate(value: string | null) {
-  if (!value) return "All eligible history";
+  if (!value) return "All rounds";
   try {
-    return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
+    return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
       new Date(`${value}T00:00:00Z`),
     );
   } catch {

@@ -34,7 +34,7 @@ export function InvitationManagement({
         </h2>
         <p>
           {deliveryFilter === "action-required"
-            ? "No pending invitations have email that bounced or was blocked."
+            ? "No pending invitations have delivery problems."
             : "New invitations appear here until they are accepted."}
         </p>
         {deliveryFilter === "action-required" ? (
@@ -188,7 +188,7 @@ function InvitationCard({
       </div>
       <dl className="invitation-summary">
         <div>
-          <dt>Invited address</dt>
+          <dt>Invited e-mail</dt>
           <dd>{invitation.invitedEmail}</dd>
         </div>
         <div>
@@ -222,7 +222,7 @@ function InvitationCard({
 
         {canCorrectAddress ? (
           <form onSubmit={(event) => submit(event, "correct")} noValidate>
-            <h3>Fix address</h3>
+            <h3>Fix the e-mail address</h3>
             <label className="field-group" htmlFor={`correct-email-${id}`}>
               <span>New email address</span>
               <input
@@ -295,7 +295,7 @@ function ConfirmationField({ id }: Readonly<{ id: string }>) {
   return (
     <label className="invitation-confirmation" htmlFor={id}>
       <input id={id} name="confirmed" type="checkbox" required />
-      <span>I understand this changes this invitation.</span>
+      <span>I want to make this change.</span>
     </label>
   );
 }
@@ -305,7 +305,7 @@ function formatStatus(status: ManageableInvitation["status"]) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));

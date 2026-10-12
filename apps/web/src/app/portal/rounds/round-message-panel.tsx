@@ -18,9 +18,7 @@ export function RoundMessagePanel({
   function submit() {
     const normalized = body.trim();
     if (!normalized || normalized.length > 300 || pending) {
-      setFeedback(
-        "Write a message before you post. It can be up to 300 characters.",
-      );
+      setFeedback("Write a message before you post.");
       return;
     }
     operationId.current ??= crypto.randomUUID();
@@ -52,7 +50,7 @@ export function RoundMessagePanel({
       ]);
       setBody("");
       operationId.current = null;
-      setFeedback("You posted your message.");
+      setFeedback("Message posted.");
     });
   }
   return (

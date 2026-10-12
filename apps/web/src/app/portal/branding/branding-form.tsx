@@ -90,7 +90,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
     }
     const normalizedClickUrl = clickUrl.trim() ? secureUrl(clickUrl) : null;
     if (clickUrl.trim() && !normalizedClickUrl) {
-      setFeedback("Enter an HTTPS link for people who select this banner.");
+      setFeedback("Enter a link that starts with https://.");
       return;
     }
     if (slot === "scoreboard_footer" && displayOrder > 2) {
@@ -142,7 +142,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
       setAltText("");
       setDecorative(false);
       setClickUrl("");
-      setFeedback("You removed this banner.");
+      setFeedback("Banner removed.");
     });
   }
 
@@ -162,8 +162,8 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             onChange={(event) => selectSlot(event.target.value as typeof slot)}
             disabled={pending}
           >
-            <option value="scoreboard_header">Scoreboard header</option>
-            <option value="scoreboard_footer">Scoreboard footer</option>
+            <option value="scoreboard_header">Top of the scoreboard</option>
+            <option value="scoreboard_footer">Bottom of the scoreboard</option>
           </select>
         </label>
         {slot === "scoreboard_footer" ? (
@@ -206,7 +206,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           />
         </label>
         <label className="field-group" htmlFor="branding-click-url">
-          <span>Link when people select this banner (optional)</span>
+          <span>Link to open when someone clicks the banner (optional)</span>
           <input
             id="branding-click-url"
             type="url"
@@ -223,7 +223,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             onChange={(event) => setDecorative(event.target.checked)}
             disabled={pending}
           />{" "}
-          <span>This is a decorative image, so it needs no description.</span>
+          <span>This image is decorative and needs no description.</span>
         </label>
         <button
           className="primary-button"
@@ -231,12 +231,11 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           onClick={save}
           disabled={pending || !assetFile || (!decorative && !altText.trim())}
         >
-          {pending ? "Saving…" : "Save branding"}
+          {pending ? "Saving…" : "Save banner"}
         </button>
         {currentAsset ? (
           <div className="form-message" role="status">
-            Current banner: {currentAsset.altText || "Decorative image"}. Upload
-            a new file to replace it, or remove it below.
+            Current banner: {currentAsset.altText || "Decorative image"}.
           </div>
         ) : null}
         {currentAsset ? (

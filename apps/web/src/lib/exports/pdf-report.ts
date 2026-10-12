@@ -33,10 +33,9 @@ export function createReportPdf(
   const header = [
     table.title,
     `Group: ${metadata.groupName}`,
-    `Generated: ${metadata.generatedAt}`,
-    `Group time zone: ${metadata.timeZone}`,
-    `Reporting window: ${metadata.reportingWindow}`,
-    `Private data: ${metadata.containsPrivateData ? "Yes" : "No"}`,
+    `Created: ${metadata.generatedAt}`,
+    `Covers: ${metadata.reportingWindow}`,
+    `Contains private data: ${metadata.containsPrivateData ? "Yes" : "No"}`,
     "",
   ];
   const rows = [
@@ -86,7 +85,7 @@ export function createStandingsPdf(
   metadata: ReportMetadata,
   rows: readonly MemberStanding[],
 ): Uint8Array {
-  const resetDate = rows[0]?.standings_reset_date ?? "not configured";
+  const resetDate = rows[0]?.standings_reset_date ?? "not set";
   return createReportPdf(
     {
       ...metadata,
@@ -95,7 +94,7 @@ export function createStandingsPdf(
     },
     {
       title: "GreenRoster Order of Merit standings",
-      columns: ["Rank", "Member", "Merit", "Rounds", "Projected quota"],
+      columns: ["Rank", "Member", "Merit", "Rounds", "Current quota"],
       rows: rows.map((row) => [
         row.standing_rank ?? "-",
         personName(row.first_name, row.last_name),
@@ -136,7 +135,7 @@ export function createOfficialResultsPdf(
       title: `GreenRoster official results: ${roundTitle(round)}`,
       columns: [
         "Player",
-        "Kind",
+        "Type",
         "RSVP",
         "Rank",
         "Points",

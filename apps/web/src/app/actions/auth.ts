@@ -52,7 +52,7 @@ export async function signInAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Review the highlighted fields.",
+      message: "Check the highlighted fields.",
       fieldErrors: authFieldErrors(parsed.error),
     };
   }
@@ -107,7 +107,7 @@ export async function registerOrganizerAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Review the highlighted fields.",
+      message: "Check the highlighted fields.",
       fieldErrors: authFieldErrors(parsed.error),
     };
   }
@@ -329,7 +329,7 @@ export async function updatePasswordAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Review the highlighted fields.",
+      message: "Check the highlighted fields.",
       fieldErrors: authFieldErrors(parsed.error),
     };
   }

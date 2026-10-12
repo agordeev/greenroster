@@ -103,7 +103,7 @@ export function validateMemberQuotaEditorDraft(
     return "Enter a starting quota before you select “Use this starting quota until enough history builds up.”";
   }
   if (draft.seedTotals.length > MAX_MEMBER_QUOTA_SEEDS) {
-    return `Enter no more than ${MAX_MEMBER_QUOTA_SEEDS} ordered seed totals.`;
+    return `Enter no more than ${MAX_MEMBER_QUOTA_SEEDS} seed totals.`;
   }
   const trimmedSeeds = draft.seedTotals.map((value) => value.trim());
   const hasGap = trimmedSeeds.some(

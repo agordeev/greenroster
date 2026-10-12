@@ -37,10 +37,7 @@ export default async function PrivacyRequestsPage() {
         <div className="auth-heading">
           <p className="ledger-kicker">Privacy</p>
           <h1 id="privacy-requests-title">Privacy requests</h1>
-          <p>
-            Choose a request below. We aim to reply within 30 days. You cannot
-            track requests in the app.
-          </p>
+          <p>Choose a request below. We aim to reply within 30 days.</p>
         </div>
         <div className="account-email-actions">
           <a className="primary-button" href={dataAccessHref}>
@@ -50,11 +47,6 @@ export default async function PrivacyRequestsPage() {
             Request account deletion
           </a>
         </div>
-        <p className="status-note">
-          Requests must come from a normal sign-in, not a password reset link.
-          If you signed in more than 15 minutes ago, sign out and sign in again
-          before you send one.
-        </p>
         <div className="account-email-actions">
           <Link className="secondary-link" href="/account">
             Return to account
@@ -72,12 +64,9 @@ function RecoverySessionRestricted() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Sign in normally first</p>
+        <p className="ledger-kicker">One more step</p>
         <h1>Sign in again to make a privacy request</h1>
-        <p>
-          You signed in from a password reset link, so you cannot send a privacy
-          request. Sign out, then sign in normally before you send one.
-        </p>
+        <p>Sign out, then sign in with your password.</p>
         <Link
           className="primary-button"
           href="/sign-in?next=%2Faccount%2Fprivacy"
@@ -105,12 +94,9 @@ function RecentAuthenticationRequired() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Recent sign-in required</p>
+        <p className="ledger-kicker">One more step</p>
         <h1>Sign in again to make a privacy request</h1>
-        <p>
-          You can send data access and account deletion requests for 15 minutes
-          after a normal sign-in. Sign out, then sign in again to send one.
-        </p>
+        <p>Sign out, then sign in again to send one.</p>
         <Link
           className="primary-button"
           href="/sign-in?next=%2Faccount%2Fprivacy"

@@ -63,9 +63,8 @@ export function LiveRoundScoreEntryPanel({
         }
       />
       <p>
-        Enter only the totals turned on for this round. Plus/minus and ranking
-        are worked out for you. Blank scores show Missing and are never counted
-        as zero.
+        Enter each player&apos;s totals. A blank score shows as Missing and
+        doesn&apos;t count as zero.
       </p>
       {participants.length === 0 ? (
         <EmptyState>No players are available to score yet.</EmptyState>
@@ -117,7 +116,7 @@ function ParticipantScoreEditor({
     ? "Locked"
     : score.version === 0
       ? "Missing"
-      : "Confirmed";
+      : "Saved";
   const formId = `live-score-entry-${participant.participantId}`;
   const typedPlusMinus = plusMinusPreviewFromDraft(participant, draft);
 
@@ -176,7 +175,7 @@ function ParticipantScoreEditor({
       operationId: mutationContext.current.operationId,
     });
     if (!parsed.success) {
-      setMessage("Review the score values and try again.");
+      setMessage("Check the scores and try again.");
       setMessageTone("error");
       return;
     }
@@ -186,7 +185,7 @@ function ParticipantScoreEditor({
       try {
         result = await setRoundParticipantScoreAction(parsed.data);
       } catch {
-        setMessage("The score wasn't saved. Try again.");
+        setMessage("We couldn't save the score. Try again.");
         setMessageTone("error");
         return;
       }
@@ -240,7 +239,7 @@ function ParticipantScoreEditor({
           <h3>{playerLabel}</h3>
           <p>
             {locked
-              ? "Not playing · score entry locked"
+              ? "Not playing · no scores"
               : participant.canEdit
                 ? "Playing · you can enter scores"
                 : "Playing · view only"}
@@ -253,9 +252,7 @@ function ParticipantScoreEditor({
         <aside className="form-message error" role="alert">
           <strong>Current scores</strong>
           <span>{formatServerValues(staleCurrentScore, fields)}</span>
-          <span>
-            Enter your score again to save it. Nothing was overwritten.
-          </span>
+          <span>Enter your score again to save it.</span>
         </aside>
       ) : null}
 
@@ -283,7 +280,7 @@ function ParticipantScoreEditor({
 
         {score.version > 0 && !readOnly ? (
           <label className="field-group" htmlFor={`${formId}-reason`}>
-            <span>Correction reason</span>
+            <span>Reason for the change</span>
             <textarea
               id={`${formId}-reason`}
               value={reason}
@@ -299,8 +296,7 @@ function ParticipantScoreEditor({
               aria-describedby={`${formId}-reason-help`}
             />
             <small id={`${formId}-reason-help`} className="field-help">
-              Required to change a score that’s already saved. Up to 500
-              characters.
+              Required to change a score that’s already saved.
             </small>
           </label>
         ) : null}
@@ -308,9 +304,7 @@ function ParticipantScoreEditor({
         <dl className="group-profile-facts">
           <div>
             <dt>Plus/minus as you type</dt>
-            <dd>
-              {formatServerValue(typedPlusMinus)} <small>Preview only</small>
-            </dd>
+            <dd>{formatServerValue(typedPlusMinus)} </dd>
           </div>
           <div>
             <dt>Plus/minus</dt>

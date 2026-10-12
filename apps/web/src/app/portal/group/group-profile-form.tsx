@@ -294,10 +294,6 @@ export function GroupProfileForm({
           </p>
         ) : null}
       </div>
-      <p className="field-help">
-        Course, golf professional, and administrator contact details are
-        optional. They are not set up for your group yet.
-      </p>
       <p
         className="form-message"
         aria-live="polite"
