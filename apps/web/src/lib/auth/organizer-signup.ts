@@ -1,12 +1,13 @@
 import { z } from "zod";
 
+import { MINIMUM_PASSWORD_LENGTH } from "./auth-validation";
 import { runVerifiedMutation } from "@/lib/mutations/run-verified-mutation";
 import type { MutationResult } from "@/lib/mutations/result";
 
 export const organizerRegistrationSchema = z
   .object({
     email: z.string().trim().toLowerCase().pipe(z.email()),
-    password: z.string().min(12),
+    password: z.string().min(MINIMUM_PASSWORD_LENGTH),
     confirmPassword: z.string().min(1),
     acceptedTerms: z.literal(true),
     acceptedPrivacy: z.literal(true),
@@ -27,8 +28,6 @@ const organizerBootstrapInputSchema = z
     lastName: z.string().trim().min(1).max(100),
     groupName: z.string().trim().min(1).max(200),
     groupTimeZone: z.string().trim().refine(isSupportedTimeZone),
-    acceptedTerms: z.literal(true),
-    acceptedPrivacy: z.literal(true),
     operationId: z.uuid(),
   })
   .strict();

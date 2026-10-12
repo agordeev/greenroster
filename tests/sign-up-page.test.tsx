@@ -37,9 +37,9 @@ describe("organizer signup page", () => {
 
     const rendered = pageText(page);
     expect(rendered).toContain(
-      "approved Terms of Use and Privacy Policy are not configured",
+      "The Terms of Use and Privacy Policy are not published yet",
     );
-    expect(rendered).toContain("The form will appear");
+    expect(rendered).toContain("The sign-up form will appear");
     expect(rendered).toContain('"/terms"');
     expect(rendered).toContain('"/privacy"');
   });

@@ -78,11 +78,13 @@ export default function NotificationPreferencesScreen() {
           return;
         }
         setRegistrationStatus("error");
-        setPushError(result.message ?? "Push registration failed.");
+        setPushError(
+          result.message ?? "We couldn't turn on push notifications.",
+        );
       } catch {
         setRegistrationStatus("error");
         setPushError(
-          "Push registration failed. Check your connection and try again.",
+          "We couldn't turn on push notifications. Check your connection and try again.",
         );
       } finally {
         registrationPendingRef.current = false;
@@ -115,14 +117,14 @@ export default function NotificationPreferencesScreen() {
 
   const permissionCopy =
     permissionStatus === "granted" && registrationStatus === "registered"
-      ? "Push notifications are enabled on this device."
+      ? "Push notifications are on for this device."
       : permissionStatus === "granted"
-        ? "The operating system allows push, but this device still needs to connect to GreenRoster."
+        ? "Your phone allows notifications, but this device isn't connected to GreenRoster yet."
         : permissionStatus === "denied"
-          ? "Push notifications are blocked by the operating system. Email notifications continue to work."
+          ? "Push notifications are turned off in your phone's settings. Email notifications still arrive."
           : permissionStatus === "unsupported"
-            ? "Push notifications are available in the native app only."
-            : "Choose whether GreenRoster may send push notifications for rounds and account activity.";
+            ? "Push notifications work in the GreenRoster app."
+            : "Turn on push notifications for rounds and your account.";
 
   const setPreference = async (
     preference: MobileNotificationPreference,
@@ -150,10 +152,10 @@ export default function NotificationPreferencesScreen() {
     <MemberDestinationScreen
       eyebrow="Notifications"
       title="Notification preferences"
-      introduction="Choose how GreenRoster keeps you informed. Mandatory account and round messages stay on; optional categories can be turned off."
+      introduction="Choose which messages you get by email or push. Required messages stay on. You can turn off the optional ones."
       emptyTitle={
         recoveryRequired
-          ? "Recovery session"
+          ? "Finish your password reset"
           : state.status === "loading"
             ? "Loading notification preferences"
             : state.status === "error"
@@ -162,16 +164,16 @@ export default function NotificationPreferencesScreen() {
       }
       emptyBody={
         recoveryRequired
-          ? "Notification preferences are unavailable until password recovery is complete."
-          : (state.error ?? "Your choices apply to this group membership.")
+          ? "You can change these after you reset your password."
+          : (state.error ?? "Your choices apply to your group.")
       }
       facts={[
         [
-          "Push permission",
+          "Push notifications",
           permissionStatus === "granted" ? "Enabled" : "Not enabled",
         ],
-        ["Optional categories", "Can be changed"],
-        ["Mandatory categories", "Always on"],
+        ["Optional messages", "Can be changed"],
+        ["Required messages", "Always on"],
       ]}
     >
       {state.error ? (
@@ -207,7 +209,7 @@ export default function NotificationPreferencesScreen() {
                   permissionStatus === "denied"
                     ? "Open notification settings"
                     : permissionStatus === "granted"
-                      ? "Retry push registration"
+                      ? "Try again"
                       : "Enable push notifications"
                 }
                 onPress={() =>
@@ -264,7 +266,7 @@ function PreferenceRow({
       <View style={styles.preferenceCopy}>
         <ThemedText type="smallBold">{label}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {preference.mandatory ? "Mandatory" : "Optional"}
+          {preference.mandatory ? "Required" : "Optional"}
         </ThemedText>
       </View>
       <View style={styles.channelList}>

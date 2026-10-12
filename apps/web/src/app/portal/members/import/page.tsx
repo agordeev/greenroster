@@ -57,22 +57,20 @@ export default async function MemberImportPage() {
       timeZone={group.data.time_zone}
     >
       <section className="portal-ledger" aria-labelledby="member-import-title">
-        <p className="ledger-kicker">Initial roster onboarding</p>
+        <p className="ledger-kicker">Add many members at once</p>
         <h1 id="member-import-title">Import members</h1>
         {context.role === "member" ? (
           <div className="member-import-denied">
-            <h2>Coordinator access required</h2>
-            <p>
-              Member imports are available only to coordinators and
-              administrators.
-            </p>
+            <h2>Coordinator access needed</h2>
+            <p>Only coordinators and administrators can import members.</p>
           </div>
         ) : (
           <>
             <p>
-              Start with the template, then upload one CSV. Existing normalized
-              member e-mails are reported as skipped. Nothing is created until
-              every other row is valid and you confirm the all-or-nothing apply.
+              Download the template, fill it in, and upload one CSV file. Rows
+              whose e-mail already belongs to a member or pending invitation are
+              skipped. Nothing is added until every other row is valid and you
+              confirm. Either every row is added or none are.
             </p>
             <MemberImportPanel />
           </>

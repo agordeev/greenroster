@@ -416,7 +416,7 @@ function DirectoryContent({
         <ActivityIndicator color={theme.accent} />
         <ThemedText type="subtitle">Loading directory</ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
-          GreenRoster is checking the current group roster.
+          Checking the members in your group now.
         </ThemedText>
       </ThemedView>
     );

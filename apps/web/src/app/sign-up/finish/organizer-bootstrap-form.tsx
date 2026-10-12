@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useRef, useState, useTransition } from "react";
+import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { bootstrapOrganizerAction } from "@/app/actions/auth";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
+import { resolveLocalTimeZone } from "@/lib/local-time-zone";
 
 type OrganizerBootstrapFormProps = Readonly<{
   identityKey: string;
   operationId: string;
-  legalAccepted: boolean;
-  termsVersion: string;
-  privacyVersion: string;
 }>;
 
 type FormErrors = Readonly<{
@@ -20,14 +18,12 @@ type FormErrors = Readonly<{
   lastName?: string;
   groupName?: string;
   groupTimeZone?: string;
+  legal?: string;
 }>;
 
 export function OrganizerBootstrapForm({
   identityKey,
   operationId: initialOperationId,
-  legalAccepted,
-  termsVersion,
-  privacyVersion,
 }: OrganizerBootstrapFormProps) {
   const router = useRouter();
   const storageKey = `greenroster:organizer-bootstrap:${identityKey}`;
@@ -36,11 +32,13 @@ export function OrganizerBootstrapForm({
   const [lastName, setLastName] = useState("");
   const [groupName, setGroupName] = useState("");
   const [groupTimeZone, setGroupTimeZone] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(legalAccepted);
-  const [acceptedPrivacy, setAcceptedPrivacy] = useState(legalAccepted);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setGroupTimeZone((current) => current || resolveLocalTimeZone());
+  }, []);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,14 +69,10 @@ export function OrganizerBootstrapForm({
           lastName,
           groupName,
           groupTimeZone,
-          acceptedTerms,
-          acceptedPrivacy,
           operationId: operationId.current,
         });
       } catch {
-        setMessage(
-          "The sign-up service could not be reached. Try again in a moment.",
-        );
+        setMessage("We could not reach GreenRoster. Try again in a moment.");
         return;
       }
 
@@ -102,7 +96,10 @@ export function OrganizerBootstrapForm({
           ? { groupName: "Enter a group name." }
           : {}),
         ...(result.error.fieldErrors?.groupTimeZone
-          ? { groupTimeZone: "Enter a supported IANA time zone." }
+          ? { groupTimeZone: "Enter a valid time zone." }
+          : {}),
+        ...(result.error.fieldErrors?.legal
+          ? { legal: result.error.fieldErrors.legal[0] }
           : {}),
       };
       setErrors(nextErrors);
@@ -166,42 +163,21 @@ export function OrganizerBootstrapForm({
           name="groupTimeZone"
           value={groupTimeZone}
           onChange={(event) => setGroupTimeZone(event.target.value)}
-          placeholder="America/New_York"
+          placeholder="Your local time zone"
           required
         />
         <p className="field-help">
-          Round times and reminders use this IANA time zone.
+          Round times and reminders use this time zone.
         </p>
         {errors.groupTimeZone ? (
           <p className="field-error">{errors.groupTimeZone}</p>
         ) : null}
       </div>
-      <label className="confirmation-row">
-        <input
-          name="acceptedTerms"
-          type="checkbox"
-          checked={acceptedTerms}
-          onChange={(event) => setAcceptedTerms(event.target.checked)}
-          required
-        />
-        <span>
-          You accept the current <Link href="/terms">Terms of Use</Link>{" "}
-          (version {termsVersion}).
-        </span>
-      </label>
-      <label className="confirmation-row">
-        <input
-          name="acceptedPrivacy"
-          type="checkbox"
-          checked={acceptedPrivacy}
-          onChange={(event) => setAcceptedPrivacy(event.target.checked)}
-          required
-        />
-        <span>
-          You accept the current <Link href="/privacy">Privacy Policy</Link>{" "}
-          (version {privacyVersion}).
-        </span>
-      </label>
+      <p className="field-help">
+        You already accept the current <Link href="/terms">Terms of Use</Link>{" "}
+        and <Link href="/privacy">Privacy Policy</Link>.
+      </p>
+      {errors.legal ? <p className="field-error">{errors.legal}</p> : null}
       <p className="form-message" aria-live="polite" data-status="error">
         {message}
       </p>

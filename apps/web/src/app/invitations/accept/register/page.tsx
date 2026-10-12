@@ -5,6 +5,7 @@ import {
   INVITATION_ACCEPTANCE_COOKIE,
   readInvitationAcceptanceCookieValue,
 } from "@/lib/invitations/invitation-acceptance-state";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
@@ -62,10 +63,10 @@ export default async function InvitationRegisterPage() {
       <RegisterFrame>
         <div className="auth-heading">
           <p className="ledger-kicker">Membership invitation</p>
-          <h1 id="register-title">Account service unavailable</h1>
+          <h1 id="register-title">Account check unavailable</h1>
           <p>
-            Try again in a moment. Your protected invitation handoff remains in
-            this browser.
+            Try again in a moment. Your invitation is still saved in this
+            browser.
           </p>
         </div>
       </RegisterFrame>
@@ -75,12 +76,12 @@ export default async function InvitationRegisterPage() {
     return (
       <RegisterFrame>
         <div className="auth-heading">
-          <p className="ledger-kicker">Verified account</p>
+          <p className="ledger-kicker">Already signed in</p>
           <h1 id="register-title">Continue with your signed-in account</h1>
           <p>
-            This browser already has a session. Review the invitation before
-            accepting it; creating another account here would not attach to this
-            session.
+            You are already signed in on this browser. Review the invitation and
+            accept it with this account. Creating a new account here will not
+            connect to this sign-in.
           </p>
         </div>
         <Link className="primary-link" href="/invitations/accept">
@@ -96,9 +97,8 @@ export default async function InvitationRegisterPage() {
         <p className="ledger-kicker">Membership invitation</p>
         <h1 id="register-title">Create your GreenRoster account</h1>
         <p>
-          Use an e-mail address you control and a passphrase of at least 12
-          characters. We keep this confirmation neutral so account discovery is
-          not exposed.
+          Use an e-mail address you can open and a passphrase of at least{" "}
+          {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>
       <InvitationRegisterForm />

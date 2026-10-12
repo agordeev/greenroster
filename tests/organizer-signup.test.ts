@@ -36,6 +36,23 @@ describe("organizer signup contract", () => {
     ).toBe(false);
   });
 
+  it("accepts an 8-character password and rejects shorter passwords", () => {
+    expect(
+      organizerRegistrationSchema.safeParse({
+        ...input,
+        password: "eight!!!",
+        confirmPassword: "eight!!!",
+      }).success,
+    ).toBe(true);
+    expect(
+      organizerRegistrationSchema.safeParse({
+        ...input,
+        password: "seven!!",
+        confirmPassword: "seven!!",
+      }).success,
+    ).toBe(false);
+  });
+
   it("validates names and group time zone before the server mutation", () => {
     expect(
       organizerBootstrapInputSchema.safeParse({
@@ -43,8 +60,6 @@ describe("organizer signup contract", () => {
         lastName: " Organizer ",
         groupName: " Green Hills ",
         groupTimeZone: " America/New_York ",
-        acceptedTerms: true,
-        acceptedPrivacy: true,
         operationId: "30000000-0000-4000-8000-000000000001",
       }),
     ).toMatchObject({ success: true });
@@ -54,8 +69,6 @@ describe("organizer signup contract", () => {
         lastName: "Organizer",
         groupName: "Green Hills",
         groupTimeZone: "Mars/Olympus_Mons",
-        acceptedTerms: true,
-        acceptedPrivacy: true,
         operationId: "30000000-0000-4000-8000-000000000001",
       }).success,
     ).toBe(false);
@@ -94,8 +107,6 @@ describe("organizer signup contract", () => {
         lastName: " Organizer ",
         groupName: " Green Hills ",
         groupTimeZone: " America/New_York ",
-        acceptedTerms: true,
-        acceptedPrivacy: true,
         operationId: "30000000-0000-4000-8000-000000000001",
       },
       null,
@@ -116,8 +127,6 @@ describe("organizer signup contract", () => {
         lastName: "Organizer",
         groupName: "Green Hills",
         groupTimeZone: "America/New_York",
-        acceptedTerms: true,
-        acceptedPrivacy: true,
         operationId: "30000000-0000-4000-8000-000000000001",
       },
       expect.any(String),
@@ -132,8 +141,6 @@ describe("organizer signup contract", () => {
         lastName: "Organizer",
         groupName: "Green Hills",
         groupTimeZone: "America/New_York",
-        acceptedTerms: true,
-        acceptedPrivacy: true,
         operationId: "30000000-0000-4000-8000-000000000001",
       },
       null,

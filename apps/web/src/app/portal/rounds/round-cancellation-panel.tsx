@@ -37,14 +37,14 @@ export function RoundCancellationPanel({
       return;
     }
     if (roundCancellationBlockedByDraftChanges(state, draftDirty)) {
-      setMessage("Save or discard draft changes before cancelling this round.");
+      setMessage("Save or discard your draft changes before you cancel.");
       setMessageTone("error");
       return;
     }
     const notificationSummary =
       state === "draft"
-        ? "No participant notification will be queued because this round has not been published."
-        : "Participants will be notified.";
+        ? "No one is notified, because this round hasn't been published."
+        : "Players will be notified.";
     if (
       !window.confirm(
         `Cancel “${description}”? RSVP and scoring will be disabled. ${notificationSummary}`,
@@ -64,7 +64,7 @@ export function RoundCancellationPanel({
           operationId: operationId.current,
         });
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("The round wasn't cancelled. Try again.");
         setMessageTone("error");
         return;
       }
@@ -85,7 +85,7 @@ export function RoundCancellationPanel({
       operationId.current = null;
       setReason("");
       setMessage(
-        `Round cancelled. ${result.data.notificationCount} participant notification${result.data.notificationCount === 1 ? "" : "s"} queued.`,
+        `Round cancelled. ${result.data.notificationCount} e-mail${result.data.notificationCount === 1 ? "" : "s"} will be sent to players.`,
       );
       setMessageTone("success");
       router.refresh();
@@ -96,21 +96,27 @@ export function RoundCancellationPanel({
     <section className="group-roles-panel" aria-labelledby="cancel-round-title">
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Round lifecycle</p>
+          <p className="ledger-kicker">Cancellation</p>
           <h2 id="cancel-round-title">Cancel this {state} round</h2>
         </div>
-        <p>Version {version}</p>
+        <p>
+          {state === "draft"
+            ? "Draft"
+            : state === "live"
+              ? "Live"
+              : "Published"}
+        </p>
       </div>
       <p>
-        Cancellation preserves the round and participant history, disables RSVP
-        and scoring, and{" "}
+        Cancelling keeps the round and its history, turns off RSVP and scoring,
+        and{" "}
         {state === "draft"
-          ? "does not queue participant notifications before publication."
-          : "sends a mandatory e-mail to the published participants."}
+          ? "sends no e-mails, because the round was never published."
+          : "sends a required e-mail to every published player."}
       </p>
       {roundCancellationBlockedByDraftChanges(state, draftDirty) ? (
         <p className="form-message error" role="status">
-          Save or discard draft changes before cancelling this round.
+          Save or discard your draft changes before you cancel.
         </p>
       ) : null}
       <form
@@ -131,8 +137,7 @@ export function RoundCancellationPanel({
             aria-describedby="round-cancellation-help"
           />
           <small id="round-cancellation-help">
-            Required and retained with the cancelled round (500 characters
-            maximum).
+            Required. Kept with the cancelled round. Up to 500 characters.
           </small>
         </label>
         {message ? (

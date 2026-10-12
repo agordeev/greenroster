@@ -145,13 +145,13 @@ export function MobileHoleScorecard({
       {status === "error" ? (
         <ThemedLabel
           muted
-          text={message ?? "Your hole details could not be loaded."}
+          text={message ?? "We couldn't load your hole details."}
         />
       ) : null}
       {status === "ready" && selectedRows.length === 0 ? (
         <ThemedLabel
           muted
-          text="Your hole details are not available for this round."
+          text="Hole details aren't available for this round."
         />
       ) : null}
       {selectedRows.map((row) => {

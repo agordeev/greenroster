@@ -74,23 +74,23 @@ export function RoundHoleScorecardPanel({
     >
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Personal golf details</p>
+          <p className="ledger-kicker">Scoring</p>
           <h2 id="round-hole-scorecard-title">Hole scorecard</h2>
         </div>
         <p>
           {rows.length === 0
-            ? "No holes"
+            ? "No holes yet"
             : `${byParticipant.length} player${byParticipant.length === 1 ? "" : "s"}`}
         </p>
       </div>
       <p>
         Enter strokes, putts, fairways, greens, sand saves, and an optional note
-        for each hole. You do not change points or standings here.
+        for each hole. This doesn’t change points or standings.
       </p>
       {message ? <p role="status">{message}</p> : null}
       {byParticipant.length === 0 ? (
         <p className="group-empty">
-          Hole details appear after players join this round.
+          Hole details appear once players join this round.
         </p>
       ) : (
         <div className="group-role-list">
@@ -201,7 +201,7 @@ function ParticipantHoleScorecard({
           {displayName(rows[0])}
           {rows[0].participantKind === "guest" ? " · Guest" : ""}
         </h3>
-        <p>{readOnly ? "Read only" : "Live details"}</p>
+        <p>{readOnly ? "Read only" : "You can edit"}</p>
       </div>
       {!readOnly ? (
         <label

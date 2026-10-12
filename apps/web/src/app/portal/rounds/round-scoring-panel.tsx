@@ -31,14 +31,14 @@ export function RoundScoringPanel({
     setMessageTone("");
     if (roundScoringBlockedByDraftChanges(draftDirty)) {
       setMessage(
-        "Save or discard the published round changes before opening scoring.",
+        "Save or discard your changes to the published round before you open scoring.",
       );
       setMessageTone("error");
       return;
     }
     if (
       !window.confirm(
-        `Open scoring for “${description}”? The Published round will become Live and score entry will be enabled.`,
+        `Open scoring for “${description}”? The round will go live and score entry will be turned on.`,
       )
     ) {
       return;
@@ -52,7 +52,7 @@ export function RoundScoringPanel({
       roundId,
     });
     if (!parsed.success) {
-      setMessage("Refresh the selected round before opening scoring.");
+      setMessage("Refresh the page, then open scoring again.");
       setMessageTone("error");
       return;
     }
@@ -62,7 +62,7 @@ export function RoundScoringPanel({
       try {
         result = await openRoundScoringAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("Scoring didn't open. Try again.");
         setMessageTone("error");
         return;
       }
@@ -82,7 +82,7 @@ export function RoundScoringPanel({
       }
 
       operationId.current = null;
-      setMessage("Scoring is now open. This round is Live.");
+      setMessage("Scoring is open. The round is live.");
       setMessageTone("success");
       router.refresh();
     });
@@ -95,19 +95,20 @@ export function RoundScoringPanel({
     >
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Round-day operations</p>
+          <p className="ledger-kicker">Round day</p>
           <h2 id="open-round-scoring-title">Open scoring</h2>
         </div>
-        <p>Version {version}</p>
+        <p>Published</p>
       </div>
       <p>
-        Opening scoring changes this Published round to Live. Confirm the
-        transition when players are ready to enter scores. The server records
-        the authorized action and its audit event.
+        Opening scoring makes this round live and turns on score entry. Open it
+        when players are ready to be scored. The change is kept in the round
+        history.
       </p>
       {roundScoringBlockedByDraftChanges(draftDirty) ? (
         <p className="form-message error" role="status">
-          Save or discard the published round changes before opening scoring.
+          Save or discard your changes to the published round before you open
+          scoring.
         </p>
       ) : null}
       {message ? (

@@ -46,7 +46,7 @@ export default async function MemberInboxPage() {
             <p className="ledger-kicker">Your inbox</p>
             <h1 id="member-inbox-title">Round updates for you</h1>
             <p className="member-home-intro">
-              You open updates from your coordinators and administrators here.
+              Updates from your coordinators and administrators appear here.
             </p>
             <MemberInboxList initialItems={items} />
           </div>
@@ -67,7 +67,7 @@ function MemberInboxUnavailable() {
         <h1 id="member-inbox-unavailable-title">
           You can’t open your inbox right now
         </h1>
-        <p>You refresh this page and try again.</p>
+        <p>Refresh this page and try again.</p>
         <Link className="secondary-link" href="/member/home">
           Open your home
         </Link>

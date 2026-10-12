@@ -102,11 +102,8 @@ function MemberResultsContent({
             {round.group_time_zone ? ` (${round.group_time_zone})` : ""}
           </p>
           <p className="member-results-format-note">
-            Ranking criterion:{" "}
-            {round.format === "individual_net"
-              ? "server-calculated plus/minus"
-              : "server-calculated golf points"}
-            .
+            Ranked by{" "}
+            {round.format === "individual_net" ? "plus/minus" : "golf points"}.
           </p>
           {winners.length > 0 ? (
             <section
@@ -122,8 +119,8 @@ function MemberResultsContent({
           ) : null}
           {results.length === 0 ? (
             <section className="member-home-empty" aria-live="polite">
-              <h2>No official result rows</h2>
-              <p>The round is completed, but no result rows are available.</p>
+              <h2>No results yet</h2>
+              <p>This round is complete, but no results are available yet.</p>
             </section>
           ) : (
             <ResultsTable
@@ -176,7 +173,7 @@ function ResultsTable({
                 <small className="member-results-meta">
                   {result.rsvp_changed_at
                     ? formatDate(result.rsvp_changed_at, groupTimeZone)
-                    : "Timestamp unavailable"}
+                    : "Time not available"}
                 </small>
               </td>
               <td>{formatValue(result.golf_points)}</td>
@@ -206,7 +203,7 @@ function formatRsvp(value: MemberOfficialResult["rsvp_status"]) {
   return value === "no_response"
     ? "No response"
     : value === "not_playing"
-      ? "Not Playing"
+      ? "Not playing"
       : "Playing";
 }
 
@@ -224,7 +221,7 @@ function formatValue(value: string | null): string {
 }
 
 function formatDate(value: string | null, timeZone: string): string {
-  if (!value) return "publication time unavailable";
+  if (!value) return "time not available";
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -251,7 +248,7 @@ function MemberResultsUnavailable() {
             your membership no longer has access to this group.
           </p>
           <Link className="secondary-link" href="/member/home">
-            Return to member home
+            Return to your home
           </Link>
         </section>
       </main>

@@ -4,24 +4,23 @@ import { InformationShell } from "@/app/information-shell";
 
 export default function HelpPage() {
   return (
-    <InformationShell kicker="Help" title="Start with your group’s next task">
+    <InformationShell kicker="Help" title="Help with your group">
       <div className="information-copy">
         <p>
-          GreenRoster keeps group administration tied to your own verified
-          account. The group and role shown in the portal come from your stored
-          membership and cannot be selected in the browser.
+          Admin access is tied to your own account. The group and role in the
+          portal come from your membership, and you cannot choose them in the
+          browser.
         </p>
-        <h2>Administrator first run</h2>
+        <h2>Setting up a new group</h2>
         <p>
-          Create the group with its official name and IANA time zone. The server
-          creates your administrator membership in the same operation, so a
-          partial group is never left behind.
+          Enter the group’s name and time zone. Your administrator membership is
+          created at the same time, so a group is never left half set up.
         </p>
         <h2>Access questions</h2>
         <p>
-          A member-only or inactive account cannot enter administrative pages.
-          If the role shown after sign-in is unexpected, contact support without
-          sharing your password.
+          A member-only or inactive account cannot open admin pages. If the role
+          shown after you sign in looks wrong, contact support. Never share your
+          password.
         </p>
         <Link className="primary-link" href="/support">
           Contact support

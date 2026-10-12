@@ -36,17 +36,17 @@ export default async function MemberProfilePage() {
         <section className="auth-ledger" aria-labelledby="member-profile-title">
           <nav className="member-results-nav" aria-label="Member navigation">
             <Link className="secondary-link" href="/member/home">
-              You open your home
+              Open your home
             </Link>
             <Link className="secondary-link" href="/member/directory">
-              You open your directory
+              Open your directory
             </Link>
           </nav>
           <div className="auth-heading">
             <p className="ledger-kicker">Your profile</p>
             <h1 id="member-profile-title">{profile.groupName}</h1>
             <p className="member-home-intro">
-              You keep your member details and handicap ready for your group.
+              Keep your details and handicap up to date for your group.
             </p>
             <MemberSelfProfileForm initialProfile={profile} />
           </div>
@@ -67,9 +67,9 @@ function MemberProfileUnavailable() {
         <h1 id="member-profile-error-title">
           You can’t open your profile right now
         </h1>
-        <p>You refresh this page and try again.</p>
+        <p>Refresh this page and try again.</p>
         <Link className="secondary-link" href="/member/home">
-          You open your home
+          Open your home
         </Link>
       </section>
     </main>

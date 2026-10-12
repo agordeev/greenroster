@@ -43,7 +43,9 @@ export function MobileSignOutButton({
     try {
       hasPending = await scoreQueue.hasPendingUser(userId);
     } catch {
-      setError("GreenRoster could not inspect pending scores. Try again.");
+      setError(
+        "We couldn't check for scores still waiting to sync. Try again.",
+      );
       return false;
     }
     if (!hasPending) return true;
@@ -78,7 +80,7 @@ export function MobileSignOutButton({
         await scoreQueue.clearUser(session.user.id);
         await snapshotStorage.clearUser(session.user.id);
       } catch {
-        setError("GreenRoster could not clear pending scores. Try again.");
+        setError("We couldn't clear the scores waiting to sync. Try again.");
         setPending(false);
         return;
       }

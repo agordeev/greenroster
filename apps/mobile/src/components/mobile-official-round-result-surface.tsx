@@ -92,13 +92,13 @@ export function MobileOfficialRoundResultSurface({
     <MemberDestinationScreen
       eyebrow="Results"
       title={round.description || "Official round results"}
-      introduction="These values are the server-published result snapshot. Reopened rounds remain unavailable until they are officially recompleted."
+      introduction="These are the official results for this round. Reopened rounds stay hidden until they're officially completed again."
       emptyTitle={isError ? "Official results unavailable" : ""}
       emptyBody={message ?? ""}
       hideEmptyState={!isError}
       facts={[
         [
-          "Round state",
+          "Status",
           status === "ready"
             ? "Official"
             : isError
@@ -149,7 +149,7 @@ export function MobileOfficialRoundResultSurface({
 
       {status === "ready" && results.length === 0 ? (
         <ThemedText themeColor="textSecondary" accessibilityLiveRegion="polite">
-          No official result rows are available for this round.
+          No official results for this round yet.
         </ThemedText>
       ) : null}
 
@@ -195,7 +195,7 @@ function OfficialResultList({
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         Published {formatPublicationTime(results[0].completedAt, groupTimeZone)}
-        . Server rank and ties are preserved.
+        .
       </ThemedText>
       {results.map((result) => (
         <OfficialResultRow

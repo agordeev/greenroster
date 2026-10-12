@@ -27,7 +27,7 @@ export function MobileRoundMessagesSurface() {
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     if (!roundId) {
-      setFeedback("You need a round link to open messages.");
+      setFeedback("Open messages from one of your rounds.");
       setLoading(false);
       return;
     }
@@ -45,7 +45,7 @@ export function MobileRoundMessagesSurface() {
     <MemberDestinationScreen
       eyebrow="Round conversation"
       title="Messages for this round"
-      introduction="You read and post plain-text messages with the people in your round."
+      introduction="Read and post messages with the people in this round."
       emptyTitle={
         feedback ? "You can't open round messages" : "You have no messages yet"
       }

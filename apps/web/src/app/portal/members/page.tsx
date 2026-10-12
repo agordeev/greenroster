@@ -126,10 +126,8 @@ export default async function MemberManagementPage({
         <p className="ledger-kicker">Member administration</p>
         <h1 id="members-title">Members</h1>
         <p>
-          Review every membership state, update profile and private contact
-          details, confirm an active/inactive status change, or manage roles
-          when your administrator access permits it. The server checks your
-          current group role and record versions on every action.
+          Add members, update their details, mark them active or inactive, and
+          change roles where your access allows.
         </p>
         {portalContext.role !== "member" ? (
           <>
@@ -251,13 +249,13 @@ function renderError(error: unknown, context?: PortalContext) {
         <p className="ledger-kicker">Member administration</p>
         <h1 id="members-error">
           {forbidden
-            ? "Member management is not available"
-            : "Members could not be loaded"}
+            ? "You don't have access to members"
+            : "We couldn't load members"}
         </h1>
         <p>
           {forbidden
-            ? "Your current membership does not have coordinator or administrator access."
-            : "The member service is temporarily unavailable. Refresh and try again."}
+            ? "Only coordinators and administrators can manage members."
+            : "This page is temporarily unavailable. Refresh and try again."}
         </p>
       </section>
     </PortalShell>

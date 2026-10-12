@@ -25,9 +25,7 @@ export function RoundReadOnlyDetail({
             {detail.description || "Untitled round"}
           </h2>
         </div>
-        <p>
-          {formatRoundState(detail.state)} · Version {detail.version}
-        </p>
+        <p>{formatRoundState(detail.state)}</p>
       </div>
 
       <nav aria-label="Round detail sections" className="information-actions">
@@ -44,9 +42,9 @@ export function RoundReadOnlyDetail({
         aria-labelledby="round-detail-overview-title"
       >
         <p className="ledger-kicker">Overview</p>
-        <h3 id="round-detail-overview-title">Published configuration</h3>
+        <h3 id="round-detail-overview-title">Published details</h3>
         <dl className="publication-summary round-detail-summary">
-          <SummaryItem label="State" value={formatRoundState(detail.state)} />
+          <SummaryItem label="Status" value={formatRoundState(detail.state)} />
           <SummaryItem
             label="Scheduled"
             value={`${formatRoundSchedule(detail.scheduledAt, detail.groupTimeZone)} (${detail.groupTimeZone})`}
@@ -65,14 +63,12 @@ export function RoundReadOnlyDetail({
           />
           <SummaryItem
             label="Players"
-            value={`${detail.counts.playing} Playing · ${detail.counts.notPlaying} Not playing · ${detail.counts.noResponse} No response · ${detail.counts.guests} Guests`}
+            value={`${detail.counts.playing} playing · ${detail.counts.notPlaying} not playing · ${detail.counts.noResponse} no response · ${detail.counts.guests} guests`}
           />
           <SummaryItem
-            label="Notes visibility"
+            label="Players can see notes"
             value={
-              detail.notesVisibleToPlayers
-                ? "Visible to players"
-                : "Coordinator-only"
+              detail.notesVisibleToPlayers ? "Yes" : "No, coordinators only"
             }
           />
           <SummaryItem label="Notes" value={detail.notes || "No notes"} />
@@ -87,8 +83,8 @@ export function RoundReadOnlyDetail({
         ) : null}
 
         <section aria-labelledby="round-detail-rule-snapshot-title">
-          <p className="ledger-kicker">Rule snapshot</p>
-          <h3 id="round-detail-rule-snapshot-title">Published rule values</h3>
+          <p className="ledger-kicker">Rules</p>
+          <h3 id="round-detail-rule-snapshot-title">Rules as published</h3>
           {detail.ruleSnapshot ? (
             <dl className="publication-summary round-detail-summary">
               <SummaryItem
@@ -100,21 +96,21 @@ export function RoundReadOnlyDetail({
                 value={formatQuotaMethod(detail.ruleSnapshot.quotaMethod)}
               />
               <SummaryItem
-                label="Quota precision"
+                label="Quota decimal places"
                 value={
                   detail.ruleSnapshot.quotaPrecision === null
-                    ? "Not configured"
+                    ? "Not set"
                     : String(detail.ruleSnapshot.quotaPrecision)
                 }
               />
               <SummaryItem
-                label="Settings version"
+                label="Rules changes"
                 value={String(detail.ruleSnapshot.settingsVersion)}
               />
             </dl>
           ) : (
             <p className="group-empty" role="status">
-              No immutable rule snapshot was recorded for this round.
+              No rules were saved for this round.
             </p>
           )}
         </section>
@@ -122,7 +118,7 @@ export function RoundReadOnlyDetail({
         {detail.state === "cancelled" ? (
           <aside className="form-message error" role="status">
             <strong>Cancellation reason:</strong>{" "}
-            {detail.cancellationReason || "No reason recorded."}
+            {detail.cancellationReason || "No reason given."}
           </aside>
         ) : null}
       </section>
@@ -132,29 +128,28 @@ export function RoundReadOnlyDetail({
         aria-labelledby="round-detail-players-title"
       >
         <p className="ledger-kicker">Players</p>
-        <h3 id="round-detail-players-title">Immutable publication snapshots</h3>
+        <h3 id="round-detail-players-title">Players as published</h3>
         <p>
-          Quota, handicap, tee, RSVP, and participant version values below are
-          the server-confirmed round records. Later member changes do not alter
-          these snapshots.
+          Quota, handicap, tee, and RSVP below are locked as published. Later
+          changes to a member’s profile don’t change them.
         </p>
         {detail.participants.length === 0 ? (
           <p className="group-empty" role="status">
-            No participants were published for this round.
+            No players were published for this round.
           </p>
         ) : (
           <div className="publication-member-list round-detail-table-wrap">
             <table>
-              <caption className="visually-hidden">Round participants</caption>
+              <caption className="visually-hidden">Round players</caption>
               <thead>
                 <tr>
                   <th scope="col">Player</th>
                   <th scope="col">Type</th>
                   <th scope="col">RSVP</th>
-                  <th scope="col">Quota snapshot</th>
-                  <th scope="col">Handicap snapshot</th>
-                  <th scope="col">Tee snapshot</th>
-                  <th scope="col">Version</th>
+                  <th scope="col">Quota</th>
+                  <th scope="col">Handicap</th>
+                  <th scope="col">Tee</th>
+                  <th scope="col">Changes</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,7 +179,7 @@ function formatQuotaMethod(
     case "previous_plus_minus":
       return "Previous plus/minus";
     default:
-      return "Not configured";
+      return "Not set";
   }
 }
 

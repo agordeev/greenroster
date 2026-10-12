@@ -7,9 +7,9 @@ export default function HomePage() {
     <InformationShell kicker="Home" title="Your group, rounds, and roster">
       <div className="information-copy">
         <p>
-          GreenRoster gives every person their own account and resolves group
-          access from the membership stored on the server. Administrators and
-          coordinators use the portal; members use the member experience.
+          Everyone signs in with their own account, and your group access comes
+          from your membership. Administrators and coordinators use the portal;
+          members use the member pages.
         </p>
         <div className="information-actions">
           <Link className="primary-link" href="/sign-in">

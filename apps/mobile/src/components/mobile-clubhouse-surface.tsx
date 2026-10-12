@@ -45,7 +45,7 @@ export function MobileClubhouseSurface() {
     setMessage(null);
     if (!session) {
       setLoading(false);
-      setMessage("You sign in to see your group news.");
+      setMessage("Sign in to see your group news.");
       return;
     }
     const result = await mobileClubhouseApi.read();
@@ -217,9 +217,7 @@ export function MobileClubhouseSurface() {
       ) : null}
       {contacts.length > 0 || contactHistoryMessage ? (
         <View style={[styles.card, { borderColor: theme.separator }]}>
-          <ThemedText type="subtitle">
-            You see your coordinator messages
-          </ThemedText>
+          <ThemedText type="subtitle">Your coordinator messages</ThemedText>
           {contactHistoryMessage ? (
             <ThemedText
               accessibilityLiveRegion="polite"

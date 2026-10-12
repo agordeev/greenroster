@@ -43,7 +43,7 @@ export function ClubhouseAdminPanel({
   }
   function saveMedia() {
     if (!title.trim() || !url.trim()) {
-      setFeedback("Add a title and secure video link before you publish.");
+      setFeedback("Add a title and a video link before you publish.");
       return;
     }
     mediaOperation.current ??= crypto.randomUUID();

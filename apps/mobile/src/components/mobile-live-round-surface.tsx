@@ -188,7 +188,7 @@ export function MobileLiveRoundSurface({
             setRounds(cachedRounds.map((cached) => cached.round));
             setRoundStatus("ready");
             setRoundMessage(
-              "Showing your last authorized rounds while GreenRoster reconnects.",
+              "Showing your last saved rounds while we reconnect.",
             );
             return;
           }
@@ -329,7 +329,7 @@ export function MobileLiveRoundSurface({
             setScoreState(cachedState);
             setScoreStatus("ready");
             setScoreMessage(
-              "Showing the last confirmed values while GreenRoster reconnects.",
+              "Showing the last saved scores while we reconnect.",
             );
             setRealtimeStatus("stale");
           }
@@ -506,9 +506,7 @@ export function MobileLiveRoundSurface({
                 : current,
             );
           }
-          setScoreMessage(
-            "A pending score needs your attention before it can sync.",
-          );
+          setScoreMessage("A score waiting to sync needs your attention.");
         }
         if (drained.processed > 0 && active) {
           const refreshed = await mobileLiveRoundApi.read(first.roundId);
@@ -549,7 +547,7 @@ export function MobileLiveRoundSurface({
               acknowledgements.some((acknowledgement) => !acknowledgement.ok)
             ) {
               setScoreMessage(
-                "Scores reached the server, but completion confirmation is still pending.",
+                "Your scores were sent. We're still confirming they're complete.",
               );
             }
           }
@@ -614,8 +612,8 @@ export function MobileLiveRoundSurface({
     return (
       <MemberDestinationScreen
         eyebrow="Results"
-        title="Official result unavailable"
-        introduction="This exact round could not be opened for the signed-in account. GreenRoster does not reveal whether a denied or withdrawn round exists."
+        title="Round unavailable"
+        introduction="We couldn't open this round for your account."
         emptyTitle="Result unavailable"
         emptyBody={requestedRoundMessage}
         facts={[["Round", "Unavailable"]]}
@@ -643,12 +641,12 @@ export function MobileLiveRoundSurface({
       <MemberDestinationScreen
         eyebrow={mode === "leaderboard" ? "Leaderboard" : "Scorecard"}
         title={selectedRound.description || "Live round"}
-        introduction="Official values arrive from the server. Missing scores stay distinct from zero, and a reconnect marks the board stale until the authoritative snapshot returns."
+        introduction="Scores update as they're saved. A blank score isn't zero. If the connection drops, you see older scores until fresh ones load."
         emptyTitle=""
         emptyBody=""
         hideEmptyState
         facts={[
-          ["Round state", "Live"],
+          ["Status", "Live"],
           ["Connection", formatRealtimeStatus(realtimeStatus)],
           ["Last synced", formatLastSynced(selectedScoreState.lastSyncedAt)],
         ]}
@@ -668,7 +666,7 @@ export function MobileLiveRoundSurface({
             themeColor="textSecondary"
             accessibilityLiveRegion="polite"
           >
-            Refreshing confirmed values: {scoreMessage}
+            {scoreMessage}
           </ThemedText>
         ) : null}
         {mode === "leaderboard" ? (
@@ -693,10 +691,10 @@ export function MobileLiveRoundSurface({
           ? "Live standings when play begins"
           : "Upcoming, live, and completed"
       }
-      introduction="Round state, RSVP context, participant counts, and server-confirmed score sync stay together."
+      introduction="Live, upcoming, and completed rounds, with your RSVP for each."
       emptyTitle={
         roundStatus === "error"
-          ? "Rounds could not be loaded"
+          ? "We couldn't load your rounds"
           : mode === "leaderboard"
             ? "No live round yet"
             : "No rounds yet"
@@ -705,7 +703,7 @@ export function MobileLiveRoundSurface({
         roundMessage ??
         (mode === "leaderboard"
           ? "Live standings will appear when your group starts playing."
-          : "Published rounds will appear here after your group access is resolved.")
+          : "Your group's upcoming rounds appear here once they're published.")
       }
       hideEmptyState={
         roundStatus === "loading" ||
@@ -733,8 +731,8 @@ export function MobileLiveRoundSurface({
       !selectedScoreState ? (
         <ThemedText themeColor="textSecondary" accessibilityLiveRegion="polite">
           {scoreStatus === "error"
-            ? "The live score projection is unavailable. Try again."
-            : "Loading the confirmed live score projection…"}
+            ? "Live scores aren't available right now. Try again."
+            : "Loading live scores…"}
         </ThemedText>
       ) : null}
       <RoundSection
@@ -912,15 +910,15 @@ function LiveLeaderboard({
   return (
     <View style={styles.section}>
       <ThemedText type="subtitle" style={styles.sectionTitle}>
-        Confirmed leaderboard
+        Leaderboard
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        Server ordering is authoritative. Ties are not broken alphabetically.
+        Ties are not sorted alphabetically.
       </ThemedText>
       {orderDeferred ? (
         <View style={styles.staleNotice} accessibilityLiveRegion="polite">
           <ThemedText type="small" themeColor="textSecondary">
-            Standings updated. The focused row stays in place until you review.
+            Standings updated. The row in focus stays in place until you review.
           </ThemedText>
           <Pressable
             accessibilityRole="button"
@@ -1071,7 +1069,7 @@ function MobileScoreEditor({
     const parsedFields =
       mobileScoreChangedFieldsSchema.safeParse(changedFields);
     if (!parsedFields.success) {
-      setMessage("Enter a valid enabled score value before saving.");
+      setMessage("Enter a valid score before saving.");
       return;
     }
     if (Object.keys(changedFields).length === 0) {
@@ -1083,7 +1081,7 @@ function MobileScoreEditor({
         scoreValue(entry.confirmed, field as keyof typeof draft) !== null,
     );
     if (correctionNeeded && !reason.trim()) {
-      setMessage("Add a reason when replacing a confirmed value.");
+      setMessage("Add a reason to change a saved score.");
       return;
     }
     setBusy(true);
@@ -1110,7 +1108,7 @@ function MobileScoreEditor({
           : current,
       );
       setReason("");
-      setMessage("Score confirmed by the server.");
+      setMessage("Score saved.");
       setBusy(false);
       return;
     }
@@ -1141,7 +1139,7 @@ function MobileScoreEditor({
       onChange((current) =>
         current ? markMobileLiveRoundPending(current, pending) : current,
       );
-      setMessage("Pending sync — this score is not official yet.");
+      setMessage("Waiting to sync. This score isn't official yet.");
     } else {
       onChange((current) =>
         current
@@ -1170,9 +1168,7 @@ function MobileScoreEditor({
       return;
     }
     if (queue.isDraining(pendingScope)) {
-      setMessage(
-        "Wait for the pending score sync to finish before discarding.",
-      );
+      setMessage("Wait for this score to finish syncing before discarding it.");
       return;
     }
     setDiscardBusy(true);
@@ -1190,13 +1186,9 @@ function MobileScoreEditor({
             )
           : current,
       );
-      setMessage(
-        removed
-          ? "Pending score discarded."
-          : "Pending score was already removed.",
-      );
+      setMessage(removed ? "Score discarded." : "Score was already removed.");
     } catch {
-      setMessage("Could not discard the pending score. Try again.");
+      setMessage("We couldn't discard this score. Try again.");
     } finally {
       setDiscardBusy(false);
     }
@@ -1235,21 +1227,19 @@ function MobileScoreEditor({
       ))}
       {entry.staleCurrentValue ? (
         <View style={styles.staleNotice} accessibilityRole="alert">
-          <ThemedText type="smallBold">Current server values</ThemedText>
+          <ThemedText type="smallBold">Current scores</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {formatCurrentScore(entry.staleCurrentValue)}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Re-enter the intended value; nothing was overwritten.
+            Enter the score again. Nothing was changed.
           </ThemedText>
         </View>
       ) : null}
       {hasPending ? (
         <View style={styles.staleNotice} accessibilityRole="alert">
           <ThemedText type="smallBold">
-            {lockedPending
-              ? "Pending score not sent"
-              : "Pending score needs attention"}
+            {lockedPending ? "Score not sent" : "This score needs attention"}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {entry.failure?.message ??
@@ -1269,7 +1259,7 @@ function MobileScoreEditor({
                 <ActivityIndicator color={theme.accent} />
               ) : (
                 <ThemedText type="smallBold" themeColor="accent">
-                  Discard pending score
+                  Discard this score
                 </ThemedText>
               )}
             </Pressable>
@@ -1309,7 +1299,7 @@ function MobileScoreEditor({
       </View>
       <View style={styles.confirmedRow}>
         <ThemedText type="small" themeColor="textSecondary">
-          Typed points preview
+          Plus/minus if saved
         </ThemedText>
         <ThemedText type="smallBold">{formatSigned(typedPlusMinus)}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
@@ -1466,7 +1456,7 @@ function formatRealtimeStatus(status: string) {
           ? "Stopped"
           : status === "refetching"
             ? "Refreshing"
-            : "Stale — refreshing";
+            : "Reconnecting";
 }
 
 function formatLastSynced(value: string | null) {

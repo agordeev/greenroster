@@ -16,16 +16,16 @@ export function buildOnboardingChecklist(
       label: "Complete the group profile",
       status: groupProfileComplete ? "complete" : "not-configured",
       detail: groupProfileComplete
-        ? "The stored group name and time zone are ready."
+        ? "Your group name and time zone are set."
         : "Add the required group name and time zone.",
     },
     {
       key: "rules",
-      label: "Select quota rules",
+      label: "Choose quota rules",
       status: quotaRulesConfigured ? "complete" : "not-configured",
       detail: quotaRulesConfigured
-        ? "The authoritative quota calculation policy is configured."
-        : "No authoritative quota calculation policy exists yet.",
+        ? "Your quota rules are saved."
+        : "You haven't chosen quota rules yet.",
     },
     {
       key: "members",
@@ -33,14 +33,14 @@ export function buildOnboardingChecklist(
       status: additionalMembershipCount > 0 ? "complete" : "not-configured",
       detail:
         additionalMembershipCount > 0
-          ? `${additionalMembershipCount} additional membership${additionalMembershipCount === 1 ? " is" : "s are"} stored for this group.`
-          : "No additional membership is stored for this group.",
+          ? `${additionalMembershipCount} more ${additionalMembershipCount === 1 ? "member is" : "members are"} on your roster.`
+          : "No other members are on your roster yet.",
     },
     {
       key: "first-round",
       label: "Create and publish the first round",
       status: "not-configured",
-      detail: "No authoritative published-round record exists yet.",
+      detail: "You haven't published a round yet.",
     },
   ];
 }

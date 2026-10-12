@@ -333,38 +333,38 @@ export default function ProfileScreen() {
         ? `${sessionProfile.draft.firstName} ${sessionProfile.draft.lastName}`
         : firstRun.status === "complete"
           ? `${firstRun.profile.firstName} ${firstRun.profile.lastName}`
-          : "Not resolved",
+          : "Not loaded yet",
     ],
-    ["Group", sessionProfile?.groupName ?? "Not resolved"],
-    ["Group time zone", sessionProfile?.groupTimeZone ?? "Not resolved"],
+    ["Group", sessionProfile?.groupName ?? "Not loaded yet"],
+    ["Group time zone", sessionProfile?.groupTimeZone ?? "Not loaded yet"],
     [
       "Role / status",
       sessionProfile
         ? `${sessionProfile.role} · ${sessionProfile.status}`
-        : "Not resolved",
+        : "Not loaded yet",
     ],
   ] as const;
 
   return (
     <MemberDestinationScreen
       eyebrow="Profile"
-      title="Identity, golf data, and privacy"
-      introduction="Update the profile fields your group sees, keep your current golf data accurate, and manage your protected account e-mail separately."
+      title="Your profile and golf details"
+      introduction="Update what your group sees, keep your golf details current, and manage your account e-mail separately."
       emptyTitle={
         recoveryRequired
-          ? "Password recovery must be completed"
+          ? "Finish your password reset"
           : loadState === "loading"
-            ? "Loading your member profile"
+            ? "Loading your profile"
             : loadState === "error"
-              ? "Profile could not be loaded"
+              ? "We couldn't load your profile"
               : "Your profile is ready"
       }
       emptyBody={
         recoveryRequired
-          ? "This recovery-only session cannot load member data. Continue to password replacement when prompted."
+          ? "Your profile opens after you choose a new password."
           : loadState === "error"
-            ? "Check your connection and retry. Protected member data is not cached in general storage."
-            : "Group role and status are read-only. Notification preferences can be changed separately."
+            ? "Check your connection and try again."
+            : "Your role and status can't be changed here. Notification preferences are separate."
       }
       facts={facts}
     >
@@ -453,15 +453,15 @@ export default function ProfileScreen() {
               );
               if (retirement.status === "unavailable") {
                 Alert.alert(
-                  "Push sign-out needs a connection",
-                  "GreenRoster could not retire this device's notifications. Reconnect and try signing out again.",
+                  "Connect to sign out",
+                  "We couldn't turn off notifications on this device. Reconnect and try signing out again.",
                 );
                 return false;
               }
             } catch {
               Alert.alert(
-                "Push sign-out needs a connection",
-                "GreenRoster could not retire this device's notifications. Reconnect and try signing out again.",
+                "Connect to sign out",
+                "We couldn't turn off notifications on this device. Reconnect and try signing out again.",
               );
               return false;
             }
@@ -516,9 +516,9 @@ function ProfileEditor({
     <View style={[styles.section, { borderColor: theme.separator }]}>
       <SectionHeading
         title="Member profile"
-        body="These fields are saved to your membership profile. Visibility controls whether the value can appear in the member directory."
+        body="Changes save to your profile. Turn on visibility to show a detail in the group directory."
       />
-      <Subheading text="Identity" />
+      <Subheading text="Name" />
       <Field
         disabled={disabled || busy}
         invalid={feedback?.field === "firstName"}
@@ -854,10 +854,7 @@ function HandicapEditor({
     }
     handicapRetryContext.current = null;
     setFeedback(null);
-    Alert.alert(
-      "Handicap recorded",
-      "The manual handicap observation was recorded. The current value remains determined by the server's as-of ordering.",
-    );
+    Alert.alert("Handicap saved", "Your new handicap is saved.");
     onSaved(result.data);
     setReason("");
     setConfirmed(false);
@@ -867,7 +864,7 @@ function HandicapEditor({
     <View style={[styles.section, { borderColor: theme.separator }]}>
       <SectionHeading
         title="Current handicap"
-        body="Handicap history is append-only. Use this explicit action to record a new manual value; the source and as-of date remain visible."
+        body="Enter a new handicap below to add it to your history. The source and date stay visible."
       />
       <View style={styles.currentHandicap}>
         <ThemedText type="smallBold" themeColor="textSecondary">
@@ -899,7 +896,7 @@ function HandicapEditor({
       />
       <Field
         disabled={disabled || busy}
-        label="As-of date (YYYY-MM-DD)"
+        label="Date (YYYY-MM-DD)"
         value={asOf}
         onChangeText={setAsOf}
       />
@@ -912,7 +909,7 @@ function HandicapEditor({
       />
       <VisibilityToggle
         disabled={disabled || busy}
-        label="I confirm this manual handicap value"
+        label="I confirm this handicap is correct"
         checked={confirmed}
         onPress={() => setConfirmed((value) => !value)}
       />
@@ -927,7 +924,7 @@ function HandicapEditor({
         </>
       ) : null}
       <ActionButton
-        label={busy ? "Recording handicap…" : "Record manual handicap"}
+        label={busy ? "Saving handicap…" : "Save handicap"}
         onPress={() => void save()}
         busy={busy}
         disabled={disabled || !confirmed || reason.trim() === ""}
@@ -1205,14 +1202,14 @@ function AccountEmailSection({
     <View style={[styles.section, { borderColor: theme.separator }]}>
       <SectionHeading
         title="Account e-mail"
-        body="Your account e-mail is the single address GreenRoster uses for sign-in, recovery, and product notifications. Changing it requires the verified identity flow."
+        body="This is the address you sign in with, and where we send password recovery and app notifications. Changes need e-mail verification."
       />
       <View style={styles.currentEmail}>
         <ThemedText type="smallBold" themeColor="textSecondary">
           CURRENT ACCOUNT E-MAIL
         </ThemedText>
         <ThemedText accessibilityLabel="Current account e-mail">
-          {currentEmail ?? "Unavailable in this session"}
+          {currentEmail ?? "Unavailable right now"}
         </ThemedText>
       </View>
       <Field
@@ -1222,7 +1219,7 @@ function AccountEmailSection({
         keyboardType="email-address"
       />
       <VisibilityToggle
-        label="I understand verification must be completed"
+        label="I understand I'll need to verify the new address"
         checked={confirmed}
         onPress={() => setConfirmed((value) => !value)}
       />
@@ -1330,7 +1327,7 @@ function ProfileAboutSection() {
     <View style={[styles.section, { borderColor: theme.separator }]}>
       <SectionHeading
         title="About GreenRoster"
-        body="Get help, contact support, share feedback, and review the current legal documents. These pages open securely in your browser."
+        body="Get help, contact support, send feedback, or read the current legal documents. These open in your browser."
       />
       <View
         accessibilityLabel="GreenRoster app version and build"

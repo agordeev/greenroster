@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Live scores · GreenRoster",
-  description: "You see live golf scores and standings.",
+  description: "Follow live golf scores and standings.",
 };
 
 export default async function ScoreboardPage({
@@ -54,12 +54,11 @@ export default async function ScoreboardPage({
           <p className="ledger-kicker">Live scores</p>
           <h1 id="scoreboard-title">{scoreboard.groupName}</h1>
           <p className="member-results-intro">
-            {scoreboard.roundDescription ?? "Live round"} · You see{" "}
+            {scoreboard.roundDescription ?? "Live round"} · Ranked by{" "}
             {rankingLabel.toLowerCase()}.
           </p>
           <p className="member-results-format-note">
-            You see the latest scores as of{" "}
-            {formatTimestamp(scoreboard.lastUpdatedAt)}.
+            Scores as of {formatTimestamp(scoreboard.lastUpdatedAt)}.
           </p>
           <KioskRefresh enabled={kiosk} />
           {scoreboard.branding.header.map((asset) => (
@@ -82,8 +81,8 @@ export default async function ScoreboardPage({
           ))}
           {scoreboard.players.length === 0 ? (
             <section className="member-home-empty" aria-live="polite">
-              <h2>You see no players yet.</h2>
-              <p>You see players here after they join this round.</p>
+              <h2>No players yet.</h2>
+              <p>Players appear here after they join this round.</p>
             </section>
           ) : (
             <ScoreboardTable
@@ -190,7 +189,7 @@ function ScoreboardUnavailable() {
           <h1 id="scoreboard-unavailable-title">
             You can’t view this round right now.
           </h1>
-          <p>Ask the coordinator for a current link.</p>
+          <p>Ask your group coordinator for a current link.</p>
         </section>
       </main>
     </>

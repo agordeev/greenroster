@@ -31,23 +31,23 @@ describe("authentication input contracts", () => {
     });
   });
 
-  it("requires a 12-character matching replacement password", () => {
+  it("requires an 8-character matching replacement password", () => {
     expect(
       passwordResetSchema.safeParse({
-        password: "too-short",
-        confirmPassword: "too-short",
+        password: "seven!!",
+        confirmPassword: "seven!!",
       }).success,
     ).toBe(false);
     expect(
       passwordResetSchema.safeParse({
-        password: "twelve-or-more",
+        password: "eight!!!",
         confirmPassword: "different-value",
       }).success,
     ).toBe(false);
     expect(
       passwordResetSchema.safeParse({
-        password: "twelve-or-more",
-        confirmPassword: "twelve-or-more",
+        password: "eight!!!",
+        confirmPassword: "eight!!!",
       }).success,
     ).toBe(true);
   });

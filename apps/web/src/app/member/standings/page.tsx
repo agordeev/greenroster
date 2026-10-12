@@ -44,7 +44,7 @@ function MemberStandingsContent({
       ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
           new Date(`${value}T00:00:00Z`),
         )
-      : "all eligible history";
+      : "all eligible rounds";
 
   return (
     <>
@@ -76,7 +76,7 @@ function MemberStandingsContent({
             {context?.group_name ?? "Your group"}
           </h1>
           <p className="member-results-intro">
-            Order of Merit · reset date:{" "}
+            Order of Merit · counting from:{" "}
             {formatDate(context?.standings_reset_date ?? null)}
           </p>
           <section
@@ -108,7 +108,7 @@ function MemberStandingsContent({
             <h2 id="standings-table-title">Order of Merit</h2>
             {standings.length === 0 ? (
               <p className="member-read-empty">
-                No active members are currently eligible for standings.
+                No members are on the standings yet.
               </p>
             ) : (
               <div className="member-results-table-wrap">
@@ -144,25 +144,25 @@ function MemberStandingsContent({
               </div>
             )}
             <p className="member-read-note">
-              Earlier official rounds remain in quota history; the reset date
-              only controls current rounds played and Order of Merit totals.
+              Earlier rounds stay in quota history. The reset date only affects
+              rounds played and Order of Merit totals.
             </p>
           </section>
           <section
             className="member-read-section"
             aria-labelledby="quota-history-title"
           >
-            <p className="ledger-kicker">Personal quota history</p>
+            <p className="ledger-kicker">Your quota history</p>
             <h2 id="quota-history-title">Your official rounds</h2>
             {history.length === 0 ? (
               <p className="member-read-empty">
-                No completed official rounds are in your quota history yet.
+                No completed rounds are in your quota history yet.
               </p>
             ) : (
               <div className="member-results-table-wrap">
                 <table className="member-results-table">
                   <caption className="visually-hidden">
-                    Personal quota history
+                    Your quota history
                   </caption>
                   <thead>
                     <tr>
@@ -171,7 +171,7 @@ function MemberStandingsContent({
                       <th scope="col">Points</th>
                       <th scope="col">Plus/minus</th>
                       <th scope="col">Quota after</th>
-                      <th scope="col">Current standings window</th>
+                      <th scope="col">Counts toward standings</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -194,7 +194,7 @@ function MemberStandingsContent({
                         <td>{row.plus_minus ?? "Not applicable"}</td>
                         <td>{row.quota_after}</td>
                         <td>
-                          {row.counts_in_standings ? "Yes" : "Retained only"}
+                          {row.counts_in_standings ? "Yes" : "History only"}
                         </td>
                       </tr>
                     ))}
@@ -225,7 +225,7 @@ function MemberStandingsUnavailable() {
           <h1>Your standings could not be loaded</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
           <Link className="secondary-link" href="/member/home">
-            Return to member home
+            Return to your home
           </Link>
         </section>
       </main>

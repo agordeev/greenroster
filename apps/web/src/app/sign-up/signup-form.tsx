@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { initialAuthFormState } from "@/app/actions/auth-state";
 import { registerOrganizerAction } from "@/app/actions/auth";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 type OrganizerSignupFormProps = Readonly<{
   termsVersion: string;
@@ -94,7 +95,7 @@ export function OrganizerSignupForm({
           required
         />
         <p id="password-help" className="field-help">
-          Use a passphrase of at least 12 characters.
+          Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>
 

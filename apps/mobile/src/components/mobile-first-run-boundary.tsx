@@ -40,7 +40,7 @@ export function MobileFirstRunBoundary({
       <StateScreen
         indicator={<ActivityIndicator color={theme.accent} />}
         title="Checking your profile"
-        message="GreenRoster is resolving your active membership and current legal documents before showing group data."
+        message="Checking your membership and the current legal documents. Your group appears after that."
       />
     );
   }
@@ -52,7 +52,7 @@ export function MobileFirstRunBoundary({
           firstRun.code === "permission_denied"
             ? "Membership access unavailable"
             : firstRun.code === "configuration_unavailable"
-              ? "Legal setup unavailable"
+              ? "Legal documents unavailable"
               : "Profile needs attention"
         }
         message={firstRun.message}

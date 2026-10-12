@@ -18,7 +18,7 @@ export function LiveRoundScoreboard({
     >
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Round-day operations</p>
+          <p className="ledger-kicker">Round day</p>
           <h2 id="live-scoreboard-title">Live scorecard</h2>
         </div>
         <p>
@@ -28,13 +28,13 @@ export function LiveRoundScoreboard({
         </p>
       </div>
       <p>
-        Values below are the server-confirmed projection. Missing scores stay
-        visibly distinct from a confirmed zero; refresh after a reconnect or
-        when a scorer reports a stale entry.
+        Scores below are the latest saved scores. Missing means no score yet,
+        which is not the same as zero. Refresh the page if a score looks out of
+        date.
       </p>
       {participants.length === 0 ? (
         <p className="group-empty" role="status">
-          No participants are available for live scoring.
+          No players are available to score yet.
         </p>
       ) : (
         <div className="publication-member-list round-detail-table-wrap">
@@ -48,7 +48,7 @@ export function LiveRoundScoreboard({
                 <th scope="col">Plus/minus</th>
                 <th scope="col">Gross</th>
                 <th scope="col">Net</th>
-                <th scope="col">Score state</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -73,7 +73,7 @@ function ScoreRow({
     .filter((value): value is string => Boolean(value?.trim()))
     .join(" ")
     .trim();
-  const displayName = name || "Unnamed participant";
+  const displayName = name || "Unnamed player";
   const playerLabel =
     participant.participantKind === "guest"
       ? `${displayName} · Guest`

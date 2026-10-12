@@ -64,7 +64,7 @@ export function MobileFirstRunScreen() {
     }
 
     if (!acceptedTerms || !acceptedPrivacy) {
-      setMessage("Accept both current legal documents to continue.");
+      setMessage("Accept the Terms of Use and Privacy Policy to continue.");
       return;
     }
 
@@ -93,12 +93,12 @@ export function MobileFirstRunScreen() {
           <View style={styles.content}>
             <View style={styles.heading}>
               <ThemedText type="smallBold" themeColor="accent">
-                FIRST RUN
+                YOUR PROFILE
               </ThemedText>
               <ThemedText type="title">Confirm your profile</ThemedText>
               <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
-                Confirm your name and accept the current legal documents before
-                GreenRoster shows protected group data.
+                Confirm your name and accept the Terms of Use and Privacy Policy
+                to see your group.
               </ThemedText>
             </View>
 
@@ -159,7 +159,7 @@ export function MobileFirstRunScreen() {
               ) : null}
 
               <Pressable
-                accessibilityHint="Saves your confirmed names and current legal acceptance using the server clock."
+                accessibilityHint="Saves your name and your acceptance of the Terms of Use and Privacy Policy."
                 accessibilityLabel="Complete profile"
                 accessibilityRole="button"
                 accessibilityState={{ busy: pending, disabled: pending }}
@@ -254,7 +254,7 @@ function LegalAcceptance({
     <View style={styles.legalRow}>
       <Pressable
         aria-checked={accepted}
-        accessibilityHint={`Double tap to ${accepted ? "withdraw" : "record"} acceptance of version ${version}.`}
+        accessibilityHint={`Double tap to ${accepted ? "remove your acceptance" : "accept"}.`}
         accessibilityLabel={`Accept the current ${documentName}`}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: accepted }}
@@ -269,7 +269,7 @@ function LegalAcceptance({
         </ThemedText>
       </Pressable>
       <Pressable
-        accessibilityHint={`Opens version ${version} in the browser.`}
+        accessibilityHint={`Opens the ${documentName} in the browser.`}
         accessibilityLabel={`Read the current ${documentName}`}
         accessibilityRole="link"
         onPress={onRead}
@@ -279,7 +279,7 @@ function LegalAcceptance({
         ]}
       >
         <ThemedText type="small" themeColor="accent">
-          Read {documentName} · version {version}
+          Read {documentName} · {version}
         </ThemedText>
       </Pressable>
     </View>

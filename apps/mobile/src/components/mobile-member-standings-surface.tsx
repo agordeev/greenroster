@@ -54,7 +54,7 @@ export function MobileMemberStandingsSurface() {
           ? standingsResult.message
           : !historyResult.ok
             ? historyResult.message
-            : "GreenRoster could not load standings and history.",
+            : "We couldn't load your standings and history.",
       );
       return;
     }
@@ -68,7 +68,7 @@ export function MobileMemberStandingsSurface() {
       void load().catch(() => {
         setStatus("error");
         setMessage(
-          "GreenRoster could not load standings and history. Check your connection and try again.",
+          "We couldn't load your standings and history. Check your connection and try again.",
         );
       });
     });
@@ -84,13 +84,13 @@ export function MobileMemberStandingsSurface() {
     <MemberDestinationScreen
       eyebrow="Standings"
       title={context?.groupName ?? "Your standings and history"}
-      introduction="Server-published merit standings and your official quota history stay together. The reset date changes current standings only; history is retained."
+      introduction="Where you stand and your official quota history. The reset date changes current standings only. Your history stays."
       emptyTitle={
         isError ? "Standings and history unavailable" : "No standings yet"
       }
       emptyBody={
         message ??
-        "Your group has no completed official rounds or active standing rows yet."
+        "Standings appear once your group finishes an official round."
       }
       hideEmptyState={isLoading || (status === "ready" && hasRows)}
       facts={[
@@ -147,7 +147,7 @@ export function MobileMemberStandingsSurface() {
           </View>
           {!own.quotaProjectionReady ? (
             <ThemedText type="small" themeColor="textSecondary">
-              Current quota needs more eligible history.
+              Your current quota needs more counted rounds.
             </ThemedText>
           ) : null}
         </View>
@@ -155,7 +155,7 @@ export function MobileMemberStandingsSurface() {
 
       {status === "ready" && standings.length === 0 && history.length > 0 ? (
         <ThemedText themeColor="textSecondary" accessibilityLiveRegion="polite">
-          No active member rows are currently available for Order of Merit.
+          No members are ranked for Order of Merit yet.
         </ThemedText>
       ) : null}
 
@@ -197,8 +197,7 @@ function StandingsList({
         Order of Merit
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        Ties use the server-provided rank. Quota values are projections, not
-        round snapshots.
+        Quota is a projection and can change.
       </ThemedText>
       {standings.map((row) => (
         <View
@@ -239,12 +238,12 @@ function QuotaHistoryList({
   theme: ReturnType<typeof useTheme>;
 }>) {
   return (
-    <View style={styles.section} accessibilityLabel="Personal quota history">
+    <View style={styles.section} accessibilityLabel="Your quota history">
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         Quota history
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        Official rounds only. Reopened rounds are excluded by the server.
+        Only official rounds count. Reopened rounds do not count.
       </ThemedText>
       {history.map((row) => (
         <View
@@ -267,7 +266,9 @@ function QuotaHistoryList({
             <ThemedText type="smallBold">{row.pointTotal} points</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               Quota {row.quotaAfter}
-              {row.countsInStandings ? " · Current" : " · Retained"}
+              {row.countsInStandings
+                ? " · In current standings"
+                : " · Not in current standings"}
             </ThemedText>
           </View>
         </View>
@@ -298,7 +299,7 @@ function formatOwnSummaryLabel(row: MobileMemberStanding) {
 }
 
 function formatHistoryLabel(row: MobileMemberQuotaHistory) {
-  return `${row.roundDescription || "Completed round"}, ${row.pointTotal} points, quota after ${row.quotaAfter}, ${row.countsInStandings ? "counts in current standings" : "retained outside current standings"}`;
+  return `${row.roundDescription || "Completed round"}, ${row.pointTotal} points, quota after ${row.quotaAfter}, ${row.countsInStandings ? "in current standings" : "not in current standings"}`;
 }
 
 function formatMethod(method: MobileMemberQuotaHistory["method"]) {
@@ -313,7 +314,7 @@ function formatMethod(method: MobileMemberQuotaHistory["method"]) {
 }
 
 function formatResetDate(value: string | null) {
-  if (!value) return "All eligible history";
+  if (!value) return "None";
   try {
     return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
       new Date(`${value}T00:00:00Z`),

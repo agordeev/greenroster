@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { updatePasswordAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function ResetForm() {
   const [state, formAction, pending] = useActionState(
@@ -51,7 +52,7 @@ export function ResetForm() {
         />
         {state.fieldErrors?.password ? (
           <p id="new-password-error" className="field-error">
-            Use at least 12 characters.
+            Use at least {MINIMUM_PASSWORD_LENGTH} characters.
           </p>
         ) : null}
       </div>

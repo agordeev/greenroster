@@ -66,15 +66,15 @@ export function MobileAuthScreen({
           <View style={styles.content}>
             <View style={styles.heading}>
               <ThemedText type="smallBold" themeColor="accent">
-                {isSignIn ? "PERSON-SPECIFIC ACCESS" : "ACCOUNT RECOVERY"}
+                {isSignIn ? "SIGN IN" : "ACCOUNT RECOVERY"}
               </ThemedText>
               <ThemedText type="title">
-                {isSignIn ? "Sign in as yourself" : "Reset your password"}
+                {isSignIn ? "Sign in" : "Reset your password"}
               </ThemedText>
               <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
                 {isSignIn
-                  ? "Use the e-mail and password attached to your own GreenRoster membership."
-                  : "Enter your account e-mail. The response never reveals whether an account exists."}
+                  ? "Sign in to see your rounds and standings."
+                  : "Enter your account e-mail and we'll send you a recovery link."}
               </ThemedText>
             </View>
 

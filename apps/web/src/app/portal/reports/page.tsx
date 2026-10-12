@@ -63,12 +63,12 @@ export default async function PortalReportsPage() {
       currentSection="reports"
     >
       <section className="portal-ledger" aria-labelledby="reports-title">
-        <p className="ledger-kicker">Operational reporting</p>
-        <h1 id="reports-title">Reports and exports</h1>
+        <p className="ledger-kicker">Exports</p>
+        <h1 id="reports-title">Reports</h1>
         <p>
-          You generate server-authoritative member, standings, and official
-          round reports. You get the group, generation time, time zone,
-          reporting window, and private-data classification with every download.
+          Download member, standings, and round reports as CSV or PDF. Each file
+          shows your group, when it was made, the time zone, the reporting
+          period, and a private data label.
         </p>
         <div className="information-actions">
           <Link
@@ -105,7 +105,7 @@ export default async function PortalReportsPage() {
           <h2 id="round-reports-title">Results and score pads</h2>
           {rounds.length === 0 ? (
             <p className="group-empty" role="status">
-              No completed rounds are available for reporting.
+              No completed rounds to report on yet.
             </p>
           ) : (
             <div className="member-results-table-wrap">

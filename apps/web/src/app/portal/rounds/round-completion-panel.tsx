@@ -86,11 +86,11 @@ function RoundCompletePanel({
       >
         <p className="ledger-kicker">Completion review</p>
         <h2 id="round-completion-unavailable-title">
-          Completion preview is unavailable
+          Completion check is unavailable
         </h2>
         <p>
-          The confirmed server readiness preview could not be loaded. Refresh
-          before completing this round.
+          The completion check could not be loaded. Refresh the page before you
+          complete this round.
         </p>
       </section>
     );
@@ -106,14 +106,14 @@ function RoundCompletePanel({
     setMessageTone("");
     if (!canComplete) {
       setMessage(
-        "Resolve every server blocker and confirm mobile score synchronization before completing.",
+        "Fix every blocker and make sure all mobile scores are synced before you complete the round.",
       );
       setMessageTone("error");
       return;
     }
     if (
       !window.confirm(
-        `Complete “${description}”? The server will publish the official result, merit, quota, and standings effects.`,
+        `Complete “${description}”? This publishes the official results and updates merit, quotas, and standings.`,
       )
     ) {
       return;
@@ -127,7 +127,7 @@ function RoundCompletePanel({
       operationId: operationId.current,
     });
     if (!parsed.success) {
-      setMessage("Refresh the selected round before completing it.");
+      setMessage("Refresh the page, then complete the round again.");
       setMessageTone("error");
       return;
     }
@@ -137,7 +137,7 @@ function RoundCompletePanel({
       try {
         result = await completeLiveRoundAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("The round wasn't completed. Try again.");
         setMessageTone("error");
         return;
       }
@@ -174,19 +174,18 @@ function RoundCompletePanel({
           <p className="ledger-kicker">Completion review</p>
           <h2 id="round-completion-title">Review and complete round</h2>
         </div>
-        <p>Version {version}</p>
+        <p>Live round</p>
       </div>
       <p>
-        The preview below is server-authoritative. Optional blank score fields
-        are warnings; required inputs and synchronization blockers prevent
-        completion.
+        Check the list below. Blank optional scores are warnings. Anything
+        marked as a blocker must be fixed before you can complete the round.
       </p>
       <div className="round-completion-summary" aria-live="polite">
         <strong>
           {canComplete ? "Ready for confirmation" : "Completion is blocked"}
         </strong>
         <span>
-          {preview.participants.length} Playing participant
+          {preview.participants.length} playing player
           {preview.participants.length === 1 ? "" : "s"} · {warnings.length}{" "}
           warning
           {warnings.length === 1 ? "" : "s"}
@@ -196,49 +195,49 @@ function RoundCompletePanel({
         className="member-results-winner"
         aria-labelledby="round-completion-consequences-title"
       >
-        <p className="ledger-kicker">Before confirmation</p>
+        <p className="ledger-kicker">Before you confirm</p>
         <h3 id="round-completion-consequences-title">
           {preview.consequences.winnerCount > 0
             ? `${preview.consequences.winnerCount} winner${preview.consequences.winnerCount === 1 ? "" : "s"}${preview.consequences.winnerIsTie ? " (tied)" : ""}`
             : "No ranked winner yet"}
         </h3>
         <p>
-          Server projection: {preview.consequences.memberQuotaImpactCount}{" "}
-          member quota change
+          Completing this round changes{" "}
+          {preview.consequences.memberQuotaImpactCount} member quota change
           {preview.consequences.memberQuotaImpactCount === 1
             ? ""
             : "s"} and {preview.consequences.standingImpactCount} standing
           change
-          {preview.consequences.standingImpactCount === 1 ? "" : "s"}. Review
-          each participant below before confirming.
+          {preview.consequences.standingImpactCount === 1 ? "" : "s"}. Check
+          each player below before you confirm.
         </p>
       </aside>
       {blockers.length > 0 ? (
-        <ReadinessList title="Resolve blockers" rows={blockers} tone="error" />
+        <ReadinessList title="Fix these first" rows={blockers} tone="error" />
       ) : null}
       {warnings.length > 0 ? (
         <ReadinessList title="Warnings" rows={warnings} tone="warning" />
       ) : null}
       {preview.mobileSyncCheck !== "complete" ? (
         <p className="form-message error" role="status">
-          Mobile score synchronization is not confirmed (
-          {preview.mobileSyncCheck}); completion remains blocked.
+          Mobile scores are not synced yet ({preview.mobileSyncCheck}).
+          Completion is blocked.
         </p>
       ) : null}
       <div className="member-results-table-wrap">
         <table className="member-results-table">
           <caption className="visually-hidden">
-            Server completion preview for {description}
+            Completion check for {description}
           </caption>
           <thead>
             <tr>
               <th scope="col">Rank</th>
-              <th scope="col">Participant</th>
+              <th scope="col">Player</th>
               <th scope="col">Points</th>
               <th scope="col">Plus/minus</th>
               <th scope="col">Quota effect</th>
               <th scope="col">Standing effect</th>
-              <th scope="col">Generated merit</th>
+              <th scope="col">Merit earned</th>
             </tr>
           </thead>
           <tbody>
@@ -247,7 +246,7 @@ function RoundCompletePanel({
                 <th scope="row">{participant.competitionRank ?? "—"}</th>
                 <td>
                   <strong>
-                    {participant.participantName || "Unnamed participant"}
+                    {participant.participantName || "Unnamed player"}
                   </strong>
                   {participant.participantKind === "guest" ? (
                     <span className="member-results-guest">Guest</span>
@@ -291,7 +290,7 @@ function RoundCompletePanel({
         disabled={pending || !canComplete}
         onClick={complete}
       >
-        {pending ? "Completing…" : "Confirm completion"}
+        {pending ? "Completing…" : "Complete round"}
       </button>
     </section>
   );
@@ -340,7 +339,7 @@ function RoundReopenPanel({
     }
     if (
       !window.confirm(
-        `Reopen “${description}”? Generated merit and derived completion outputs will be withdrawn, while history is retained.`,
+        `Reopen “${description}”? Merit and completion results will be removed, but the history stays on record.`,
       )
     ) {
       return;
@@ -355,7 +354,7 @@ function RoundReopenPanel({
       operationId: operationId.current,
     });
     if (!parsed.success) {
-      setMessage("Refresh the selected round before reopening it.");
+      setMessage("Refresh the page, then reopen the round again.");
       setMessageTone("error");
       return;
     }
@@ -365,7 +364,7 @@ function RoundReopenPanel({
       try {
         result = await reopenCompletedRoundAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("The round wasn't reopened. Try again.");
         setMessageTone("error");
         return;
       }
@@ -385,7 +384,7 @@ function RoundReopenPanel({
       operationId.current = null;
       setReason("");
       setMessage(
-        "Round reopened. Correct the authoritative inputs before recompleting.",
+        "Round reopened. Correct the scores, then complete the round again.",
       );
       setMessageTone("success");
       router.refresh();
@@ -396,33 +395,33 @@ function RoundReopenPanel({
     <section className="group-roles-panel" aria-labelledby="round-reopen-title">
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Round lifecycle</p>
+          <p className="ledger-kicker">Completed round</p>
           <h2 id="round-reopen-title">Reopen completed round</h2>
         </div>
-        <p>Version {version}</p>
+        <p>Completed</p>
       </div>
       <p>
-        Reopen returns the round to Live for audited correction. Prior score
-        revisions and official history remain available for investigation.
+        Reopening returns the round to live so you can correct scores. Earlier
+        score changes and official results stay in the history.
       </p>
       <aside
         className="member-results-winner"
         aria-labelledby="round-reopen-consequences-title"
       >
-        <p className="ledger-kicker">Before confirmation</p>
+        <p className="ledger-kicker">Before you confirm</p>
         <h3 id="round-reopen-consequences-title">
           {winners.length > 0
             ? `${winners.map(displayName).join(" and ")} — ${winners.length > 1 ? "tied " : ""}winner at rank 1`
-            : "No ranked winner in the current snapshot"}
+            : "No ranked winner in the current results"}
         </h3>
         <p>
           This withdraws {officialResults?.results.length ?? "the current"}{" "}
-          official result row
-          {officialResults?.results.length === 1 ? "" : "s"}, removes{" "}
-          {memberResultCount} member quota history row
-          {memberResultCount === 1 ? "" : "s"}, and recalculates standings.
-          Guest rows withdrawn: {guestResultCount}. Queued result notifications
-          are cancelled by the server; prior audit/history remains available.
+          official{" "}
+          {officialResults?.results.length === 1 ? "result" : "results"},
+          removes {memberResultCount} member quota history{" "}
+          {memberResultCount === 1 ? "entry" : "entries"}, and recalculates
+          standings. Guests removed: {guestResultCount}. Result e-mails that
+          haven’t gone out are cancelled. Earlier history stays on record.
         </p>
       </aside>
       <form
@@ -443,8 +442,7 @@ function RoundReopenPanel({
             aria-describedby="round-reopen-help"
           />
           <small id="round-reopen-help">
-            Required and retained with the reopen audit event (500 characters
-            maximum).
+            Required. Kept in the round history. Up to 500 characters.
           </small>
         </label>
         {message ? (
@@ -478,7 +476,7 @@ function displayName(result: MemberOfficialResult) {
     [result.first_name, result.last_name]
       .filter((value): value is string => Boolean(value?.trim()))
       .join(" ")
-      .trim() || "Unnamed participant"
+      .trim() || "Unnamed player"
   );
 }
 
@@ -511,9 +509,7 @@ function ReadinessList({
 }
 
 function readinessLabel(code: string | null) {
-  if (!code) return "Server readiness";
-  return code
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  if (!code) return "Round check";
+  const words = code.split("_").join(" ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }

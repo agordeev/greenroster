@@ -32,25 +32,25 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             <p className="ledger-kicker">Clubhouse access</p>
             <h1 id="sign-in-title">Sign in as yourself</h1>
             <p>
-              Use your verified account e-mail. GreenRoster never uses a shared
-              group password or a separate administrator unlock.
+              Use the e-mail address on your own account. There is no shared
+              group password.
             </p>
           </div>
 
           {status === "session-expired" ? (
             <p className="form-message recovery-status" role="alert">
-              Your session expired. Sign in and try again.
+              You have been signed out. Sign in and try again.
             </p>
           ) : null}
           {status === "member-link-expired" ? (
             <p className="form-message recovery-status" role="alert">
-              That member results link is expired or already used. Request a new
-              results e-mail from your group coordinator.
+              That results link has expired or was already used. Ask your group
+              coordinator to send a new results e-mail.
             </p>
           ) : null}
           {status === "member-link-unavailable" ? (
             <p className="form-message recovery-status" role="alert">
-              The member results link could not be verified. Try again or sign
+              We could not open that results link. Try the link again, or sign
               in with your account e-mail.
             </p>
           ) : null}
@@ -63,29 +63,26 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </div>
         </section>
 
-        <aside
-          className="auth-context"
-          aria-label="GreenRoster product context"
-        >
+        <aside className="auth-context" aria-label="About GreenRoster">
           <div className="scorecard-rule" />
           <p className="context-number">01</p>
-          <h2>Person-specific access keeps every group isolated.</h2>
+          <h2>Your access comes from your own membership.</h2>
           <p>
-            Your role and group come from the membership stored on the
-            server—not from a link, browser field, or group selector.
+            Your role and group come from your membership, not from a link or a
+            group selector.
           </p>
           <dl>
             <div>
-              <dt>Identity</dt>
-              <dd>Supabase Auth</dd>
+              <dt>Sign-in</dt>
+              <dd>Your account e-mail and password</dd>
             </div>
             <div>
-              <dt>Tenant</dt>
-              <dd>One group in v1</dd>
+              <dt>Groups</dt>
+              <dd>One group for now</dd>
             </div>
             <div>
-              <dt>Authority</dt>
-              <dd>Server resolved</dd>
+              <dt>Your role</dt>
+              <dd>Set by your membership</dd>
             </div>
           </dl>
         </aside>

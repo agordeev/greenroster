@@ -227,8 +227,9 @@ export async function bootstrapOrganizerAction(input: unknown) {
         ) {
           throw new MutationError("validation", {
             fieldErrors: {
-              acceptedTerms: ["Review the current Terms of Use."],
-              acceptedPrivacy: ["Review the current Privacy Policy."],
+              legal: [
+                "Start your account setup again to accept the current Terms of Use and Privacy Policy.",
+              ],
             },
           });
         }

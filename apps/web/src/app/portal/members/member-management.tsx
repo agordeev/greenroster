@@ -117,7 +117,9 @@ export function MemberManagement({
       <div className="member-list" aria-label="Group members">
         <div className="member-list-heading">
           <h2>Roster</h2>
-          <span>{totalCount} records</span>
+          <span>
+            {totalCount} {totalCount === 1 ? "member" : "members"}
+          </span>
         </div>
         <MemberRosterFilters query={rosterQuery} />
         <MemberAlphabetFilter query={rosterQuery} />
@@ -142,10 +144,7 @@ export function MemberManagement({
       ) : (
         <div className="member-editor-empty">
           <h2>Select a member</h2>
-          <p>
-            Choose a roster record to load its audited private-contact detail
-            and edit the member profile.
-          </p>
+          <p>Choose a member to see and edit their details.</p>
         </div>
       )}
       <div
@@ -170,7 +169,7 @@ function MemberRosterFilters({
     >
       <div className="member-roster-filter-grid">
         <label className="field-group member-roster-search">
-          <span>Search name, invited e-mail, or Handicap ID</span>
+          <span>Search by name, invite e-mail, or Handicap ID</span>
           <input
             name="search"
             type="search"
@@ -203,13 +202,13 @@ function MemberRosterFilters({
         <label className="field-group">
           <span>Dues</span>
           <select name="dues" defaultValue={query.dues ?? ""}>
-            <option value="">All dues states</option>
+            <option value="">All dues</option>
             <option value="paid">Paid</option>
             <option value="unpaid">Not recorded</option>
           </select>
         </label>
         <label className="field-group">
-          <span>Rows per page</span>
+          <span>Per page</span>
           <select name="pageSize" defaultValue={String(query.pageSize)}>
             <option value="25">25</option>
             <option value="50">50</option>
@@ -231,7 +230,7 @@ function MemberRosterFilters({
           </select>
         </label>
         <label className="field-group">
-          <span>Direction</span>
+          <span>Order</span>
           <select name="direction" defaultValue={query.direction}>
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
@@ -317,10 +316,10 @@ function MemberRosterContent({
   if (pageOutOfRange) {
     return (
       <div className="member-roster-empty" role="status">
-        <h3>This roster page is out of range</h3>
+        <h3>This page is past the end of the list</h3>
         <p>
-          The matching roster has {totalPages} page{totalPages === 1 ? "" : "s"}
-          . Open the first page to continue.
+          These members fill {totalPages} page{totalPages === 1 ? "" : "s"}.
+          Open the first page to continue.
         </p>
         <Link
           className="secondary-link"
@@ -341,8 +340,8 @@ function MemberRosterContent({
         </h3>
         <p>
           {filtered
-            ? "Try a different search or clear the roster filters."
-            : "Create or import a member to begin building the group roster."}
+            ? "Try a different search, or clear the filters."
+            : "Add a member or import a list to start your roster."}
         </p>
         {filtered ? (
           <Link className="secondary-link" href="/portal/members">
@@ -359,8 +358,8 @@ function MemberRosterContent({
         <div className="member-roster-empty" role="status">
           <h3>No active members</h3>
           <p>
-            This group has roster records, but none are active yet. Pending and
-            inactive records remain visible below for follow-up.
+            No one is active yet. Pending and inactive members are listed below
+            for follow-up.
           </p>
         </div>
       ) : null}
@@ -832,7 +831,7 @@ function MemberEditor({
         },
         () =>
           window.confirm(
-            "Discard other unsaved member changes before saving member details?",
+            "Discard your other unsaved changes before saving member details?",
           ),
       )
     ) {
@@ -878,10 +877,7 @@ function MemberEditor({
         }
         onTerminalMessage("error", result.error.message);
       } catch {
-        onTerminalMessage(
-          "error",
-          "The member service is temporarily unavailable. Try again.",
-        );
+        onTerminalMessage("error", "We couldn't save your changes. Try again.");
       }
     });
   }
@@ -900,7 +896,7 @@ function MemberEditor({
         },
         () =>
           window.confirm(
-            "Discard other unsaved member changes before changing membership status?",
+            "Discard your other unsaved changes before changing status?",
           ),
       )
     ) {
@@ -948,7 +944,7 @@ function MemberEditor({
           onTerminalMessage(
             "success",
             result.data.status === "inactive"
-              ? "Member marked inactive; pending notifications were cancelled."
+              ? "Member marked inactive. Their pending notifications were cancelled."
               : "Member reactivated.",
           );
           router.refresh();
@@ -956,10 +952,7 @@ function MemberEditor({
         }
         onTerminalMessage("error", result.error.message);
       } catch {
-        onTerminalMessage(
-          "error",
-          "The member service is temporarily unavailable. Try again.",
-        );
+        onTerminalMessage("error", "We couldn't save your changes. Try again.");
       }
     });
   }
@@ -969,10 +962,7 @@ function MemberEditor({
     if (!canChangeRole || selectedRole === member.role) return;
     const normalizedRoleReason = roleReason.trim();
     if (!roleConfirmed || normalizedRoleReason.length === 0) {
-      onTerminalMessage(
-        "error",
-        "Confirm the access change and provide a reason.",
-      );
+      onTerminalMessage("error", "Add a reason and confirm the access change.");
       return;
     }
     if (
@@ -986,7 +976,7 @@ function MemberEditor({
         },
         () =>
           window.confirm(
-            "Discard unsaved member changes before changing this role?",
+            "Discard your unsaved changes before changing this role?",
           ),
       )
     ) {
@@ -1034,17 +1024,14 @@ function MemberEditor({
             "success",
             result.data.roleChanged
               ? `Member role changed to ${formatRole(result.data.newRole)}.`
-              : "Member role is already up to date.",
+              : "This member already has that role.",
           );
           router.refresh();
           return;
         }
         onTerminalMessage("error", result.error.message);
       } catch {
-        onTerminalMessage(
-          "error",
-          "The member service is temporarily unavailable. Try again.",
-        );
+        onTerminalMessage("error", "We couldn't save your changes. Try again.");
       }
     });
   }
@@ -1072,7 +1059,7 @@ function MemberEditor({
     ) {
       onTerminalMessage(
         "error",
-        "Enter a handicap and as-of date, provide a reason, and confirm the correction.",
+        "Enter a handicap and date, add a reason, and confirm the correction.",
       );
       return;
     }
@@ -1087,7 +1074,7 @@ function MemberEditor({
         },
         () =>
           window.confirm(
-            "Discard other unsaved member changes before recording this handicap?",
+            "Discard your other unsaved changes before recording this handicap?",
           ),
       )
     ) {
@@ -1144,10 +1131,7 @@ function MemberEditor({
         setHandicapStale(result.error.code === "stale_version");
         onTerminalMessage("error", result.error.message);
       } catch {
-        onTerminalMessage(
-          "error",
-          "The member service is temporarily unavailable. Try again.",
-        );
+        onTerminalMessage("error", "We couldn't save your changes. Try again.");
       }
     });
   }
@@ -1192,7 +1176,7 @@ function MemberEditor({
           <dd>{member.duesPaid ? "Paid" : "Not recorded"}</dd>
         </div>
         <div>
-          <dt>Versions</dt>
+          <dt>Update numbers</dt>
           <dd>
             profile {member.profileVersion} · contact{" "}
             {privateContact.contactVersion} · membership{" "}
@@ -1203,7 +1187,7 @@ function MemberEditor({
 
       <form className="member-edit-form" onSubmit={submitEdit} noValidate>
         <fieldset disabled={pending || !canEdit}>
-          <legend>Profile and private contacts</legend>
+          <legend>Profile and contact details</legend>
           <div className="member-form-grid">
             <Field
               label="First name"
@@ -1256,7 +1240,7 @@ function MemberEditor({
           </div>
 
           <fieldset className="member-contact-fieldset">
-            <legend>Private contact detail (audited read)</legend>
+            <legend>Private contact details</legend>
             <div className="member-form-grid">
               <Field
                 label="Secondary e-mail"
@@ -1340,7 +1324,7 @@ function MemberEditor({
           </fieldset>
 
           <label className="field-group">
-            <span>Reason (optional audit note)</span>
+            <span>Reason (optional)</span>
             <textarea
               value={editReason}
               onChange={(event) => setEditReason(event.target.value)}
@@ -1362,8 +1346,8 @@ function MemberEditor({
         <fieldset disabled={pending || !canEdit}>
           <legend>Record manual handicap</legend>
           <p className="field-help">
-            Each correction adds a new dated record. Existing handicap history
-            is retained below.
+            Each correction is saved with its date. Earlier handicaps stay in
+            the history below.
           </p>
           <div className="member-form-grid">
             <Field
@@ -1415,8 +1399,8 @@ function MemberEditor({
               required
             />
             <span>
-              I confirm this dated correction and understand it will be retained
-              in member history.
+              I confirm this correction. It will stay in the member&apos;s
+              handicap history.
             </span>
           </label>
           <button
@@ -1437,7 +1421,7 @@ function MemberEditor({
               type="button"
               onClick={reloadStaleHandicap}
             >
-              Reload current member and keep this draft
+              Reload and keep my entries
             </button>
           ) : null}
         </fieldset>
@@ -1445,21 +1429,21 @@ function MemberEditor({
 
       {member.status === "pending" ? (
         <p className="field-help">
-          Pending members must accept their invitation before activation
-          controls are available.
+          This member must accept their invitation before you can change their
+          status.
         </p>
       ) : (
         <form className="member-status-form" onSubmit={submitStatus} noValidate>
           <fieldset disabled={pending || !canChangeStatus}>
-            <legend>Membership status</legend>
+            <legend>Member status</legend>
             {restrictedTarget ? (
               <p className="field-help">
-                Coordinator access cannot change an administrator record.
+                Coordinators cannot change administrators.
               </p>
             ) : null}
             {member.membershipId === actorMembershipId ? (
               <p className="field-help">
-                You cannot change your own membership status.
+                You can&apos;t change your own status.
               </p>
             ) : null}
             <label className="field-group">
@@ -1484,8 +1468,8 @@ function MemberEditor({
                 required
               />
               <span>
-                I understand this changes the member&apos;s ability to RSVP and
-                receive notifications.
+                I understand this changes whether the member can RSVP and get
+                notifications.
               </span>
             </label>
             <button
@@ -1542,9 +1526,7 @@ function MemberEditor({
                 onChange={(event) => setRoleConfirmed(event.target.checked)}
                 required
               />
-              <span>
-                I understand this changes the member&apos;s access immediately.
-              </span>
+              <span>I understand this changes their access right away.</span>
             </label>
             <button
               className="secondary-button"
@@ -1561,8 +1543,8 @@ function MemberEditor({
             roleReason.trim().length === 0 ||
             !roleConfirmed ? (
               <p className="field-help" role="status">
-                Choose a different role, enter a reason, and confirm the
-                immediate access change before saving.
+                Choose a different role, add a reason, and confirm the change
+                before saving.
               </p>
             ) : null}
           </fieldset>
@@ -1571,7 +1553,8 @@ function MemberEditor({
 
       {dirty ? (
         <p className="field-help" role="status">
-          Unsaved member changes will be confirmed before leaving this editor.
+          You have unsaved changes. You&apos;ll be asked to confirm before
+          leaving.
         </p>
       ) : null}
     </div>

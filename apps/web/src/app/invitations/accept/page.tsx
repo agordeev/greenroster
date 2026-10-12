@@ -45,7 +45,7 @@ function errorCopy(error: InvitationAcceptanceDataError): string {
     case "not_found":
       return "This invitation link is invalid or no longer available.";
     default:
-      return "The invitation service is temporarily unavailable. Try again in a moment.";
+      return "We cannot check this invitation right now. Try again in a moment.";
   }
 }
 
@@ -111,7 +111,7 @@ export default async function InvitationAcceptPage({
         }
         message={
           status === "invalid"
-            ? "The invitation link could not be verified. Open the original e-mail link again or ask a coordinator to resend it."
+            ? "We could not open this invitation link. Open the original e-mail again, or ask your group coordinator to send a new one."
             : "Open the original invitation link again, or ask a group coordinator to resend it."
         }
       />
@@ -139,8 +139,8 @@ export default async function InvitationAcceptPage({
   if (authUnavailable) {
     return (
       <StatusState
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment; the invitation link remains protected."
+        title="Account check unavailable"
+        message="Try again in a moment. Your invitation is still saved in this browser."
       />
     );
   }
@@ -152,10 +152,9 @@ export default async function InvitationAcceptPage({
           <p className="ledger-kicker">Membership invitation</p>
           <h1 id="invitation-title">Sign in to review your invitation</h1>
           <p>
-            GreenRoster shows the group, inviter, invited e-mail, role, and
-            expiry after a verified account session is established. Your
-            protected invitation handoff remains in this browser while you sign
-            in or create an account.
+            Sign in or create an account to see the group, who invited you, the
+            invited e-mail address, the role, and when it expires. Your
+            invitation stays saved in this browser while you do.
           </p>
         </div>
         <div className="information-actions invitation-recovery-actions">
@@ -177,7 +176,7 @@ export default async function InvitationAcceptPage({
     return (
       <StatusState
         title="Verify your account e-mail"
-        message="Confirm this account's e-mail, then return to the invitation link to review and accept membership."
+        message="Confirm your e-mail address, then open this invitation link again to review and accept it."
       />
     );
   }
@@ -195,7 +194,7 @@ export default async function InvitationAcceptPage({
         message={
           error instanceof InvitationAcceptanceDataError
             ? errorCopy(error)
-            : "The invitation service is temporarily unavailable. Try again in a moment."
+            : "We cannot check this invitation right now. Try again in a moment."
         }
       />
     );
@@ -236,16 +235,16 @@ export default async function InvitationAcceptPage({
   ) {
     return (
       <StatusState
-        title="Use a regular account session"
-        message="Your current session was created for password recovery and cannot accept an invitation. Finish recovery, then sign out and sign in normally before returning to this invitation."
+        title="Finish resetting your password first"
+        message="You signed in from a password reset link, so you cannot accept an invitation yet. Finish resetting your password, then sign out, sign in normally, and open this invitation again."
       />
     );
   }
   if (recoveryState === "unavailable") {
     return (
       <StatusState
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment; the invitation link remains protected."
+        title="Account check unavailable"
+        message="Try again in a moment. Your invitation is still saved in this browser."
       />
     );
   }
@@ -263,9 +262,9 @@ export default async function InvitationAcceptPage({
           {preview.memberFirstName}, you’re invited to {preview.groupName}
         </h1>
         <p>
-          Review the invitation before you accept. GreenRoster attaches it to
-          the verified account you choose; the invited address does not become a
-          second identity.
+          Check the details below before you accept. The invitation joins the
+          account you are signed in with, even if its e-mail address is
+          different.
         </p>
       </div>
 
@@ -279,7 +278,7 @@ export default async function InvitationAcceptPage({
           <dd>{preview.inviterDisplayName}</dd>
         </div>
         <div>
-          <dt>Proposed role</dt>
+          <dt>Role</dt>
           <dd>{roleLabel(preview.role)}</dd>
         </div>
         <div>
@@ -287,25 +286,24 @@ export default async function InvitationAcceptPage({
           <dd>{expiryLabel(preview.expiresAt)}</dd>
         </div>
         <div>
-          <dt>Current account</dt>
+          <dt>Your account</dt>
           <dd>{accountEmail ?? "Not signed in"}</dd>
         </div>
         <div>
-          <dt>Address check</dt>
+          <dt>E-mail match</dt>
           <dd>
             {emailMatches === null
               ? "Sign in to continue"
               : emailMatches
                 ? "Matches the invitation"
-                : "Different address is allowed; it will attach to this account"}
+                : "Different from the invitation. It will still join this account"}
           </dd>
         </div>
       </dl>
 
       <p className="field-help invitation-legal-note">
-        By continuing, you agree to review the current{" "}
-        <Link href="/terms">Terms</Link> and{" "}
-        <Link href="/privacy">Privacy Policy</Link> before first run.
+        Before you start, review the current <Link href="/terms">Terms</Link>{" "}
+        and <Link href="/privacy">Privacy Policy</Link>.
       </p>
 
       {user?.email_confirmed_at ? (

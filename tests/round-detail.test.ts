@@ -71,12 +71,12 @@ describe("coordinator round detail presentation", () => {
     const text = collectRenderedText(RoundReadOnlyDetail({ detail }));
     expect(text).toContain("Overview");
     expect(text).toContain("Players");
-    expect(text).toContain("Rule snapshot");
+    expect(text).toContain("Rules");
     expect(text).toContain("Moving average");
-    expect(text).toContain("0 Guests");
+    expect(text).toContain("0 guests");
     expect(text).toContain("Cancellation reason:");
     expect(text).toContain("Course closed");
-    expect(text).toContain("Coordinator-only");
+    expect(text).toContain("No, coordinators only");
   });
 });
 

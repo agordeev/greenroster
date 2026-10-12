@@ -37,8 +37,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <p className="ledger-kicker">Organizer signup</p>
             <h1 id="sign-up-title">Start your group</h1>
             <p>
-              Create your verified account, then add your group details and open
-              your administrator portal.
+              Create your account, then add your group details and open your
+              administrator portal.
             </p>
           </div>
 
@@ -61,15 +61,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           ) : (
             <div className="form-message" role="alert">
               <p>
-                Organizer signup is temporarily unavailable because the approved
-                Terms of Use and Privacy Policy are not configured for this
-                deployment.
+                Organizer sign-up is paused. The Terms of Use and Privacy Policy
+                are not published yet.
               </p>
               <p>
-                Review the current legal notices on the{" "}
-                <Link href="/terms">Terms of Use</Link> and{" "}
-                <Link href="/privacy">Privacy Policy</Link> pages. The form will
-                appear after the deployment owner publishes both versions.
+                Read the current <Link href="/terms">Terms of Use</Link> and{" "}
+                <Link href="/privacy">Privacy Policy</Link>. The sign-up form
+                will appear once both are published.
               </p>
             </div>
           )}

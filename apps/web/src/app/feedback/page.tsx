@@ -6,9 +6,8 @@ export default function FeedbackPage() {
     <InformationShell kicker="Feedback" title="Tell us what would work better">
       <div className="information-copy">
         <p>
-          Include the workflow you were completing and the outcome you expected.
-          Feedback is read through the support channel; it is not an in-app
-          notification or group message.
+          Tell us what you were doing and what you expected to happen. Feedback
+          goes to GreenRoster support, not to your group.
         </p>
         <a
           className="primary-link"

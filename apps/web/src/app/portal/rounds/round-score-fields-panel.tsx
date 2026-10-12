@@ -62,7 +62,7 @@ export function RoundScoreFieldsPanel({
           operationId: currentOperationId,
         });
       } catch {
-        setMessage("You cannot save these score fields right now. Try again.");
+        setMessage("Your score options weren't saved. Try again.");
         setMessageTone("error");
         return;
       }
@@ -76,7 +76,7 @@ export function RoundScoreFieldsPanel({
       }
       operationId.current = null;
       setSavedVersion(result.data.version);
-      setMessage("You can use these score fields for this round.");
+      setMessage("Score options saved for this round.");
       setMessageTone("success");
       router.refresh();
     });
@@ -90,13 +90,13 @@ export function RoundScoreFieldsPanel({
       <div className="group-panel-heading">
         <div>
           <p className="ledger-kicker">Format setup</p>
-          <h2 id="score-fields-title">Score fields</h2>
+          <h2 id="score-fields-title">Score options</h2>
         </div>
         <p>You are editing a draft.</p>
       </div>
       <p className="field-help">
-        Choose which final totals you can enter when you score this round. You
-        enter golf points for every player.
+        Choose which totals you can enter when you score this round. Golf points
+        are entered for every player.
       </p>
       <div className="precision-options">
         <label className="bound-choice" htmlFor="round-enable-gross-score">
@@ -139,7 +139,7 @@ export function RoundScoreFieldsPanel({
           onClick={save}
           disabled={pending || !dirty}
         >
-          {pending ? "Saving…" : "Save your score fields"}
+          {pending ? "Saving…" : "Save score options"}
         </button>
       </div>
     </section>

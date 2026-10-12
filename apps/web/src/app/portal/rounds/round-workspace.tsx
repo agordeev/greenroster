@@ -96,10 +96,7 @@ export function RoundWorkspace({
             <h2 id="round-detail-unavailable-title">
               Round detail is unavailable
             </h2>
-            <p>
-              The confirmed round detail service is temporarily unavailable.
-              Refresh before relying on the participant snapshots.
-            </p>
+            <p>Refresh the page to see the round details and player list.</p>
           </section>
         ) : (
           <RoundReadOnlyDetail detail={roundDetail} />
@@ -162,13 +159,13 @@ export function RoundWorkspace({
               className="group-roles-panel"
               aria-labelledby="live-scoreboard-unavailable-title"
             >
-              <p className="ledger-kicker">Round-day operations</p>
+              <p className="ledger-kicker">Round day</p>
               <h2 id="live-scoreboard-unavailable-title">
                 Live scorecard is unavailable
               </h2>
               <p>
-                The confirmed score projection could not be loaded. Refresh
-                before relying on the leaderboard or entering a correction.
+                Scores could not be loaded. Refresh the page before you check
+                the leaderboard or enter a correction.
               </p>
             </section>
           ) : (
@@ -191,11 +188,11 @@ export function RoundWorkspace({
               className="group-roles-panel"
               aria-labelledby="round-hole-scorecard-unavailable-title"
             >
-              <p className="ledger-kicker">Personal golf details</p>
+              <p className="ledger-kicker">Scoring</p>
               <h2 id="round-hole-scorecard-unavailable-title">
                 Hole scorecard is unavailable
               </h2>
-              <p>Refresh before you enter or review hole details.</p>
+              <p>Refresh the page to enter or review hole details.</p>
             </section>
           ) : (
             <RoundHoleScorecardPanel rows={holeScores} state={state} />
@@ -266,8 +263,7 @@ export function RoundWorkspace({
               Publication review is unavailable
             </h2>
             <p>
-              The participant readiness service is temporarily unavailable.
-              Refresh before publishing.
+              Players could not be checked. Refresh the page before you publish.
             </p>
           </section>
         ) : (

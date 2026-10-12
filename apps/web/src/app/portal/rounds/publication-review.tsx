@@ -61,9 +61,7 @@ export function PublicationReviewPanel({
       }
       setReview(result.data);
     } catch {
-      setMessage(
-        "The publication review is temporarily unavailable. Try again.",
-      );
+      setMessage("Players could not be checked. Try again.");
       setMessageTone("error");
     } finally {
       setPending(false);
@@ -73,24 +71,26 @@ export function PublicationReviewPanel({
   async function publish(): Promise<void> {
     if (pending) return;
     if (draftDirty) {
-      setMessage("Save or cancel the unsaved draft changes before publishing.");
+      setMessage("Save or cancel your draft changes before you publish.");
       setMessageTone("error");
       return;
     }
     const { summary } = review;
     if (summary.missingQuotaCount > 0) {
-      setMessage("Resolve the missing quota snapshots before publishing.");
+      setMessage(
+        "Add quota for each player or exclude them before you publish.",
+      );
       setMessageTone("error");
       return;
     }
     if (summary.includedMemberCount === 0) {
-      setMessage("Include at least one eligible member before publishing.");
+      setMessage("Include at least one eligible member before you publish.");
       setMessageTone("error");
       return;
     }
     if (
       !window.confirm(
-        `Publish this ${format === "individual_net" ? "Individual Net" : "Individual Gross"} round for ${summary.includedMemberCount} participant${summary.includedMemberCount === 1 ? "" : "s"}? This opens RSVP and queues ${summary.notificationRecipientCount} e-mail notification${summary.notificationRecipientCount === 1 ? "" : "s"}.`,
+        `Publish this ${format === "individual_net" ? "Individual Net" : "Individual Gross"} round for ${summary.includedMemberCount} player${summary.includedMemberCount === 1 ? "" : "s"}? Players can RSVP right away, and ${summary.notificationRecipientCount} e-mail${summary.notificationRecipientCount === 1 ? "" : "s"} will be sent.`,
       )
     ) {
       return;
@@ -124,14 +124,12 @@ export function PublicationReviewPanel({
       }
       operationId.current = null;
       setMessage(
-        `Round published. ${result.data.participantCount} participant${result.data.participantCount === 1 ? "" : "s"} included and ${result.data.notificationCount} notification${result.data.notificationCount === 1 ? "" : "s"} queued.`,
+        `Round published. ${result.data.participantCount} player${result.data.participantCount === 1 ? "" : "s"} can RSVP and ${result.data.notificationCount} e-mail${result.data.notificationCount === 1 ? "" : "s"} will be sent.`,
       );
       setMessageTone("success");
       router.refresh();
     } catch {
-      setMessage(
-        "The publication service is temporarily unavailable. Try again.",
-      );
+      setMessage("The round wasn't published. Try again.");
       setMessageTone("error");
     } finally {
       setPending(false);
@@ -146,47 +144,42 @@ export function PublicationReviewPanel({
       <div className="group-panel-heading">
         <div>
           <p className="ledger-kicker">Publication review</p>
-          <h2 id="publication-review-title">Participants and readiness</h2>
+          <h2 id="publication-review-title">Player list</h2>
         </div>
         <p>
           {format === "individual_net" ? "Individual Net" : "Individual Gross"}
         </p>
       </div>
       <p>
-        Every included member is created as <strong>No response</strong> when
-        published. Members can then respond from the app or member web view.
+        When you publish, every included member starts as{" "}
+        <strong>No response</strong>. Members can then respond in the app or on
+        the web.
       </p>
 
-      <dl className="publication-summary" aria-label="Publication summary">
+      <dl className="publication-summary" aria-label="Player summary">
         <SummaryItem
           label="Active members"
           value={review.summary.activeMemberCount}
         />
-        <SummaryItem
-          label="Included / No response"
-          value={review.summary.noResponseCount}
-        />
+        <SummaryItem label="Included" value={review.summary.noResponseCount} />
         <SummaryItem
           label="Ineligible"
           value={review.summary.ineligibleCount}
         />
-        <SummaryItem
-          label="Explicitly excluded"
-          value={review.summary.excludedCount}
-        />
+        <SummaryItem label="Excluded" value={review.summary.excludedCount} />
         <SummaryItem
           label="Missing quota"
           value={review.summary.missingQuotaCount}
           warning={review.summary.missingQuotaCount > 0}
         />
         <SummaryItem
-          label="E-mail notifications"
+          label="E-mails to send"
           value={review.summary.notificationRecipientCount}
         />
       </dl>
 
       <div className="publication-member-list">
-        <h3>Active member review</h3>
+        <h3>Members to review</h3>
         <ul className="group-role-list">
           {review.members.map((member) => (
             <PublicationMemberRow
@@ -257,20 +250,18 @@ function PublicationMemberRow({
         </label>
         <p>
           {ineligible
-            ? `Ineligible: ${member.eligibilityReason ?? "member is not eligible"}`
+            ? `Not eligible: ${member.eligibilityReason ?? "no reason given"}`
             : explicitlyExcluded
               ? "Excluded before publication"
               : member.included
                 ? missingQuota
-                  ? "Included · missing quota snapshot"
-                  : "Included · No response on publication"
+                  ? "Included · quota missing"
+                  : "Included · starts as No response"
                 : "Excluded before publication"}
         </p>
       </div>
       <div className="group-role-meta">
-        <span>
-          {member.emailReady ? "E-mail ready" : "No confirmed e-mail"}
-        </span>
+        <span>{member.emailReady ? "Gets e-mail" : "Won't get e-mail"}</span>
         {member.projectedQuota ? (
           <span>Quota {member.projectedQuota}</span>
         ) : null}

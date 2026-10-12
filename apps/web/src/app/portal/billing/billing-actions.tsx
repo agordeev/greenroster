@@ -54,6 +54,7 @@ export function BillingActions({
   return (
     <div className="information-actions">
       <button
+        className="primary-button"
         type="button"
         disabled={busy !== null}
         onClick={() => open("/api/billing/checkout", "checkout")}
@@ -61,6 +62,7 @@ export function BillingActions({
         {busy === "checkout" ? "Opening checkout…" : "Start checkout"}
       </button>
       <button
+        className="secondary-button"
         type="button"
         disabled={!hasCustomer || busy !== null}
         onClick={() => open("/api/billing/portal", "portal")}

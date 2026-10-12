@@ -42,9 +42,9 @@ export default async function ClubhouseContentPage() {
       currentSection="content"
     >
       <section className="portal-ledger" aria-labelledby="clubhouse-page-title">
-        <p className="ledger-kicker">Clubhouse</p>
-        <h1 id="clubhouse-page-title">Your group news and videos</h1>
-        <p>You share dated news and secure video links with active members.</p>
+        <p className="ledger-kicker">News and videos</p>
+        <h1 id="clubhouse-page-title">Clubhouse</h1>
+        <p>Share news and video links with your active members.</p>
         <ClubhouseAdminPanel initial={initial} />
       </section>
     </PortalShell>

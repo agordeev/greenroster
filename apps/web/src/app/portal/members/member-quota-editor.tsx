@@ -295,7 +295,7 @@ export function MemberQuotaEditor({
     operation.current = nextOperation;
     if (!nextOperation.operationId) {
       setTerminal({
-        message: "Could not create a safe operation id. Try again.",
+        message: "Could not save. Try again.",
         status: "error",
         stale: false,
       });
@@ -320,16 +320,16 @@ export function MemberQuotaEditor({
           );
           persistRecovery(
             result.data.projectionReady
-              ? "Member quota bootstrap saved."
-              : "Member quota inputs saved; the projection needs more history.",
+              ? "Starting quota saved."
+              : "Starting quota saved. The quota needs more history before it can be calculated.",
             { fingerprint: null, operationId: null },
             initialDraft(context),
             false,
           );
           setTerminal({
             message: result.data.projectionReady
-              ? "Member quota bootstrap saved."
-              : "Member quota inputs saved; the projection needs more history.",
+              ? "Starting quota saved."
+              : "Starting quota saved. The quota needs more history before it can be calculated.",
             status: "success",
             stale: false,
           });
@@ -341,7 +341,7 @@ export function MemberQuotaEditor({
           setConfirmed(false);
           setTerminal({
             message:
-              "Quota settings or this member changed. Reload current values to review the latest context, then confirm again before saving.",
+              "Quota settings or this member's details changed. Reload to see the latest values, then confirm again before saving.",
             status: "error",
             stale: true,
           });
@@ -359,8 +359,7 @@ export function MemberQuotaEditor({
         });
       } catch {
         setTerminal({
-          message:
-            "The member quota service is temporarily unavailable. Try again.",
+          message: "We couldn't save your changes. Try again.",
           status: "error",
           stale: false,
         });
@@ -393,7 +392,7 @@ export function MemberQuotaEditor({
           <dd>{context.projectionReady ? "Ready" : "Needs more history"}</dd>
         </div>
         <div>
-          <dt>Current provenance</dt>
+          <dt>Based on</dt>
           <dd>
             {formatProjectionSource(context.projectionSource)}
             {context.projectionEffectiveAt
@@ -420,9 +419,9 @@ export function MemberQuotaEditor({
           <dd>{formatSettings(context)}</dd>
         </div>
         <div>
-          <dt>Versions</dt>
+          <dt>Update numbers</dt>
           <dd>
-            projection {context.projectionVersion} · settings{" "}
+            quota {context.projectionVersion} · settings{" "}
             {context.settingsVersion}
           </dd>
         </div>
@@ -430,17 +429,18 @@ export function MemberQuotaEditor({
 
       {!settingsReady ? (
         <p className="member-quota-setup-note">
-          Configure the group quota method before editing member quota inputs.{" "}
-          <Link href="/portal">Open group quota settings</Link>
+          Set up the group&apos;s quota method before you enter member quota
+          inputs. <Link href="/portal">Open group quota settings</Link>
         </p>
       ) : null}
 
       <form className="member-quota-form" onSubmit={submit} noValidate>
         <fieldset disabled={pending || !settingsReady}>
-          <legend>Member-owned initial inputs</legend>
+          <legend>Starting quota for this member</legend>
           <p className="member-quota-copy">
-            Seed totals are ordered setup point totals used by the selected
-            quota method; they are not rounds, results, or participation.
+            Seed totals are starting point totals, entered oldest first, that
+            the group&apos;s quota method uses. They are not rounds, results, or
+            participation.
           </p>
 
           <div className="member-quota-form-grid">
@@ -455,7 +455,7 @@ export function MemberQuotaEditor({
                 aria-describedby="member-initial-quota-help"
               />
               <small id="member-initial-quota-help" className="field-help">
-                Use the group precision shown above.
+                Enter it with the decimal places shown above.
               </small>
             </label>
             <label
@@ -473,16 +473,16 @@ export function MemberQuotaEditor({
                 }}
               />
               <span>
-                Use initial quota until the configured history takes over.
+                Use this starting quota until enough history builds up.
               </span>
             </label>
           </div>
 
           <div className="member-quota-seed-heading">
             <div>
-              <h3>Ordered seed point totals</h3>
+              <h3>Seed point totals</h3>
               <p className="field-help">
-                Oldest first, up to {MAX_MEMBER_QUOTA_SEEDS} values.
+                Oldest first. Up to {MAX_MEMBER_QUOTA_SEEDS} values.
               </p>
             </div>
             <button
@@ -496,13 +496,10 @@ export function MemberQuotaEditor({
           </div>
           {draft.seedTotals.length === 0 ? (
             <p className="member-quota-empty-seeds">
-              No seed totals yet. Add values when this member has setup history.
+              No seed totals yet. Add them if this member has earlier history.
             </p>
           ) : (
-            <ol
-              className="member-quota-seeds"
-              aria-label="Ordered seed point totals"
-            >
+            <ol className="member-quota-seeds" aria-label="Seed point totals">
               {draft.seedTotals.map((value, index) => (
                 <li key={index}>
                   <label
@@ -539,10 +536,10 @@ export function MemberQuotaEditor({
           >
             <div>
               <p className="ledger-kicker" id="member-quota-preview-title">
-                Exact local preview
+                Preview
               </p>
               <p className="field-help">
-                The server recalculates and validates this projection on save.
+                The quota is recalculated when you save.
               </p>
             </div>
             <output aria-live="polite">
@@ -557,7 +554,7 @@ export function MemberQuotaEditor({
             className="field-group member-quota-reason"
             htmlFor="member-quota-reason"
           >
-            <span>Reason (required audit note)</span>
+            <span>Reason (required)</span>
             <textarea
               id="member-quota-reason"
               value={draft.reason}
@@ -580,13 +577,13 @@ export function MemberQuotaEditor({
               required
             />
             <span>
-              I confirm these initial quota inputs and ordered seed totals for
-              this member.
+              I confirm these starting quota values and seed totals for this
+              member.
             </span>
           </label>
 
           <button className="primary-button" type="submit">
-            {pending ? "Saving…" : "Save quota bootstrap"}
+            {pending ? "Saving…" : "Save starting quota"}
           </button>
         </fieldset>
       </form>
@@ -649,7 +646,7 @@ function formatProjectionSource(source: Readonly<Record<string, unknown>>) {
       )
     : [];
   return positions.length > 0
-    ? `${label} · seed positions ${positions.join(", ")}`
+    ? `${label} · seeds ${positions.join(", ")}`
     : label;
 }
 

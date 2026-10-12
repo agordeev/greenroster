@@ -29,7 +29,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
           {state.message}
         </p>
         <Link className="primary-button button-link" href="/member/home">
-          Open member home
+          Open your home
         </Link>
       </div>
     );

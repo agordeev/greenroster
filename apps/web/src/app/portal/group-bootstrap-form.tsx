@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useRef, useState, useTransition } from "react";
+import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
 import { bootstrapGroupAction } from "@/app/actions/groups";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
+import { resolveLocalTimeZone } from "@/lib/local-time-zone";
 
 type FormErrors = Readonly<{
   groupName?: string;
@@ -24,6 +25,10 @@ export function GroupBootstrapForm({
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setGroupTimeZone((current) => current || resolveLocalTimeZone());
+  }, []);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,7 +82,7 @@ export function GroupBootstrapForm({
           ? { groupName: "Enter a group name." }
           : {}),
         ...(result.error.fieldErrors?.groupTimeZone
-          ? { groupTimeZone: "Enter a supported IANA time zone." }
+          ? { groupTimeZone: "Enter a valid time zone, such as Europe/London." }
           : {}),
       };
 
@@ -124,7 +129,7 @@ export function GroupBootstrapForm({
           name="groupTimeZone"
           value={groupTimeZone}
           onChange={(event) => setGroupTimeZone(event.target.value)}
-          placeholder="America/New_York"
+          placeholder="Your local time zone"
           autoComplete="off"
           aria-invalid={Boolean(errors.groupTimeZone)}
           aria-describedby={
@@ -135,7 +140,7 @@ export function GroupBootstrapForm({
           required
         />
         <p id="group-time-zone-help" className="field-help">
-          Round times and reminders use this IANA time zone.
+          Round times and reminders use this time zone.
         </p>
         {errors.groupTimeZone ? (
           <p id="group-time-zone-error" className="field-error">

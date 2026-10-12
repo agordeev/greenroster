@@ -24,8 +24,8 @@ export function OfficialResultsPanel({
           Official results are unavailable
         </h2>
         <p>
-          The current official result snapshot could not be loaded. Refresh
-          before relying on rankings, scores, or merit totals.
+          Official results could not be loaded. Refresh the page before you use
+          the rankings, scores, or merit totals.
         </p>
       </section>
     );
@@ -51,9 +51,12 @@ export function OfficialResultsPanel({
       <div className="group-panel-heading">
         <div>
           <p className="ledger-kicker">Published results</p>
-          <h2 id="official-results-title">Official result snapshot</h2>
+          <h2 id="official-results-title">Official results</h2>
         </div>
-        <p>{data.results.length} rows</p>
+        <p>
+          {data.results.length}{" "}
+          {data.results.length === 1 ? "result" : "results"}
+        </p>
       </div>
       <p>
         {formatLabel} · Published{" "}
@@ -61,8 +64,7 @@ export function OfficialResultsPanel({
           data.results[0]?.completed_at ?? null,
           data.round.group_time_zone,
         )}{" "}
-        ({data.round.group_time_zone}). These values are server-authoritative
-        and read-only.
+        ({data.round.group_time_zone}). These results are read-only.
       </p>
       {winners.length > 0 ? (
         <aside
@@ -71,13 +73,16 @@ export function OfficialResultsPanel({
         >
           <p className="ledger-kicker">Winner summary</p>
           <h3 id="portal-winner-title">
-            {winners.map(displayName).join(" and ")} — tied at rank {winnerRank}
+            {winners.map(displayName).join(" and ")} —{" "}
+            {winners.length > 1
+              ? `tied at rank ${winnerRank}`
+              : `rank ${winnerRank}`}
           </h3>
         </aside>
       ) : null}
       {data.results.length === 0 ? (
         <p className="group-empty" role="status">
-          The round is completed, but no official result rows are available.
+          The round is completed, but no official results are available.
         </p>
       ) : (
         <div className="member-results-table-wrap">
@@ -116,7 +121,7 @@ export function OfficialResultsPanel({
                             result.rsvp_changed_at,
                             data.round.group_time_zone,
                           )
-                        : "Timestamp unavailable"}
+                        : "Time unavailable"}
                     </small>
                   </td>
                   <td>{formatValue(result.golf_points)}</td>
@@ -150,7 +155,7 @@ function formatRsvp(value: MemberOfficialResult["rsvp_status"]) {
   return value === "no_response"
     ? "No response"
     : value === "not_playing"
-      ? "Not Playing"
+      ? "Not playing"
       : "Playing";
 }
 
@@ -159,7 +164,7 @@ function displayName(result: MemberOfficialResult) {
     .filter((value): value is string => Boolean(value?.trim()))
     .join(" ")
     .trim();
-  return name || "Unnamed participant";
+  return name || "Unnamed player";
 }
 
 function formatValue(value: string | null) {

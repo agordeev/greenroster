@@ -37,25 +37,26 @@ export function MemberDetailSections({
       aria-labelledby="member-detail-sections-title"
     >
       <div className="member-detail-heading">
-        <p className="ledger-kicker">Member record</p>
-        <h2 id="member-detail-sections-title">History and projections</h2>
+        <p className="ledger-kicker">Member history</p>
+        <h2 id="member-detail-sections-title">Full history</h2>
         <p>
-          Read-only account, invitation, delivery, quota, handicap, and activity
-          history for this membership.
+          Review this member&apos;s account, invitations, notifications, quota,
+          handicap, and activity. Nothing here can be edited.
         </p>
       </div>
 
       <DetailSection title="Account" id="member-detail-account">
         <dl className="member-detail-definition-list">
           <Definition label="Account e-mail">
-            {projection.accountEmail ?? "No authenticated account is linked."}
+            {projection.accountEmail ??
+              "No account is linked to this member yet."}
           </Definition>
         </dl>
       </DetailSection>
 
-      <DetailSection title="Invitation history" id="member-detail-invitations">
+      <DetailSection title="Invitations" id="member-detail-invitations">
         {projection.invitations.length === 0 ? (
-          <EmptyState>No invitation history is available.</EmptyState>
+          <EmptyState>No invitations for this member yet.</EmptyState>
         ) : (
           <>
             {hasPendingInvitation(projection.invitations) ? (
@@ -78,14 +79,9 @@ export function MemberDetailSections({
         )}
       </DetailSection>
 
-      <DetailSection
-        title="Notification delivery history"
-        id="member-detail-deliveries"
-      >
+      <DetailSection title="Notifications" id="member-detail-deliveries">
         {projection.deliveries.length === 0 ? (
-          <EmptyState>
-            No notification delivery history is available.
-          </EmptyState>
+          <EmptyState>No notifications for this member yet.</EmptyState>
         ) : (
           <ol className="member-detail-event-list">
             {projection.deliveries.map((delivery) => (
@@ -99,35 +95,35 @@ export function MemberDetailSections({
         )}
       </DetailSection>
 
-      <DetailSection title="Quota projection" id="member-detail-quota">
+      <DetailSection title="Quota" id="member-detail-quota">
         <dl className="member-detail-definition-list">
           <Definition label="Current quota">
-            {projection.quota.projectedQuota ?? "Not projected"}
+            {projection.quota.projectedQuota ?? "Not available yet"}
           </Definition>
           <Definition label="Readiness">
             {projection.quota.projectionReady ? "Ready" : "Needs more history"}
           </Definition>
-          <Definition label="Provenance">
+          <Definition label="Based on">
             {formatQuotaProvenance(projection.quota.projectionSource)}
           </Definition>
-          <Definition label="Effective">
+          <Definition label="In effect since">
             {projection.quota.projectionEffectiveAt ? (
               <Timestamp
                 value={projection.quota.projectionEffectiveAt}
                 timeZone={timeZone}
               />
             ) : (
-              "Not established"
+              "Not set yet"
             )}
           </Definition>
-          <Definition label="Projection version">
+          <Definition label="Update number">
             {String(projection.quota.projectionVersion)}
           </Definition>
         </dl>
 
         <h4 className="member-detail-subheading">Quota history</h4>
         {projection.quota.history.length === 0 ? (
-          <EmptyState>No quota changes are recorded.</EmptyState>
+          <EmptyState>No quota changes yet.</EmptyState>
         ) : (
           <ol className="member-detail-event-list">
             {projection.quota.history.map((entry) => (
@@ -150,8 +146,7 @@ export function MemberDetailSections({
           />
         ) : projection.actorRole === "coordinator" ? (
           <p className="member-detail-restricted-note">
-            Administrator-only quota inputs are not shown for coordinator
-            access.
+            Only administrators can see the quota inputs.
           </p>
         ) : (
           <EmptyState>Administrator quota inputs are unavailable.</EmptyState>
@@ -188,13 +183,13 @@ export function MemberDetailSections({
             </ol>
           </>
         ) : (
-          <EmptyState>No handicap history is available.</EmptyState>
+          <EmptyState>No handicap history yet.</EmptyState>
         )}
       </DetailSection>
 
       <DetailSection title="Member activity" id="member-detail-activity">
         {projection.activity.length === 0 ? (
-          <EmptyState>No member activity is available.</EmptyState>
+          <EmptyState>No activity yet.</EmptyState>
         ) : (
           <ol className="member-detail-event-list">
             {projection.activity.map((activity) => (
@@ -296,7 +291,9 @@ function InvitationRecord({
               <Timestamp value={invitation.expiredAt} timeZone={timeZone} />
             </Definition>
           ) : null}
-          <Definition label="Version">{String(invitation.version)}</Definition>
+          <Definition label="Update number">
+            {String(invitation.version)}
+          </Definition>
         </dl>
       </article>
     </li>
@@ -335,7 +332,7 @@ function DeliveryRecord({
             </Definition>
           ) : null}
           {delivery.suppressionReason ? (
-            <Definition label="Suppression reason">
+            <Definition label="Why not sent">
               {formatSuppressionReason(delivery.suppressionReason)}
             </Definition>
           ) : null}
@@ -386,23 +383,23 @@ function QuotaHistoryRecord({
       <article className="member-detail-event-card">
         <h4>
           {entry.projectedQuota === null
-            ? "Quota not projected"
+            ? "Quota not available yet"
             : `Quota ${entry.projectedQuota}`}
         </h4>
         <dl className="member-detail-definition-list">
           <Definition label="Readiness">
             {entry.projectionReady ? "Ready" : "Needs more history"}
           </Definition>
-          <Definition label="Provenance">
+          <Definition label="Based on">
             {formatQuotaProvenance(entry.projectionSource)}
           </Definition>
           <Definition label="Changed">
             <Timestamp value={entry.occurredAt} timeZone={timeZone} />
           </Definition>
-          <Definition label="Projection version">
+          <Definition label="Update number">
             {String(entry.projectionVersion)}
           </Definition>
-          <Definition label="Settings version">
+          <Definition label="Settings update number">
             {String(entry.settingsVersion)}
           </Definition>
           <Definition label="Source">{entry.source}</Definition>
@@ -443,7 +440,7 @@ function ActivityRecord({
             <Definition label="Reason">{activity.reason}</Definition>
           ) : null}
           {activity.targetVersion !== null ? (
-            <Definition label="Target version">
+            <Definition label="Update number">
               {String(activity.targetVersion)}
             </Definition>
           ) : null}
@@ -474,10 +471,10 @@ function AdministratorQuotaDetails({
               ? "In use"
               : "Not in use"}
         </Definition>
-        <Definition label="Initial quota provenance">
+        <Definition label="Initial quota source">
           {details.initialQuotaProvenance ?? "Not recorded"}
         </Definition>
-        <Definition label="Settings method">
+        <Definition label="Calculation method">
           {details.settingsMethod
             ? formatQuotaMethod(details.settingsMethod)
             : "Not configured"}
@@ -495,15 +492,15 @@ function AdministratorQuotaDetails({
         <Definition label="Rounding rule">
           {details.settingsRoundingRule ?? "Not configured"}
         </Definition>
-        <Definition label="Settings version">
+        <Definition label="Settings update number">
           {String(details.settingsVersion)}
         </Definition>
       </dl>
       {details.seedTotals.length === 0 ? (
-        <p className="member-detail-empty">No seed totals are recorded.</p>
+        <p className="member-detail-empty">No seed totals yet.</p>
       ) : (
         <>
-          <h4>Ordered seed totals</h4>
+          <h4>Seed totals, oldest first</h4>
           <ol className="member-detail-seed-list">
             {details.seedTotals.map((seed) => (
               <li key={seed.position}>
@@ -594,14 +591,14 @@ export function formatMemberDetailDeliveryState(
   if (state === "failed_permanent") {
     return delivery.failureReason
       ? `Failed — ${delivery.failureReason}`
-      : "Failed permanently";
+      : "Failed";
   }
   if (state === "suppressed") {
     return delivery.suppressionReason
-      ? `Suppressed — ${formatSuppressionReason(delivery.suppressionReason)}`
-      : "Suppressed";
+      ? `Not sent — ${formatSuppressionReason(delivery.suppressionReason)}`
+      : "Not sent";
   }
-  if (state === "retryable") return "Retryable failure";
+  if (state === "retryable") return "Failed, will retry";
   if (state === "cancelled") return "Cancelled";
   if (state === "queued") return "Queued";
   if (state === "sending") return "Sending";

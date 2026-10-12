@@ -117,7 +117,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
         return;
       }
       operationId.current = null;
-      setFeedback("You saved your scoreboard branding.");
+      setFeedback("Your banner is saved.");
     });
   }
 
@@ -141,7 +141,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
       setAltText("");
       setDecorative(false);
       setClickUrl("");
-      setFeedback("You removed this scoreboard banner.");
+      setFeedback("You removed this banner.");
     });
   }
 
@@ -209,7 +209,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           />
         </label>
         <label className="field-group" htmlFor="branding-click-url">
-          <span>Link when you select this banner (optional)</span>
+          <span>Link when people select this banner (optional)</span>
           <input
             id="branding-click-url"
             type="url"
@@ -226,7 +226,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             onChange={(event) => setDecorative(event.target.checked)}
             disabled={pending}
           />{" "}
-          <span>This image is decorative.</span>
+          <span>This is a decorative image, so it needs no description.</span>
         </label>
         <button
           className="primary-button"

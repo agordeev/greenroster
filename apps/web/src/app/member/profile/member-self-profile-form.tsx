@@ -59,7 +59,7 @@ export function MemberSelfProfileForm({
         profileVersion: result.data.profile_version,
         contactVersion: result.data.contact_version,
       }));
-      setMessage("You save your profile.");
+      setMessage("Your profile is saved.");
       setMessageTone("success");
       router.refresh();
     });
@@ -94,7 +94,7 @@ export function MemberSelfProfileForm({
       }));
       setHandicapConfirmed(false);
       setHandicapReason("");
-      setMessage("You save your handicap for this group.");
+      setMessage("Your handicap is saved for this group.");
       setMessageTone("success");
       router.refresh();
     });
@@ -112,9 +112,9 @@ export function MemberSelfProfileForm({
         aria-labelledby="profile-details-title"
       >
         <p className="ledger-kicker">Your details</p>
-        <h2 id="profile-details-title">You keep your group profile current</h2>
+        <h2 id="profile-details-title">Keep your details up to date</h2>
         <p className="member-read-note">
-          You choose the contact details and visibility that your group sees.
+          Choose which contact details your group can see.
         </p>
         <div className="group-profile-form" aria-busy={pending}>
           <div className="group-profile-fields">
@@ -164,7 +164,7 @@ export function MemberSelfProfileForm({
                 }
                 disabled={pending}
               >
-                <option value="">You choose later</option>
+                <option value="">Choose later</option>
                 <option value="pro">Pro</option>
                 <option value="back">Back</option>
                 <option value="middle">Middle</option>
@@ -244,38 +244,38 @@ export function MemberSelfProfileForm({
             />
           </div>
           <fieldset className="member-profile-visibility">
-            <legend>You choose what your group sees</legend>
+            <legend>Choose what your group sees</legend>
             <CheckField
               id="member-secondary-email-visible"
-              label="You show your secondary e-mail"
+              label="Show your secondary e-mail to your group"
               checked={draft.secondaryEmailVisible}
               onChange={(value) => updateDraft("secondaryEmailVisible", value)}
               disabled={pending}
             />
             <CheckField
               id="member-mobile-phone-visible"
-              label="You show your mobile phone"
+              label="Show your mobile phone to your group"
               checked={draft.mobilePhoneVisible}
               onChange={(value) => updateDraft("mobilePhoneVisible", value)}
               disabled={pending}
             />
             <CheckField
               id="member-home-phone-visible"
-              label="You show your home phone"
+              label="Show your home phone to your group"
               checked={draft.homePhoneVisible}
               onChange={(value) => updateDraft("homePhoneVisible", value)}
               disabled={pending}
             />
             <CheckField
               id="member-work-phone-visible"
-              label="You show your work phone"
+              label="Show your work phone to your group"
               checked={draft.workPhoneVisible}
               onChange={(value) => updateDraft("workPhoneVisible", value)}
               disabled={pending}
             />
             <CheckField
               id="member-address-listed"
-              label="You list your address"
+              label="List your postal address"
               checked={draft.addressListed}
               onChange={(value) => updateDraft("addressListed", value)}
               disabled={pending}
@@ -294,9 +294,9 @@ export function MemberSelfProfileForm({
 
       <section className="member-read-section" aria-labelledby="handicap-title">
         <p className="ledger-kicker">Your handicap</p>
-        <h2 id="handicap-title">You keep your handicap current</h2>
+        <h2 id="handicap-title">Update your handicap</h2>
         <p className="member-read-note">
-          You add a dated manual handicap value for your group.
+          Enter your handicap and the date it applies from.
         </p>
         <div className="group-profile-form" aria-busy={pending}>
           <div className="group-profile-fields">
@@ -329,7 +329,7 @@ export function MemberSelfProfileForm({
             </label>
             <TextField
               id="member-handicap-reason"
-              label="Why you update your handicap"
+              label="Reason for this change"
               value={handicapReason}
               onChange={setHandicapReason}
               disabled={pending}

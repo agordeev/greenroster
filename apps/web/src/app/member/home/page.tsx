@@ -154,8 +154,8 @@ export default async function MemberHomePage() {
                 <p className="ledger-kicker">Next round</p>
                 <h2 id="next-round-title">Nothing published yet</h2>
                 <p>
-                  Your next published round will appear here when your group
-                  opens RSVP.
+                  Your next round will appear here once your group publishes it
+                  and opens RSVPs.
                 </p>
               </section>
             )}
@@ -190,7 +190,7 @@ function MemberClubhouseSummary({
       </div>
       {!projection ? (
         <p className="member-read-empty">
-          You can’t load clubhouse news right now. Refresh to try again.
+          We could not load clubhouse news. Refresh the page to try again.
         </p>
       ) : projection.news.length === 0 && projection.media.length === 0 ? (
         <p className="member-read-empty">
@@ -253,7 +253,7 @@ function MemberHomeResultsSummary({
     >
       <div className="member-home-round-heading">
         <p className="ledger-kicker">Results and standings</p>
-        <h2 id="member-home-summary-title">Your current game view</h2>
+        <h2 id="member-home-summary-title">Your results and standings</h2>
       </div>
       {recentResult ? (
         <article className="member-home-recent-result">
@@ -287,18 +287,15 @@ function MemberHomeResultsSummary({
         </article>
       ) : history === null ? (
         <p className="member-read-empty" role="status">
-          Results and standings are temporarily unavailable. Refresh to try
+          We could not load results and standings. Refresh the page to try
           again.
         </p>
       ) : (
         <p className="member-read-empty" role="status">
-          No completed official rounds are available yet.
+          No official results are available yet.
         </p>
       )}
-      <dl
-        className="member-stats-summary"
-        aria-label="Current standings summary"
-      >
+      <dl className="member-stats-summary" aria-label="Your standings summary">
         <div>
           <dt>Current quota</dt>
           <dd>{own?.projected_quota ?? "Not available"}</dd>
@@ -421,7 +418,7 @@ function MemberHomeUnavailable() {
       >
         <section className="auth-ledger">
           <p className="ledger-kicker">Member home</p>
-          <h1>Your membership could not be loaded</h1>
+          <h1>We could not load your home page</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
         </section>
       </main>

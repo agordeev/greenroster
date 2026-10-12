@@ -77,7 +77,9 @@ export function MobileUpcomingRoundSurface({
       return;
     }
     if (detail.confirmedVersion === null || !session?.user.id) {
-      setMessage("Your confirmed RSVP is unavailable. Refresh and try again.");
+      setMessage(
+        "Your RSVP can't be changed right now. Refresh and try again.",
+      );
       return;
     }
     setDetail((current) =>
@@ -99,7 +101,7 @@ export function MobileUpcomingRoundSurface({
       setDetail((current) =>
         current ? applyMobileRoundRsvpReceipt(current, result.data) : current,
       );
-      setMessage("Your RSVP is confirmed by the server.");
+      setMessage("Your RSVP is saved.");
       return;
     }
     setDetail((current) =>
@@ -107,7 +109,7 @@ export function MobileUpcomingRoundSurface({
     );
     setMessage(
       result.code === "unavailable"
-        ? "Response not sent. Check your connection and try again."
+        ? "Your answer wasn't sent. Check your connection and try again."
         : result.message,
     );
   }
@@ -125,13 +127,13 @@ export function MobileUpcomingRoundSurface({
     <MemberDestinationScreen
       eyebrow="Upcoming round"
       title={selected?.description || round.description || "Round details"}
-      introduction="Review the server-published round details and send your Playing or Not Playing response. Responses are never queued or shown as confirmed while offline."
+      introduction="Check the round details, then choose Playing or Not Playing. Your answer shows as saved once it goes through."
       emptyTitle={status === "error" ? "Round detail unavailable" : ""}
-      emptyBody={message ?? "GreenRoster is loading this round."}
+      emptyBody={message ?? "Loading this round."}
       hideEmptyState={status !== "error"}
       facts={[
         [
-          "State",
+          "Status",
           selected ? formatState(selected.state) : formatState(round.state),
         ],
         [
@@ -217,7 +219,7 @@ export function MobileUpcomingRoundSurface({
           <View style={styles.rsvpSection}>
             <ThemedText type="subtitle">Your RSVP</ThemedText>
             <ThemedText themeColor="textSecondary">
-              Confirmed response:{" "}
+              Saved answer:{" "}
               {formatRsvp(detail?.confirmedStatus ?? "no_response")}
               {detail?.confirmedChangedAt
                 ? ` · changed ${formatDate(detail.confirmedChangedAt, selected.groupTimeZone)}`

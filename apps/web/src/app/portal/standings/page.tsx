@@ -67,9 +67,8 @@ export default async function PortalStandingsPage() {
             Portal standings are not available
           </h1>
           <p>
-            Your member role can read standings and history from the member
-            surface. Coordinator and administrator access is required for this
-            portal view.
+            You can see standings from your member home. Only coordinators and
+            administrators can open this page.
           </p>
           <Link className="secondary-link" href="/portal">
             Return to portal home
@@ -105,13 +104,12 @@ export default async function PortalStandingsPage() {
         className="portal-ledger member-results-page"
         aria-labelledby="portal-standings-title"
       >
-        <p className="ledger-kicker">Competition administration</p>
-        <h1 id="portal-standings-title">Order of Merit standings</h1>
+        <p className="ledger-kicker">Order of Merit</p>
+        <h1 id="portal-standings-title">Standings</h1>
         <p>
-          Server-calculated merit totals, ranks, rounds played, and current
-          quota projections for {context?.group_name ?? portalContext.groupName}
-          . The reset date affects current standings only; official quota
-          history remains retained separately.
+          Merit totals, ranks, rounds played, and quota projections for{" "}
+          {context?.group_name ?? portalContext.groupName}. The reset date
+          changes only the current standings. Quota history is kept separately.
         </p>
         <p>
           <Link
@@ -137,7 +135,7 @@ export default async function PortalStandingsPage() {
             <strong>{standings.length}</strong>
           </div>
           <div>
-            <span>Projection ready</span>
+            <span>Quota ready</span>
             <strong>{projectionReadyCount}</strong>
           </div>
           <div>
@@ -162,7 +160,7 @@ export default async function PortalStandingsPage() {
           <h2 id="portal-standings-table-title">Members</h2>
           {standings.length === 0 ? (
             <p className="group-empty" role="status">
-              No active members are currently available for standings.
+              No active members to show in standings yet.
             </p>
           ) : (
             <div className="member-results-table-wrap">
@@ -177,7 +175,7 @@ export default async function PortalStandingsPage() {
                     <th scope="col">Merit</th>
                     <th scope="col">Rounds</th>
                     <th scope="col">Current quota</th>
-                    <th scope="col">Projection</th>
+                    <th scope="col">Quota status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -199,8 +197,8 @@ export default async function PortalStandingsPage() {
                         {row.quota_projection_ready
                           ? "Ready"
                           : row.uses_initial_quota_next
-                            ? "Initial quota next"
-                            : "Needs history"}
+                            ? "Starting quota next"
+                            : "Needs more history"}
                       </td>
                     </tr>
                   ))}
@@ -209,9 +207,8 @@ export default async function PortalStandingsPage() {
             </div>
           )}
           <p className="member-read-note">
-            Ranks and totals come from the current official standings window.
-            Guests and seed-only quota inputs never appear as permanent members
-            or rounds played.
+            Ranks and totals cover the current standings period. Guests and
+            starting quota figures never count as members or rounds played.
           </p>
         </section>
       </section>
@@ -284,7 +281,7 @@ function renderStandingsError(error: unknown, context?: PortalContext) {
         className="portal-ledger"
         aria-labelledby="standings-error-title"
       >
-        <p className="ledger-kicker">Competition administration</p>
+        <p className="ledger-kicker">Order of Merit</p>
         <h1 id="standings-error-title">
           {forbidden
             ? "Portal standings are not available"
@@ -292,8 +289,8 @@ function renderStandingsError(error: unknown, context?: PortalContext) {
         </h1>
         <p>
           {forbidden
-            ? "Your current membership does not have coordinator or administrator access."
-            : "The standings service is temporarily unavailable. Refresh and try again."}
+            ? "Only coordinators and administrators can open this page."
+            : "We couldn't load standings right now. Refresh and try again."}
         </p>
       </section>
     </PortalShell>

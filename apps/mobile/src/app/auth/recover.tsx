@@ -17,7 +17,7 @@ export default function RecoverPasswordScreen() {
     <MobileAuthScreen
       initialMessage={
         recoveryStatus === "expired"
-          ? "That recovery link could not be finalized. Request a new link below."
+          ? "That recovery link didn't work. Enter your e-mail below to get a new one."
           : undefined
       }
       mode="recovery"

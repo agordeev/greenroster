@@ -29,13 +29,13 @@ export function InvitationManagement({
       <div className="invitation-management-empty">
         <h2>
           {deliveryFilter === "action-required"
-            ? "No invitation delivery issues"
+            ? "No invitations need attention"
             : "No pending invitations"}
         </h2>
         <p>
           {deliveryFilter === "action-required"
-            ? "No pending invitation currently has a failed or suppressed e-mail delivery."
-            : "New invitations will appear here while they await acceptance."}
+            ? "No pending invitations have email that bounced or was blocked."
+            : "New invitations appear here until they are accepted."}
         </p>
         {deliveryFilter === "action-required" ? (
           <Link className="secondary-link" href="/portal/invitations">
@@ -51,7 +51,7 @@ export function InvitationManagement({
       className="invitation-management"
       aria-label={
         deliveryFilter === "action-required"
-          ? "Action-required invitation deliveries"
+          ? "Invitations with email problems"
           : "Pending invitations"
       }
     >
@@ -138,21 +138,19 @@ function InvitationCard({
         if (result.ok) {
           delete operationIds.current[operation];
           if (operation === "revoke") {
-            setMessage("The invitation was revoked.");
+            setMessage("The invitation was cancelled.");
             setMessageStatus("success");
           } else {
             if (!("invitationUrl" in result.data)) {
               setMessageStatus("error");
-              setMessage(
-                "The invitation service returned an incomplete result.",
-              );
+              setMessage("We couldn't confirm that. Refresh and try again.");
               return;
             }
             setMessageStatus("success");
             setMessage(
               operation === "correct"
-                ? "The address was corrected and a fresh invitation was queued."
-                : "A fresh invitation was queued.",
+                ? "The address was fixed and a new invitation is on its way."
+                : "A new invitation is on its way.",
             );
           }
           window.setTimeout(() => router.refresh(), 500);
@@ -168,9 +166,7 @@ function InvitationCard({
         setMessage(result.error.message);
       } catch {
         setMessageStatus("error");
-        setMessage(
-          "The invitation service is temporarily unavailable. Try again.",
-        );
+        setMessage("We couldn't do that right now. Try again in a moment.");
       }
     });
   }
@@ -207,7 +203,7 @@ function InvitationCard({
 
       <div className="invitation-actions">
         <form onSubmit={(event) => submit(event, "regenerate")} noValidate>
-          <h3>Regenerate link</h3>
+          <h3>Send a new link</h3>
           <label className="field-group" htmlFor={`regenerate-reason-${id}`}>
             <span>Reason</span>
             <input
@@ -220,15 +216,15 @@ function InvitationCard({
           </label>
           <ConfirmationField id={`regenerate-confirm-${id}`} />
           <button className="secondary-button" type="submit" disabled={pending}>
-            {pending ? "Working…" : "Regenerate"}
+            {pending ? "Working…" : "Send new link"}
           </button>
         </form>
 
         {canCorrectAddress ? (
           <form onSubmit={(event) => submit(event, "correct")} noValidate>
-            <h3>Correct address</h3>
+            <h3>Fix address</h3>
             <label className="field-group" htmlFor={`correct-email-${id}`}>
-              <span>New invited address</span>
+              <span>New email address</span>
               <input
                 id={`correct-email-${id}`}
                 name="invitedEmail"
@@ -255,13 +251,13 @@ function InvitationCard({
               type="submit"
               disabled={pending}
             >
-              {pending ? "Working…" : "Correct and resend"}
+              {pending ? "Working…" : "Fix and resend"}
             </button>
           </form>
         ) : null}
 
         <form onSubmit={(event) => submit(event, "revoke")} noValidate>
-          <h3>Revoke invitation</h3>
+          <h3>Cancel invitation</h3>
           <label className="field-group" htmlFor={`revoke-reason-${id}`}>
             <span>Reason</span>
             <input
@@ -274,7 +270,7 @@ function InvitationCard({
           </label>
           <ConfirmationField id={`revoke-confirm-${id}`} />
           <button className="danger-button" type="submit" disabled={pending}>
-            {pending ? "Working…" : "Revoke"}
+            {pending ? "Working…" : "Cancel invitation"}
           </button>
         </form>
       </div>
@@ -299,13 +295,13 @@ function ConfirmationField({ id }: Readonly<{ id: string }>) {
   return (
     <label className="invitation-confirmation" htmlFor={id}>
       <input id={id} name="confirmed" type="checkbox" required />
-      <span>I understand this changes the single-use invitation.</span>
+      <span>I understand this changes this invitation.</span>
     </label>
   );
 }
 
 function formatStatus(status: ManageableInvitation["status"]) {
-  return status === "expired" ? "Expired · resend available" : "Pending";
+  return status === "expired" ? "Expired · send a new link" : "Pending";
 }
 
 function formatDate(value: string) {

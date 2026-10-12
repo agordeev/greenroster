@@ -99,24 +99,24 @@ export function GroupProfileForm({
     }
     if (!isSupportedTimeZone(normalizedTimeZone)) {
       setFieldErrors({
-        groupTimeZone: "Enter a supported IANA time zone.",
+        groupTimeZone: "Enter a time zone such as America/New_York.",
       });
       requestFocus("groupTimeZone");
-      setMessage("Enter a supported IANA time zone.");
+      setMessage("Enter a time zone such as America/New_York.");
       setMessageTone("error");
       return;
     }
     if (!dirty) {
-      setMessage("There are no group profile changes to save.");
+      setMessage("Change the group name or time zone before you save.");
       setMessageTone("error");
       return;
     }
     if (!normalizedReason) {
       setFieldErrors({
-        reason: "Add a reason for this group profile change.",
+        reason: "Add a reason for this change.",
       });
       requestFocus("reason");
-      setMessage("Add a reason for this group profile change.");
+      setMessage("Add a reason for this change.");
       setMessageTone("error");
       return;
     }
@@ -150,7 +150,7 @@ export function GroupProfileForm({
           operationId: operationId.current,
         });
       } catch {
-        setMessage("The service is temporarily unavailable. Try again.");
+        setMessage("We couldn't save this right now. Try again in a moment.");
         setMessageTone("error");
         return;
       }
@@ -177,7 +177,7 @@ export function GroupProfileForm({
       setGroupTimeZone(result.data.groupTimeZone);
       setGroupVersion(result.data.groupVersion);
       setReason("");
-      setMessage("Group profile saved.");
+      setMessage("Group details saved.");
       setMessageTone("success");
       setFieldErrors({});
       router.refresh();
@@ -185,7 +185,10 @@ export function GroupProfileForm({
   }
 
   function cancel() {
-    if (dirty && !window.confirm("Discard unsaved group profile changes?")) {
+    if (
+      dirty &&
+      !window.confirm("Discard unsaved changes to the group details?")
+    ) {
       return;
     }
     setGroupName(initialValue.groupName);
@@ -291,8 +294,8 @@ export function GroupProfileForm({
         ) : null}
       </div>
       <p className="field-help">
-        Optional course, golf-professional, and administrator contact details
-        are not configured for this group yet.
+        Course, golf professional, and administrator contact details are
+        optional. They are not set up for your group yet.
       </p>
       <p
         className="form-message"
@@ -303,7 +306,7 @@ export function GroupProfileForm({
       </p>
       <div className="information-actions">
         <button className="primary-button" type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save group profile"}
+          {pending ? "Saving…" : "Save group details"}
         </button>
         <button
           className="secondary-button"

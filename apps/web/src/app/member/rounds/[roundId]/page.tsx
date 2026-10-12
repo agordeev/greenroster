@@ -79,7 +79,7 @@ export default async function MemberRoundPage({
             <div>
               <dt>Players</dt>
               <dd>
-                {detail.playingCount} Playing of {detail.participantCount}
+                {detail.playingCount} of {detail.participantCount} playing
               </dd>
             </div>
             {detail.rsvpDeadlineAt ? (
@@ -185,7 +185,7 @@ function MemberRoundUnavailable() {
         <h1 id="member-round-error-title">
           You cannot open this round right now
         </h1>
-        <p>You return to your home and try again.</p>
+        <p>Return to your home and try again.</p>
         <Link className="secondary-link" href="/member/home">
           Open your home
         </Link>

@@ -29,7 +29,7 @@ export function MemberInboxList({
           operationId,
         });
       } catch {
-        setMessage("You can't update this inbox item right now. Try again.");
+        setMessage("We could not mark that update. Try again.");
         setPendingItemId(null);
         return;
       }
@@ -49,7 +49,7 @@ export function MemberInboxList({
         ),
       );
       setPendingItemId(null);
-      setMessage("You can see this update as read.");
+      setMessage("Marked as read.");
     });
   }
 

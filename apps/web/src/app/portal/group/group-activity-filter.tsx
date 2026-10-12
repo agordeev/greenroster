@@ -24,17 +24,17 @@ export function GroupActivityFilterForm({
 
     if (!normalizedType && normalizedId) {
       event.preventDefault();
-      setError("Choose an entity type before entering an entity ID.");
+      setError("Choose Member or Round before you enter an ID.");
       return;
     }
     if (normalizedType && !normalizedId) {
       event.preventDefault();
-      setError("Enter the UUID for the selected entity.");
+      setError("Enter the ID of the member or round.");
       return;
     }
     if (normalizedType && !uuidPattern.test(normalizedId)) {
       event.preventDefault();
-      setError("Enter a valid entity UUID, then apply the filter again.");
+      setError("That ID doesn't look right. Check it and try again.");
       return;
     }
 
@@ -48,7 +48,7 @@ export function GroupActivityFilterForm({
       onSubmit={handleSubmit}
     >
       <div className="field-group">
-        <label htmlFor="activity-target-type">Entity type</label>
+        <label htmlFor="activity-target-type">What changed</label>
         <select
           id="activity-target-type"
           name="target_type"
@@ -62,13 +62,13 @@ export function GroupActivityFilterForm({
           aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? "activity-filter-error" : undefined}
         >
-          <option value="">All entities</option>
+          <option value="">All changes</option>
           <option value="membership">Member</option>
           <option value="round">Round</option>
         </select>
       </div>
       <div className="field-group">
-        <label htmlFor="activity-target-id">Entity ID</label>
+        <label htmlFor="activity-target-id">ID</label>
         <input
           id="activity-target-id"
           name="target_id"
@@ -77,7 +77,7 @@ export function GroupActivityFilterForm({
             setTargetId(event.target.value);
             setError(null);
           }}
-          placeholder="UUID"
+          placeholder="Paste the ID"
           inputMode="text"
           aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? "activity-filter-error" : undefined}

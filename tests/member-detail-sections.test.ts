@@ -127,6 +127,6 @@ describe("member detail section helpers", () => {
         createdAt: "2026-07-27T12:00:00.000Z",
         updatedAt: "2026-07-27T12:05:00.000Z",
       }),
-    ).toBe("Suppressed — Hard bounce");
+    ).toBe("Not sent — Hard bounce");
   });
 });

@@ -26,7 +26,7 @@ export function RoundAnnouncementPanel({
     if (!parsed.success) {
       setMessage(
         parsed.error.issues[0]?.message ??
-          "You write an update of 300 characters or fewer.",
+          "Keep your update to 300 characters or fewer.",
       );
       setMessageTone("error");
       return;
@@ -50,7 +50,7 @@ export function RoundAnnouncementPanel({
       }
       operationId.current = null;
       setBody("");
-      setMessage("You can see your update in the round inbox.");
+      setMessage("Your update is posted to this round.");
       setMessageTone("success");
     });
   }
@@ -67,9 +67,9 @@ export function RoundAnnouncementPanel({
           <p className="ledger-kicker">Round updates</p>
           <h2 id="round-announcement-title">Post an update</h2>
         </div>
-        <p>You can add {remaining} characters.</p>
+        <p>{remaining} characters left.</p>
       </div>
-      <p>You write a short update for everyone in this round.</p>
+      <p>Post a short update for everyone in this round.</p>
       {message ? (
         <p className={`form-message ${messageTone}`} role="status">
           {message}
@@ -87,7 +87,7 @@ export function RoundAnnouncementPanel({
           disabled={pending}
         />
         <p id="round-announcement-help" className="form-help">
-          You can use up to 300 characters.
+          Up to 300 characters.
         </p>
         <button
           className="primary-button"

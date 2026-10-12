@@ -21,13 +21,13 @@ export function MemberNotificationPreferences({
       <p className="ledger-kicker">Notification preferences</p>
       <h2 id="member-notifications-title">Choose where updates arrive</h2>
       <p className="member-results-intro">
-        These current values are read-only on the member web view. Open the
-        signed-in GreenRoster app to change them.
+        You cannot change these settings on the web. Open the GreenRoster app to
+        change them.
       </p>
       {preferences === null ? (
         <p className="member-read-empty" role="status">
-          Notification preferences are temporarily unavailable. Open the app to
-          review them.
+          We could not load your notification settings. Open the app to review
+          them.
         </p>
       ) : (
         preferences.map((preference) => (
@@ -37,7 +37,7 @@ export function MemberNotificationPreferences({
               <p>
                 {preference.mandatory
                   ? "Required for account or round safety."
-                  : "Optional notification category."}
+                  : "Optional."}
               </p>
             </div>
             <dl>
@@ -66,7 +66,7 @@ export function MemberNotificationPreferences({
         ))
       )}
       <p className="member-read-note">
-        Mandatory cancellation and security messages cannot be disabled.
+        Cancellation and security messages cannot be turned off.
       </p>
     </section>
   );

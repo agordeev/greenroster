@@ -20,11 +20,11 @@ export default async function AccountPage() {
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger" aria-labelledby="account-title">
         <div className="auth-heading">
-          <p className="ledger-kicker">Account security</p>
+          <p className="ledger-kicker">Your account</p>
           <h1 id="account-title">Account e-mail</h1>
           <p>
-            Your verified account e-mail is the single address GreenRoster uses
-            for sign-in, recovery, and product notifications.
+            You sign in with this e-mail address. We also use it for password
+            recovery and GreenRoster notifications.
           </p>
         </div>
         <AccountEmailForm currentEmail={session.email} />
@@ -50,11 +50,12 @@ function RecoverySessionRestricted() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Regular session required</p>
+        <p className="ledger-kicker">Sign in normally first</p>
         <h1>Sign in again to change your account e-mail</h1>
         <p>
-          This password-recovery session cannot change account details. Sign
-          out, then sign in normally before requesting an e-mail change.
+          You signed in from a password reset link, which cannot change account
+          details. Sign out, then sign in normally before you request an e-mail
+          change.
         </p>
         <form action={signOutAction}>
           <button className="primary-button" type="submit">
@@ -70,8 +71,8 @@ function AccountUnavailable() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Account security</p>
-        <h1>Account details could not be loaded</h1>
+        <p className="ledger-kicker">Your account</p>
+        <h1>We could not load your account</h1>
         <p>Try again in a moment or contact support.</p>
       </section>
     </main>

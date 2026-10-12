@@ -76,7 +76,7 @@ export default async function BillingPage() {
     >
       <section className="portal-ledger" aria-labelledby="billing-title">
         <p className="ledger-kicker">Billing</p>
-        <h1 id="billing-title">You manage your plan</h1>
+        <h1 id="billing-title">Billing</h1>
         <p>See your trial, payment status, member access, and invoices.</p>
 
         <div className="portal-card-grid">
@@ -138,7 +138,7 @@ export default async function BillingPage() {
                   <th scope="col">Ends</th>
                   <th scope="col">Source</th>
                   <th scope="col">
-                    <span className="sr-only">Actions</span>
+                    <span className="visually-hidden">Actions</span>
                   </th>
                 </tr>
               </thead>

@@ -7,6 +7,7 @@ import {
   initialInvitationActionState,
   registerInvitationAction,
 } from "@/app/actions/invitations";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function InvitationRegisterForm() {
   const [state, formAction, pending] = useActionState(
@@ -29,8 +30,8 @@ export function InvitationRegisterForm() {
           required
         />
         <p id="registration-email-help" className="field-help">
-          Use the invited address or another account address you control. The
-          invitation attaches to the verified account that accepts it.
+          Use the invited address or another address you can open. The
+          invitation joins the account that accepts it.
         </p>
       </div>
 
@@ -56,7 +57,7 @@ export function InvitationRegisterForm() {
           required
         />
         <p id="registration-password-help" className="field-help">
-          Use a passphrase of at least 12 characters.
+          Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
         </p>
       </div>
 

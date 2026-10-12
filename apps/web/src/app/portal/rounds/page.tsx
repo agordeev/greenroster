@@ -85,13 +85,13 @@ export default async function RoundsPage({
           className="portal-ledger role-denied"
           aria-labelledby="rounds-denied-title"
         >
-          <p className="ledger-kicker">Round administration</p>
+          <p className="ledger-kicker">Coordinator access</p>
           <h1 id="rounds-denied-title">
-            Round administration is not available
+            Only coordinators and administrators manage rounds
           </h1>
           <p>
-            Your member role can respond to published rounds in the app. Draft
-            round configuration is private to coordinators and administrators.
+            You can respond to published rounds in the app. Only coordinators
+            and administrators can set up or change rounds.
           </p>
           <div className="information-actions">
             <Link className="secondary-link" href="/portal">
@@ -249,14 +249,16 @@ export default async function RoundsPage({
       <section className="portal-ledger" aria-labelledby="rounds-title">
         <div className="group-panel-heading">
           <div>
-            <p className="ledger-kicker">Round administration</p>
+            <p className="ledger-kicker">Coordinator tools</p>
             <h1 id="rounds-title">Rounds</h1>
           </div>
-          <p>{rounds.length} configured</p>
+          <p>
+            {rounds.length} {rounds.length === 1 ? "round" : "rounds"}
+          </p>
         </div>
         <p>
-          Drafts stay private until the later publication review. Local times
-          use the group time zone, <strong>{portalContext.timeZone}</strong>.
+          Only coordinators see a draft until you publish it. Times use your
+          group’s time zone, <strong>{portalContext.timeZone}</strong>.
         </p>
 
         <RoundWorkspace
@@ -300,12 +302,12 @@ export default async function RoundsPage({
           <div className="group-panel-heading">
             <div>
               <p className="ledger-kicker">Round list</p>
-              <h2 id="round-list-title">Configured rounds</h2>
+              <h2 id="round-list-title">Your rounds</h2>
             </div>
           </div>
           {rounds.length === 0 ? (
             <p className="group-empty" role="status">
-              No rounds yet. Save a private draft above to start the first one.
+              No rounds yet. Create your first one above.
             </p>
           ) : (
             <ul className="group-role-list">
@@ -316,12 +318,11 @@ export default async function RoundsPage({
                       className="group-role-name"
                       href={`/portal/rounds?round=${encodeURIComponent(round.roundId)}`}
                     >
-                      {round.description || "Untitled draft"}
+                      {round.description || "Untitled round"}
                     </Link>
                     <p>
                       {formatRoundState(round.state)} ·{" "}
-                      {formatRoundFormat(round.format)} · Version{" "}
-                      {round.version}
+                      {formatRoundFormat(round.format)}
                     </p>
                   </div>
                   <div className="group-role-meta">
@@ -406,16 +407,16 @@ function renderRoundError(error: unknown, context?: PortalContext) {
       currentSection="rounds"
     >
       <section className="portal-ledger" aria-labelledby="round-error-title">
-        <p className="ledger-kicker">Round administration</p>
+        <p className="ledger-kicker">Coordinator tools</p>
         <h1 id="round-error-title">
           {forbidden
-            ? "Round administration is not available"
+            ? "Only coordinators and administrators manage rounds"
             : "Rounds could not be loaded"}
         </h1>
         <p>
           {forbidden
-            ? "Your current membership does not have coordinator or administrator access."
-            : "The round service is temporarily unavailable. Refresh and try again."}
+            ? "Your role doesn’t include coordinator or administrator access."
+            : "Refresh the page and try again."}
         </p>
       </section>
     </PortalShell>

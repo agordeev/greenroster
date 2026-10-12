@@ -98,7 +98,7 @@ export function QuotaSettingsForm({
     (!Number.isInteger(parsedHistoryLength) ||
       parsedHistoryLength < 4 ||
       parsedHistoryLength > 20)
-      ? "History length must be a whole number from 4 through 20."
+      ? "Enter a whole number from 4 through 20."
       : null;
   const participationMeritError = meritValidationError(() =>
     validateParticipationMerit(participationMerit),
@@ -241,7 +241,7 @@ export function QuotaSettingsForm({
       setSettingsVersion(result.data.settingsVersion);
       setReason("");
       setMessage(
-        "Quota and merit rules saved for future rounds. The standings window updated immediately; published snapshots and quota history are unchanged.",
+        "Quota and merit rules saved. They apply to rounds you publish from now on. Published rounds and quota history are unchanged.",
       );
       router.refresh();
     });
@@ -320,7 +320,7 @@ export function QuotaSettingsForm({
               "previous_plus_minus",
               "C",
               "Previous plus/minus",
-              "Advance the prior quota through an adjustment band.",
+              "Change the previous quota by the adjustment for the matching band.",
             ],
           ] as const
         ).map(([value, letter, label, detail]) => (
@@ -342,7 +342,7 @@ export function QuotaSettingsForm({
       <div className="quota-policy-row">
         {method === "moving_average" ? (
           <label className="field-group">
-            <span>Eligible history length</span>
+            <span>Eligible rounds to average</span>
             <input
               type="number"
               min="4"
@@ -366,12 +366,12 @@ export function QuotaSettingsForm({
         ) : (
           <p className="quota-policy-note">
             {method === "best_10_of_20"
-              ? "History is fixed at the latest 20 eligible totals."
-              : "Every allowed plus/minus value must belong to exactly one band."}
+              ? "Always uses the latest 20 eligible totals."
+              : "Every plus/minus value must fall in exactly one band."}
           </p>
         )}
         <fieldset className="precision-options">
-          <legend>Quota precision</legend>
+          <legend>Quota decimal places</legend>
           {([0, 1, 2] as const).map((value) => (
             <label key={value}>
               <input
@@ -395,12 +395,12 @@ export function QuotaSettingsForm({
           <div>
             <p className="ledger-kicker">Merit and standings</p>
             <h3 id="merit-settings-title">
-              Configure the Order of Merit policy
+              Set how Order of Merit points are awarded
             </h3>
             <p>
-              Participation applies to every Playing permanent member. Placement
-              rows are optional and use competition ranking; ties receive the
-              full points for their shared rank.
+              Participation points go to every permanent member marked Playing.
+              Placement rows are optional. Tied players each get the points for
+              their shared rank.
             </p>
           </div>
         </div>
@@ -440,8 +440,8 @@ export function QuotaSettingsForm({
               }
             />
             <small>
-              Use the group&apos;s local calendar date. Leave blank to include
-              all standings history; this does not change quota history.
+              Use your group&apos;s local date. Leave blank to count every past
+              result. Quota history is not changed.
             </small>
             {standingsResetDateError ? (
               <small className="field-error" id="standings-reset-date-error">
@@ -454,8 +454,8 @@ export function QuotaSettingsForm({
           <div>
             <h4>Placement merit table</h4>
             <p>
-              Ranks must be positive and strictly ordered. An empty table awards
-              nothing.
+              Ranks must be positive and in order. An empty table awards no
+              placement points.
             </p>
           </div>
           <button
@@ -474,7 +474,7 @@ export function QuotaSettingsForm({
               ])
             }
           >
-            Add placement row
+            Add placement
           </button>
         </div>
         {placementMerit.map((row, index) => (
@@ -540,7 +540,7 @@ export function QuotaSettingsForm({
 
       {methodExample ? (
         <div className="quota-rule-example">
-          <p className="ledger-kicker">Example effect</p>
+          <p className="ledger-kicker">Example</p>
           <p>{methodExample}</p>
         </div>
       ) : null}
@@ -549,8 +549,8 @@ export function QuotaSettingsForm({
         <section className="band-editor" aria-labelledby="band-editor-title">
           <div className="band-editor-heading">
             <div>
-              <h3 id="band-editor-title">Adjustment band ledger</h3>
-              <p>Rows are evaluated in order from −100 through 100.</p>
+              <h3 id="band-editor-title">Adjustment bands</h3>
+              <p>Bands are checked in the order listed, from −100 to 100.</p>
             </div>
             <button
               className="secondary-button"
@@ -723,13 +723,12 @@ export function QuotaSettingsForm({
             </label>
             <output
               aria-live="polite"
-              aria-label="Selected band and projected next quota preview"
+              aria-label="Matching band and projected next quota"
             >
               {preview ?? "—"}
             </output>
             <small>
-              Preview only. The server remains authoritative when rules are
-              saved.
+              Preview only. Your rules are checked again when you save.
             </small>
           </div>
         </section>
@@ -743,7 +742,7 @@ export function QuotaSettingsForm({
           maxLength={500}
           required
         />
-        <small>Stored with the settings audit record.</small>
+        <small>Saved with this change.</small>
       </label>
       <p
         className="form-message"
@@ -758,11 +757,11 @@ export function QuotaSettingsForm({
         role={bandError || historyError || meritError ? "alert" : undefined}
       >
         {bandError
-          ? `Cannot save: ${bandError}`
+          ? `Can't save yet: ${bandError}`
           : historyError
-            ? `Cannot save: ${historyError}`
+            ? `Can't save yet: ${historyError}`
             : meritError
-              ? `Cannot save: ${meritError}`
+              ? `Can't save yet: ${meritError}`
               : ""}
       </p>
       <div className="quota-form-actions">
@@ -856,9 +855,9 @@ function quotaPreview(
     });
     return result.ready
       ? `Band ${result.matchedBandPosition} · ${result.quota}`
-      : "Initial quota required";
+      : "Enter a prior quota to test.";
   } catch {
-    return "Invalid test values";
+    return "Enter valid numbers to test.";
   }
 }
 
@@ -882,7 +881,7 @@ function quotaMethodExample(
       useInitialQuota: false,
     });
     return result.ready
-      ? `With sample eligible totals, this policy produces a ${result.quota} quota.`
+      ? `With sample totals, this method gives a ${result.quota} quota.`
       : null;
   } catch {
     return null;

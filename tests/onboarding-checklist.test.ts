@@ -12,7 +12,7 @@ describe("group onboarding checklist", () => {
       { key: "members", status: "complete" },
       { key: "first-round", status: "not-configured" },
     ]);
-    expect(checklist[2]?.detail).toContain("2 additional memberships");
+    expect(checklist[2]?.detail).toContain("2 more members");
   });
 
   it("never treats missing stored records as local completion", () => {
@@ -26,7 +26,7 @@ describe("group onboarding checklist", () => {
 
   it("uses singular membership copy for one additional person", () => {
     expect(buildOnboardingChecklist(true, false, 1)[2]?.detail).toContain(
-      "1 additional membership is",
+      "1 more member is",
     );
   });
 });

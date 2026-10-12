@@ -18,7 +18,6 @@ export function PortalShell({
   groupName,
   role,
   roleStatus,
-  timeZone,
   currentSection = "home",
 }: Readonly<{
   children: ReactNode;
@@ -58,12 +57,6 @@ export function PortalShell({
             <small>{groupName}</small>
           </span>
         </Link>
-
-        <div className="portal-group" aria-label="Current group">
-          <span>Group</span>
-          <strong>{groupName}</strong>
-          <small>{timeZone}</small>
-        </div>
 
         <nav className="portal-nav" aria-label="Portal">
           <Link
@@ -140,14 +133,9 @@ export function PortalShell({
               Billing
             </Link>
           ) : null}
-          <Link href="/help">Help</Link>
         </nav>
 
         <div className="account-block">
-          <div className="account-identity">
-            <span>{email}</span>
-            <strong>{visibleRole}</strong>
-          </div>
           <details className="account-menu">
             <summary>Account</summary>
             <div>
@@ -155,6 +143,7 @@ export function PortalShell({
               <strong>{visibleRole}</strong>
               <Link href="/account">Account e-mail</Link>
               <Link href="/account/privacy">Privacy requests</Link>
+              <Link href="/help">Help</Link>
               <Link href="/privacy">Privacy Policy</Link>
               <Link href="/terms">Terms of Use</Link>
             </div>

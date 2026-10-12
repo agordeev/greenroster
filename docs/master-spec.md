@@ -1055,7 +1055,7 @@ Reads and projections: member, mobile, and member web reads return privacy- and 
 ### 16.2 Authentication and sessions
 
 - Use Supabase Auth password, invitation, and recovery capabilities.
-- Passwords require at least 12 characters. Passphrases are allowed; custom composition rules and forced rotation are prohibited. Enable provider breach-password protection where supported.
+- Passwords require at least 8 characters. Passphrases are allowed; custom composition rules and forced rotation are prohibited. Enable provider breach-password protection where supported.
 - Access tokens are short-lived and refresh tokens rotate. Membership or role revocation blocks the next request and refresh immediately.
 - The last active administrator cannot leave, be deactivated, or be demoted. Transfer requires an accepted replacement administrator, explicit confirmation, and one atomic audit event.
 - Role changes and account recovery generate audit events.

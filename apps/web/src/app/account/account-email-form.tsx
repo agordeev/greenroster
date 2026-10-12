@@ -49,8 +49,8 @@ export function AccountEmailForm({
           required
         />
         <p id="new-account-email-help" className="field-help">
-          This changes sign-in, recovery, and future product notifications for
-          the same GreenRoster identity. It never creates another membership.
+          This changes the address you sign in with, and where we send recovery
+          links and GreenRoster notifications. Your memberships stay the same.
         </p>
         {state.fieldErrors?.email ? (
           <p id="new-account-email-error" className="field-error">
@@ -62,12 +62,12 @@ export function AccountEmailForm({
       <label className="account-email-confirmation">
         <input name="confirmed" type="checkbox" value="true" required />
         <span>
-          I understand the change remains pending until the required secure
-          confirmation step or steps are completed.
+          I understand the change is not complete until I finish the
+          confirmation steps.
         </span>
       </label>
       {state.fieldErrors?.confirmed ? (
-        <p className="field-error">Confirm the verified e-mail-change flow.</p>
+        <p className="field-error">Tick the box to continue.</p>
       ) : null}
 
       <p className="form-message" aria-live="polite" data-status={state.status}>

@@ -28,7 +28,7 @@ export function MobileInboxSurface() {
     const sequence = ++requestSequence.current;
     if (!sessionUserId) {
       setItems([]);
-      setMessage("You sign in to see your round updates.");
+      setMessage("Sign in to see your round updates.");
       setStatus("permission");
       return;
     }

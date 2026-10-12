@@ -15,8 +15,8 @@ export function KioskRefresh({ enabled }: Readonly<{ enabled: boolean }>) {
   return enabled ? (
     <p className="scoreboard-kiosk-status" role="status">
       {status === "current"
-        ? "You see live scores refresh every 30 seconds."
-        : "You see live scores refresh now."}
+        ? "Scores refresh every 30 seconds."
+        : "Scores are refreshing now."}
     </p>
   ) : null;
 }

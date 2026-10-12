@@ -99,7 +99,7 @@ export function MobileFirstRunProvider({
       if (state.status !== "required") {
         return {
           code: "unavailable",
-          message: "GreenRoster could not verify your profile. Try again.",
+          message: "We couldn't check your profile. Try again.",
           ok: false,
         } as const;
       }

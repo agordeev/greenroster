@@ -18,7 +18,7 @@ export default async function BrandingPage() {
       >
         <section className="portal-ledger role-denied">
           <h1>You can’t manage group branding.</h1>
-          <p>You need the administrator role to choose scoreboard banners.</p>
+          <p>Only administrators can choose scoreboard banners.</p>
           <Link className="secondary-link" href="/portal">
             Return to portal home
           </Link>
@@ -36,10 +36,10 @@ export default async function BrandingPage() {
     >
       <section className="portal-ledger" aria-labelledby="branding-title">
         <p className="ledger-kicker">Group branding</p>
-        <h1 id="branding-title">Your scoreboard appearance</h1>
+        <h1 id="branding-title">Branding</h1>
         <p>
-          Upload a validated image for your clubhouse display. Optional
-          click-through links must use HTTPS.
+          Upload an image for your clubhouse scoreboard. Optional links must use
+          HTTPS.
         </p>
         <BrandingForm assets={assets} />
       </section>

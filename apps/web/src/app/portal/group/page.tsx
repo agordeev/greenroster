@@ -83,8 +83,8 @@ export default async function GroupRolesActivityPage({
           <p className="ledger-kicker">Group administration</p>
           <h1 id="group-denied-title">Group administration is not available</h1>
           <p>
-            Your current member role can view the group directory in the app,
-            but cannot access portal roles or activity.
+            You can see the group directory in the app. Only coordinators and
+            administrators can see who runs the group and what changed.
           </p>
           <div className="information-actions">
             <Link className="secondary-link" href="/portal">
@@ -110,7 +110,7 @@ export default async function GroupRolesActivityPage({
           className="portal-ledger role-denied"
           aria-labelledby="group-filter-error-title"
         >
-          <p className="ledger-kicker">Investigation trail</p>
+          <p className="ledger-kicker">What changed</p>
           <h1 id="group-filter-error-title">Activity filter needs attention</h1>
           <p>{activityFilterErrorMessage(query.filterError)}</p>
           <div className="information-actions">
@@ -157,11 +157,10 @@ export default async function GroupRolesActivityPage({
         aria-labelledby="group-title"
       >
         <p className="ledger-kicker">Group administration</p>
-        <h1 id="group-title">Roles and recent activity</h1>
+        <h1 id="group-title">Group</h1>
         <p>
-          Review who can operate this group and the consequential changes that
-          are safe to investigate. Role changes remain on the member record;
-          this page only links to that detail.
+          See who runs your group and what changed recently. To change a role,
+          open that person&apos;s member page.
         </p>
 
         <section
@@ -171,9 +170,8 @@ export default async function GroupRolesActivityPage({
           <div className="group-panel-heading">
             <div>
               <p className="ledger-kicker">Group profile</p>
-              <h2 id="profile-title">Group identity and time zone</h2>
+              <h2 id="profile-title">Group name and time zone</h2>
             </div>
-            <p>Version {projection.group.version}</p>
           </div>
           {portalContext.role === "administrator" ? (
             <GroupProfileForm
@@ -206,10 +204,9 @@ export default async function GroupRolesActivityPage({
         >
           <div className="group-panel-heading">
             <div>
-              <p className="ledger-kicker">Round participation</p>
-              <h2 id="guest-permission-title">Guest permission</h2>
+              <p className="ledger-kicker">Round guests</p>
+              <h2 id="guest-permission-title">Guests in rounds</h2>
             </div>
-            <p>Version {guestPermission.groupVersion}</p>
           </div>
           {portalContext.role === "administrator" ? (
             <GroupGuestPermissionForm
@@ -221,11 +218,11 @@ export default async function GroupRolesActivityPage({
             />
           ) : (
             <p>
-              Member-added guests are currently{" "}
+              Guests added by members are currently{" "}
               <strong>
                 {guestPermission.allowMemberGuests ? "allowed" : "disabled"}
               </strong>
-              . Only an administrator can change this group policy.
+              . Only an administrator can change this setting.
             </p>
           )}
         </section>
@@ -233,14 +230,14 @@ export default async function GroupRolesActivityPage({
         <section className="group-roles-panel" aria-labelledby="roles-title">
           <div className="group-panel-heading">
             <div>
-              <p className="ledger-kicker">Access map</p>
+              <p className="ledger-kicker">Who runs the group</p>
               <h2 id="roles-title">Administrators and coordinators</h2>
             </div>
             <p>{projection.roles.length} listed</p>
           </div>
           {projection.roles.length === 0 ? (
             <p className="group-empty" role="status">
-              No administrator or coordinator roles are available to display.
+              No coordinators or administrators to show yet.
             </p>
           ) : (
             <ul className="group-role-list">
@@ -289,13 +286,13 @@ export default async function GroupRolesActivityPage({
         >
           <div className="group-panel-heading">
             <div>
-              <p className="ledger-kicker">Investigation trail</p>
+              <p className="ledger-kicker">What changed</p>
               <h2 id="activity-title">Recent activity</h2>
             </div>
             <p>
               {query.targetType
-                ? `Filtered by ${query.targetType}`
-                : "All entities"}
+                ? `Showing changes to ${query.targetType === "round" ? "rounds" : "members"}`
+                : "All changes"}
             </p>
           </div>
           <GroupActivityFilterForm
@@ -306,8 +303,8 @@ export default async function GroupRolesActivityPage({
           {projection.activity.items.length === 0 ? (
             <p className="group-empty" role="status">
               {query.targetType
-                ? "No activity matches this entity filter. Clear the filter to review the full trail."
-                : "No consequential activity has been recorded yet."}
+                ? "No changes match this filter. Clear the filter to see everything."
+                : "No changes have been recorded yet."}
             </p>
           ) : (
             <ol className="group-activity-list">
@@ -324,11 +321,11 @@ export default async function GroupRolesActivityPage({
                   </div>
                   <dl className="group-activity-facts">
                     <div>
-                      <dt>Actor</dt>
+                      <dt>Changed by</dt>
                       <dd>
                         {item.actor
                           ? `${item.actor.displayName} · current role: ${formatPortalRole(item.actor.role)}`
-                          : "System actor"}
+                          : "Done automatically"}
                       </dd>
                     </div>
                     <div>
@@ -337,9 +334,9 @@ export default async function GroupRolesActivityPage({
                     </div>
                     {item.target ? (
                       <div>
-                        <dt>Target</dt>
+                        <dt>Item</dt>
                         <dd>
-                          {item.target.type}
+                          {formatTargetType(item.target.type)}
                           {item.target.id ? (
                             <>
                               {" · "}
@@ -347,13 +344,13 @@ export default async function GroupRolesActivityPage({
                             </>
                           ) : null}
                           {item.target.version !== null
-                            ? ` · v${item.target.version}`
+                            ? ` · edit ${item.target.version}`
                             : null}
                         </dd>
                       </div>
                     ) : null}
                     <div>
-                      <dt>Correlation</dt>
+                      <dt>Reference</dt>
                       <dd>
                         <code className="group-activity-id">
                           {item.correlationId}
@@ -369,7 +366,7 @@ export default async function GroupRolesActivityPage({
                   </dl>
                   <div
                     className="group-activity-summary"
-                    aria-label="Safe change summary"
+                    aria-label="Change summary"
                   >
                     <span>
                       Before:{" "}
@@ -387,7 +384,7 @@ export default async function GroupRolesActivityPage({
           {projection.activity.hasMore && nextHref ? (
             <p className="group-activity-next">
               <Link className="secondary-link" href={nextHref}>
-                View older activity
+                See older changes
               </Link>
             </p>
           ) : null}
@@ -467,8 +464,8 @@ function renderGroupError(error: unknown, context?: PortalContext) {
         </h1>
         <p>
           {forbidden
-            ? "Your current membership does not have coordinator or administrator access."
-            : "The group activity service is temporarily unavailable. Refresh and try again."}
+            ? "Only coordinators and administrators can open this page."
+            : "We couldn't load this page right now. Refresh and try again."}
         </p>
       </section>
     </PortalShell>
@@ -488,7 +485,13 @@ function formatTimestamp(value: string, timeZone: string): string {
 }
 
 function formatRoleHolderName(firstName: string, lastName: string): string {
-  return `${firstName} ${lastName}`.trim() || "Unnamed role holder";
+  return `${firstName} ${lastName}`.trim() || "Unnamed member";
+}
+
+function formatTargetType(value: string): string {
+  if (value === "membership") return "Member";
+  if (value === "round") return "Round";
+  return value;
 }
 
 function activityFilterErrorMessage(
@@ -498,12 +501,12 @@ function activityFilterErrorMessage(
 ): string {
   switch (error) {
     case "target_type_required":
-      return "Choose an entity type before entering an entity ID.";
+      return "Choose Member or Round before you enter an ID.";
     case "target_type_invalid":
-      return "Choose Member or Round as the entity type.";
+      return "Choose Member or Round.";
     case "target_id_required":
-      return "Enter the UUID for the selected entity.";
+      return "Enter the ID of the member or round.";
     case "target_id_invalid":
-      return "Enter a valid entity UUID, then apply the filter again.";
+      return "That ID doesn't look right. Check it and try again.";
   }
 }

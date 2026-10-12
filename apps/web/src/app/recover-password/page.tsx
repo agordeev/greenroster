@@ -22,23 +22,20 @@ export default async function RecoverPasswordPage({
           </div>
         </div>
         <div className="auth-heading">
-          <p className="ledger-kicker">Secure return</p>
+          <p className="ledger-kicker">Password help</p>
           <h1 id="recovery-title">Reset your password</h1>
-          <p>
-            Enter your account e-mail. The confirmation stays neutral so no one
-            can use this form to discover who belongs to GreenRoster.
-          </p>
+          <p>Enter your account e-mail and we’ll send you a recovery link.</p>
         </div>
         {status === "expired" ? (
           <p className="form-message recovery-status" role="alert">
-            This recovery link is expired or has already been used. Request a
-            new one below.
+            This recovery link has expired or was already used. Enter your
+            e-mail below to get a new one.
           </p>
         ) : null}
         {status === "unavailable" ? (
           <p className="form-message recovery-status" role="alert">
-            The recovery service could not be reached. Try opening your link
-            again in a moment.
+            We could not open your recovery link just now. Open it again in a
+            moment.
           </p>
         ) : null}
         <RecoveryForm />

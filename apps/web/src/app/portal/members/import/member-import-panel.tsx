@@ -116,7 +116,7 @@ export function MemberImportPanel() {
             applyFailurePlan(memberImportAccessFailure(body.status));
             return;
           }
-          setStatusMessage("Status is temporarily unavailable. Retrying…");
+          setStatusMessage("Can't get the latest status. Retrying…");
           retry();
           return;
         }
@@ -132,7 +132,7 @@ export function MemberImportPanel() {
           setApplyConfirmed(false);
           applyOperationId.current = crypto.randomUUID();
           setApplyMessage(
-            "Quota settings changed. Review the revalidated import and confirm again.",
+            "Quota settings changed, so every row was checked again. Review the import and confirm again.",
           );
         }
         observedJobState.current = body.job.state;
@@ -142,7 +142,7 @@ export function MemberImportPanel() {
         }
       } catch {
         if (!cancelled) {
-          setStatusMessage("Status is temporarily unavailable. Retrying…");
+          setStatusMessage("Can't get the latest status. Retrying…");
           retry();
         }
       }
@@ -229,11 +229,11 @@ export function MemberImportPanel() {
           setApplyConfirmed(false);
           applyOperationId.current = crypto.randomUUID();
           setApplyMessage(
-            "Quota settings changed. The import is being revalidated; review it and confirm again.",
+            "Quota settings changed, so every row is being checked again. Review the import and confirm again.",
           );
         } else {
           setApplyMessage(
-            "Apply queued. The server is creating the roster atomically.",
+            "Adding members now. This page updates when the import finishes.",
           );
         }
         setResponse((current) => (current?.ok ? { ...current } : current));
@@ -274,7 +274,7 @@ export function MemberImportPanel() {
 
       <form onSubmit={submit} className="member-import-form">
         <div className="field-group">
-          <label htmlFor="member-import-file">Member CSV</label>
+          <label htmlFor="member-import-file">CSV file</label>
           <input
             ref={fileInput}
             id="member-import-file"
@@ -285,12 +285,12 @@ export function MemberImportPanel() {
             disabled={pending}
           />
           <p className="field-help">
-            UTF-8, up to 500 rows and 2 MiB. Every row is validated before
-            confirmation; invalid files write no member records.
+            UTF-8, up to 500 rows and 2 MiB. Every row is checked before you
+            confirm. If any row has an error, no members are added.
           </p>
         </div>
         <button className="primary-button" type="submit" disabled={pending}>
-          {pending ? "Uploading…" : "Upload and validate"}
+          {pending ? "Uploading…" : "Upload and check"}
         </button>
       </form>
 
@@ -302,16 +302,16 @@ export function MemberImportPanel() {
           </div>
         ) : response?.ok ? (
           <div data-status="success">
-            <h2>{job ? formatJobState(job.state) : "Validation queued"}</h2>
+            <h2>{job ? formatJobState(job.state) : "Checking your file"}</h2>
             <p>
-              Job <code>{response.job.jobId}</code> contains{" "}
-              {response.job.totalRows}{" "}
-              {response.job.totalRows === 1 ? "row" : "rows"}.
+              Your file has {response.job.totalRows}{" "}
+              {response.job.totalRows === 1 ? "row" : "rows"}. Reference{" "}
+              <code>{response.job.jobId}</code>
             </p>
             {job ? (
               <JobProgress job={job} />
             ) : (
-              <p>The server is validating it asynchronously.</p>
+              <p>Checking every row. This page updates automatically.</p>
             )}
             {statusMessage ? (
               <p className="form-message" data-status="error">
@@ -340,8 +340,8 @@ export function MemberImportPanel() {
                     }
                     disabled={applyPending}
                   />
-                  Create every valid non-skipped member and invitation in one
-                  transaction.
+                  Add every valid member and create their invitations. If
+                  anything fails, none are added.
                 </label>
                 <button
                   className="primary-button"
@@ -350,9 +350,7 @@ export function MemberImportPanel() {
                     applyPending || !applyConfirmed || !applyReason.trim()
                   }
                 >
-                  {applyPending
-                    ? "Confirming…"
-                    : "Confirm all-or-nothing import"}
+                  {applyPending ? "Confirming…" : "Confirm import"}
                 </button>
               </form>
             ) : null}
@@ -362,11 +360,11 @@ export function MemberImportPanel() {
           </div>
         ) : response ? (
           <div data-status="error">
-            <h2>Upload not accepted</h2>
+            <h2>This file can&apos;t be imported</h2>
             {response.code === "forbidden" ? (
-              <p>Your role does not permit member imports.</p>
+              <p>Only coordinators and administrators can import members.</p>
             ) : response.code === "authentication_required" ? (
-              <p>Your session expired. Sign in again to continue.</p>
+              <p>You&apos;ve been signed out. Sign in again to continue.</p>
             ) : response.errors?.length ? (
               <ul>
                 {response.errors.map((error, index) => (
@@ -380,8 +378,9 @@ export function MemberImportPanel() {
               </ul>
             ) : (
               <p>
-                The import service is unavailable. Retry with correlation ID{" "}
-                <code>{response.correlationId}</code>.
+                The import is unavailable right now. Try again. If it keeps
+                failing, send this reference to support:{" "}
+                <code>{response.correlationId}</code>
               </p>
             )}
           </div>
@@ -394,10 +393,10 @@ export function MemberImportPanel() {
 function formatJobState(state: JobProjection["state"]): string {
   return {
     uploaded: "Uploaded",
-    validating: "Validating every row",
-    ready: "Ready for confirmation",
-    rejected: "Validation rejected the file",
-    applying: "Applying all rows",
+    validating: "Checking every row",
+    ready: "Ready to confirm",
+    rejected: "This file has errors",
+    applying: "Adding members",
     completed: "Import completed",
   }[state];
 }
@@ -415,18 +414,18 @@ function JobProgress({ job }: Readonly<{ job: JobProjection }>) {
           <dd>{job.skippedRows}</dd>
         </div>
         <div>
-          <dt>Invalid</dt>
+          <dt>With errors</dt>
           <dd>{job.invalidRows}</dd>
         </div>
         <div>
-          <dt>Created</dt>
+          <dt>Added</dt>
           <dd>{job.appliedRows}</dd>
         </div>
       </dl>
       {job.state === "ready" ? (
         <p>
-          Review the counts, then confirm to apply every valid, non-skipped row
-          in one transaction.
+          Check the counts, then confirm to add every valid row. Skipped rows
+          are left out.
         </p>
       ) : null}
       {job.rows.some((row) => row.errors.length > 0) ? (

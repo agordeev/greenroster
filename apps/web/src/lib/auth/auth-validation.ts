@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const MINIMUM_PASSWORD_LENGTH = 8;
+
 export const credentialsSchema = z.object({
   email: z.string().trim().toLowerCase().pipe(z.email()),
   password: z.string().min(1),
@@ -11,7 +13,7 @@ export const recoverySchema = z.object({
 
 export const passwordResetSchema = z
   .object({
-    password: z.string().min(12),
+    password: z.string().min(MINIMUM_PASSWORD_LENGTH),
     confirmPassword: z.string().min(1),
   })
   .refine((value) => value.password === value.confirmPassword, {

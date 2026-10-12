@@ -53,22 +53,21 @@ export function LiveRoundScoreEntryPanel({
     >
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Round-day operations</p>
+          <p className="ledger-kicker">Round day</p>
           <h2 id="live-score-entry-title">Enter live scores</h2>
         </div>
         <p>
-          {participants.length} participant
-          {participants.length === 1 ? "" : "s"}
+          {participants.length} player{participants.length === 1 ? "" : "s"}
         </p>
       </div>
       <p>
-        Enter only the enabled final-total fields. The server confirms each
-        revision and calculates plus/minus and ranking values; blank values stay
-        Missing and are never treated as zero.
+        Enter only the totals turned on for this round. Plus/minus and ranking
+        are worked out for you. Blank scores show Missing and are never counted
+        as zero.
       </p>
       {participants.length === 0 ? (
         <p className="group-empty" role="status">
-          No participants are available for live score entry.
+          No players are available to score yet.
         </p>
       ) : (
         <div className="group-role-list">
@@ -109,7 +108,7 @@ function ParticipantScoreEditor({
     .filter((value): value is string => Boolean(value?.trim()))
     .join(" ")
     .trim();
-  const displayName = name || "Unnamed participant";
+  const displayName = name || "Unnamed player";
   const playerLabel =
     participant.participantKind === "guest"
       ? `${displayName} · Guest`
@@ -147,7 +146,7 @@ function ParticipantScoreEditor({
       return;
     }
     if (Object.keys(changedFields).length === 0) {
-      setMessage("Change at least one score field before saving.");
+      setMessage("Change at least one score before you save.");
       setMessageTone("error");
       return;
     }
@@ -157,7 +156,7 @@ function ParticipantScoreEditor({
       (field) => scoreValueForField(score, field as RoundScoreField) !== null,
     );
     if (requiresCorrectionReason && !normalizedReason) {
-      setMessage("Add a correction reason when replacing a confirmed value.");
+      setMessage("Add a reason to change a score that's already saved.");
       setMessageTone("error");
       return;
     }
@@ -187,7 +186,7 @@ function ParticipantScoreEditor({
       try {
         result = await setRoundParticipantScoreAction(parsed.data);
       } catch {
-        setMessage("The score service is temporarily unavailable. Try again.");
+        setMessage("The score wasn't saved. Try again.");
         setMessageTone("error");
         return;
       }
@@ -208,8 +207,8 @@ function ParticipantScoreEditor({
           setReason("");
           setMessage(
             currentScore
-              ? "This score changed on the server. The current server values are shown below; re-enter your intended value before saving."
-              : "This score changed on the server. Refresh the current values and re-enter your intended value before saving.",
+              ? "This score changed while you were entering it. The current scores are shown below. Enter your score again before you save."
+              : "This score changed while you were entering it. Refresh the page and enter your score again.",
           );
           mutationContext.current = resetScoreMutationContext();
           router.refresh();
@@ -228,7 +227,7 @@ function ParticipantScoreEditor({
       setDraft(scoreDraftFromCurrentScore(nextScore));
       setReason("");
       setStaleCurrentScore(null);
-      setMessage("Score saved and confirmed by the server.");
+      setMessage("Score saved.");
       setMessageTone("success");
       mutationContext.current = resetScoreMutationContext();
     });
@@ -246,8 +245,8 @@ function ParticipantScoreEditor({
             {locked
               ? "Not playing · score entry locked"
               : participant.canEdit
-                ? "Playing · coordinator/admin entry"
-                : "Playing · score entry read-only"}
+                ? "Playing · you can enter scores"
+                : "Playing · view only"}
           </p>
         </div>
         <p>{scoreState}</p>
@@ -255,10 +254,10 @@ function ParticipantScoreEditor({
 
       {staleCurrentScore ? (
         <aside className="form-message error" role="alert">
-          <strong>Current server values</strong>
+          <strong>Current scores</strong>
           <span>{formatServerValues(staleCurrentScore, fields)}</span>
           <span>
-            Re-enter the intended value before saving; nothing was overwritten.
+            Enter your score again to save it. Nothing was overwritten.
           </span>
         </aside>
       ) : null}
@@ -303,25 +302,25 @@ function ParticipantScoreEditor({
               aria-describedby={`${formId}-reason-help`}
             />
             <small id={`${formId}-reason-help`} className="field-help">
-              Required when replacing a confirmed value (500 characters
-              maximum).
+              Required to change a score that’s already saved. Up to 500
+              characters.
             </small>
           </label>
         ) : null}
 
         <dl className="group-profile-facts">
           <div>
-            <dt>Typed points plus/minus preview</dt>
+            <dt>Plus/minus as you type</dt>
             <dd>
               {formatServerValue(typedPlusMinus)} <small>Preview only</small>
             </dd>
           </div>
           <div>
-            <dt>Server-confirmed plus/minus</dt>
+            <dt>Plus/minus</dt>
             <dd>{formatServerValue(score.plusMinus)}</dd>
           </div>
           <div>
-            <dt>Server ranking value</dt>
+            <dt>Ranking value</dt>
             <dd>{formatServerValue(score.rankingValue)}</dd>
           </div>
         </dl>
@@ -381,7 +380,7 @@ function ScoreFieldInput({
         aria-describedby={helpId}
       />
       <small id={helpId} className="field-help">
-        Server value: {formatServerValue(confirmedValue)}
+        Saved: {formatServerValue(confirmedValue)}
       </small>
     </label>
   );

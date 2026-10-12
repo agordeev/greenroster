@@ -38,9 +38,8 @@ export default async function PrivacyRequestsPage() {
           <p className="ledger-kicker">Privacy</p>
           <h1 id="privacy-requests-title">Privacy requests</h1>
           <p>
-            Use this authenticated page to contact the named privacy owner
-            through the GreenRoster support process. Requests target a response
-            within 30 days; v1 does not keep an in-product request tracker.
+            Choose a request below. We aim to reply within 30 days. You cannot
+            track requests in the app.
           </p>
         </div>
         <div className="account-email-actions">
@@ -52,9 +51,9 @@ export default async function PrivacyRequestsPage() {
           </a>
         </div>
         <p className="status-note">
-          For security, requests must start from a normal signed-in session, not
-          password recovery. If your sign-in is no longer recent, sign out and
-          sign in again before sending a request.
+          Requests must come from a normal sign-in, not a password reset link.
+          If you signed in more than 15 minutes ago, sign out and sign in again
+          before you send one.
         </p>
         <div className="account-email-actions">
           <Link className="secondary-link" href="/account">
@@ -73,11 +72,11 @@ function RecoverySessionRestricted() {
   return (
     <main className="auth-shell auth-shell-single account-email-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Regular session required</p>
+        <p className="ledger-kicker">Sign in normally first</p>
         <h1>Sign in again to make a privacy request</h1>
         <p>
-          This password-recovery session cannot submit a privacy request. Sign
-          out, then sign in normally before contacting the privacy owner.
+          You signed in from a password reset link, so you cannot send a privacy
+          request. Sign out, then sign in normally before you send one.
         </p>
         <Link
           className="primary-button"
@@ -109,9 +108,8 @@ function RecentAuthenticationRequired() {
         <p className="ledger-kicker">Recent sign-in required</p>
         <h1>Sign in again to make a privacy request</h1>
         <p>
-          For your protection, data access and account deletion requests are
-          available for 15 minutes after a normal sign-in. Sign out, then sign
-          in again before contacting the privacy owner.
+          You can send data access and account deletion requests for 15 minutes
+          after a normal sign-in. Sign out, then sign in again to send one.
         </p>
         <Link
           className="primary-button"

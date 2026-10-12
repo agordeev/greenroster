@@ -53,13 +53,13 @@ export function GroupGuestPermissionForm({
     setMessageTone("");
 
     if (!policyChanged) {
-      setMessage("There are no guest-permission changes to save.");
+      setMessage("Change the guest setting before you save.");
       setMessageTone("error");
       return;
     }
     const normalizedReason = reason.trim();
     if (!normalizedReason) {
-      setMessage("Add a reason for this guest-permission change.");
+      setMessage("Add a reason for this change.");
       setMessageTone("error");
       return;
     }
@@ -97,18 +97,21 @@ export function GroupGuestPermissionForm({
         setAllowMemberGuests(result.data.allowMemberGuests);
         setGroupVersion(result.data.groupVersion);
         setReason("");
-        setMessage("Guest permission saved.");
+        setMessage("Guest setting saved.");
         setMessageTone("success");
         router.refresh();
       } catch {
-        setMessage("The guest-permission service is temporarily unavailable.");
+        setMessage("We couldn't save this right now. Try again in a moment.");
         setMessageTone("error");
       }
     });
   }
 
   function cancel() {
-    if (dirty && !window.confirm("Discard unsaved guest-permission changes?")) {
+    if (
+      dirty &&
+      !window.confirm("Discard unsaved changes to the guest setting?")
+    ) {
       return;
     }
     setAllowMemberGuests(initialValue.allowMemberGuests);
@@ -134,11 +137,11 @@ export function GroupGuestPermissionForm({
           onChange={(event) => setAllowMemberGuests(event.target.checked)}
           disabled={pending}
         />
-        <span>Allow active Playing members to add round-scoped guests</span>
+        <span>Let active Playing members bring guests to a round</span>
       </label>
       <p className="field-help">
-        Guests have no account or contact data, receive no notifications, and
-        never enter permanent membership or standings totals.
+        Guests have no account or contact details and get no notifications. They
+        never count as members or in standings totals.
       </p>
       <label htmlFor="guest-permission-reason">Reason for change</label>
       <textarea
@@ -159,7 +162,7 @@ export function GroupGuestPermissionForm({
       </p>
       <div className="information-actions">
         <button className="primary-button" type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save guest permission"}
+          {pending ? "Saving…" : "Save guest setting"}
         </button>
         <button
           className="secondary-button"

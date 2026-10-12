@@ -1,4 +1,5 @@
 import { ResetForm } from "./reset-form";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export default function ResetPasswordPage() {
   return (
@@ -14,11 +15,11 @@ export default function ResetPasswordPage() {
           </div>
         </div>
         <div className="auth-heading">
-          <p className="ledger-kicker">Single-use recovery</p>
+          <p className="ledger-kicker">One-time link</p>
           <h1 id="reset-title">Choose a new password</h1>
           <p>
-            Use a passphrase of at least 12 characters. This link authorizes
-            only the password change.
+            Use a passphrase of at least {MINIMUM_PASSWORD_LENGTH} characters.
+            This link can only be used to change your password.
           </p>
         </div>
         <ResetForm />

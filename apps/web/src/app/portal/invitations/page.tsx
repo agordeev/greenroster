@@ -72,16 +72,12 @@ export default async function InvitationManagementPage({
     >
       <section className="portal-ledger" aria-labelledby="invitations-title">
         <p className="ledger-kicker">Member administration</p>
-        <h1 id="invitations-title">
-          {deliveryFilter === "action-required"
-            ? "Invitation delivery attention"
-            : "Pending invitations"}
-        </h1>
+        <h1 id="invitations-title">Invitations</h1>
         <p>
           {deliveryFilter === "action-required"
-            ? "Review pending invitations whose e-mail delivery failed permanently or is suppressed."
-            : "Regenerate a single-use link, correct an address as an administrator, or revoke an invitation."}{" "}
-          Every change is checked against your current group role on the server.
+            ? "Review invitations whose email bounced or was blocked from sending."
+            : "Send a new link, fix an address, or cancel an invitation."}{" "}
+          Only administrators can fix an address.
         </p>
         <InvitationManagement
           invitations={visibleInvitations}
@@ -151,8 +147,8 @@ function renderLifecycleError(error: unknown, context?: PortalContext) {
       : "Invitations could not be loaded";
   const message =
     error instanceof MutationError && error.code === "forbidden"
-      ? "Your current membership does not have coordinator or administrator access."
-      : "The invitation service is temporarily unavailable. Refresh and try again.";
+      ? "Only coordinators and administrators can manage invitations."
+      : "We couldn't load invitations right now. Refresh and try again.";
 
   return (
     <PortalShell

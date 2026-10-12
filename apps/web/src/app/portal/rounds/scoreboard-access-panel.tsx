@@ -128,9 +128,7 @@ export function ScoreboardAccessPanel({
             <span>Live-scores link</span>
             <input id="scoreboard-access-url" value={grant.url} readOnly />
           </label>
-          <p className="form-help">
-            You can copy this link while it is active.
-          </p>
+          <p className="form-help">Copy this link while it’s active.</p>
           <button
             className="secondary-button"
             type="button"
@@ -171,7 +169,7 @@ export function ScoreboardAccessPanel({
               required
             />
           </label>
-          <p className="form-help">You choose when this link stops working.</p>
+          <p className="form-help">Choose when this link stops working.</p>
           <button
             className="primary-button"
             type="button"

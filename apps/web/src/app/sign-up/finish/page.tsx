@@ -108,6 +108,23 @@ export default async function SignupFinishPage({
     cookieStore.get(ORGANIZER_SIGNUP_COOKIE)?.value,
     webRuntimeEnv.invitationTokenSecret,
   );
+  const legalAccepted = Boolean(
+    signupCookie &&
+    signupCookie.termsVersion === legal.termsVersion &&
+    signupCookie.privacyVersion === legal.privacyVersion,
+  );
+
+  if (!legalAccepted) {
+    return (
+      <FinishState
+        title="Review your account agreements"
+        message="Start your account setup again to accept the current Terms of Use and Privacy Policy."
+        email={user.email}
+        actionHref="/sign-up"
+        actionLabel="Start account setup again"
+      />
+    );
+  }
 
   return (
     <>
@@ -124,8 +141,8 @@ export default async function SignupFinishPage({
             <p className="ledger-kicker">Group setup</p>
             <h1 id="finish-title">Add your group details</h1>
             <p>
-              You verified {user.email ?? "your account"}. Add your name and
-              group details to create your administrator access.
+              You are signed in as {user.email ?? "your account"}. Add your name
+              and group details to become the group’s administrator.
             </p>
           </div>
           {status === "expired" ? (
@@ -141,13 +158,6 @@ export default async function SignupFinishPage({
           ) : null}
           <OrganizerBootstrapForm
             identityKey={user.id}
-            legalAccepted={Boolean(
-              signupCookie &&
-              signupCookie.termsVersion === legal.termsVersion &&
-              signupCookie.privacyVersion === legal.privacyVersion,
-            )}
-            privacyVersion={legal.privacyVersion}
-            termsVersion={legal.termsVersion}
             operationId={randomUUID()}
           />
           <Link className="secondary-link" href="/sign-in">
@@ -163,7 +173,15 @@ function FinishState({
   title,
   message,
   email,
-}: Readonly<{ title: string; message: string; email?: string | null }>) {
+  actionHref,
+  actionLabel,
+}: Readonly<{
+  title: string;
+  message: string;
+  email?: string | null;
+  actionHref?: string;
+  actionLabel?: string;
+}>) {
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -179,6 +197,11 @@ function FinishState({
           <h1 id="finish-state-title">{title}</h1>
           {email ? <p>{email}</p> : null}
           <p>{message}</p>
+          {actionHref && actionLabel ? (
+            <Link className="primary-button button-link" href={actionHref}>
+              {actionLabel}
+            </Link>
+          ) : null}
           <Link className="secondary-link" href="/sign-in">
             Return to sign in
           </Link>

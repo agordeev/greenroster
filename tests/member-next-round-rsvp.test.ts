@@ -13,7 +13,7 @@ describe("member next-round RSVP display", () => {
   it("labels every confirmed response state", () => {
     expect(formatRsvp("no_response")).toBe("No response");
     expect(formatRsvp("playing")).toBe("Playing");
-    expect(formatRsvp("not_playing")).toBe("Not Playing");
+    expect(formatRsvp("not_playing")).toBe("Not playing");
   });
 
   it("formats the server-confirmed timestamp in the group zone", () => {

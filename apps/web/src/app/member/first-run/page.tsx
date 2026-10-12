@@ -41,11 +41,11 @@ export default async function MemberFirstRunPage() {
     <main className="auth-shell auth-shell-single invitation-shell">
       <section className="auth-ledger" aria-labelledby="first-run-title">
         <div className="auth-heading">
-          <p className="ledger-kicker">Member first run</p>
+          <p className="ledger-kicker">Welcome</p>
           <h1 id="first-run-title">Confirm your profile</h1>
           <p>
-            Confirm your name and review the current Terms and Privacy Policy
-            before entering the member experience.
+            Check your name and read the current Terms and Privacy Policy before
+            you continue.
           </p>
         </div>
         <MemberFirstRunForm
@@ -64,8 +64,8 @@ function FirstRunUnavailable() {
   return (
     <main className="auth-shell auth-shell-single invitation-shell">
       <section className="auth-ledger">
-        <p className="ledger-kicker">Member first run</p>
-        <h1>Your member profile could not be loaded</h1>
+        <p className="ledger-kicker">Welcome</p>
+        <h1>We could not load your profile</h1>
         <p>
           Try again in a moment or ask a group coordinator to review your
           membership.

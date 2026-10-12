@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
+import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 import { invitationRegistrationSchema } from "@/lib/invitations/invitation-registration";
 import { resolveCorrelationId } from "@/lib/mutations/correlation";
 import { createServerActionSupabaseClient } from "@/lib/supabase/server-action-client";
@@ -140,8 +141,8 @@ export async function registerInvitationAction(
         : parsed.error.issues.some(
               (issue) => issue.path[0] === "confirmPassword",
             )
-          ? "Passwords must match and use at least 12 characters."
-          : "Use a password of at least 12 characters.",
+          ? `Passwords must match and use at least ${MINIMUM_PASSWORD_LENGTH} characters.`
+          : `Use a password of at least ${MINIMUM_PASSWORD_LENGTH} characters.`,
     };
   }
 

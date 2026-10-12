@@ -44,7 +44,7 @@ export function RecoveryForm() {
         {state.message}
       </p>
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Requesting…" : "Send recovery instructions"}
+        {pending ? "Sending…" : "Send recovery link"}
       </button>
       <Link className="secondary-link" href="/sign-in">
         Return to sign in

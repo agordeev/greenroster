@@ -120,7 +120,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       if (!link) return;
       if (
         !shouldAllowDirtyNavigation(draftDirty, () =>
-          window.confirm("Discard the unsaved new member draft?"),
+          window.confirm("Discard this unsaved new member?"),
         )
       ) {
         event.preventDefault();
@@ -141,7 +141,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       }
       if (
         !shouldAllowDirtyNavigation(draftDirty, () =>
-          window.confirm("Discard the unsaved new member draft?"),
+          window.confirm("Discard this unsaved new member?"),
         )
       ) {
         event.preventDefault();
@@ -201,9 +201,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       return;
     }
     if (!createConfirmed) {
-      setError(
-        "Confirm the member details before creating the pending record.",
-      );
+      setError("Confirm the member details before adding them.");
       return;
     }
 
@@ -218,7 +216,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     );
     const operationId = createOperation.current.operationId;
     if (!operationId) {
-      setError("The member record could not be prepared. Try again.");
+      setError("We couldn't add this member. Try again.");
       return;
     }
 
@@ -240,10 +238,10 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         setPhase("ready");
         setMessageStatus("success");
         setMessage(
-          "Pending member created. Confirm the address below to send the invitation.",
+          "Member added. Confirm their invite e-mail below to send the invitation.",
         );
       } catch {
-        setError("The member service is temporarily unavailable. Try again.");
+        setError("We couldn't add this member. Try again.");
       }
     });
   }
@@ -255,11 +253,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     const handicap = draft.handicap.trim();
     const asOf = draft.handicapAsOf.trim();
     if (!handicap || !asOf) {
-      setError("Enter a handicap value and as-of date before recording it.");
+      setError("Enter a handicap and date before recording it.");
       return;
     }
     if (!draft.handicapReason.trim()) {
-      setError("Add a reason before recording the manual handicap.");
+      setError("Add a reason before recording the handicap.");
       return;
     }
     if (!draft.handicapConfirmed) {
@@ -279,7 +277,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     );
     const operationId = handicapOperation.current.operationId;
     if (!operationId) {
-      setError("The handicap record could not be prepared. Try again.");
+      setError("We couldn't record the handicap. Try again.");
       return;
     }
 
@@ -300,7 +298,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         setHandicapRecorded(true);
         setPhase("ready");
       } catch {
-        setError("The handicap service is temporarily unavailable. Try again.");
+        setError("We couldn't record the handicap. Try again.");
       }
     });
   }
@@ -311,7 +309,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
 
     if (handicapRequiredBeforeInvite) {
       setError(
-        "Record the drafted handicap before sending the invitation, or clear the handicap draft.",
+        "Record the handicap before sending the invitation, or clear the handicap fields.",
       );
       return;
     }
@@ -322,7 +320,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       return;
     }
     if (!inviteConfirmed) {
-      setError("Confirm the invitation address before sending it.");
+      setError("Confirm the invite e-mail before sending it.");
       return;
     }
 
@@ -338,7 +336,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     );
     const operationId = inviteOperation.current.operationId;
     if (!operationId) {
-      setError("The invitation could not be prepared. Try again.");
+      setError("We couldn't send the invitation. Try again.");
       return;
     }
 
@@ -362,7 +360,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         // delivery state from Invitations without exposing the token.
         setPhase("success");
         setMessageStatus("success");
-        setMessage("Invitation queued. Opening the created member record…");
+        setMessage("Invitation on its way. Opening the member…");
         clearRecoveryState();
         setDraft(emptyMemberCreateInviteDraft);
         setCreateConfirmed(false);
@@ -374,9 +372,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         handicapOperation.current = emptyOperationState;
         router.replace(`/portal/members?membership=${createdMembershipId}`);
       } catch {
-        setError(
-          "The invitation service is temporarily unavailable. Try again.",
-        );
+        setError("We couldn't send the invitation. Try again.");
       }
     });
   }
@@ -401,7 +397,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     if (busy) return;
     if (
       !shouldAllowDirtyNavigation(draftDirty, () =>
-        window.confirm("Discard the current new member draft?"),
+        window.confirm("Discard this new member?"),
       )
     ) {
       return;
@@ -477,8 +473,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         </span>
       </div>
       <p className="member-create-copy">
-        Create the pending membership first, then confirm the invite address in
-        a separate action. The server records both operations independently.
+        Add the member first. Then confirm their invite e-mail to send the
+        invitation.
       </p>
 
       <form className="member-create-form" onSubmit={submitCreate} noValidate>
@@ -729,8 +725,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <fieldset className="member-contact-fieldset">
             <legend>Handicap (optional)</legend>
             <p className="field-help">
-              These values stay in the draft until the profile exists. Recording
-              a handicap is a separate confirmed action after creation.
+              Enter the handicap here. It is recorded in a separate step after
+              you add the member.
             </p>
             <HandicapFields
               draft={draft}
@@ -740,7 +736,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           </fieldset>
 
           <fieldset className="member-contact-fieldset">
-            <legend>Private contact visibility</legend>
+            <legend>Show in the member directory</legend>
             <div className="member-visibility-grid">
               <label
                 className="member-check"
@@ -814,7 +810,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               </label>
             </div>
             <small className="field-help">
-              Contact details stay private unless you explicitly list them.
+              Contact details stay private unless you choose to list them.
             </small>
           </fieldset>
           <label
@@ -827,9 +823,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               checked={createConfirmed}
               onChange={(event) => setCreateConfirmed(event.target.checked)}
             />
-            <span>
-              I confirm these details are ready for a pending membership.
-            </span>
+            <span>I confirm these details are correct.</span>
           </label>
         </fieldset>
         <div className="member-create-actions">
@@ -838,7 +832,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             type="submit"
             disabled={busy || memberCreated}
           >
-            {phase === "creating" ? "Creating…" : "Create pending member"}
+            {phase === "creating" ? "Adding…" : "Add member"}
           </button>
           {memberCreated ? (
             <button
@@ -847,7 +841,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               onClick={reset}
               disabled={busy}
             >
-              Create another member
+              Add another member
             </button>
           ) : null}
         </div>
@@ -862,9 +856,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <fieldset disabled={busy || handicapRecorded}>
             <legend>Record handicap</legend>
             <p>
-              The pending profile exists. Record this manual handicap separately
-              before sending the invitation; the new membership starts at
-              membership version 1.
+              Member added. If you entered a handicap, record it before sending
+              the invitation.
             </p>
             <HandicapFields
               draft={draft}
@@ -894,7 +887,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               }
               disabled={busy}
             >
-              Open full member setup
+              Open member details
             </button>
           </div>
         </form>
@@ -905,8 +898,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           <fieldset disabled={busy || handicapRequiredBeforeInvite}>
             <legend>Send invitation</legend>
             <p>
-              Membership <code>{createdMembershipId}</code> is pending. No
-              invitation has been sent until this action is confirmed.
+              This member is pending (ID <code>{createdMembershipId}</code>). No
+              invitation is sent until you confirm it.
             </p>
             <label className="field-group" htmlFor="member-invite-email">
               <span>Invite e-mail</span>
@@ -935,8 +928,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 onChange={(event) => setInviteConfirmed(event.target.checked)}
               />
               <span>
-                I confirm this is the address that should receive the
-                invitation.
+                I confirm this e-mail address should receive the invitation.
               </span>
             </label>
           </fieldset>
@@ -950,7 +942,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </button>
             {handicapRequiredBeforeInvite ? (
               <p className="field-help" role="status">
-                Record the drafted handicap before sending the invitation.
+                Record the handicap before sending the invitation.
               </p>
             ) : null}
           </div>
@@ -1001,7 +993,7 @@ function HandicapFields({
           />
         </label>
         <label className="field-group" htmlFor={`${idPrefix}-handicap-value`}>
-          <span>Handicap value</span>
+          <span>Handicap</span>
           <input
             id={`${idPrefix}-handicap-value`}
             name="handicap"
@@ -1015,7 +1007,7 @@ function HandicapFields({
           />
         </label>
         <label className="field-group" htmlFor={`${idPrefix}-handicap-as-of`}>
-          <span>Handicap as of</span>
+          <span>As of date</span>
           <input
             id={`${idPrefix}-handicap-as-of`}
             name="handicapAsOf"
@@ -1026,7 +1018,7 @@ function HandicapFields({
         </label>
       </div>
       <label className="field-group" htmlFor={`${idPrefix}-handicap-reason`}>
-        <span>Reason for manual handicap (required to record)</span>
+        <span>Reason (required to record)</span>
         <textarea
           id={`${idPrefix}-handicap-reason`}
           name="handicapReason"
@@ -1049,7 +1041,7 @@ function HandicapFields({
             onChange("handicapConfirmed", event.target.checked)
           }
         />
-        <span>I confirm this manual handicap and its effective date.</span>
+        <span>I confirm this handicap and its date.</span>
       </label>
     </>
   );

@@ -57,7 +57,7 @@ export function formatRsvpChangedAt(
   value: string | null,
   timeZone: string,
 ): string {
-  if (!value) return "timestamp unavailable";
+  if (!value) return "time not available";
   try {
     return new Intl.DateTimeFormat(undefined, {
       dateStyle: "medium",
@@ -65,7 +65,7 @@ export function formatRsvpChangedAt(
       timeZone,
     }).format(new Date(value));
   } catch {
-    return "timestamp unavailable";
+    return "time not available";
   }
 }
 

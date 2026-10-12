@@ -46,8 +46,8 @@ export function MobileAuthBoundary({
     return (
       <SessionStatusScreen
         indicator={<ActivityIndicator color={theme.accent} />}
-        title="Checking secure access"
-        message="GreenRoster is restoring your person-specific session before any protected group data is shown."
+        title="Checking your sign-in"
+        message="Hang on while GreenRoster checks your sign-in. Your group appears after that."
       />
     );
   }
@@ -55,8 +55,8 @@ export function MobileAuthBoundary({
   if (status === "error") {
     return (
       <SessionStatusScreen
-        title="Session needs attention"
-        message="GreenRoster could not verify this session. Check your connection and try again."
+        title="Your sign-in needs attention"
+        message="We couldn't confirm your sign-in. Check your connection and try again."
         action={
           <Pressable
             accessibilityRole="button"

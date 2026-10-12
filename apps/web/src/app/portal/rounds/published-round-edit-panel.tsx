@@ -120,7 +120,7 @@ export function PublishedRoundEditPanel({
       try {
         result = await previewPublishedRoundEditAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("Changes couldn't be previewed. Try again.");
         setMessageTone("error");
         return;
       }
@@ -138,8 +138,8 @@ export function PublishedRoundEditPanel({
       setAnnounce(false);
       setMessage(
         result.data.changedFields.length === 0
-          ? "There are no published round changes to apply."
-          : "Review the impact before applying this change.",
+          ? "No changes found. Edit a field, then preview again."
+          : "Check the impact below before you apply this change.",
       );
       setMessageTone(
         result.data.changedFields.length === 0 ? "error" : "success",
@@ -174,7 +174,7 @@ export function PublishedRoundEditPanel({
       try {
         result = await updatePublishedRoundEditAction(parsed.data);
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("Your changes weren't applied. Try again.");
         setMessageTone("error");
         return;
       }
@@ -200,8 +200,8 @@ export function PublishedRoundEditPanel({
       setVersion(result.data.currentVersion);
       setMessage(
         result.data.announce
-          ? `Published round updated. ${result.data.notificationCount} participant notification${result.data.notificationCount === 1 ? "" : "s"} queued.`
-          : "Published round updated. No participant notifications were queued.",
+          ? `Changes applied. ${result.data.notificationCount} e-mail${result.data.notificationCount === 1 ? "" : "s"} will be sent to players.`
+          : "Changes applied. No e-mails will be sent.",
       );
       setMessageTone("success");
       router.refresh();
@@ -215,14 +215,14 @@ export function PublishedRoundEditPanel({
     >
       <div className="group-panel-heading">
         <div>
-          <p className="ledger-kicker">Published round edit</p>
+          <p className="ledger-kicker">Published round</p>
           <h2 id="published-round-edit-title">Change round details</h2>
         </div>
-        <p>Version {version}</p>
+        <p>Preview before you apply</p>
       </div>
       <p>
-        Format, roster, guest, and scoring snapshots stay unchanged. Preview the
-        server-confirmed impact before applying these detail changes.
+        Format, players, guests, and scores stay as they are. Preview the
+        changes before you apply them.
       </p>
       <div className="group-profile-form" aria-busy={pending}>
         <div className="group-profile-fields">
@@ -320,7 +320,7 @@ export function PublishedRoundEditPanel({
             }
             disabled={pending}
           />
-          Notes may be visible to players
+          Show notes to players
         </label>
         {preview ? <ImpactSummary preview={preview} /> : null}
         {preview && preview.changedFields.length > 0 ? (
@@ -331,7 +331,7 @@ export function PublishedRoundEditPanel({
               onChange={(event) => setAnnounce(event.target.checked)}
               disabled={pending}
             />
-            Announce this change to affected participants
+            E-mail affected players about this change
           </label>
         ) : null}
         {receipt ? <ReceiptSummary receipt={receipt} /> : null}
@@ -357,7 +357,7 @@ export function PublishedRoundEditPanel({
             onClick={applyChanges}
             disabled={pending || !preview || preview.changedFields.length === 0}
           >
-            {pending && preview ? "Applying…" : "Apply published edit"}
+            {pending && preview ? "Applying…" : "Apply changes"}
           </button>
         </div>
       </div>
@@ -391,27 +391,27 @@ function ImpactSummary({
   return (
     <section aria-labelledby="published-round-edit-impact-title">
       <p className="ledger-kicker">Impact preview</p>
-      <h3 id="published-round-edit-impact-title">Server-confirmed impact</h3>
+      <h3 id="published-round-edit-impact-title">What this changes</h3>
       <p>
-        {preview.affectedParticipantCount} affected participant
+        {preview.affectedParticipantCount} affected player
         {preview.affectedParticipantCount === 1 ? "" : "s"}.
       </p>
-      <ImpactList label="Changed fields" values={preview.changedFields} />
+      <ImpactList label="Changed details" values={preview.changedFields} />
       <ImpactList
-        label="Material categories"
+        label="Significant changes"
         values={preview.materialCategories}
       />
       <ImpactList
-        label="Scoring consequences"
+        label="Effect on scores"
         values={preview.scoringConsequences}
       />
       {preview.affectedParticipants.length > 0 ? (
         <div className="publication-member-list round-detail-table-wrap">
           <table>
-            <caption>Affected participants</caption>
+            <caption>Affected players</caption>
             <thead>
               <tr>
-                <th scope="col">Participant</th>
+                <th scope="col">Player</th>
                 <th scope="col">RSVP</th>
               </tr>
             </thead>
@@ -421,7 +421,7 @@ function ImpactSummary({
                   <th scope="row">
                     {[participant.firstName, participant.lastName]
                       .filter(Boolean)
-                      .join(" ") || "Unnamed participant"}
+                      .join(" ") || "Unnamed player"}
                   </th>
                   <td>{formatRsvp(participant.rsvpStatus)}</td>
                 </tr>
@@ -439,8 +439,10 @@ function ReceiptSummary({
 }: Readonly<{ receipt: PublishedRoundEditReceipt }>) {
   return (
     <aside className="form-message success" role="status">
-      Applied at server version {receipt.currentVersion}. The immutable
-      participant snapshots remain unchanged.
+      Changes applied. Player quotas, handicaps, and tees stay as they were.
+      {receipt.notificationCount > 0
+        ? ` ${receipt.notificationCount} e-mail${receipt.notificationCount === 1 ? "" : "s"} will be sent.`
+        : null}
     </aside>
   );
 }
@@ -453,7 +455,7 @@ function ImpactList({
     <div>
       <strong>{label}</strong>
       {values.length === 0 ? (
-        <p>None reported.</p>
+        <p>None.</p>
       ) : (
         <ul>
           {values.map((value) => (

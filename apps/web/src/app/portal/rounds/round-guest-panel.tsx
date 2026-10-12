@@ -90,8 +90,8 @@ export function RoundGuestPanel({
       setTee("");
       setMessage(
         result.data.duplicateLike
-          ? "You add this guest, and another guest has the same name."
-          : "You add this guest to the round.",
+          ? "Guest added. Another guest has the same name."
+          : "Guest added to the round.",
       );
       setMessageTone(result.data.duplicateLike ? "error" : "success");
       router.refresh();
@@ -108,8 +108,8 @@ export function RoundGuestPanel({
         <p>{state === "live" ? "Live round" : "Published round"}</p>
       </div>
       <p>
-        You add a guest for this round with the sponsor, quota, handicap, and
-        tee values that you want the server to use.
+        Add a guest to this round with the sponsor, quota, handicap, and tee you
+        want to use.
       </p>
 
       {guests.length > 0 ? (
@@ -139,7 +139,7 @@ export function RoundGuestPanel({
         </div>
       ) : (
         <p className="group-empty" role="status">
-          You have no guests in this round.
+          No guests in this round yet.
         </p>
       )}
 
@@ -170,7 +170,7 @@ export function RoundGuestPanel({
             onChange={(event) => setSponsorMembershipId(event.target.value)}
             disabled={pending}
           >
-            <option value="">Use your playing membership</option>
+            <option value="">You (if you’re playing)</option>
             {sponsors.map((sponsor) => (
               <option
                 key={sponsor.membershipId}
@@ -221,7 +221,7 @@ export function RoundGuestPanel({
       </div>
       <p className="field-help">
         {quotaRequired
-          ? "You enter a quota before you add a guest to this net round."
+          ? "Enter a quota before you add a guest to this net round."
           : "You can leave quota blank for this gross round."}
       </p>
       <p
@@ -274,17 +274,17 @@ function GuestRow({
         reason: reason.trim() || null,
         operationId: crypto.randomUUID(),
       });
-      setMessage(result.ok ? "You save this guest." : result.error.message);
+      setMessage(result.ok ? "Guest saved." : result.error.message);
       if (result.ok) onDone();
     });
   }
 
   function withdrawGuest() {
     if (!reason.trim()) {
-      setMessage("You enter a reason before you withdraw this guest.");
+      setMessage("Add a reason before you withdraw this guest.");
       return;
     }
-    if (!window.confirm("You withdraw this guest from this round.")) return;
+    if (!window.confirm("Withdraw this guest from this round?")) return;
     startTransition(async () => {
       const result = await withdrawRoundGuestAction({
         roundId: guest.roundId,
@@ -294,7 +294,7 @@ function GuestRow({
         reason,
         operationId: crypto.randomUUID(),
       });
-      setMessage(result.ok ? "You withdraw this guest." : result.error.message);
+      setMessage(result.ok ? "Guest withdrawn." : result.error.message);
       if (result.ok) onDone();
     });
   }
@@ -383,7 +383,7 @@ function GuestRow({
 function displayName(participant: RoundCoordinatorParticipant): string {
   return (
     [participant.firstName, participant.lastName].filter(Boolean).join(" ") ||
-    "Unnamed member"
+    "Unnamed player"
   );
 }
 

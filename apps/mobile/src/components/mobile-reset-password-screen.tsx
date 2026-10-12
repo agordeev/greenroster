@@ -57,17 +57,17 @@ export function MobileResetPasswordScreen() {
 
     setMessage(
       result.ok
-        ? "The recovery service could not be reached. Try again."
+        ? "We couldn't update your password. Try again."
         : result.code === "rate_limited"
           ? "Too many attempts. Wait a moment and try again."
           : result.code === "validation"
             ? (result.fieldErrors?.confirmPassword?.[0] ??
               result.fieldErrors?.password?.[0] ??
-              "Use at least 12 characters and enter the same password twice.")
+              "Use at least 8 characters and enter the same password twice.")
             : result.code === "expired" ||
                 result.code === "authentication_required"
               ? "This recovery link is expired or has already been used."
-              : "The recovery service could not be reached. Check your connection and try again.",
+              : "We couldn't update your password. Check your connection and try again.",
     );
     setPending(false);
   };
@@ -86,8 +86,8 @@ export function MobileResetPasswordScreen() {
               </ThemedText>
               <ThemedText type="title">Choose a new password</ThemedText>
               <ThemedText themeColor="textSecondary" style={styles.bodyCopy}>
-                Use at least 12 characters. This recovery-only session cannot
-                open member data.
+                Use at least 8 characters. Your rounds and standings open once
+                you sign in with it.
               </ThemedText>
             </View>
 

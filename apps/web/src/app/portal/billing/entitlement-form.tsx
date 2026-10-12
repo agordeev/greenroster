@@ -48,7 +48,7 @@ export function BillingEntitlementForm({
         Why you are giving access
         <input name="reason" maxLength={1000} required />
       </label>
-      <button type="submit" disabled={busy}>
+      <button className="secondary-button" type="submit" disabled={busy}>
         {busy ? "Saving…" : "Give access"}
       </button>
       {message ? <p role="status">{message}</p> : null}

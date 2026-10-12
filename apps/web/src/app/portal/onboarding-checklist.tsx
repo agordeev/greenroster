@@ -11,7 +11,7 @@ export function OnboardingChecklist({
     <section className="onboarding-card" aria-labelledby="onboarding-title">
       <div className="onboarding-heading">
         <div>
-          <p className="ledger-kicker">Group onboarding</p>
+          <p className="ledger-kicker">Getting started</p>
           <h2 id="onboarding-title">Finish setting up the group</h2>
         </div>
         <p aria-label={`${completedCount} of ${items.length} tasks complete`}>
@@ -28,9 +28,7 @@ export function OnboardingChecklist({
               <strong>{item.label}</strong>
               <p>{item.detail}</p>
             </div>
-            <em>
-              {item.status === "complete" ? "Complete" : "Not configured"}
-            </em>
+            <em>{item.status === "complete" ? "Complete" : "To do"}</em>
           </li>
         ))}
       </ol>

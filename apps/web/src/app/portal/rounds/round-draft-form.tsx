@@ -155,7 +155,7 @@ export function RoundDraftForm({
     setFieldErrors({});
 
     if (isEdit && !dirty) {
-      setMessage("There are no round changes to save.");
+      setMessage("Change a field before you save.");
       setMessageTone("error");
       return;
     }
@@ -228,7 +228,7 @@ export function RoundDraftForm({
               operationId: operationId.current,
             });
       } catch {
-        setMessage("The round service is temporarily unavailable. Try again.");
+        setMessage("Your round wasn't saved. Try again.");
         setMessageTone("error");
         return;
       }
@@ -252,7 +252,7 @@ export function RoundDraftForm({
       operationPayload.current = null;
       removeStoredOperation(storageKey);
       setFieldErrors({});
-      setMessage(isEdit ? "Round draft saved." : "Round draft created.");
+      setMessage(isEdit ? "Draft saved." : "Draft created.");
       setMessageTone("success");
       if (isEdit) {
         const next = roundDraftFormValue(result.data);
@@ -280,7 +280,7 @@ export function RoundDraftForm({
   }
 
   function cancel() {
-    if (isEdit && dirty && !window.confirm("Discard unsaved round changes?")) {
+    if (isEdit && dirty && !window.confirm("Discard your unsaved changes?")) {
       return;
     }
     setDescription(value.description);
@@ -313,15 +313,13 @@ export function RoundDraftForm({
       <div className="group-panel-heading">
         <div>
           <p className="ledger-kicker">{isEdit ? "Edit draft" : "New draft"}</p>
-          <h2>{isEdit ? "Round details" : "Create a private round"}</h2>
+          <h2>{isEdit ? "Round details" : "New round"}</h2>
         </div>
-        <p>
-          {isEdit ? `Version ${version} · ${value.state}` : "Draft · Version 1"}
-        </p>
+        <p>{isEdit ? "Saved, not published" : "Not published yet"}</p>
       </div>
       <p className="field-help">
-        Local date and time use the group time zone:{" "}
-        {value.groupTimeZone || "not resolved"}.
+        Enter times in your group’s time zone
+        {value.groupTimeZone ? `, ${value.groupTimeZone}` : ""}.
       </p>
       <div className="group-profile-fields">
         <Field
@@ -426,7 +424,7 @@ export function RoundDraftForm({
           onChange={(event) => setNotesVisibleToPlayers(event.target.checked)}
           disabled={disabled}
         />
-        Notes may be visible to players after publication
+        Show notes to players after you publish
       </label>
       <p
         className="form-message"

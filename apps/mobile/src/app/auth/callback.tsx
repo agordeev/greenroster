@@ -16,14 +16,14 @@ export default function AuthCallbackScreen() {
   return (
     <MemberDestinationScreen
       eyebrow="Account"
-      title="Finishing secure access"
-      introduction="GreenRoster is exchanging the one-time callback code and restoring your person-specific session."
-      emptyTitle="Checking session"
-      emptyBody="Keep the app open. Protected group data stays unloaded until access is resolved."
+      title="Signing you in"
+      introduction="Hang on while we finish signing you in."
+      emptyTitle="Checking your sign-in"
+      emptyBody="Keep the app open. Your group appears once you're signed in."
       facts={[
-        ["Callback", "Processing"],
-        ["Group", "Not loaded"],
-        ["Destination", pendingDestination ?? "Profile"],
+        ["Sign-in", "Checking"],
+        ["Group", "Appears after sign-in"],
+        ["Next screen", pendingDestination ?? "Profile"],
       ]}
     />
   );

@@ -75,9 +75,9 @@ export default async function PortalPage() {
   } catch {
     return (
       <PortalState
-        kicker="Protected portal"
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment."
+        kicker="Organizer portal"
+        title="We couldn't check your sign-in"
+        message="We can't check your sign-in right now. Try again in a moment."
       />
     );
   }
@@ -86,9 +86,9 @@ export default async function PortalPage() {
   if (userError && isAuthRetryableFetchError(userError)) {
     return (
       <PortalState
-        kicker="Protected portal"
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment."
+        kicker="Organizer portal"
+        title="We couldn't check your sign-in"
+        message="We can't check your sign-in right now. Try again in a moment."
       />
     );
   }
@@ -98,9 +98,9 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Account verification"
-        title="Verify your account e-mail"
-        message="This identity cannot access or create a group until its account e-mail is verified."
+        kicker="E-mail confirmation"
+        title="Confirm your e-mail to continue"
+        message="Confirm your e-mail address to join or create a group."
       />
     );
   }
@@ -110,9 +110,9 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Protected portal"
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment."
+        kicker="Organizer portal"
+        title="We couldn't check your sign-in"
+        message="We can't check your sign-in right now. Try again in a moment."
       />
     );
   }
@@ -126,9 +126,9 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Protected portal"
-        title="Your session could not be checked"
-        message="The authentication service is temporarily unavailable. Try again in a moment."
+        kicker="Organizer portal"
+        title="We couldn't check your sign-in"
+        message="We can't check your sign-in right now. Try again in a moment."
       />
     );
   }
@@ -140,9 +140,9 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Recovery session expired"
+        kicker="Password reset"
         title="Request a new password recovery link"
-        message="This recovery session cannot open the portal. Sign out, then request a new link if you still need to change your password."
+        message="This reset link has expired or was already used. Sign out, then request a new link if you still need to change your password."
       />
     );
   }
@@ -155,8 +155,8 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Protected portal"
-        title="Your group access could not be checked"
+        kicker="Organizer portal"
+        title="We couldn't check your group access"
         message="The service is temporarily unavailable. Sign out and try again."
       />
     );
@@ -169,8 +169,8 @@ export default async function PortalPage() {
       return (
         <PortalState
           email={userData.user.email}
-          kicker="Protected portal"
-          title="Your group access could not be checked"
+          kicker="Organizer portal"
+          title="We couldn't check your group access"
           message="The service is temporarily unavailable. Sign out and try again."
         />
       );
@@ -182,7 +182,7 @@ export default async function PortalPage() {
           email={userData.user.email}
           kicker="Access unavailable"
           title="Your group access is not active"
-          message="You are signed in, but this identity does not have an active group membership. Ask a group administrator to review your access."
+          message="You're signed in, but you don't have an active group membership. Ask a group administrator to review your access."
         />
       );
     }
@@ -190,16 +190,16 @@ export default async function PortalPage() {
     return (
       <PortalShell
         email={userData.user.email ?? "Verified account"}
-        groupName="Group not created"
-        roleStatus="Access not created"
-        timeZone="Choose during setup"
+        groupName="No group yet"
+        roleStatus="Not set up yet"
+        timeZone="Set during setup"
       >
         <section className="portal-ledger">
-          <p className="ledger-kicker">Administrator first run</p>
+          <p className="ledger-kicker">First-time setup</p>
           <h1>Set up your group</h1>
           <p>
-            Your verified account is ready. Group identity and your
-            person-specific administrator access are created together.
+            Your account is ready. Create your group, and you&apos;ll be its
+            administrator.
           </p>
           <GroupBootstrapForm identityKey={userData.user.id} />
         </section>
@@ -217,8 +217,8 @@ export default async function PortalPage() {
     return (
       <PortalState
         email={userData.user.email}
-        kicker="Protected portal"
-        title="Your group could not be loaded"
+        kicker="Organizer portal"
+        title="We couldn't load your group"
         message="The service is temporarily unavailable. Sign out and try again."
       />
     );
@@ -242,11 +242,11 @@ export default async function PortalPage() {
         timeZone={timeZone}
       >
         <section className="portal-ledger role-denied">
-          <p className="ledger-kicker">Role denied</p>
-          <h1>Portal access is not available for this role</h1>
+          <p className="ledger-kicker">Access limited</p>
+          <h1>This page is for coordinators and administrators</h1>
           <p>
-            You are signed in, but the administrative portal requires a
-            coordinator or administrator role.
+            You&apos;re signed in as a member, so this page isn&apos;t available
+            to you.
           </p>
           <div className="information-actions">
             <Link className="primary-link" href="/home">
@@ -276,11 +276,11 @@ export default async function PortalPage() {
         timeZone={timeZone}
       >
         <section className="portal-ledger">
-          <p className="ledger-kicker">Group onboarding</p>
-          <h1>Setup status could not be loaded</h1>
+          <p className="ledger-kicker">Getting started</p>
+          <h1>We couldn&apos;t load your setup progress</h1>
           <p>
-            The stored onboarding facts are temporarily unavailable. Refresh
-            before continuing group setup.
+            Your setup progress isn&apos;t available right now. Refresh the page
+            to keep setting up your group.
           </p>
         </section>
       </PortalShell>
@@ -378,13 +378,9 @@ export default async function PortalPage() {
       timeZone={timeZone}
     >
       <section className="portal-ledger">
-        <p className="ledger-kicker">Clubhouse operations</p>
+        <p className="ledger-kicker">Your group</p>
         <h1>Welcome to your group</h1>
-        <p>
-          The portal shell is authorized from your current stored membership.
-          Group setup status follows stored configuration as each operational
-          area is enabled.
-        </p>
+        <p>Set up your group, then run your rounds from here.</p>
         <PortalDashboardSummaryCard
           summary={dashboardSummary}
           unavailable={dashboardUnavailable}
@@ -396,20 +392,20 @@ export default async function PortalPage() {
             aria-labelledby="quota-settings-title"
           >
             <div className="quota-settings-heading">
-              <p className="ledger-kicker">Quota policy</p>
-              <h2 id="quota-settings-title">Set the calculation rules</h2>
+              <p className="ledger-kicker">Quota rules</p>
+              <h2 id="quota-settings-title">Set your quota and merit rules</h2>
               <p>
-                Quota and merit rules apply to rounds published after this save;
-                published rounds keep their own snapshots. The standings reset
-                date changes the current standings window immediately, without
-                rewriting results or quota history.
+                New rules apply to rounds you publish after saving. Rounds
+                already published keep the rules they were published with. A
+                standings reset date changes which results count toward
+                standings right away. Results and quota history stay the same.
               </p>
             </div>
             {quotaSettingsUnavailable ? (
               <div className="quota-settings-error">
                 <p className="form-message" data-status="error">
-                  Quota settings could not be loaded. Refresh before making a
-                  change.
+                  Your quota settings couldn&apos;t load. Refresh the page
+                  before you make changes.
                 </p>
                 <Link className="secondary-link" href="/portal">
                   Reload quota settings
@@ -443,15 +439,15 @@ function PortalDashboardSummaryCard({
     >
       <div className="dashboard-summary-heading">
         <div>
-          <p className="ledger-kicker">Operational snapshot</p>
+          <p className="ledger-kicker">At a glance</p>
           <h2 id="dashboard-summary-title">Roster, results, and standings</h2>
         </div>
-        <p>Authoritative counts from your current group</p>
+        <p>Current counts for your group</p>
       </div>
       {unavailable ? (
         <p className="dashboard-summary-unavailable" data-status="error">
-          The roster and invitation summary could not be loaded. Onboarding and
-          quota settings remain available; refresh to try again.
+          Your roster and invitation counts couldn&apos;t load. The checklist
+          and quota settings below still work. Refresh to try again.
         </p>
       ) : summary ? (
         <>
@@ -459,27 +455,27 @@ function PortalDashboardSummaryCard({
             <Link
               className="dashboard-summary-card"
               href="/portal/members?status=pending"
-              aria-label={`Review ${summary.membershipCounts.pending} pending memberships`}
+              aria-label={`Review ${summary.membershipCounts.pending} pending members`}
             >
-              <span>Pending memberships</span>
+              <span>Pending members</span>
               <strong>{summary.membershipCounts.pending}</strong>
               <small>Review roster</small>
             </Link>
             <Link
               className="dashboard-summary-card"
               href="/portal/members?status=active"
-              aria-label={`Review ${summary.membershipCounts.active} active memberships`}
+              aria-label={`Review ${summary.membershipCounts.active} active members`}
             >
-              <span>Active memberships</span>
+              <span>Active members</span>
               <strong>{summary.membershipCounts.active}</strong>
               <small>Review roster</small>
             </Link>
             <Link
               className="dashboard-summary-card"
               href="/portal/members?status=inactive"
-              aria-label={`Review ${summary.membershipCounts.inactive} inactive memberships`}
+              aria-label={`Review ${summary.membershipCounts.inactive} inactive members`}
             >
-              <span>Inactive memberships</span>
+              <span>Inactive members</span>
               <strong>{summary.membershipCounts.inactive}</strong>
               <small>Review roster</small>
             </Link>
@@ -491,17 +487,17 @@ function PortalDashboardSummaryCard({
                 : ""
             }`}
             href="/portal/invitations?delivery=action-required"
-            aria-label={`Review ${summary.actionRequiredInvitations.total} invitation delivery issues`}
+            aria-label={`Review ${summary.actionRequiredInvitations.total} invitations with delivery problems`}
           >
             <span>
               <strong>
                 {summary.actionRequiredInvitations.total === 0
-                  ? "Invitation delivery health"
-                  : "Invitation delivery attention"}
+                  ? "Invitations"
+                  : "Invitations need attention"}
               </strong>
               <small>
                 {summary.actionRequiredInvitations.total === 0
-                  ? "No failed or suppressed invitations"
+                  ? "No invitations failed to deliver"
                   : formatActionRequiredInvitationSummary(
                       summary.actionRequiredInvitations,
                     )}
@@ -516,52 +512,52 @@ function PortalDashboardSummaryCard({
             >
               <div className="dashboard-summary-heading">
                 <div>
-                  <p className="ledger-kicker">Provider monitoring</p>
+                  <p className="ledger-kicker">Delivery</p>
                   <h3 id="dashboard-notification-health-title">
-                    Notification delivery health
+                    Notifications
                   </h3>
                 </div>
-                <p>Aggregate counts only · no recipient data</p>
+                <p>Totals only</p>
               </div>
               <div className="dashboard-summary-grid">
                 <div className="dashboard-summary-card">
-                  <span>Pending queue</span>
+                  <span>Waiting to send</span>
                   <strong>{summary.notificationHealth.queueDepth}</strong>
                   <small>
                     {summary.notificationHealth.oldestQueuedAt
-                      ? `Oldest ${formatHealthTimestamp(summary.notificationHealth.oldestQueuedAt)}`
-                      : "No queued work"}
+                      ? `Waiting since ${formatHealthTimestamp(summary.notificationHealth.oldestQueuedAt)}`
+                      : "Nothing waiting"}
                   </small>
                 </div>
                 <div className="dashboard-summary-card">
-                  <span>E-mail failures</span>
+                  <span>E-mails not delivered</span>
                   <strong>{summary.notificationHealth.emailFailures}</strong>
                   <small>
                     {formatHealthRate(
                       summary.notificationHealth.emailBounceRate,
                     )}{" "}
-                    bounce ·{" "}
+                    bounced ·{" "}
                     {formatHealthRate(
                       summary.notificationHealth.emailComplaintRate,
                     )}{" "}
-                    complaint
+                    marked as spam
                   </small>
                 </div>
                 <div className="dashboard-summary-card">
-                  <span>Push failures</span>
+                  <span>Push not delivered</span>
                   <strong>{summary.notificationHealth.pushFailures}</strong>
                   <small>
                     {formatHealthRate(
                       summary.notificationHealth.pushInvalidTokenRate,
                     )}{" "}
-                    invalid-token rate
+                    of devices no longer valid
                   </small>
                 </div>
                 <div className="dashboard-summary-card">
-                  <span>Receipt failures</span>
+                  <span>Confirmations failed</span>
                   <strong>{summary.notificationHealth.receiptFailures}</strong>
                   <small>
-                    Sampled{" "}
+                    Checked{" "}
                     {formatHealthTimestamp(
                       summary.notificationHealth.sampledAt,
                     )}
@@ -579,9 +575,9 @@ function PortalDashboardSummaryCard({
                     ? `/portal/rounds?round=${encodeURIComponent(summary.completedResult.roundId)}`
                     : "/portal/rounds"
                 }
-                aria-label="Open recent official round results"
+                aria-label="Open recent round results"
               >
-                <span>Most recent completed result</span>
+                <span>Latest completed round</span>
                 <strong>
                   {summary.completedResult
                     ? summary.completedResult.description || "Completed round"
@@ -589,8 +585,8 @@ function PortalDashboardSummaryCard({
                 </strong>
                 <small>
                   {summary.completedResult
-                    ? `${summary.completedResult.winnerNames.length > 0 ? summary.completedResult.winnerNames.join(" · ") : "No ranked winner"} · ${summary.completedResult.resultCount} official rows · ${formatDashboardDate(summary.completedResult.completedAt, summary.completedResult.groupTimeZone)}`
-                    : "Open round administration"}
+                    ? `${summary.completedResult.winnerNames.length > 0 ? summary.completedResult.winnerNames.join(" · ") : "No ranked winner"} · ${summary.completedResult.resultCount} results ·${formatDashboardDate(summary.completedResult.completedAt, summary.completedResult.groupTimeZone)}`
+                    : "Go to rounds"}
                 </small>
               </Link>
               {summary.standingsSummary ? (
@@ -607,7 +603,7 @@ function PortalDashboardSummaryCard({
                   <small>
                     {summary.standingsSummary.leader
                       ? `${summary.standingsSummary.leader.meritTotal ?? "0"} merit · ${summary.standingsSummary.memberCount} active members`
-                      : `${summary.standingsSummary.memberCount} active members · Configure results to rank`}
+                      : `${summary.standingsSummary.memberCount} active members · Enter results to rank members`}
                   </small>
                 </Link>
               ) : null}
@@ -652,11 +648,11 @@ function formatActionRequiredInvitationSummary(
 ) {
   const labels = [
     summary.failedPermanent > 0
-      ? `${summary.failedPermanent} failed permanently`
+      ? `${summary.failedPermanent} failed to deliver`
       : null,
-    summary.suppressed > 0 ? `${summary.suppressed} suppressed` : null,
+    summary.suppressed > 0 ? `${summary.suppressed} not sent` : null,
     summary.addressSuppression > 0
-      ? `${summary.addressSuppression} provider suppression`
+      ? `${summary.addressSuppression} blocked by the e-mail provider`
       : null,
   ];
   return labels.filter((label): label is string => label !== null).join(" · ");
@@ -675,9 +671,9 @@ function PortalState({
 }>) {
   return (
     <PortalShell
-      email={email ?? "Session details unavailable"}
+      email={email ?? "Account details unavailable"}
       groupName="Group unavailable"
-      roleStatus="Access not resolved"
+      roleStatus="Not checked yet"
       timeZone=""
     >
       <section className="portal-ledger">

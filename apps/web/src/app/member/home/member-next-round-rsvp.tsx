@@ -68,9 +68,7 @@ export function MemberNextRoundRsvp({
         setMessageTone("success");
         router.refresh();
       } catch {
-        setMessage(
-          "The response service is temporarily unavailable. Try again.",
-        );
+        setMessage("We could not save your response. Try again.");
         setMessageTone("error");
       } finally {
         setPendingStatus(null);
@@ -83,10 +81,7 @@ export function MemberNextRoundRsvp({
       <p className="field-help">
         Current response: <strong>{formatRsvp(rsvpStatus)}</strong>
         {changedAt ? (
-          <span>
-            {" "}
-            Confirmed {formatRsvpChangedAt(changedAt, groupTimeZone)}
-          </span>
+          <span> Updated {formatRsvpChangedAt(changedAt, groupTimeZone)}</span>
         ) : null}
       </p>
       <div className="information-actions" aria-label="Round RSVP">
@@ -110,7 +105,7 @@ export function MemberNextRoundRsvp({
           disabled={pending}
           onClick={() => changeRsvp("not_playing")}
         >
-          {pendingStatus === "not_playing" ? "Saving…" : "Not Playing"}
+          {pendingStatus === "not_playing" ? "Saving…" : "Not playing"}
         </button>
       </div>
       <p
@@ -128,7 +123,7 @@ export function formatRsvp(
   status: MemberNextRound["participant"]["rsvpStatus"],
 ): string {
   if (status === "playing") return "Playing";
-  if (status === "not_playing") return "Not Playing";
+  if (status === "not_playing") return "Not playing";
   return "No response";
 }
 

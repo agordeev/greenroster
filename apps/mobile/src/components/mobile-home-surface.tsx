@@ -34,9 +34,7 @@ export function MobileHomeSurface() {
     const sequence = ++requestSequence.current;
     if (!sessionUserId) {
       setProjection(null);
-      setMessage(
-        "Sign in with your person-specific account to load member-safe Home data.",
-      );
+      setMessage("Sign in to see your rounds and standings.");
       setStatus("permission");
       return;
     }
@@ -61,7 +59,7 @@ export function MobileHomeSurface() {
         setProjection(null);
         setStatus("error");
         setMessage(
-          "GreenRoster could not load Home. Check your connection and try again.",
+          "We couldn't load Home. Check your connection and try again.",
         );
       });
     });
@@ -85,7 +83,7 @@ export function MobileHomeSurface() {
     <MemberDestinationScreen
       eyebrow="Home"
       title={projection?.groupName ?? "Your GreenRoster home"}
-      introduction="Confirmed member-safe rounds, official results, and your current quota and standings summary in priority order."
+      introduction="Your next round, recent results, and where you stand."
       emptyTitle={
         isError
           ? status === "permission"
@@ -95,7 +93,7 @@ export function MobileHomeSurface() {
       }
       emptyBody={
         message ??
-        "Your next published round, live play, and official result history will appear here when available."
+        "Your next round, live play, and official results will appear here."
       }
       hideEmptyState={isLoading || (status === "ready" && hasContent)}
       facts={[
@@ -272,7 +270,7 @@ function LiveRoundCard({
     <View
       accessible
       accessibilityRole="summary"
-      accessibilityLabel={`${round.description || "Live round"}, Live, ${formatParticipantStatus(round.participantStatus)}, ${round.playingCount} playing participants`}
+      accessibilityLabel={`${round.description || "Live round"}, Live, ${formatParticipantStatus(round.participantStatus)}, ${round.playingCount} playing`}
       style={[styles.card, { borderColor: theme.separator }]}
     >
       <View style={styles.cardHeading}>
@@ -332,7 +330,7 @@ function NextRoundCard({
         NEXT ROUND
       </ThemedText>
       <ThemedText type="subtitle" style={styles.cardTitle}>
-        {round.description || "Published round"}
+        {round.description || "Upcoming round"}
       </ThemedText>
       <View style={styles.detailList}>
         <Detail label="When" value={formatRoundDateTime(round)} />
@@ -385,7 +383,7 @@ function RecentResultCard({
         <ThemedText type="small" themeColor="textSecondary">
           {winnerValue
             ? `Winner${recentResult.winnerRows.length > 1 ? "s" : ""} · ${recentResult.rankingCriterion} ${winnerValue}`
-            : "Open the official result for the full published ranking."}
+            : "Open the official result to see the full ranking."}
         </ThemedText>
       </View>
       <HomeButton
@@ -432,13 +430,13 @@ function QuotaStandingCard({
       ) : (
         <ThemedText themeColor="textSecondary">
           {hasHistory
-            ? "Your current standing is not available yet; official quota history is retained."
-            : "No official quota or standing history is available yet."}
+            ? "Your standing isn't available yet. Your past quota is in standings and history."
+            : "No quota or standing yet."}
         </ThemedText>
       )}
       {own && !own.quotaProjectionReady ? (
         <ThemedText type="small" themeColor="textSecondary">
-          Current quota needs more eligible official history.
+          Your current quota needs more counted rounds.
         </ThemedText>
       ) : null}
       <HomeButton

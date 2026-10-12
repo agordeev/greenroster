@@ -60,10 +60,10 @@ export default async function MemberDirectoryPage({
         >
           <nav className="member-results-nav" aria-label="Member navigation">
             <Link className="secondary-link" href="/member/home">
-              You open your home
+              Open your home
             </Link>
             <Link className="secondary-link" href="/member/profile">
-              You open your profile
+              Open your profile
             </Link>
           </nav>
           <div className="auth-heading">
@@ -74,7 +74,7 @@ export default async function MemberDirectoryPage({
             </p>
             <form className="member-directory-filter" method="get">
               <label className="field-group" htmlFor="member-directory-search">
-                <span>You search the directory</span>
+                <span>Search the directory</span>
                 <input
                   id="member-directory-search"
                   name="search"
@@ -108,9 +108,7 @@ export default async function MemberDirectoryPage({
               ))}
             </nav>
             {directory.members.length === 0 ? (
-              <p className="member-read-empty">
-                You see no members for this search.
-              </p>
+              <p className="member-read-empty">No members match this search.</p>
             ) : (
               <div className="member-directory-list">
                 {directory.members.map((member) => (
@@ -204,9 +202,9 @@ function MemberDirectoryUnavailable() {
         <h1 id="member-directory-error-title">
           You can’t open the directory right now
         </h1>
-        <p>You refresh this page and try again.</p>
+        <p>Refresh this page and try again.</p>
         <Link className="secondary-link" href="/member/home">
-          You open your home
+          Open your home
         </Link>
       </section>
     </main>
