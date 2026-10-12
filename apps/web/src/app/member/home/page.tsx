@@ -22,6 +22,7 @@ import {
   MemberNotificationPreferences,
   type MemberNotificationPreference,
 } from "./member-notification-preferences";
+import { SkipLink } from "@/components/blocks";
 
 const firstRunSchema = z
   .array(z.object({ is_complete: z.boolean() }))
@@ -109,9 +110,7 @@ export default async function MemberHomePage() {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}
@@ -407,9 +406,7 @@ function formatGroupDateTime(value: string, timeZone: string): string {
 function MemberHomeUnavailable() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

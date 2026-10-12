@@ -16,6 +16,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { OrganizerBootstrapForm } from "./organizer-bootstrap-form";
 import { cookies } from "next/headers";
+import { SkipLink } from "@/components/blocks";
 
 type SignupFinishPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -128,9 +129,7 @@ export default async function SignupFinishPage({
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}
@@ -184,9 +183,7 @@ function FinishState({
 }>) {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { InformationFooter } from "@/app/information-footer";
+import { SkipLink } from "@/components/blocks";
 
 export function InformationShell({
   children,
@@ -10,9 +11,7 @@ export function InformationShell({
 }: Readonly<{ children: ReactNode; kicker: string; title: string }>) {
   return (
     <div className="information-shell">
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <header className="information-header">
         <Link className="portal-brand" href="/">
           <span className="brand-mark" aria-hidden="true">

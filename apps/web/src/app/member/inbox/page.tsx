@@ -6,6 +6,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberInbox } from "@/lib/notifications/member-inbox-data";
 
 import { MemberInboxList } from "./member-inbox-list";
+import { SkipLink } from "@/components/blocks";
 
 export default async function MemberInboxPage() {
   const access = await resolveMemberPageSession();
@@ -25,9 +26,7 @@ export default async function MemberInboxPage() {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

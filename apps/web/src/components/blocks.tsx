@@ -161,13 +161,15 @@ export function FormMessage({
   );
 }
 
-export function SkipLink() {
+export function SkipLink({
+  children = "Skip to main content",
+}: Readonly<{ children?: ReactNode }>) {
   return (
     <a
       href="#main-content"
       className="fixed top-3 left-3 z-20 -translate-y-[200%] rounded-md bg-foreground px-4 py-3 text-background focus:translate-y-0"
     >
-      Skip to main content
+      {children}
     </a>
   );
 }

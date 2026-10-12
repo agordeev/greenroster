@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { InformationFooter } from "@/app/information-footer";
 
 import { AccountMenu } from "./account-menu";
+import { SkipLink } from "@/components/blocks";
 
 type PortalRole = "member" | "coordinator" | "administrator";
 
@@ -158,9 +159,7 @@ export function PortalShell({
 
   return (
     <div className="portal-shell">
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <header className="portal-header">
         <Link className="portal-brand" href="/portal">
           <span className="brand-mark" aria-hidden="true">

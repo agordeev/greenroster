@@ -7,6 +7,7 @@ import type { MemberRoundDetail } from "@/domain/member-round-detail";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberRoundDetail } from "@/lib/rounds/member-round-detail-data";
+import { SkipLink } from "@/components/blocks";
 
 const roundIdSchema = z.uuid();
 
@@ -40,9 +41,7 @@ export default async function MemberRoundPage({
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

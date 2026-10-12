@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { SkipLink } from "../apps/web/src/components/blocks";
+
 const routeFiles = [
   "../apps/web/src/app/information-shell.tsx",
   "../apps/web/src/app/portal/portal-shell.tsx",
@@ -23,9 +25,7 @@ describe("web accessibility skip navigation", () => {
       const mainTags = [...source.matchAll(/<main\b[^>]*>/gu)].map(
         ([tag]) => tag,
       );
-      const skipLinks = source.match(
-        /<a className="skip-link" href="#main-content">/gu,
-      );
+      const skipLinks = source.match(/<SkipLink \/>/gu);
 
       expect(mainTags.length, file).toBeGreaterThan(0);
       expect(
@@ -37,7 +37,16 @@ describe("web accessibility skip navigation", () => {
         file,
       ).toBe(true);
       expect(skipLinks?.length ?? 0, file).toBe(mainTags.length);
-      expect(source, file).toContain("Skip to main content");
     }
+  });
+
+  it("renders the skip link with its text and target", () => {
+    const link = SkipLink({});
+
+    expect(link.type).toBe("a");
+    expect(link.props).toMatchObject({
+      href: "#main-content",
+      children: "Skip to main content",
+    });
   });
 });

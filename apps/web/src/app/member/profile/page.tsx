@@ -6,6 +6,7 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberSelfProfile } from "@/lib/member/member-self-profile-data";
 
 import { MemberSelfProfileForm } from "./member-self-profile-form";
+import { SkipLink } from "@/components/blocks";
 
 export default async function MemberProfilePage() {
   const access = await resolveMemberPageSession();
@@ -25,9 +26,7 @@ export default async function MemberProfilePage() {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

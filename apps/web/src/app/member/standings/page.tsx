@@ -7,6 +7,7 @@ import {
 } from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
+import { SkipLink } from "@/components/blocks";
 
 export default async function MemberStandingsPage() {
   const access = await resolveMemberPageSession();
@@ -48,9 +49,7 @@ function MemberStandingsContent({
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}
@@ -212,9 +211,7 @@ function MemberStandingsContent({
 function MemberStandingsUnavailable() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
 
 import { OrganizerSignupForm } from "./signup-form";
+import { SkipLink } from "@/components/blocks";
 
 type SignupPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -14,9 +15,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

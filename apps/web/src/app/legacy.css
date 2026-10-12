@@ -651,19 +651,6 @@ label:where(:has(> input[type="checkbox"], > input[type="radio"])),
   padding: clamp(1.5rem, 4vw, 3rem);
   background: var(--scorecard);
 }
-.skip-link {
-  position: fixed;
-  z-index: 20;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.75rem 1rem;
-  transform: translateY(-200%);
-  background: var(--ink);
-  color: var(--ledger);
-}
-.skip-link:focus {
-  transform: translateY(0);
-}
 .portal-header,
 .information-header {
   display: grid;

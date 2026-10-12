@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { AuthForm } from "./auth-form";
-import { ActionRow } from "@/components/blocks";
+import { ActionRow, SkipLink } from "@/components/blocks";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
 type SignInPageProps = {
@@ -14,9 +14,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main id="main-content" tabIndex={-1} className="auth-shell">
         <section className="auth-ledger" aria-labelledby="sign-in-title">
           <div className="brand-lockup">

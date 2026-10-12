@@ -4,6 +4,7 @@ import Link from "next/link";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberDirectory } from "@/lib/member/member-directory-data";
+import { SkipLink } from "@/components/blocks";
 
 type MemberDirectoryPageProps = Readonly<{
   searchParams: Promise<{
@@ -46,9 +47,7 @@ export default async function MemberDirectoryPage({
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
+      <SkipLink />
       <main
         id="main-content"
         tabIndex={-1}

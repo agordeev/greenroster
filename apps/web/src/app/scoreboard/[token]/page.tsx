@@ -4,6 +4,8 @@ import {
   executeReadPublicScoreboard,
   type PublicScoreboardPlayer,
 } from "@/lib/scoreboard/scoreboard-access-data";
+import { SkipLink } from "@/components/blocks";
+
 import { KioskRefresh } from "./kiosk-refresh";
 
 export const dynamic = "force-dynamic";
@@ -39,9 +41,7 @@ export default async function ScoreboardPage({
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to live scores
-      </a>
+      <SkipLink>Skip to live scores</SkipLink>
       <main
         id="main-content"
         tabIndex={-1}
@@ -173,9 +173,7 @@ function formatTimestamp(value: string | null): string {
 function ScoreboardUnavailable() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to live scores
-      </a>
+      <SkipLink>Skip to live scores</SkipLink>
       <main
         id="main-content"
         tabIndex={-1}
