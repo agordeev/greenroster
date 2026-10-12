@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { cancelRoundAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import { roundCancellationBlockedByDraftChanges } from "@/domain/round-cancellation";
 
 export function RoundCancellationPanel({

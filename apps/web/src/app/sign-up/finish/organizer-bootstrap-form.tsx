@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { bootstrapOrganizerAction } from "@/app/actions/auth";
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
 import { resolveLocalTimeZone } from "@/lib/local-time-zone";
 

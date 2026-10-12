@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundMessageAction } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import type { RoundMessage } from "@/domain/clubhouse-content";
 
 export function RoundMessagePanel({

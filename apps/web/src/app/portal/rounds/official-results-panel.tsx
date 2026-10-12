@@ -1,4 +1,4 @@
-import { EmptyState, SectionHeading } from "@/components/ui";
+import { EmptyState, SectionHeading } from "@/components/blocks";
 import type {
   MemberOfficialResult,
   MemberOfficialRound,

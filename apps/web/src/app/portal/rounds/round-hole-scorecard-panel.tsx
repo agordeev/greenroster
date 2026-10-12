@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantHoleScoreAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import {
   roundHoleScoreInputSchema,
   type RoundHoleScoreRow,

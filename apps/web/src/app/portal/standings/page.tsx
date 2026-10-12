@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { ActionRow, EmptyState } from "@/components/ui";
+import { ActionRow, EmptyState } from "@/components/blocks";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {

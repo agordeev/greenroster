@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { updateGroupProfileAction } from "@/app/actions/groups";
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 import { isSupportedTimeZone } from "@/lib/groups/group-profile";
 
 export type GroupProfileFormValue = Readonly<{

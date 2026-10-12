@@ -6,7 +6,7 @@ import {
   createScoreboardAccessAction,
   revokeScoreboardAccessAction,
 } from "@/app/actions/scoreboard";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import type { ScoreboardAccessGrant } from "@/lib/scoreboard/scoreboard-access";
 
 export function ScoreboardAccessPanel({

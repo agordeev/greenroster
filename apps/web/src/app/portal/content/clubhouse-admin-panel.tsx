@@ -6,7 +6,7 @@ import {
   saveGroupMediaAction,
   saveGroupNewsAction,
 } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import type { ClubhouseProjection } from "@/domain/clubhouse-content";
 
 export function ClubhouseAdminPanel({

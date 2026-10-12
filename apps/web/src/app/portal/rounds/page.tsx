@@ -23,7 +23,7 @@ import { executePreviewLiveRoundCompletion } from "@/lib/rounds/round-completion
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data";
-import { ActionRow, EmptyState, SectionHeading } from "@/components/ui";
+import { ActionRow, EmptyState, SectionHeading } from "@/components/blocks";
 
 import { PortalShell } from "../portal-shell";
 import { RoundWorkspace } from "./round-workspace";

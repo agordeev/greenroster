@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setLiveRoundParticipantNotPlayingAction } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/ui";
+import { EmptyState, SectionHeading } from "@/components/blocks";
 import { liveRoundParticipantNotPlayingInputSchema } from "@/domain/live-round-participant-rsvp-correction";
 import type {
   LiveRoundScoreParticipant,

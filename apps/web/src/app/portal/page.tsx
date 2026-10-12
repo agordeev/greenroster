@@ -8,7 +8,7 @@ import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-regis
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
-import { ActionRow, SectionHeading } from "@/components/ui";
+import { ActionRow, SectionHeading } from "@/components/blocks";
 import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
 import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";

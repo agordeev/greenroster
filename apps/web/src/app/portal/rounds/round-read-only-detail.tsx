@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { EmptyState, SectionHeading } from "@/components/ui";
+import { EmptyState, SectionHeading } from "@/components/blocks";
 
 import {
   formatParticipantRsvp,

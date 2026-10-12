@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 
 export function BillingActions({
   hasCustomer,

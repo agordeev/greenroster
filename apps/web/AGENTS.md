@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # UI building blocks
 
-- Build pages from `src/components/ui.tsx` (`Field`, `SectionHeading`, `EmptyState`, `ActionRow`) instead of writing those class names by hand.
+- Build pages from `src/components/blocks.tsx` (`Field`, `SectionHeading`, `EmptyState`, `ActionRow`) instead of writing those class names by hand.
 - Inputs, selects, textareas, checkboxes and buttons are styled once at the top of `src/app/globals.css`. Do not restyle them per page; use `--control`, `--radius` and the colour tokens.
 - Portal pages follow list → detail: a list page links to a separate page (or `?id=` view) for creating and editing. Do not stack a create form above a list.
 - New portal sections go into `primaryNav` / `secondaryNav` in `src/app/portal/portal-shell.tsx`.

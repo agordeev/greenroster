@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundAnnouncementAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import { roundAnnouncementInputSchema } from "@/domain/round-announcement";
 
 export function RoundAnnouncementPanel({

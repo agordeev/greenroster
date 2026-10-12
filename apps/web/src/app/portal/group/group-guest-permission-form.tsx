@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { updateGroupGuestPermissionAction } from "@/app/actions/groups";
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 
 export type GroupGuestPermissionFormValue = Readonly<{
   allowMemberGuests: boolean;

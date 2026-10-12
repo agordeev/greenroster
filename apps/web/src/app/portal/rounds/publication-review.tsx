@@ -7,7 +7,7 @@ import {
   previewRoundPublicationAction,
   publishRoundAction,
 } from "@/app/actions/rounds";
-import { ActionRow, SectionHeading } from "@/components/ui";
+import { ActionRow, SectionHeading } from "@/components/blocks";
 import {
   publicationMemberName,
   type RoundPublicationMember,

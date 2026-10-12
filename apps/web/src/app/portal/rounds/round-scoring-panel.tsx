@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { openRoundScoringAction } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import {
   roundScoringBlockedByDraftChanges,
   roundScoringInputSchema,

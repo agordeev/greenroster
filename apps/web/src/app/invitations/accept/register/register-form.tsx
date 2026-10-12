@@ -7,7 +7,7 @@ import {
   initialInvitationActionState,
   registerInvitationAction,
 } from "@/app/actions/invitations";
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function InvitationRegisterForm() {

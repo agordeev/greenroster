@@ -7,7 +7,7 @@ import {
   previewPublishedRoundEditAction,
   updatePublishedRoundEditAction,
 } from "@/app/actions/rounds";
-import { ActionRow, Field, SectionHeading } from "@/components/ui";
+import { ActionRow, Field, SectionHeading } from "@/components/blocks";
 import {
   previewPublishedRoundEditInputSchema,
   updatePublishedRoundEditInputSchema,

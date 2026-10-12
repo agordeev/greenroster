@@ -8,7 +8,7 @@ import {
   updateRoundGuestAction,
   withdrawRoundGuestAction,
 } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/ui";
+import { EmptyState, SectionHeading } from "@/components/blocks";
 import type {
   RoundCoordinatorParticipant,
   RoundCoordinatorParticipantRsvpState,

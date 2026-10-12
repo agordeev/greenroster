@@ -7,7 +7,7 @@ import {
   completeLiveRoundAction,
   reopenCompletedRoundAction,
 } from "@/app/actions/rounds";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import {
   roundCompletionInputSchema,
   roundReopenInputSchema,

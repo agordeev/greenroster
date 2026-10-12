@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 
 type GroupActivityFilterProps = Readonly<{
   targetType?: string;

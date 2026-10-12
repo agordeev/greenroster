@@ -7,7 +7,7 @@ import {
   completeMemberFirstRunAction,
   initialMemberFirstRunActionState,
 } from "@/app/actions/member-profile";
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 
 type MemberFirstRunFormProps = Readonly<{
   firstName: string;

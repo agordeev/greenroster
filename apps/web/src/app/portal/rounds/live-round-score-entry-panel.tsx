@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantScoreAction } from "@/app/actions/rounds";
-import { EmptyState, SectionHeading } from "@/components/ui";
+import { EmptyState, SectionHeading } from "@/components/blocks";
 import {
   roundScoreInputSchema,
   type LiveRoundScoreParticipant,

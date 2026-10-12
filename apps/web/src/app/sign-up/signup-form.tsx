@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { initialAuthFormState } from "@/app/actions/auth-state";
 import { registerOrganizerAction } from "@/app/actions/auth";
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function OrganizerSignupForm() {

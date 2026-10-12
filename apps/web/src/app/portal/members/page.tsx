@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { AuthForm } from "./auth-form";
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
 type SignInPageProps = {

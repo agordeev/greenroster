@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ActionRow } from "@/components/ui";
+import { ActionRow } from "@/components/blocks";
 import { InformationShell } from "@/app/information-shell";
 
 export default function HomePage() {

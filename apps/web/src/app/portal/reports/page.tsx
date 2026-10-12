@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { ActionRow, EmptyState } from "@/components/ui";
+import { ActionRow, EmptyState } from "@/components/blocks";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
-import { Field } from "@/components/ui";
+import { Field } from "@/components/blocks";
 
 import { requestMemberImportApplyAction } from "../../../actions/member-imports";
 import {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { setRoundScoreFieldsAction } from "@/app/actions/rounds";
-import { ActionRow, SectionHeading } from "@/components/ui";
+import { ActionRow, SectionHeading } from "@/components/blocks";
 import type { RoundFormat } from "@/domain/round-drafts";
 
 export function RoundScoreFieldsPanel({

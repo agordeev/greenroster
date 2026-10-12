@@ -6,7 +6,7 @@ import {
   removeBrandingAssetAction,
   uploadBrandingAssetAction,
 } from "@/app/actions/clubhouse";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/blocks";
 import type { BrandingAssetSummary } from "@/domain/clubhouse-content";
 
 type BrandingFormProps = Readonly<{
