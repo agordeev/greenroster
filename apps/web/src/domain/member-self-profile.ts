@@ -4,8 +4,16 @@ const nullableText = (max: number) => z.string().max(max).nullable();
 
 export const memberSelfProfileDraftSchema = z
   .object({
-    firstName: z.string().trim().min(1).max(100),
-    lastName: z.string().trim().min(1).max(100),
+    firstName: z
+      .string()
+      .trim()
+      .min(1, "Enter your first name.")
+      .max(100, "Keep your first name to 100 characters or fewer."),
+    lastName: z
+      .string()
+      .trim()
+      .min(1, "Enter your last name.")
+      .max(100, "Keep your last name to 100 characters or fewer."),
     spouseFirstName: nullableText(100),
     spouseLastName: nullableText(100),
     teeLocation: z.enum(["pro", "back", "middle", "front"]).nullable(),
@@ -13,7 +21,7 @@ export const memberSelfProfileDraftSchema = z
       .string()
       .trim()
       .max(320)
-      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/u)
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/u, "Enter a valid e-mail address.")
       .nullable(),
     homePhone: nullableText(64),
     workPhone: nullableText(64),
@@ -52,15 +60,19 @@ export const memberSelfHandicapInputSchema = z
     handicap: z
       .string()
       .trim()
-      .regex(/^[+-]?\d+(?:\.\d)?$/u)
+      .regex(/^[+-]?\d+(?:\.\d)?$/u, "Enter a handicap such as 12.4.")
       .refine((value) => {
         const numericValue = Number(value);
         return numericValue >= -10 && numericValue <= 54;
-      }),
+      }, "Enter a handicap from -10 to 54."),
     asOf: z.string().regex(/^\d{4}-\d{2}-\d{2}$/u),
     expectedMembershipVersion: z.number().int().positive(),
     confirmed: z.literal(true),
-    reason: z.string().trim().min(1).max(500),
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Add a reason for this handicap change.")
+      .max(500, "Keep the reason to 500 characters or fewer."),
     operationId: z.uuid(),
   })
   .strict();

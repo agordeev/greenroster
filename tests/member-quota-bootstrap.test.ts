@@ -78,19 +78,21 @@ describe("member quota bootstrap projection", () => {
         ...base,
         seedTotals: Array.from({ length: 21 }, () => "20"),
       }),
-    ).toThrow("at most 20");
+    ).toThrow("no more than 20 point totals");
     expect(() =>
       projectMemberQuotaBootstrap({
         ...base,
         initialQuota: null,
       }),
-    ).toThrow("requires an initial quota");
+    ).toThrow(
+      "Enter a starting quota before you select “Use this starting quota until enough history builds up.”",
+    );
     expect(() =>
       projectMemberQuotaBootstrap({
         ...base,
         initialQuota: "20.05",
       }),
-    ).toThrow("exceeds the group precision");
+    ).toThrow("no more than the group's quota decimal places");
     expect(() =>
       projectMemberQuotaBootstrap({
         ...base,
@@ -100,13 +102,13 @@ describe("member quota bootstrap projection", () => {
         precision: 2,
         seedTotals: ["20.001"],
       }),
-    ).toThrow("at most 2 decimal places");
+    ).toThrow("up to 2 decimal places");
     expect(() =>
       projectMemberQuotaBootstrap({
         ...base,
         initialQuota: "100.01",
         precision: 2,
       }),
-    ).toThrow("between 0 and 100");
+    ).toThrow("from 0 to 100");
   });
 });

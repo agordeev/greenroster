@@ -68,9 +68,7 @@ function publicationFieldErrors(
       };
     case "publication_quota_not_ready":
       return {
-        roundId: [
-          "Every included member needs a ready quota snapshot for Net.",
-        ],
+        roundId: ["Every included member needs a ready quota for Net."],
       };
     case "publication_participant_ineligible":
       return {

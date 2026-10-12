@@ -65,8 +65,7 @@ export async function signInAction(
   } catch {
     return {
       status: "error",
-      message:
-        "The sign-in service could not be reached. Check your connection and try again.",
+      message: "We couldn't sign you in. Check your connection and try again.",
     };
   }
 
@@ -77,8 +76,8 @@ export async function signInAction(
         response.error.status === 429
           ? "Too many attempts. Wait a moment and try again."
           : isAuthRetryableFetchError(response.error)
-            ? "The sign-in service could not be reached. Check your connection and try again."
-            : "The e-mail or password could not be verified.",
+            ? "We couldn't sign you in. Check your connection and try again."
+            : "Check your e-mail and password, then try again.",
     };
   }
 
@@ -86,7 +85,7 @@ export async function signInAction(
     await supabase.auth.signOut({ scope: "local" });
     return {
       status: "error",
-      message: "Verify your account e-mail before signing in.",
+      message: "Confirm your e-mail address before you sign in.",
     };
   }
 
@@ -122,8 +121,7 @@ export async function registerOrganizerAction(
   if (!legal) {
     return {
       status: "error",
-      message:
-        "You cannot create your account right now. Try again in a moment.",
+      message: "We couldn't create your account. Try again in a moment.",
     };
   }
 
@@ -171,8 +169,7 @@ export async function registerOrganizerAction(
       if (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500) {
         return {
           status: "error",
-          message:
-            "You cannot create your account right now. Try again in a moment.",
+          message: "We couldn't create your account. Try again in a moment.",
         };
       }
 
@@ -180,7 +177,7 @@ export async function registerOrganizerAction(
       return {
         status: "success",
         message:
-          "Check your account e-mail to verify your account, then continue setting up your group.",
+          "Check your e-mail and confirm your address, then continue setting up your group.",
       };
     }
 
@@ -190,13 +187,12 @@ export async function registerOrganizerAction(
       status: "success",
       message: data.session
         ? "Your account is ready. Continue setting up your group."
-        : "Check your account e-mail to verify your account, then continue setting up your group.",
+        : "Check your e-mail and confirm your address, then continue setting up your group.",
     };
   } catch {
     return {
       status: "error",
-      message:
-        "You cannot create your account right now. Try again in a moment.",
+      message: "We couldn't create your account. Try again in a moment.",
     };
   }
 }
@@ -283,7 +279,7 @@ export async function requestPasswordResetAction(
     return {
       status: "error",
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't send your recovery link. Check your connection and try again.",
     };
   }
 
@@ -298,21 +294,20 @@ export async function requestPasswordResetAction(
     return {
       status: "error",
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't send your recovery link. Check your connection and try again.",
     };
   }
 
   if (error?.status && error.status >= 500) {
     return {
       status: "error",
-      message: "The recovery service could not be reached. Try again.",
+      message: "We couldn't send your recovery link. Try again.",
     };
   }
 
   return {
     status: "success",
-    message:
-      "If the address belongs to an account, password recovery instructions are on the way.",
+    message: "If you have an account, a recovery link is on its way.",
   };
 }
 
@@ -348,7 +343,7 @@ export async function updatePasswordAction(
     return {
       status: "error",
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't update your password. Check your connection and try again.",
     };
   }
 
@@ -358,14 +353,15 @@ export async function updatePasswordAction(
     return {
       status: "error",
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't update your password. Check your connection and try again.",
     };
   }
 
   if (userError || !userData.user) {
     return {
       status: "error",
-      message: "This recovery link is expired or has already been used.",
+      message:
+        "This recovery link has expired or was already used. Request a new link.",
     };
   }
 
@@ -373,7 +369,7 @@ export async function updatePasswordAction(
   if (!claims || claims.sub !== userData.user.id) {
     return {
       status: "error",
-      message: "The recovery service could not be reached. Try again.",
+      message: "We couldn't update your password. Try again.",
     };
   }
 
@@ -385,7 +381,7 @@ export async function updatePasswordAction(
   if (!recoveryResolution.ok) {
     return {
       status: "error",
-      message: "The recovery service could not be reached. Try again.",
+      message: "We couldn't update your password. Try again.",
     };
   }
 
@@ -393,7 +389,8 @@ export async function updatePasswordAction(
   if (!recoveryOperation) {
     return {
       status: "error",
-      message: "This recovery link is expired or has already been used.",
+      message:
+        "This recovery link has expired or was already used. Request a new link.",
     };
   }
 
@@ -418,7 +415,8 @@ export async function updatePasswordAction(
     }
     return {
       status: "error",
-      message: "This recovery link is expired or has already been used.",
+      message:
+        "This recovery link has expired or was already used. Request a new link.",
     };
   }
 
@@ -433,8 +431,8 @@ export async function updatePasswordAction(
         status: "error",
         message:
           recoveryClaim.reason === "unavailable"
-            ? "The recovery service could not be reached. Try again."
-            : "This recovery link is expired or has already been used.",
+            ? "We couldn't update your password. Try again."
+            : "This recovery link has expired or was already used. Request a new link.",
       };
     }
     claimId = recoveryClaim.claimId;
@@ -455,7 +453,7 @@ export async function updatePasswordAction(
     return {
       status: "error",
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't update your password. Check your connection and try again.",
     };
   }
 
@@ -472,8 +470,8 @@ export async function updatePasswordAction(
           ? "Too many attempts. Wait a moment and try again."
           : isAuthRetryableFetchError(error) ||
               (typeof error.status === "number" && error.status >= 500)
-            ? "The recovery service could not be reached. Check your connection and try again."
-            : "This recovery link is expired or has already been used.",
+            ? "We couldn't update your password. Check your connection and try again."
+            : "This recovery link has expired or was already used. Request a new link.",
     };
   }
 
@@ -500,7 +498,7 @@ export async function updatePasswordAction(
       return {
         status: "error",
         message:
-          "The password changed, but recovery confirmation is still pending. Try again.",
+          "Your password was changed, but we couldn't finish. Sign in with your new password.",
       };
     }
   }

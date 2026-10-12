@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { updateGroupGuestPermissionAction } from "@/app/actions/groups";
+import { ActionRow } from "@/components/ui";
 
 export type GroupGuestPermissionFormValue = Readonly<{
   allowMemberGuests: boolean;
@@ -125,7 +126,7 @@ export function GroupGuestPermissionForm({
 
   return (
     <form
-      className="group-profile-form group-guest-permission-form"
+      className="form-stack group-guest-permission-form"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
@@ -160,7 +161,7 @@ export function GroupGuestPermissionForm({
       >
         {message}
       </p>
-      <div className="information-actions">
+      <ActionRow>
         <button className="primary-button" type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save guest setting"}
         </button>
@@ -172,7 +173,7 @@ export function GroupGuestPermissionForm({
         >
           Cancel
         </button>
-      </div>
+      </ActionRow>
     </form>
   );
 }

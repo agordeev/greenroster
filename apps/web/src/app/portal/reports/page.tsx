@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { ActionRow, EmptyState } from "@/components/ui";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -70,7 +71,7 @@ export default async function PortalReportsPage() {
           shows your group, when it was made, the time zone, the reporting
           period, and a private data label.
         </p>
-        <div className="information-actions">
+        <ActionRow>
           <Link
             className="secondary-link"
             href="/api/portal/exports?kind=members"
@@ -95,18 +96,13 @@ export default async function PortalReportsPage() {
           >
             Standings PDF
           </Link>
-        </div>
+        </ActionRow>
 
-        <section
-          className="member-read-section"
-          aria-labelledby="round-reports-title"
-        >
+        <section className="page-section" aria-labelledby="round-reports-title">
           <p className="ledger-kicker">Completed rounds</p>
           <h2 id="round-reports-title">Results and score pads</h2>
           {rounds.length === 0 ? (
-            <p className="group-empty" role="status">
-              No completed rounds to report on yet.
-            </p>
+            <EmptyState>No completed rounds to report on yet.</EmptyState>
           ) : (
             <div className="member-results-table-wrap">
               <table className="member-results-table">
@@ -126,7 +122,7 @@ export default async function PortalReportsPage() {
                       <th scope="row">{round.description ?? "Round"}</th>
                       <td>{round.scheduled_at ?? "-"}</td>
                       <td>
-                        <span className="information-actions">
+                        <span className="action-row">
                           <Link
                             className="text-button"
                             href={`/api/portal/exports?kind=results&round_id=${round.id}`}

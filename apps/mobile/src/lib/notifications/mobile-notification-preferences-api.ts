@@ -149,7 +149,7 @@ function mapError(message: string, correlationId?: string) {
       code: "stale" as const,
       ...supportReference,
       message:
-        "These notification settings changed elsewhere. Reload them before trying again.",
+        "Your notification settings changed somewhere else. Reload them, then try again.",
       ok: false as const,
     };
   }
@@ -164,7 +164,7 @@ function mapError(message: string, correlationId?: string) {
       code: "permission_denied" as const,
       ...supportReference,
       message:
-        "This account cannot change notification settings. Contact a group administrator.",
+        "You can't change notification settings. Contact a group administrator.",
       ok: false as const,
     };
   }
@@ -177,7 +177,7 @@ function mapError(message: string, correlationId?: string) {
     return {
       code: "validation" as const,
       ...supportReference,
-      message: "That notification setting is not available for this account.",
+      message: "You can't change this notification setting.",
       ok: false as const,
     };
   }
@@ -185,7 +185,7 @@ function mapError(message: string, correlationId?: string) {
     code: "unavailable" as const,
     ...supportReference,
     message:
-      "GreenRoster could not update notification settings. Check your connection and try again.",
+      "We couldn't update your notification settings. Check your connection and try again.",
     ok: false as const,
   };
 }
@@ -214,7 +214,7 @@ export function createMobileNotificationPreferencesApi(
           return {
             code: "unavailable",
             message:
-              "GreenRoster returned invalid notification settings. Check your connection and try again.",
+              "We couldn't load your notification settings. Check your connection and try again.",
             ok: false,
           };
         }
@@ -238,7 +238,7 @@ export function createMobileNotificationPreferencesApi(
         return {
           code: "validation",
           correlationId: operationContext.correlationId,
-          message: "That notification setting is not available.",
+          message: "You can't change this notification setting.",
           ok: false,
         };
       }
@@ -263,7 +263,7 @@ export function createMobileNotificationPreferencesApi(
             code: "unavailable",
             correlationId: operationContext.correlationId,
             message:
-              "GreenRoster returned invalid notification settings. Check your connection and try again.",
+              "We couldn't update your notification settings. Check your connection and try again.",
             ok: false,
           };
         }
@@ -286,7 +286,7 @@ export function createMobileNotificationPreferencesApi(
         return {
           code: "validation",
           correlationId: operationContext.correlationId,
-          message: "This device could not be registered for notifications.",
+          message: "We couldn't turn on notifications on this device.",
           ok: false,
         };
       }
@@ -315,7 +315,7 @@ export function createMobileNotificationPreferencesApi(
         return {
           code: "validation",
           correlationId: operationContext.correlationId,
-          message: "This device could not be retired.",
+          message: "We couldn't turn off notifications on this device.",
           ok: false,
         };
       }

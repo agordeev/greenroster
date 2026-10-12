@@ -62,8 +62,10 @@ describe("mobile account e-mail actions", () => {
       expect.any(String),
     );
     expect(result).toMatchObject({ status: "pending", field: null });
-    expect(result.message).toContain("verification flow");
-    expect(result.message).toContain("stays unchanged");
+    expect(result.message).toContain(
+      "Check your e-mail for confirmation links",
+    );
+    expect(result.message).toContain("stays the same");
     expect("updateUser" in auth).toBe(false);
   });
 
@@ -138,7 +140,7 @@ describe("mobile account e-mail actions", () => {
     await expect(
       actions.requestEmailChange("old@example.com", "three@example.com", true),
     ).resolves.toMatchObject({
-      message: expect.stringContaining("Password recovery sessions"),
+      message: expect.stringContaining("while you're resetting your password"),
       status: "error",
     });
 
@@ -150,7 +152,7 @@ describe("mobile account e-mail actions", () => {
     ).resolves.toMatchObject({
       correlationId,
       message:
-        "The account e-mail service could not be reached. Check your connection and try again.",
+        "We couldn't update your account e-mail. Check your connection and try again.",
       status: "error",
     });
   });
@@ -166,7 +168,7 @@ describe("mobile account e-mail actions", () => {
     ).requestEmailChange("old@example.com", "new@example.com", true);
     expect(result).toMatchObject({
       message:
-        "The account e-mail service could not be reached. Check your connection and try again.",
+        "We couldn't update your account e-mail. Check your connection and try again.",
       status: "error",
     });
     expect(result).not.toHaveProperty("correlationId");
@@ -186,13 +188,12 @@ describe("mobile account e-mail actions", () => {
       } as never);
 
     await expect(actions.refreshSession()).resolves.toMatchObject({
-      message: "Account e-mail status refreshed.",
+      message: "Your account e-mail is up to date.",
       status: "success",
     });
     expect(auth.refreshSession).toHaveBeenCalledTimes(1);
     await expect(actions.refreshSession()).resolves.toMatchObject({
-      message:
-        "Your signed-in session is unavailable. Sign in again and try again.",
+      message: "Sign in again, then try again.",
       status: "error",
     });
   });

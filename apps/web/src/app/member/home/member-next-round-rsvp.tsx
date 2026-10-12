@@ -84,7 +84,7 @@ export function MemberNextRoundRsvp({
           <span> Updated {formatRsvpChangedAt(changedAt, groupTimeZone)}</span>
         ) : null}
       </p>
-      <div className="information-actions" aria-label="Round RSVP">
+      <div className="action-row" aria-label="Round RSVP">
         <button
           className={
             rsvpStatus === "playing" ? "primary-button" : "secondary-button"

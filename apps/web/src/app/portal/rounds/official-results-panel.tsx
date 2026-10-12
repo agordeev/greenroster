@@ -1,3 +1,4 @@
+import { EmptyState, SectionHeading } from "@/components/ui";
 import type {
   MemberOfficialResult,
   MemberOfficialRound,
@@ -16,7 +17,7 @@ export function OfficialResultsPanel({
   if (unavailable || !data) {
     return (
       <section
-        className="group-roles-panel"
+        className="page-section"
         aria-labelledby="official-results-unavailable-title"
       >
         <p className="ledger-kicker">Published results</p>
@@ -44,20 +45,18 @@ export function OfficialResultsPanel({
       : "Individual Gross";
 
   return (
-    <section
-      className="group-roles-panel"
-      aria-labelledby="official-results-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Published results</p>
-          <h2 id="official-results-title">Official results</h2>
-        </div>
-        <p>
-          {data.results.length}{" "}
-          {data.results.length === 1 ? "result" : "results"}
-        </p>
-      </div>
+    <section className="page-section" aria-labelledby="official-results-title">
+      <SectionHeading
+        kicker="Published results"
+        title="Official results"
+        titleId="official-results-title"
+        meta={
+          <>
+            {data.results.length}{" "}
+            {data.results.length === 1 ? "result" : "results"}
+          </>
+        }
+      />
       <p>
         {formatLabel} · Published{" "}
         {formatDate(
@@ -81,9 +80,9 @@ export function OfficialResultsPanel({
         </aside>
       ) : null}
       {data.results.length === 0 ? (
-        <p className="group-empty" role="status">
+        <EmptyState>
           The round is completed, but no official results are available.
-        </p>
+        </EmptyState>
       ) : (
         <div className="member-results-table-wrap">
           <table className="member-results-table">

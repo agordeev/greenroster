@@ -155,7 +155,7 @@ describe("group bootstrap mutation boundary", () => {
 
     expect(failure.ok).toBe(false);
     expect(failure.ok ? null : failure.error.message).toBe(
-      "Something went wrong. Contact support with reference 20000000-0000-4000-8000-000000000001.",
+      "We couldn't save your changes. Try again, or contact support with reference 20000000-0000-4000-8000-000000000001.",
     );
     expect(JSON.stringify(failure)).not.toContain("secret provider payload");
   });

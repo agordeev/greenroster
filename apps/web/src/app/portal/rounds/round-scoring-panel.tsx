@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { openRoundScoringAction } from "@/app/actions/rounds";
+import { SectionHeading } from "@/components/ui";
 import {
   roundScoringBlockedByDraftChanges,
   roundScoringInputSchema,
@@ -90,16 +91,15 @@ export function RoundScoringPanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="open-round-scoring-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round day</p>
-          <h2 id="open-round-scoring-title">Open scoring</h2>
-        </div>
-        <p>Published</p>
-      </div>
+      <SectionHeading
+        kicker="Round day"
+        title="Open scoring"
+        titleId="open-round-scoring-title"
+        meta="Published"
+      />
       <p>
         Opening scoring makes this round live and turns on score entry. Open it
         when players are ready to be scored. The change is kept in the round
@@ -116,7 +116,7 @@ export function RoundScoringPanel({
           {message}
         </p>
       ) : null}
-      <div className="group-profile-form" aria-busy={pending}>
+      <div className="form-stack" aria-busy={pending}>
         <button
           className="primary-button"
           type="button"

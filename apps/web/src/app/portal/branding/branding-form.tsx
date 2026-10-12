@@ -6,6 +6,7 @@ import {
   removeBrandingAssetAction,
   uploadBrandingAssetAction,
 } from "@/app/actions/clubhouse";
+import { SectionHeading } from "@/components/ui";
 import type { BrandingAssetSummary } from "@/domain/clubhouse-content";
 
 type BrandingFormProps = Readonly<{
@@ -146,17 +147,13 @@ export function BrandingForm({ assets }: BrandingFormProps) {
   }
 
   return (
-    <section
-      className="group-profile-panel"
-      aria-labelledby="branding-form-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Scoreboard branding</p>
-          <h2 id="branding-form-title">Choose your scoreboard banner</h2>
-        </div>
-      </div>
-      <div className="group-profile-form">
+    <section className="page-section" aria-labelledby="branding-form-title">
+      <SectionHeading
+        kicker="Scoreboard branding"
+        title="Choose your scoreboard banner"
+        titleId="branding-form-title"
+      />
+      <div className="form-stack">
         <label className="field-group" htmlFor="branding-slot">
           <span>Banner location</span>
           <select

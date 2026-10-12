@@ -168,7 +168,7 @@ describe("invitation delivery failed email", () => {
     });
 
     expect(email.subject).toContain("Saturday League");
-    expect(email.html).toContain("Invitation could not be delivered");
+    expect(email.html).toContain("We couldn&#x27;t deliver an invitation");
     expect(email.html).toContain("bounced-invite@example.com");
     expect(email.html).toContain(
       "https://greenroster.example/portal/invitations",

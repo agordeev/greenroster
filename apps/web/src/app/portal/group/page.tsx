@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { ActionRow, EmptyState, SectionHeading } from "@/components/ui";
 import {
   formatActivityAction,
   formatActivitySummary,
@@ -86,11 +87,11 @@ export default async function GroupRolesActivityPage({
             You can see the group directory in the app. Only coordinators and
             administrators can see who runs the group and what changed.
           </p>
-          <div className="information-actions">
+          <ActionRow>
             <Link className="secondary-link" href="/portal">
               Return to portal home
             </Link>
-          </div>
+          </ActionRow>
         </section>
       </PortalShell>
     );
@@ -113,11 +114,11 @@ export default async function GroupRolesActivityPage({
           <p className="ledger-kicker">What changed</p>
           <h1 id="group-filter-error-title">Activity filter needs attention</h1>
           <p>{activityFilterErrorMessage(query.filterError)}</p>
-          <div className="information-actions">
+          <ActionRow>
             <Link className="secondary-link" href="/portal/group">
               Clear filter
             </Link>
-          </div>
+          </ActionRow>
         </section>
       </PortalShell>
     );
@@ -163,16 +164,12 @@ export default async function GroupRolesActivityPage({
           open that person&apos;s member page.
         </p>
 
-        <section
-          className="group-profile-panel"
-          aria-labelledby="profile-title"
-        >
-          <div className="group-panel-heading">
-            <div>
-              <p className="ledger-kicker">Group profile</p>
-              <h2 id="profile-title">Group name and time zone</h2>
-            </div>
-          </div>
+        <section className="page-section" aria-labelledby="profile-title">
+          <SectionHeading
+            kicker="Group profile"
+            title="Group name and time zone"
+            titleId="profile-title"
+          />
           {portalContext.role === "administrator" ? (
             <GroupProfileForm
               key={`${projection.group.groupId}:${projection.group.version}`}
@@ -199,15 +196,14 @@ export default async function GroupRolesActivityPage({
         </section>
 
         <section
-          className="group-profile-panel group-guest-permission-panel"
+          className="page-section group-guest-permission-panel"
           aria-labelledby="guest-permission-title"
         >
-          <div className="group-panel-heading">
-            <div>
-              <p className="ledger-kicker">Round guests</p>
-              <h2 id="guest-permission-title">Guests in rounds</h2>
-            </div>
-          </div>
+          <SectionHeading
+            kicker="Round guests"
+            title="Guests in rounds"
+            titleId="guest-permission-title"
+          />
           {portalContext.role === "administrator" ? (
             <GroupGuestPermissionForm
               key={`${guestPermission.groupId}:${guestPermission.groupVersion}`}
@@ -227,25 +223,24 @@ export default async function GroupRolesActivityPage({
           )}
         </section>
 
-        <section className="group-roles-panel" aria-labelledby="roles-title">
-          <div className="group-panel-heading">
-            <div>
-              <p className="ledger-kicker">Who runs the group</p>
-              <h2 id="roles-title">Administrators and coordinators</h2>
-            </div>
-            <p>{projection.roles.length} listed</p>
-          </div>
+        <section className="page-section" aria-labelledby="roles-title">
+          <SectionHeading
+            kicker="Who runs the group"
+            title="Administrators and coordinators"
+            titleId="roles-title"
+            meta={<>{projection.roles.length} listed</>}
+          />
           {projection.roles.length === 0 ? (
-            <p className="group-empty" role="status">
+            <EmptyState>
               No coordinators or administrators to show yet.
-            </p>
+            </EmptyState>
           ) : (
-            <ul className="group-role-list">
+            <ul className="row-list">
               {projection.roles.map((role) => (
-                <li key={role.membershipId} className="group-role-row">
+                <li key={role.membershipId} className="row-item">
                   <div>
                     <Link
-                      className="group-role-name"
+                      className="row-title"
                       href={`/portal/members?membership=${encodeURIComponent(role.membershipId)}`}
                     >
                       {formatRoleHolderName(role.firstName, role.lastName)}
@@ -254,7 +249,7 @@ export default async function GroupRolesActivityPage({
                       {formatPortalRole(role.role)} · {role.status}
                     </p>
                   </div>
-                  <div className="group-role-meta">
+                  <div className="row-meta">
                     <span>{formatInvitationState(role.invitationState)}</span>
                     {role.invitationAcceptedAt ? (
                       <time dateTime={role.invitationAcceptedAt}>
@@ -280,32 +275,28 @@ export default async function GroupRolesActivityPage({
           )}
         </section>
 
-        <section
-          className="group-activity-panel"
-          aria-labelledby="activity-title"
-        >
-          <div className="group-panel-heading">
-            <div>
-              <p className="ledger-kicker">What changed</p>
-              <h2 id="activity-title">Recent activity</h2>
-            </div>
-            <p>
-              {query.targetType
+        <section className="page-section" aria-labelledby="activity-title">
+          <SectionHeading
+            kicker="What changed"
+            title="Recent activity"
+            titleId="activity-title"
+            meta={
+              query.targetType
                 ? `Showing changes to ${query.targetType === "round" ? "rounds" : "members"}`
-                : "All changes"}
-            </p>
-          </div>
+                : "All changes"
+            }
+          />
           <GroupActivityFilterForm
             targetType={query.targetType}
             targetId={query.targetId}
           />
 
           {projection.activity.items.length === 0 ? (
-            <p className="group-empty" role="status">
+            <EmptyState>
               {query.targetType
                 ? "No changes match this filter. Clear the filter to see everything."
                 : "No changes have been recorded yet."}
-            </p>
+            </EmptyState>
           ) : (
             <ol className="group-activity-list">
               {projection.activity.items.map((item) => (

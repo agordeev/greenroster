@@ -32,18 +32,18 @@ export type MutationResult<T> =
     }>;
 
 const safeMessages: Readonly<Record<MutationErrorCode, string>> = {
-  authentication_required: "Your session has expired. Sign in and try again.",
-  forbidden:
-    "Your access changed or you do not have permission for this action.",
-  unavailable: "The requested resource is unavailable.",
+  authentication_required: "You've been signed out. Sign in again to continue.",
+  forbidden: "You don't have permission to do this.",
+  unavailable: "We couldn't find that. Refresh the page to see what's current.",
   validation: "Review the highlighted fields and try again.",
   operation_reused:
-    "This operation was already used with different values. Refresh and try again.",
-  stale_version: "This information changed. Refresh it before trying again.",
-  locked: "This action is not available in the resource's current state.",
+    "This change was already submitted with different details. Refresh the page and try again.",
+  stale_version:
+    "This has changed since you opened it. Refresh the page to see the latest, then try again.",
+  locked: "You can't change this right now.",
   rate_limited: "Too many attempts. Wait a moment and try again.",
-  transient: "The service is temporarily unavailable. Try again.",
-  unexpected: "Something went wrong.",
+  transient: "We couldn't save your changes. Try again.",
+  unexpected: "We couldn't save your changes.",
 };
 
 export class MutationError extends Error {
@@ -78,7 +78,7 @@ export function mutationFailure(
   const baseMessage = safeMessages[mutationError.code];
   const message =
     mutationError.code === "unexpected"
-      ? `${baseMessage} Contact support with reference ${correlationId}.`
+      ? `${baseMessage} Try again, or contact support with reference ${correlationId}.`
       : baseMessage;
 
   return {

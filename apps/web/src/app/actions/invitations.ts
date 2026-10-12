@@ -39,15 +39,15 @@ function invitationErrorMessage(error: InvitationAcceptanceDataError): string {
     case "already_used":
       return "This invitation has already been accepted. Sign in to continue to your group.";
     case "identity_already_attached":
-      return "This account already belongs to a GreenRoster group. One account can belong to one group in v1.";
+      return "This account already belongs to a group, so it can't accept this invitation.";
     case "address_mismatch":
-      return "This invitation could not be attached to the current account. Sign in with a verified account or ask a coordinator to review the invitation.";
+      return "This invitation was sent to a different e-mail address. Sign in with the invited address, or ask a group administrator to fix it.";
     case "not_found":
       return "This invitation link is invalid or no longer available.";
     case "invalid":
-      return "This invitation could not be verified. Start again from the original invitation link.";
+      return "We couldn't check this invitation. Start again from the original invitation link.";
     default:
-      return "The invitation service is temporarily unavailable. Try again in a moment.";
+      return "We couldn't accept this invitation. Try again in a moment.";
   }
 }
 
@@ -90,7 +90,7 @@ export async function acceptInvitationAction(
     return {
       status: "error",
       message:
-        "Sign in with a verified account before accepting this invitation.",
+        "Confirm your e-mail address and sign in to accept this invitation.",
     };
   }
 
@@ -110,7 +110,7 @@ export async function acceptInvitationAction(
     clearInvitationCookie(cookieStore);
     return {
       status: "success",
-      message: "Invitation accepted. Your group access is ready.",
+      message: "Invitation accepted. You're now a member of the group.",
     };
   } catch (error) {
     if (error instanceof InvitationAcceptanceDataError) {
@@ -118,8 +118,7 @@ export async function acceptInvitationAction(
     }
     return {
       status: "error",
-      message:
-        "The invitation service is temporarily unavailable. Try again in a moment.",
+      message: "We couldn't accept this invitation. Try again in a moment.",
     };
   }
 }
@@ -180,27 +179,25 @@ export async function registerInvitationAction(
       if (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500) {
         return {
           status: "error",
-          message:
-            "The account service could not be reached. Try again in a moment.",
+          message: "We couldn't create your account. Try again in a moment.",
         };
       }
       return {
         status: "success",
         message:
-          "If this account can be registered, check the account e-mail for confirmation instructions. You can also sign in with a verified account.",
+          "Check your e-mail for a confirmation link. You can also sign in to accept the invitation.",
       };
     }
     return {
       status: "success",
       message: data.session
         ? "Your account is ready. Continue to accept the invitation."
-        : "If this account can be registered, check the account e-mail for confirmation instructions. You can also sign in with a verified account.",
+        : "Check your e-mail for a confirmation link. You can also sign in to accept the invitation.",
     };
   } catch {
     return {
       status: "error",
-      message:
-        "The account service could not be reached. Try again in a moment.",
+      message: "We couldn't create your account. Try again in a moment.",
     };
   }
 }

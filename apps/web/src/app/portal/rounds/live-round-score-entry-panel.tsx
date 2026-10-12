@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantScoreAction } from "@/app/actions/rounds";
+import { EmptyState, SectionHeading } from "@/components/ui";
 import {
   roundScoreInputSchema,
   type LiveRoundScoreParticipant,
@@ -48,29 +49,28 @@ export function LiveRoundScoreEntryPanel({
 }>) {
   return (
     <section
-      className="group-roles-panel live-score-entry"
+      className="page-section live-score-entry"
       aria-labelledby="live-score-entry-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round day</p>
-          <h2 id="live-score-entry-title">Enter live scores</h2>
-        </div>
-        <p>
-          {participants.length} player{participants.length === 1 ? "" : "s"}
-        </p>
-      </div>
+      <SectionHeading
+        kicker="Round day"
+        title="Enter live scores"
+        titleId="live-score-entry-title"
+        meta={
+          <>
+            {participants.length} player{participants.length === 1 ? "" : "s"}
+          </>
+        }
+      />
       <p>
         Enter only the totals turned on for this round. Plus/minus and ranking
         are worked out for you. Blank scores show Missing and are never counted
         as zero.
       </p>
       {participants.length === 0 ? (
-        <p className="group-empty" role="status">
-          No players are available to score yet.
-        </p>
+        <EmptyState>No players are available to score yet.</EmptyState>
       ) : (
-        <div className="group-role-list">
+        <div className="row-list">
           {participants.map((participant) => (
             <ParticipantScoreEditor
               key={participantSyncKey(participant)}
@@ -234,11 +234,8 @@ function ParticipantScoreEditor({
   }
 
   return (
-    <article
-      className="group-role-row"
-      data-score-state={scoreState.toLowerCase()}
-    >
-      <div className="group-panel-heading">
+    <article className="row-item" data-score-state={scoreState.toLowerCase()}>
+      <div className="section-heading">
         <div>
           <h3>{playerLabel}</h3>
           <p>
@@ -264,12 +261,12 @@ function ParticipantScoreEditor({
 
       <form
         id={formId}
-        className="group-profile-form"
+        className="form-stack"
         onSubmit={submit}
         aria-busy={pending}
         noValidate
       >
-        <div className="group-profile-fields">
+        <div className="form-row">
           {fields.map((field) => (
             <ScoreFieldInput
               key={field}

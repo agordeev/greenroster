@@ -7,7 +7,11 @@ import type { MutationResult } from "../lib/mutations/result";
 export const roundCancellationInputSchema = z
   .object({
     roundId: z.uuid(),
-    reason: z.string().trim().min(1).max(500),
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Add a reason for cancelling this round.")
+      .max(500, "Keep the reason to 500 characters or fewer."),
     expectedRoundVersion: z.number().int().positive(),
     operationId: z.uuid(),
   })

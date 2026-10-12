@@ -6,6 +6,7 @@ import {
   saveGroupMediaAction,
   saveGroupNewsAction,
 } from "@/app/actions/clubhouse";
+import { SectionHeading } from "@/components/ui";
 import type { ClubhouseProjection } from "@/domain/clubhouse-content";
 
 export function ClubhouseAdminPanel({
@@ -67,18 +68,14 @@ export function ClubhouseAdminPanel({
     });
   }
   return (
-    <section
-      className="group-profile-panel"
-      aria-labelledby="clubhouse-admin-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Clubhouse</p>
-          <h2 id="clubhouse-admin-title">Share news and videos</h2>
-        </div>
-        <p>{initial.news.length + initial.media.length} published</p>
-      </div>
-      <div className="group-profile-form">
+    <section className="page-section" aria-labelledby="clubhouse-admin-title">
+      <SectionHeading
+        kicker="Clubhouse"
+        title="Share news and videos"
+        titleId="clubhouse-admin-title"
+        meta={<>{initial.news.length + initial.media.length} published</>}
+      />
+      <div className="form-stack">
         <label className="field-group" htmlFor="clubhouse-title">
           <span>Title</span>
           <input

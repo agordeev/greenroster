@@ -29,11 +29,11 @@ type MobileAccountEmailClient = Pick<
 >;
 
 function connectionErrorMessage(): string {
-  return "The account e-mail service could not be reached. Check your connection and try again.";
+  return "We couldn't update your account e-mail. Check your connection and try again.";
 }
 
 function authenticationErrorMessage(): string {
-  return "Your signed-in session is unavailable. Sign in again and try again.";
+  return "Sign in again, then try again.";
 }
 
 export function createMobileAccountEmailActions(
@@ -61,7 +61,7 @@ export function createMobileAccountEmailActions(
         return {
           field: null,
           message:
-            "Your signed-in account e-mail is unavailable. Refresh the session and try again.",
+            "We couldn't read your current e-mail address. Sign in again, then try again.",
           status: "error",
         };
       }
@@ -69,7 +69,7 @@ export function createMobileAccountEmailActions(
       if (parsedCurrent.data === parsedNext.data) {
         return {
           field: "email",
-          message: "Enter a different account e-mail.",
+          message: "Enter a different e-mail address.",
           status: "error",
         };
       }
@@ -78,7 +78,7 @@ export function createMobileAccountEmailActions(
         return {
           field: "confirmation",
           message:
-            "Confirm that you understand the provider's required verification step or steps must be completed.",
+            "Confirm that you'll complete the verification steps to change your e-mail address.",
           status: "error",
         };
       }
@@ -119,7 +119,7 @@ export function createMobileAccountEmailActions(
             correlationId: result.correlationId ?? correlationId,
             field: null,
             message:
-              "Secure confirmation messages were requested. Your signed-in address stays unchanged until the provider completes the required verification flow.",
+              "Check your e-mail for confirmation links. Your address stays the same until you confirm the change.",
             status: "pending",
           };
         }
@@ -137,7 +137,7 @@ export function createMobileAccountEmailActions(
             correlationId: result.correlationId ?? correlationId,
             field: null,
             message:
-              "Password recovery sessions cannot change account e-mail. Sign in normally and submit the change again.",
+              "You can't change your e-mail address while you're resetting your password. Sign in with your password, then try again.",
             status: "error",
           };
         }
@@ -157,8 +157,8 @@ export function createMobileAccountEmailActions(
             message:
               field === "email"
                 ? (result.fieldErrors?.email?.[0] ??
-                  "Enter another account e-mail.")
-                : "The account e-mail could not be changed. Check the address and try again.",
+                  "Enter a different e-mail address.")
+                : "We couldn't change your e-mail address. Check the address and try again.",
             status: "error",
           };
         }
@@ -188,14 +188,14 @@ export function createMobileAccountEmailActions(
             field: null,
             message: isAuthRetryableFetchError(error)
               ? connectionErrorMessage()
-              : "Your signed-in session is unavailable. Sign in again and try again.",
+              : "Sign in again, then try again.",
             status: "error",
           };
         }
 
         return {
           field: null,
-          message: "Account e-mail status refreshed.",
+          message: "Your account e-mail is up to date.",
           status: "success",
         };
       } catch {

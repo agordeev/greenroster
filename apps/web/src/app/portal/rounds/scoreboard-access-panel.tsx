@@ -6,6 +6,7 @@ import {
   createScoreboardAccessAction,
   revokeScoreboardAccessAction,
 } from "@/app/actions/scoreboard";
+import { SectionHeading } from "@/components/ui";
 import type { ScoreboardAccessGrant } from "@/lib/scoreboard/scoreboard-access";
 
 export function ScoreboardAccessPanel({
@@ -109,21 +110,17 @@ export function ScoreboardAccessPanel({
   }
 
   return (
-    <section
-      className="group-roles-panel"
-      aria-labelledby="scoreboard-access-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Live scores</p>
-          <h2 id="scoreboard-access-title">Share this round</h2>
-        </div>
-      </div>
+    <section className="page-section" aria-labelledby="scoreboard-access-title">
+      <SectionHeading
+        kicker="Live scores"
+        title="Share this round"
+        titleId="scoreboard-access-title"
+      />
       <p>
         You can share a read-only link for a clubhouse screen or guest browser.
       </p>
       {grant?.url ? (
-        <div className="group-profile-form">
+        <div className="form-stack">
           <label className="field-group" htmlFor="scoreboard-access-url">
             <span>Live-scores link</span>
             <input id="scoreboard-access-url" value={grant.url} readOnly />
@@ -157,7 +154,7 @@ export function ScoreboardAccessPanel({
           </button>
         </div>
       ) : (
-        <div className="group-profile-form" aria-busy={pending}>
+        <div className="form-stack" aria-busy={pending}>
           <label className="field-group" htmlFor="scoreboard-access-expires-at">
             <span>Stop sharing at</span>
             <input

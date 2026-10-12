@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { setRoundScoreFieldsAction } from "@/app/actions/rounds";
+import { ActionRow, SectionHeading } from "@/components/ui";
 import type { RoundFormat } from "@/domain/round-drafts";
 
 export function RoundScoreFieldsPanel({
@@ -83,17 +84,13 @@ export function RoundScoreFieldsPanel({
   }
 
   return (
-    <section
-      className="group-profile-panel"
-      aria-labelledby="score-fields-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Format setup</p>
-          <h2 id="score-fields-title">Score options</h2>
-        </div>
-        <p>You are editing a draft.</p>
-      </div>
+    <section className="page-section" aria-labelledby="score-fields-title">
+      <SectionHeading
+        kicker="Format setup"
+        title="Score options"
+        titleId="score-fields-title"
+        meta="You are editing a draft."
+      />
       <p className="field-help">
         Choose which totals you can enter when you score this round. Golf points
         are entered for every player.
@@ -132,7 +129,7 @@ export function RoundScoreFieldsPanel({
       >
         {message}
       </p>
-      <div className="information-actions">
+      <ActionRow>
         <button
           className="primary-button"
           type="button"
@@ -141,7 +138,7 @@ export function RoundScoreFieldsPanel({
         >
           {pending ? "Saving…" : "Save score options"}
         </button>
-      </div>
+      </ActionRow>
     </section>
   );
 }

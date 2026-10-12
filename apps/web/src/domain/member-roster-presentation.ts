@@ -10,12 +10,12 @@ export function formatMemberRosterQuotaProvenance(
   const labels: Readonly<Record<string, string>> = {
     initial_quota: "Initial quota",
     seed_history: "Seed history",
-    method_c_chain: "Method C chain",
-    official_history: "Official history",
-    manual_override: "Manual override",
+    method_c_chain: "Method C adjustments",
+    official_history: "From official results",
+    manual_override: "Entered by hand",
     not_ready: "Not ready",
   };
-  return labels[kind] ?? "Not recorded";
+  return labels[kind] ?? "Not set yet";
 }
 
 export function formatMemberRosterInitialQuotaUsage(usesInitialQuota: boolean) {

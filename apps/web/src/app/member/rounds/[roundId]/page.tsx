@@ -105,7 +105,7 @@ export default async function MemberRoundPage({
           ) : null}
           {detail.participantVersion !== null ? (
             <section
-              className="member-read-section"
+              className="page-section"
               aria-labelledby="your-response-title"
             >
               <p className="ledger-kicker">Your response</p>
@@ -129,7 +129,7 @@ export default async function MemberRoundPage({
 
           {detail.state === "live" ? (
             <section
-              className="member-read-section"
+              className="page-section"
               aria-labelledby="round-day-access-title"
             >
               <p className="ledger-kicker">Round day</p>

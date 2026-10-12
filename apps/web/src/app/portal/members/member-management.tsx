@@ -114,23 +114,25 @@ export function MemberManagement({
 
   return (
     <div className="member-management">
-      <div className="member-list" aria-label="Group members">
-        <div className="member-list-heading">
-          <h2>Roster</h2>
-          <span>
-            {totalCount} {totalCount === 1 ? "member" : "members"}
-          </span>
+      {selectedMember ? null : (
+        <div className="member-list" aria-label="Group members">
+          <div className="member-list-heading">
+            <h2>Roster</h2>
+            <span>
+              {totalCount} {totalCount === 1 ? "member" : "members"}
+            </span>
+          </div>
+          <MemberRosterFilters query={rosterQuery} />
+          <MemberAlphabetFilter query={rosterQuery} />
+          <MemberRosterContent
+            activeCount={activeCount}
+            members={members}
+            query={rosterQuery}
+            selectedMemberId={null}
+            totalCount={totalCount}
+          />
         </div>
-        <MemberRosterFilters query={rosterQuery} />
-        <MemberAlphabetFilter query={rosterQuery} />
-        <MemberRosterContent
-          activeCount={activeCount}
-          members={members}
-          query={rosterQuery}
-          selectedMemberId={selectedMember?.membershipId ?? null}
-          totalCount={totalCount}
-        />
-      </div>
+      )}
 
       {selectedMember ? (
         <MemberEditor
@@ -141,12 +143,7 @@ export function MemberManagement({
           role={role}
           onTerminalMessage={showTerminalMessage}
         />
-      ) : (
-        <div className="member-editor-empty">
-          <h2>Select a member</h2>
-          <p>Choose a member to see and edit their details.</p>
-        </div>
-      )}
+      ) : null}
       <div
         className="form-message"
         aria-live="polite"
@@ -204,7 +201,7 @@ function MemberRosterFilters({
           <select name="dues" defaultValue={query.dues ?? ""}>
             <option value="">All dues</option>
             <option value="paid">Paid</option>
-            <option value="unpaid">Not recorded</option>
+            <option value="unpaid">Not set yet</option>
           </select>
         </label>
         <label className="field-group">
@@ -490,7 +487,7 @@ function MemberRosterTableRow({
       </th>
       <td>{formatStatus(member.status)}</td>
       <td>{formatRole(member.role)}</td>
-      <td>{member.duesPaid ? "Paid" : "Not recorded"}</td>
+      <td>{member.duesPaid ? "Paid" : "Not set yet"}</td>
       <td>{member.teeLocation ? formatTee(member.teeLocation) : "Not set"}</td>
       <td>{formatRosterHandicap(member)}</td>
       <td>{formatRosterQuota(member)}</td>
@@ -534,7 +531,7 @@ function MemberRosterCard({
         </div>
         <div>
           <dt>Dues</dt>
-          <dd>{member.duesPaid ? "Paid" : "Not recorded"}</dd>
+          <dd>{member.duesPaid ? "Paid" : "Not set yet"}</dd>
         </div>
         <div>
           <dt>Tee</dt>
@@ -600,7 +597,7 @@ function MemberRosterPagination({
 }
 
 function formatRosterHandicap(member: ManageableMemberRosterRow) {
-  if (member.handicapValue === null) return "Not recorded";
+  if (member.handicapValue === null) return "Not set yet";
   const source = member.handicapSource
     ? ` · ${member.handicapSource === "manual" ? "Manual" : "Import"}`
     : "";
@@ -614,7 +611,7 @@ function formatRosterQuota(member: ManageableMemberRosterRow) {
   );
   if (member.currentQuota === null) {
     return [
-      member.usesInitialQuota ? "Initial quota pending" : "Not recorded",
+      member.usesInitialQuota ? "Initial quota pending" : "Not set yet",
       initialQuotaUsage,
     ].join(" · ");
   }
@@ -631,7 +628,7 @@ function formatRosterQuota(member: ManageableMemberRosterRow) {
 
 function formatInvitation(member: ManageableMemberRosterRow) {
   if (member.invitationDeliveryActionRequired) {
-    return `${member.invitationState ? formatInvitationState(member.invitationState) : "Invitation"} · Action required`;
+    return `${member.invitationState ? formatInvitationState(member.invitationState) : "Invitation"} · Needs attention`;
   }
   return member.invitationState
     ? formatInvitationState(member.invitationState)
@@ -1173,7 +1170,7 @@ function MemberEditor({
         </div>
         <div>
           <dt>Dues</dt>
-          <dd>{member.duesPaid ? "Paid" : "Not recorded"}</dd>
+          <dd>{member.duesPaid ? "Paid" : "Not set yet"}</dd>
         </div>
         <div>
           <dt>Update numbers</dt>

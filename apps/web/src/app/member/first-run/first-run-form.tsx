@@ -7,6 +7,7 @@ import {
   completeMemberFirstRunAction,
   initialMemberFirstRunActionState,
 } from "@/app/actions/member-profile";
+import { Field } from "@/components/ui";
 
 type MemberFirstRunFormProps = Readonly<{
   firstName: string;
@@ -41,8 +42,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
       <input name="termsVersion" type="hidden" value={props.termsVersion} />
       <input name="privacyVersion" type="hidden" value={props.privacyVersion} />
 
-      <div className="field-group">
-        <label htmlFor="firstName">First name</label>
+      <Field id="firstName" label="First name">
         <input
           id="firstName"
           name="firstName"
@@ -51,9 +51,8 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
           maxLength={100}
           required
         />
-      </div>
-      <div className="field-group">
-        <label htmlFor="lastName">Last name</label>
+      </Field>
+      <Field id="lastName" label="Last name">
         <input
           id="lastName"
           name="lastName"
@@ -62,7 +61,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
           maxLength={100}
           required
         />
-      </div>
+      </Field>
 
       <label className="confirmation-row">
         <input name="acceptedTerms" type="checkbox" required />

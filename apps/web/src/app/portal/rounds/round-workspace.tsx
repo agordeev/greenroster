@@ -89,7 +89,7 @@ export function RoundWorkspace({
       <>
         {roundDetailUnavailable || !roundDetail ? (
           <section
-            className="group-roles-panel"
+            className="page-section"
             aria-labelledby="round-detail-unavailable-title"
           >
             <p className="ledger-kicker">Round detail</p>
@@ -156,7 +156,7 @@ export function RoundWorkspace({
         {roundId && state === "live" ? (
           liveScoresUnavailable ? (
             <section
-              className="group-roles-panel"
+              className="page-section"
               aria-labelledby="live-scoreboard-unavailable-title"
             >
               <p className="ledger-kicker">Round day</p>
@@ -185,7 +185,7 @@ export function RoundWorkspace({
         (state === "published" || state === "live" || state === "completed") ? (
           holeScoresUnavailable ? (
             <section
-              className="group-roles-panel"
+              className="page-section"
               aria-labelledby="round-hole-scorecard-unavailable-title"
             >
               <p className="ledger-kicker">Scoring</p>
@@ -255,7 +255,7 @@ export function RoundWorkspace({
       {roundId && format ? (
         publicationReviewUnavailable || !publicationReview ? (
           <section
-            className="group-roles-panel"
+            className="page-section"
             aria-labelledby="publication-review-unavailable-title"
           >
             <p className="ledger-kicker">Publication review</p>

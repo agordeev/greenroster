@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { EmptyState, SectionHeading } from "@/components/ui";
+
 import {
   formatParticipantRsvp,
   formatSnapshotValue,
@@ -17,18 +19,15 @@ export function RoundReadOnlyDetail({
   detail,
 }: Readonly<{ detail: RoundCoordinatorDetail }>) {
   return (
-    <section className="group-roles-panel" aria-labelledby="round-detail-title">
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round detail</p>
-          <h2 id="round-detail-title">
-            {detail.description || "Untitled round"}
-          </h2>
-        </div>
-        <p>{formatRoundState(detail.state)}</p>
-      </div>
+    <section className="page-section" aria-labelledby="round-detail-title">
+      <SectionHeading
+        kicker="Round detail"
+        title={detail.description || "Untitled round"}
+        titleId="round-detail-title"
+        meta={formatRoundState(detail.state)}
+      />
 
-      <nav aria-label="Round detail sections" className="information-actions">
+      <nav aria-label="Round detail sections" className="action-row">
         <a className="secondary-link" href="#round-detail-overview">
           Overview
         </a>
@@ -109,9 +108,7 @@ export function RoundReadOnlyDetail({
               />
             </dl>
           ) : (
-            <p className="group-empty" role="status">
-              No rules were saved for this round.
-            </p>
+            <EmptyState>No rules were saved for this round.</EmptyState>
           )}
         </section>
 
@@ -134,9 +131,7 @@ export function RoundReadOnlyDetail({
           changes to a member’s profile don’t change them.
         </p>
         {detail.participants.length === 0 ? (
-          <p className="group-empty" role="status">
-            No players were published for this round.
-          </p>
+          <EmptyState>No players were published for this round.</EmptyState>
         ) : (
           <div className="publication-member-list round-detail-table-wrap">
             <table>

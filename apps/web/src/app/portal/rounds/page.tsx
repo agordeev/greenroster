@@ -23,6 +23,7 @@ import { executePreviewLiveRoundCompletion } from "@/lib/rounds/round-completion
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data";
+import { ActionRow, EmptyState, SectionHeading } from "@/components/ui";
 
 import { PortalShell } from "../portal-shell";
 import { RoundWorkspace } from "./round-workspace";
@@ -93,11 +94,11 @@ export default async function RoundsPage({
             You can respond to published rounds in the app. Only coordinators
             and administrators can set up or change rounds.
           </p>
-          <div className="information-actions">
+          <ActionRow>
             <Link className="secondary-link" href="/portal">
               Return to portal home
             </Link>
-          </div>
+          </ActionRow>
         </section>
       </PortalShell>
     );
@@ -222,6 +223,7 @@ export default async function RoundsPage({
       officialResultsUnavailable = true;
     }
   }
+  const creating = !selectedRound && params.new !== undefined;
   const newRound: RoundDraft = {
     roundId: "",
     groupId: portalContext.groupId,
@@ -247,98 +249,127 @@ export default async function RoundsPage({
       currentSection="rounds"
     >
       <section className="portal-ledger" aria-labelledby="rounds-title">
-        <div className="group-panel-heading">
-          <div>
-            <p className="ledger-kicker">Coordinator tools</p>
-            <h1 id="rounds-title">Rounds</h1>
-          </div>
+        <p className="ledger-kicker">Coordinator tools</p>
+        <h1 id="rounds-title">Rounds</h1>
+        {selectedRound || creating ? (
           <p>
-            {rounds.length} {rounds.length === 1 ? "round" : "rounds"}
+            <Link className="secondary-link" href="/portal/rounds">
+              ← All rounds
+            </Link>
           </p>
-        </div>
-        <p>
-          Only coordinators see a draft until you publish it. Times use your
-          group’s time zone, <strong>{portalContext.timeZone}</strong>.
-        </p>
-
-        <RoundWorkspace
-          key={`round-workspace:${selectedRound?.roundId ?? "new"}:${selectedRound?.version ?? 0}:${publicationReview ? roundPublicationReviewKey(publicationReview) : "unavailable"}`}
-          identityKey={`${portalContext.groupId}:${selectedRound?.roundId ?? "new"}`}
-          initialValue={roundDraftFormValue(selectedRound ?? newRound)}
-          roundId={selectedRound?.roundId ?? null}
-          format={selectedRound?.format ?? null}
-          enableGrossScore={
-            selectedRound?.state === "draft"
-              ? selectedRound.enableGrossScore
-              : undefined
-          }
-          enableNetScore={
-            selectedRound?.state === "draft"
-              ? selectedRound.enableNetScore
-              : undefined
-          }
-          description={selectedRound?.description ?? "this round"}
-          state={selectedRound?.state ?? "draft"}
-          version={selectedRound?.version ?? 1}
-          publicationReview={publicationReview}
-          publicationReviewUnavailable={publicationReviewUnavailable}
-          roundDetail={roundDetail}
-          roundDetailUnavailable={roundDetailUnavailable}
-          roundMessages={roundMessages}
-          liveScores={liveScores}
-          liveScoresUnavailable={liveScoresUnavailable}
-          holeScores={holeScores}
-          holeScoresUnavailable={holeScoresUnavailable}
-          officialResults={officialResults}
-          officialResultsUnavailable={officialResultsUnavailable}
-          completionPreview={completionPreview}
-          completionPreviewUnavailable={completionPreviewUnavailable}
-        />
-
-        <section
-          className="group-roles-panel"
-          aria-labelledby="round-list-title"
-        >
-          <div className="group-panel-heading">
-            <div>
-              <p className="ledger-kicker">Round list</p>
-              <h2 id="round-list-title">Your rounds</h2>
-            </div>
-          </div>
-          {rounds.length === 0 ? (
-            <p className="group-empty" role="status">
-              No rounds yet. Create your first one above.
+        ) : (
+          <>
+            <p>
+              Only coordinators see a draft until you publish it. Times use your
+              group’s time zone, <strong>{portalContext.timeZone}</strong>.
             </p>
-          ) : (
-            <ul className="group-role-list">
-              {rounds.map((round) => (
-                <li key={round.roundId} className="group-role-row">
-                  <div>
-                    <Link
-                      className="group-role-name"
-                      href={`/portal/rounds?round=${encodeURIComponent(round.roundId)}`}
-                    >
-                      {round.description || "Untitled round"}
-                    </Link>
-                    <p>
-                      {formatRoundState(round.state)} ·{" "}
-                      {formatRoundFormat(round.format)}
-                    </p>
-                  </div>
-                  <div className="group-role-meta">
-                    <span>
-                      {formatRoundSchedule(
-                        round.scheduledAt,
-                        round.groupTimeZone,
-                      )}
-                    </span>
-                    <span>{round.groupTimeZone}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            <ActionRow>
+              <Link className="primary-link" href="/portal/rounds?new=1">
+                New round
+              </Link>
+            </ActionRow>
+          </>
+        )}
+
+        {selectedRound || creating ? (
+          <RoundWorkspace
+            key={`round-workspace:${selectedRound?.roundId ?? "new"}:${selectedRound?.version ?? 0}:${publicationReview ? roundPublicationReviewKey(publicationReview) : "unavailable"}`}
+            identityKey={`${portalContext.groupId}:${selectedRound?.roundId ?? "new"}`}
+            initialValue={roundDraftFormValue(selectedRound ?? newRound)}
+            roundId={selectedRound?.roundId ?? null}
+            format={selectedRound?.format ?? null}
+            enableGrossScore={
+              selectedRound?.state === "draft"
+                ? selectedRound.enableGrossScore
+                : undefined
+            }
+            enableNetScore={
+              selectedRound?.state === "draft"
+                ? selectedRound.enableNetScore
+                : undefined
+            }
+            description={selectedRound?.description ?? "this round"}
+            state={selectedRound?.state ?? "draft"}
+            version={selectedRound?.version ?? 1}
+            publicationReview={publicationReview}
+            publicationReviewUnavailable={publicationReviewUnavailable}
+            roundDetail={roundDetail}
+            roundDetailUnavailable={roundDetailUnavailable}
+            roundMessages={roundMessages}
+            liveScores={liveScores}
+            liveScoresUnavailable={liveScoresUnavailable}
+            holeScores={holeScores}
+            holeScoresUnavailable={holeScoresUnavailable}
+            officialResults={officialResults}
+            officialResultsUnavailable={officialResultsUnavailable}
+            completionPreview={completionPreview}
+            completionPreviewUnavailable={completionPreviewUnavailable}
+          />
+        ) : (
+          <section className="page-section" aria-labelledby="round-list-title">
+            <SectionHeading
+              title="Your rounds"
+              titleId="round-list-title"
+              meta={
+                <>
+                  {rounds.length} {rounds.length === 1 ? "round" : "rounds"}
+                </>
+              }
+            />
+            {rounds.length === 0 ? (
+              <EmptyState>No rounds yet. Create your first one.</EmptyState>
+            ) : (
+              <ul className="row-list">
+                {rounds.map((round) => (
+                  <li key={round.roundId} className="row-item">
+                    <div>
+                      <Link
+                        className="row-title"
+                        href={`/portal/rounds?round=${encodeURIComponent(round.roundId)}`}
+                      >
+                        {round.description || "Untitled round"}
+                      </Link>
+                      <p>
+                        {formatRoundState(round.state)} ·{" "}
+                        {formatRoundFormat(round.format)}
+                      </p>
+                    </div>
+                    <div className="row-meta">
+                      <span>
+                        {formatRoundSchedule(
+                          round.scheduledAt,
+                          round.groupTimeZone,
+                        )}
+                      </span>
+                      {round.state === "completed" ? (
+                        <span className="action-row">
+                          <Link
+                            className="text-button"
+                            href={`/api/portal/exports?kind=results&round_id=${round.roundId}`}
+                          >
+                            Results CSV
+                          </Link>
+                          <Link
+                            className="text-button"
+                            href={`/api/portal/exports?kind=results&format=pdf&round_id=${round.roundId}`}
+                          >
+                            Results PDF
+                          </Link>
+                          <Link
+                            className="text-button"
+                            href={`/api/portal/exports?kind=scorepad&format=pdf&round_id=${round.roundId}`}
+                          >
+                            Score pad PDF
+                          </Link>
+                        </span>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </section>
     </PortalShell>
   );

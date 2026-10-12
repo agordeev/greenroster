@@ -88,7 +88,7 @@ describe("mobile sign-in actions", () => {
     await expect(
       actions.signIn("missing@example.com", "wrong"),
     ).resolves.toMatchObject({
-      message: "The e-mail or password could not be verified.",
+      message: "Check your e-mail and password, then try again.",
     });
     await expect(
       actions.signIn("member@example.com", "wrong"),
@@ -106,7 +106,7 @@ describe("mobile sign-in actions", () => {
     await expect(
       createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
-      message: "The sign-in service could not be reached. Try again.",
+      message: "We couldn't sign you in. Try again.",
       status: "error",
     });
   });
@@ -120,7 +120,7 @@ describe("mobile sign-in actions", () => {
     await expect(
       createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
-      message: "Verify your account e-mail before signing in.",
+      message: "Confirm your e-mail address before you sign in.",
       status: "error",
     });
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
@@ -134,8 +134,7 @@ describe("mobile sign-in actions", () => {
     await expect(
       createActions(auth).signIn("member@example.com", "secret"),
     ).resolves.toMatchObject({
-      message:
-        "The sign-in service could not be reached. Check your connection and try again.",
+      message: "We couldn't sign you in. Check your connection and try again.",
       status: "error",
     });
   });
@@ -154,8 +153,7 @@ describe("mobile recovery actions", () => {
       "member@example.com",
     );
     expect(result).toMatchObject({
-      message:
-        "If the address belongs to an account, password recovery instructions are on the way.",
+      message: "If you have an account, a recovery link is on its way.",
       status: "success",
     });
   });
@@ -194,7 +192,7 @@ describe("mobile recovery actions", () => {
       ),
     ).resolves.toMatchObject({
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't send your recovery link. Check your connection and try again.",
       status: "error",
     });
   });
@@ -216,7 +214,7 @@ describe("mobile recovery actions", () => {
       actions.requestPasswordRecovery("member@example.com"),
     ).resolves.toMatchObject({
       message:
-        "The recovery service could not be reached. Check your connection and try again.",
+        "We couldn't send your recovery link. Check your connection and try again.",
       status: "error",
     });
   });
@@ -237,7 +235,7 @@ describe("mobile sign-out action", () => {
     vi.mocked(auth.signOut).mockRejectedValue(new Error("provider details"));
 
     await expect(createActions(auth).signOut()).resolves.toMatchObject({
-      message: "GreenRoster could not sign out. Try again.",
+      message: "We couldn't sign you out. Try again.",
       status: "error",
     });
   });

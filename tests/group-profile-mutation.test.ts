@@ -109,7 +109,8 @@ describe("group profile mutation boundary", () => {
 
     expect(response.ok ? null : response.error).toMatchObject({
       code: "stale_version",
-      message: "This information changed. Refresh it before trying again.",
+      message:
+        "This has changed since you opened it. Refresh the page to see the latest, then try again.",
     });
   });
 });

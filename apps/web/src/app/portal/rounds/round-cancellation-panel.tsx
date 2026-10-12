@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { cancelRoundAction } from "@/app/actions/rounds";
+import { SectionHeading } from "@/components/ui";
 import { roundCancellationBlockedByDraftChanges } from "@/domain/round-cancellation";
 
 export function RoundCancellationPanel({
@@ -93,20 +94,15 @@ export function RoundCancellationPanel({
   }
 
   return (
-    <section className="group-roles-panel" aria-labelledby="cancel-round-title">
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Cancellation</p>
-          <h2 id="cancel-round-title">Cancel this {state} round</h2>
-        </div>
-        <p>
-          {state === "draft"
-            ? "Draft"
-            : state === "live"
-              ? "Live"
-              : "Published"}
-        </p>
-      </div>
+    <section className="page-section" aria-labelledby="cancel-round-title">
+      <SectionHeading
+        kicker="Cancellation"
+        title={<>Cancel this {state} round</>}
+        titleId="cancel-round-title"
+        meta={
+          state === "draft" ? "Draft" : state === "live" ? "Live" : "Published"
+        }
+      />
       <p>
         Cancelling keeps the round and its history, turns off RSVP and scoring,
         and{" "}
@@ -120,7 +116,7 @@ export function RoundCancellationPanel({
         </p>
       ) : null}
       <form
-        className="group-profile-form"
+        className="form-stack"
         onSubmit={submit}
         aria-busy={pending}
         noValidate

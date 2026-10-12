@@ -36,7 +36,7 @@ describe("verified account e-mail change boundary", () => {
       { requestChange, verifySession },
     );
 
-    expect(state.message).toContain("session expired");
+    expect(state.message).toContain("signed out");
     expect(requestChange).not.toHaveBeenCalled();
   });
 
@@ -55,7 +55,7 @@ describe("verified account e-mail change boundary", () => {
 
     expect(requestChange).toHaveBeenCalledWith("new.address@example.test");
     expect(state.status).toBe("verification_pending");
-    expect(state.message).toContain("required confirmation");
+    expect(state.message).toContain("follow the links");
   });
 
   it("requires explicit confirmation and a genuinely different address", async () => {
@@ -117,7 +117,7 @@ describe("verified account e-mail change boundary", () => {
       ),
     ).resolves.toMatchObject({
       status: "error",
-      message: expect.stringContaining("unavailable"),
+      message: expect.stringContaining("can't be used"),
     });
   });
 
@@ -135,7 +135,7 @@ describe("verified account e-mail change boundary", () => {
 
     expect(state).toMatchObject({
       status: "error",
-      message: expect.stringContaining("Password recovery sessions"),
+      message: expect.stringContaining("during a password reset"),
     });
     expect(requestChange).not.toHaveBeenCalled();
   });

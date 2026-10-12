@@ -31,7 +31,7 @@ const sharedRoundDraftInput = {
   scheduledLocal: localDateTimeSchema,
   venue: z.string().trim(),
   roundUrl: roundUrlSchema,
-  notes: z.string().trim().max(500, "Notes must be 500 characters or fewer."),
+  notes: z.string().trim().max(500, "Keep notes to 500 characters or fewer."),
   notesVisibleToPlayers: z.boolean(),
   rsvpDeadlineLocal: localDateTimeSchema,
   format: z.enum(roundFormats),

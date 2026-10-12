@@ -8,6 +8,7 @@ import {
   updateRoundGuestAction,
   withdrawRoundGuestAction,
 } from "@/app/actions/rounds";
+import { EmptyState, SectionHeading } from "@/components/ui";
 import type {
   RoundCoordinatorParticipant,
   RoundCoordinatorParticipantRsvpState,
@@ -99,14 +100,13 @@ export function RoundGuestPanel({
   }
 
   return (
-    <section className="group-roles-panel" aria-labelledby="round-guests-title">
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Guest management</p>
-          <h2 id="round-guests-title">Guests</h2>
-        </div>
-        <p>{state === "live" ? "Live round" : "Published round"}</p>
-      </div>
+    <section className="page-section" aria-labelledby="round-guests-title">
+      <SectionHeading
+        kicker="Guest management"
+        title="Guests"
+        titleId="round-guests-title"
+        meta={state === "live" ? "Live round" : "Published round"}
+      />
       <p>
         Add a guest to this round with the sponsor, quota, handicap, and tee you
         want to use.
@@ -138,12 +138,10 @@ export function RoundGuestPanel({
           </table>
         </div>
       ) : (
-        <p className="group-empty" role="status">
-          No guests in this round yet.
-        </p>
+        <EmptyState>No guests in this round yet.</EmptyState>
       )}
 
-      <div className="group-profile-fields">
+      <div className="form-row">
         <div className="field-group">
           <label htmlFor="round-guest-first-name">Guest first name</label>
           <input

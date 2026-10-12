@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ActionRow } from "@/components/ui";
 import { InformationShell } from "@/app/information-shell";
 
 export default function HomePage() {
@@ -11,14 +12,14 @@ export default function HomePage() {
           from your membership. Administrators and coordinators use the portal;
           members use the member pages.
         </p>
-        <div className="information-actions">
+        <ActionRow>
           <Link className="primary-link" href="/sign-in">
             Open GreenRoster
           </Link>
           <Link className="secondary-link" href="/help">
             Read help
           </Link>
-        </div>
+        </ActionRow>
       </div>
     </InformationShell>
   );

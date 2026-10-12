@@ -7,6 +7,7 @@ import {
   previewRoundPublicationAction,
   publishRoundAction,
 } from "@/app/actions/rounds";
+import { ActionRow, SectionHeading } from "@/components/ui";
 import {
   publicationMemberName,
   type RoundPublicationMember,
@@ -138,18 +139,17 @@ export function PublicationReviewPanel({
 
   return (
     <section
-      className="group-roles-panel publication-review"
+      className="page-section publication-review"
       aria-labelledby="publication-review-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Publication review</p>
-          <h2 id="publication-review-title">Player list</h2>
-        </div>
-        <p>
-          {format === "individual_net" ? "Individual Net" : "Individual Gross"}
-        </p>
-      </div>
+      <SectionHeading
+        kicker="Publication review"
+        title="Player list"
+        titleId="publication-review-title"
+        meta={
+          format === "individual_net" ? "Individual Net" : "Individual Gross"
+        }
+      />
       <p>
         When you publish, every included member starts as{" "}
         <strong>No response</strong>. Members can then respond in the app or on
@@ -180,7 +180,7 @@ export function PublicationReviewPanel({
 
       <div className="publication-member-list">
         <h3>Members to review</h3>
-        <ul className="group-role-list">
+        <ul className="row-list">
           {review.members.map((member) => (
             <PublicationMemberRow
               key={member.membershipId}
@@ -200,7 +200,7 @@ export function PublicationReviewPanel({
       >
         {message}
       </p>
-      <div className="information-actions">
+      <ActionRow>
         <button
           className="primary-button"
           type="button"
@@ -211,7 +211,7 @@ export function PublicationReviewPanel({
         >
           {pending ? "Working…" : "Publish round"}
         </button>
-      </div>
+      </ActionRow>
     </section>
   );
 }
@@ -231,7 +231,7 @@ function PublicationMemberRow({
   const explicitlyExcluded = member.eligibilityState === "excluded";
   const missingQuota = format === "individual_net" && !member.projectionReady;
   return (
-    <li className="group-role-row publication-member-row">
+    <li className="row-item publication-member-row">
       <div>
         <label className="bound-choice">
           <input
@@ -260,7 +260,7 @@ function PublicationMemberRow({
                 : "Excluded before publication"}
         </p>
       </div>
-      <div className="group-role-meta">
+      <div className="row-meta">
         <span>{member.emailReady ? "Gets e-mail" : "Won't get e-mail"}</span>
         {member.projectedQuota ? (
           <span>Quota {member.projectedQuota}</span>

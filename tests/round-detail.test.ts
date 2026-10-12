@@ -63,7 +63,7 @@ describe("coordinator round detail presentation", () => {
     expect(formatParticipantRsvp("not_playing")).toBe("Not playing");
     expect(formatSnapshotValue(null)).toBe("Not applicable");
     expect(participantDisplayName({ firstName: "", lastName: null })).toBe(
-      "Unnamed participant",
+      "Unnamed player",
     );
   });
 

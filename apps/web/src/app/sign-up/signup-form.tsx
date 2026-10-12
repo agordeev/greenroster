@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { initialAuthFormState } from "@/app/actions/auth-state";
 import { registerOrganizerAction } from "@/app/actions/auth";
+import { Field } from "@/components/ui";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 type OrganizerSignupFormProps = Readonly<{
@@ -99,8 +100,7 @@ export function OrganizerSignupForm({
         </p>
       </div>
 
-      <div className="field-group">
-        <label htmlFor="confirmPassword">Confirm password</label>
+      <Field id="confirmPassword" label="Confirm password">
         <input
           id="confirmPassword"
           name="confirmPassword"
@@ -108,7 +108,7 @@ export function OrganizerSignupForm({
           autoComplete="new-password"
           required
         />
-      </div>
+      </Field>
 
       <label className="confirmation-row">
         <input name="acceptedTerms" type="checkbox" required />

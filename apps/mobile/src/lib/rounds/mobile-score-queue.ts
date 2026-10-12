@@ -117,7 +117,7 @@ export type MobileScoreQueuePermanentFailure = Readonly<{
 const participantLockedFailure: MobileScoreQueuePermanentFailure = {
   code: "locked",
   message:
-    "This participant is no longer eligible for score changes. The pending score was not sent.",
+    "This player can no longer be scored. The score you entered was not sent.",
 };
 
 const queueKeyPrefix = "greenroster.mobile.score-queue";
@@ -330,7 +330,7 @@ export function createMobileScoreQueue(
     scope: MobileScoreQueueScope,
     failure: MobileScoreQueuePermanentFailure = {
       code: "locked",
-      message: "This round is no longer accepting score changes.",
+      message: "Scores can no longer be changed for this round.",
     },
   ) {
     const items = await read(scope);
@@ -538,7 +538,7 @@ export function createMobileScoreQueue(
       return withScopedMutation(scope, () =>
         markPendingFailed(scope, {
           code: "locked",
-          message: "This round is no longer accepting score changes.",
+          message: "Scores can no longer be changed for this round.",
         }),
       );
     },

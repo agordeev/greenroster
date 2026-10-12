@@ -7,7 +7,7 @@ import type { MutationResult } from "../mutations/result";
 const memberQuotaBootstrapInputSchema = z
   .object({
     confirmed: z.literal(true, {
-      error: "Confirm the quota bootstrap change before continuing.",
+      error: "Confirm the starting quota change before saving.",
     }),
     expectedProjectionVersion: z.number().int().nonnegative(),
     expectedSettingsVersion: z.number().int().positive(),
@@ -23,7 +23,8 @@ const memberQuotaBootstrapInputSchema = z
     if (input.initialQuota === null && input.useInitialQuota === true) {
       context.addIssue({
         code: "custom",
-        message: "Use Initial Quota requires an initial quota.",
+        message:
+          "Enter a starting quota before you select “Use this starting quota until enough history builds up.”",
         path: ["useInitialQuota"],
       });
     }

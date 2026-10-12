@@ -69,7 +69,7 @@ export function ResultsPublishedEmailDocument(
             <strong>Completed:</strong> {completedAt}
           </Text>
           <Link href={input.resultsUrl} style={linkStyle}>
-            View the exact round results
+            View the round results
           </Link>
           <Hr style={ruleStyle} />
           <Text style={mutedTextStyle}>
@@ -102,7 +102,7 @@ export function buildResultsPublishedEmail(
       `Official results for ${description} in ${groupName} are now available.`,
       `Completed: ${completedAt}`,
       "",
-      `View the exact round results: ${input.resultsUrl}`,
+      `View the round results: ${input.resultsUrl}`,
       "",
       `Sign in to GreenRoster to review the results, standings, and your score history. Manage optional e-mail notifications: ${input.notificationPreferencesUrl}`,
     ].join("\n"),

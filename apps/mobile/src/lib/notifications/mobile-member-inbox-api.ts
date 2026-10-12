@@ -75,13 +75,13 @@ function mapError(error: Readonly<{ code?: string; message?: string }>) {
   ) {
     return {
       code: "permission_denied" as const,
-      message: "You can't open your round updates with this account.",
+      message: "You can't open your round updates.",
     };
   }
   if (error.code === "22023" || error.code === "22004") {
     return {
       code: "validation" as const,
-      message: "Your round updates request is invalid. Try again.",
+      message: "We couldn't load your round updates. Try again.",
     };
   }
   return {

@@ -80,7 +80,7 @@ const sharedQuotaSettingsFields = {
       } catch {
         return false;
       }
-    }, "Standings reset date must be a valid group-local date.")
+    }, "Enter a valid standings reset date.")
     .transform((value) => (value === "" ? null : value)),
 };
 

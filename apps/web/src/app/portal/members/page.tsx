@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { ActionRow } from "@/components/ui";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import {
@@ -20,7 +21,6 @@ import { MutationError } from "@/lib/mutations/result";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 
 import { PortalShell } from "../portal-shell";
-import { MemberCreateInvite } from "./member-create-invite";
 import { MemberDetailSections } from "./member-detail-sections";
 import { MemberManagement } from "./member-management";
 import { MemberQuotaEditor } from "./member-quota-editor";
@@ -125,34 +125,42 @@ export default async function MemberManagementPage({
       <section className="portal-ledger" aria-labelledby="members-title">
         <p className="ledger-kicker">Member administration</p>
         <h1 id="members-title">Members</h1>
-        <p>
-          Add members, update their details, mark them active or inactive, and
-          change roles where your access allows.
-        </p>
-        {portalContext.role !== "member" ? (
+        {selectedMember ? (
+          <p>
+            <Link className="secondary-link" href="/portal/members">
+              ← All members
+            </Link>
+          </p>
+        ) : (
           <>
             <p>
-              <Link className="secondary-link" href="/portal/members/import">
-                Import members from CSV
-              </Link>
+              Add members, update their details, mark them active or inactive,
+              and change roles where your access allows.
             </p>
-            <p>
-              <Link
-                className="secondary-link"
-                href="/api/portal/exports?kind=members"
-              >
-                Download member list (CSV)
-              </Link>{" "}
-              <Link
-                className="secondary-link"
-                href="/api/portal/exports?kind=members&format=pdf"
-              >
-                Download member list (PDF)
-              </Link>
-            </p>
-            <MemberCreateInvite role={portalContext.role} />
+            {portalContext.role !== "member" ? (
+              <ActionRow>
+                <Link className="primary-link" href="/portal/members/new">
+                  Add member
+                </Link>
+                <Link className="secondary-link" href="/portal/members/import">
+                  Import from CSV
+                </Link>
+                <Link
+                  className="secondary-link"
+                  href="/api/portal/exports?kind=members"
+                >
+                  Download CSV
+                </Link>
+                <Link
+                  className="secondary-link"
+                  href="/api/portal/exports?kind=members&format=pdf"
+                >
+                  Download PDF
+                </Link>
+              </ActionRow>
+            ) : null}
           </>
-        ) : null}
+        )}
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
           activeCount={roster.activeCount}

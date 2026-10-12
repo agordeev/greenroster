@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
+import { Field } from "@/components/ui";
+
 import { requestMemberImportApplyAction } from "../../../actions/member-imports";
 import {
   memberImportAccessFailure,
@@ -273,8 +275,11 @@ export function MemberImportPanel() {
       </div>
 
       <form onSubmit={submit} className="member-import-form">
-        <div className="field-group">
-          <label htmlFor="member-import-file">CSV file</label>
+        <Field
+          id="member-import-file"
+          label="CSV file"
+          help="UTF-8, up to 500 rows and 2 MiB. Every row is checked before you confirm. If any row has an error, no members are added."
+        >
           <input
             ref={fileInput}
             id="member-import-file"
@@ -284,11 +289,7 @@ export function MemberImportPanel() {
             required
             disabled={pending}
           />
-          <p className="field-help">
-            UTF-8, up to 500 rows and 2 MiB. Every row is checked before you
-            confirm. If any row has an error, no members are added.
-          </p>
-        </div>
+        </Field>
         <button className="primary-button" type="submit" disabled={pending}>
           {pending ? "Uploading…" : "Upload and check"}
         </button>
@@ -320,8 +321,7 @@ export function MemberImportPanel() {
             ) : null}
             {job?.state === "ready" ? (
               <form className="member-import-confirm" onSubmit={confirmApply}>
-                <div className="field-group">
-                  <label htmlFor="member-import-reason">Reason</label>
+                <Field id="member-import-reason" label="Reason">
                   <input
                     id="member-import-reason"
                     value={applyReason}
@@ -330,7 +330,7 @@ export function MemberImportPanel() {
                     required
                     disabled={applyPending}
                   />
-                </div>
+                </Field>
                 <label className="confirmation-row">
                   <input
                     type="checkbox"

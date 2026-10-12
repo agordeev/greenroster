@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { EmptyState } from "@/components/ui";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { executeReadMemberStandings } from "@/lib/rounds/member-results-data";
@@ -153,15 +154,13 @@ export default async function PortalStandingsPage() {
         </section>
 
         <section
-          className="member-read-section"
+          className="page-section"
           aria-labelledby="portal-standings-table-title"
         >
           <p className="ledger-kicker">Current standings</p>
           <h2 id="portal-standings-table-title">Members</h2>
           {standings.length === 0 ? (
-            <p className="group-empty" role="status">
-              No active members to show in standings yet.
-            </p>
+            <EmptyState>No active members to show in standings yet.</EmptyState>
           ) : (
             <div className="member-results-table-wrap">
               <table className="member-results-table">

@@ -59,7 +59,7 @@ function groupProfileFieldErrors(
       return { groupName: ["Enter a group name."] };
     case "group_profile_time_zone_required":
     case "group_profile_time_zone_invalid":
-      return { groupTimeZone: ["Enter a supported IANA time zone."] };
+      return { groupTimeZone: ["Enter a time zone such as America/New_York."] };
     case "group_profile_reason_required":
     case "group_profile_reason_invalid":
       return { reason: ["Add a reason for this group profile change."] };

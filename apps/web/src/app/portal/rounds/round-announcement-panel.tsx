@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundAnnouncementAction } from "@/app/actions/rounds";
+import { SectionHeading } from "@/components/ui";
 import { roundAnnouncementInputSchema } from "@/domain/round-announcement";
 
 export function RoundAnnouncementPanel({
@@ -59,23 +60,22 @@ export function RoundAnnouncementPanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="round-announcement-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round updates</p>
-          <h2 id="round-announcement-title">Post an update</h2>
-        </div>
-        <p>{remaining} characters left.</p>
-      </div>
+      <SectionHeading
+        kicker="Round updates"
+        title="Post an update"
+        titleId="round-announcement-title"
+        meta={<>{remaining} characters left.</>}
+      />
       <p>Post a short update for everyone in this round.</p>
       {message ? (
         <p className={`form-message ${messageTone}`} role="status">
           {message}
         </p>
       ) : null}
-      <div className="group-profile-form" aria-busy={pending}>
+      <div className="form-stack" aria-busy={pending}>
         <label htmlFor="round-announcement-body">Your update</label>
         <textarea
           id="round-announcement-body"

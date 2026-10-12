@@ -41,16 +41,16 @@ export const initialMobileNotificationPreferencesState =
   });
 
 export const mobileNotificationPreferenceLabels = {
-  invitation_delivery_failed: "Invitation delivery failed",
-  membership_invitation: "Membership invitation",
-  role_changed: "Role changed",
-  round_awaiting_completion: "Round awaiting completion",
-  round_cancelled: "Round cancelled",
-  round_details_changed: "Round details changed",
-  round_published: "Round published",
-  rsvp_reminder: "RSVP reminder",
-  results_published: "Results published",
-  scoring_opened: "Scoring opened",
+  invitation_delivery_failed: "Invitations that couldn't be delivered",
+  membership_invitation: "Invitations to join a group",
+  role_changed: "Changes to your role",
+  round_awaiting_completion: "Rounds waiting to be completed",
+  round_cancelled: "Cancelled rounds",
+  round_details_changed: "Changes to round details",
+  round_published: "New rounds",
+  rsvp_reminder: "RSVP reminders",
+  results_published: "New results",
+  scoring_opened: "When scoring opens",
 } as const;
 
 export function getMobileNotificationPreferenceLabel(

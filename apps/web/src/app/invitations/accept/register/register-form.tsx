@@ -7,6 +7,7 @@ import {
   initialInvitationActionState,
   registerInvitationAction,
 } from "@/app/actions/invitations";
+import { Field } from "@/components/ui";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
 export function InvitationRegisterForm() {
@@ -61,8 +62,7 @@ export function InvitationRegisterForm() {
         </p>
       </div>
 
-      <div className="field-group">
-        <label htmlFor="confirmPassword">Confirm password</label>
+      <Field id="confirmPassword" label="Confirm password">
         <input
           id="confirmPassword"
           name="confirmPassword"
@@ -70,7 +70,7 @@ export function InvitationRegisterForm() {
           autoComplete="new-password"
           required
         />
-      </div>
+      </Field>
 
       <p className="form-message" aria-live="polite" data-status={state.status}>
         {state.message}

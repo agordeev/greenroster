@@ -1,3 +1,4 @@
+import { EmptyState, SectionHeading } from "@/components/ui";
 import type { LiveRoundScoreParticipant } from "@/domain/round-score";
 
 export function LiveRoundScoreboard({
@@ -13,29 +14,26 @@ export function LiveRoundScoreboard({
 
   return (
     <section
-      className="group-roles-panel live-scoreboard"
+      className="page-section live-scoreboard"
       aria-labelledby="live-scoreboard-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round day</p>
-          <h2 id="live-scoreboard-title">Live scorecard</h2>
-        </div>
-        <p>
-          {lastConfirmedAt
+      <SectionHeading
+        kicker="Round day"
+        title="Live scorecard"
+        titleId="live-scoreboard-title"
+        meta={
+          lastConfirmedAt
             ? `Updated ${formatTime(lastConfirmedAt)}`
-            : "No scores yet"}
-        </p>
-      </div>
+            : "No scores yet"
+        }
+      />
       <p>
         Scores below are the latest saved scores. Missing means no score yet,
         which is not the same as zero. Refresh the page if a score looks out of
         date.
       </p>
       {participants.length === 0 ? (
-        <p className="group-empty" role="status">
-          No players are available to score yet.
-        </p>
+        <EmptyState>No players are available to score yet.</EmptyState>
       ) : (
         <div className="publication-member-list round-detail-table-wrap">
           <table>

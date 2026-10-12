@@ -125,7 +125,7 @@ function mapError(
       code: "stale",
       ...supportReference,
       message:
-        "This profile changed elsewhere. Review the latest values before saving again.",
+        "Your profile changed somewhere else. Review the latest details, then save again.",
       ok: false,
     };
   }
@@ -140,8 +140,7 @@ function mapError(
     return {
       code: "permission_denied",
       ...supportReference,
-      message:
-        "This account cannot edit the member profile. Contact a group administrator.",
+      message: "You can't edit your profile. Contact a group administrator.",
       ok: false,
     };
   }
@@ -154,7 +153,7 @@ function mapError(
     return {
       code: "validation",
       ...supportReference,
-      message: "Check the highlighted profile values and try again.",
+      message: "Check the highlighted fields and try again.",
       ok: false,
     };
   }
@@ -162,7 +161,7 @@ function mapError(
     code: "unavailable",
     ...supportReference,
     message:
-      "GreenRoster could not save your profile. Check your connection and try again.",
+      "We couldn't save your profile. Check your connection and try again.",
     ok: false,
   };
 }
@@ -184,7 +183,7 @@ function parseData(
       code: "unavailable",
       ...(correlationId ? { correlationId } : {}),
       message:
-        "GreenRoster returned an invalid profile. Check your connection and try again.",
+        "We couldn't load your profile. Check your connection and try again.",
       ok: false,
     };
   }
@@ -275,7 +274,7 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
           code: "validation",
           correlationId: operationContext.correlationId,
           field: validationField(error),
-          message: "Check the highlighted profile values and try again.",
+          message: "Check the highlighted fields and try again.",
           ok: false,
         };
       }
@@ -291,7 +290,7 @@ export function createMobileSelfProfileApi(client: MobileSelfProfileClient) {
           code: "validation",
           correlationId: operationContext.correlationId,
           field: String(parsed.error.issues[0]?.path[0] ?? "profile"),
-          message: "Check the highlighted profile values and try again.",
+          message: "Check the highlighted fields and try again.",
           ok: false,
         };
       }

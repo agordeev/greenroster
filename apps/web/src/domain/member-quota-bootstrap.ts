@@ -27,10 +27,12 @@ export function projectMemberQuotaBootstrap(
   }>,
 ): MemberQuotaBootstrapProjection {
   if (input.seedTotals.length > 20) {
-    throw new Error("Initial history accepts at most 20 point totals");
+    throw new Error("Enter no more than 20 point totals for the history.");
   }
   if (input.initialQuota === null && input.useInitialQuota) {
-    throw new Error("Use Initial Quota requires an initial quota");
+    throw new Error(
+      "Enter a starting quota before you select “Use this starting quota until enough history builds up.”",
+    );
   }
   for (const seedTotal of input.seedTotals) {
     golfValueHundredths(seedTotal, "Seed total");
@@ -42,7 +44,9 @@ export function projectMemberQuotaBootstrap(
       roundHalfAwayFromZero(input.initialQuota, 2) !==
       roundHalfAwayFromZero(rounded, 2)
     ) {
-      throw new Error("Initial quota exceeds the group precision");
+      throw new Error(
+        "Enter an initial quota with no more than the group's quota decimal places.",
+      );
     }
   }
 
@@ -132,14 +136,14 @@ function golfValueHundredths(value: string, label: string) {
   const match = /^[+]?(\d+)(?:\.(\d{1,2}))?$/.exec(value.trim());
   if (!match) {
     throw new Error(
-      `${label} must use base-10 notation with at most 2 decimal places`,
+      `Enter ${label.toLowerCase()} as a number with up to 2 decimal places.`,
     );
   }
   const parsed =
     BigInt(match[1] ?? "0") * BigInt(100) +
     BigInt((match[2] ?? "").padEnd(2, "0"));
   if (parsed > BigInt(10_000)) {
-    throw new Error(`${label} must be between 0 and 100`);
+    throw new Error(`Enter ${label.toLowerCase()} from 0 to 100.`);
   }
   return parsed;
 }

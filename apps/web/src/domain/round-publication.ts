@@ -228,7 +228,7 @@ export function roundPublicationReceiptFromRow(
 }
 
 export function publicationMemberName(member: RoundPublicationMember): string {
-  return `${member.firstName} ${member.lastName}`.trim() || "Unnamed member";
+  return `${member.firstName} ${member.lastName}`.trim() || "Unnamed player";
 }
 
 export function roundPublicationReviewKey(

@@ -22,8 +22,7 @@ describe("member import client failure state", () => {
   it("refreshes a stale job with a new confirmation operation", () => {
     expect(memberImportApplyFailure("stale_version", "correlation")).toEqual({
       accessMessage: "",
-      applyMessage:
-        "The import changed. Its current status is being refreshed.",
+      applyMessage: "This import has changed. We're loading its latest status.",
       clearConfirmation: true,
       clearJob: false,
       refreshStatus: true,

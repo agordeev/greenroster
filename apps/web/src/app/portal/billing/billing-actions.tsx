@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ActionRow } from "@/components/ui";
+
 export function BillingActions({
   hasCustomer,
 }: Readonly<{ hasCustomer: boolean }>) {
@@ -52,7 +54,7 @@ export function BillingActions({
   }
 
   return (
-    <div className="information-actions">
+    <ActionRow>
       <button
         className="primary-button"
         type="button"
@@ -70,6 +72,6 @@ export function BillingActions({
         {busy === "portal" ? "Opening portal…" : "Manage payment"}
       </button>
       {message ? <p role="status">{message}</p> : null}
-    </div>
+    </ActionRow>
   );
 }

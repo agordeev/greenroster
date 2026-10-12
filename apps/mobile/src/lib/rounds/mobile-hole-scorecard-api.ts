@@ -194,14 +194,14 @@ export const mobileHoleScorecardApi = {
       return {
         ok: false as const,
         code: mapError(error),
-        message: "Your hole details could not be loaded.",
+        message: "We couldn't load your hole scores.",
       };
     const parsed = z.array(rowSchema).safeParse(data);
     if (!parsed.success)
       return {
         ok: false as const,
         code: "unavailable" as const,
-        message: "Your hole details could not be loaded.",
+        message: "We couldn't load your hole scores.",
       };
     return { ok: true as const, data: parsed.data.map(mapRow) };
   },
@@ -227,14 +227,14 @@ export const mobileHoleScorecardApi = {
       return {
         ok: false as const,
         code: mapError(error),
-        message: "Your hole details could not be saved.",
+        message: "We couldn't save your hole scores.",
       };
     const parsed = z.array(receiptSchema).safeParse(data);
     if (!parsed.success || !parsed.data[0])
       return {
         ok: false as const,
         code: "unavailable" as const,
-        message: "Your hole details could not be saved.",
+        message: "We couldn't save your hole scores.",
       };
     const row = parsed.data[0];
     return {
@@ -250,14 +250,14 @@ export const mobileHoleScorecardApi = {
       return {
         ok: false as const,
         code: mapError(error),
-        message: "Your golf stats could not be loaded.",
+        message: "We couldn't load your golf stats.",
       };
     const parsed = z.array(statsSchema).safeParse(data);
     if (!parsed.success || !parsed.data[0])
       return {
         ok: false as const,
         code: "unavailable" as const,
-        message: "Your golf stats could not be loaded.",
+        message: "We couldn't load your golf stats.",
       };
     const row = parsed.data[0];
     return {

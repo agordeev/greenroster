@@ -26,13 +26,13 @@ export function resolveEmailChangeConfirmation(
     return {
       status: "error",
       message:
-        "This confirmation link could not be accepted. Request a new account e-mail change and use the latest messages.",
+        "This link didn't work. Request a new e-mail change, then use the newest confirmation message.",
     };
   }
 
   return {
     status: "submitted",
     message:
-      "This confirmation step was submitted to the account provider. Complete any other required message, then refresh your account status.",
+      "Your confirmation was received. Follow the link in any other message we sent, then reload your account page.",
   };
 }

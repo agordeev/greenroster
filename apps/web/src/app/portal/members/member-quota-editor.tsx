@@ -430,7 +430,7 @@ export function MemberQuotaEditor({
       {!settingsReady ? (
         <p className="member-quota-setup-note">
           Set up the group&apos;s quota method before you enter member quota
-          inputs. <Link href="/portal">Open group quota settings</Link>
+          inputs. <Link href="/portal/quota">Open group quota settings</Link>
         </p>
       ) : null}
 
@@ -630,9 +630,9 @@ function formatProjectionSource(source: Readonly<Record<string, unknown>>) {
       case "seed_history":
         return "Seed history";
       case "method_c_chain":
-        return "Method C chain";
+        return "Method C adjustments";
       case "official_history":
-        return "Official history";
+        return "From official results";
       case "manual_override":
         return "Manual override";
       default:

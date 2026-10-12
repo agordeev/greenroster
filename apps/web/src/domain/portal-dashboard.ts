@@ -209,7 +209,7 @@ function buildCompletedResultSummary(
   const winnerNames = winnerRank
     ? ranked
         .filter((result) => result.competitionRank === winnerRank)
-        .map(displayName)
+        .map((result) => displayName(result, "Unnamed player"))
     : [];
 
   return {
@@ -246,7 +246,7 @@ function buildStandingsSummary(
     leader: leader
       ? {
           membershipId: leader.membershipId,
-          name: displayName(leader),
+          name: displayName(leader, "Unnamed member"),
           meritTotal: leader.meritTotal,
           standingRank: leader.standingRank,
         }
@@ -256,11 +256,12 @@ function buildStandingsSummary(
 
 function displayName(
   person: Readonly<{ firstName: string | null; lastName: string | null }>,
+  fallback: string,
 ) {
   return (
     [person.firstName, person.lastName]
       .filter((value): value is string => Boolean(value?.trim()))
       .join(" ")
-      .trim() || "Unnamed participant"
+      .trim() || fallback
   );
 }

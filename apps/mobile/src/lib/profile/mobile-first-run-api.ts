@@ -51,7 +51,7 @@ function mapFirstRunError(message: string): MobileFirstRunResult {
     return {
       code: "legal_documents_changed",
       message:
-        "The legal documents changed while this screen was open. Review the current versions and accept them again.",
+        "The Terms of Use or Privacy Policy changed while this screen was open. Review the updated documents and accept them again.",
       ok: false,
     };
   }
@@ -60,7 +60,7 @@ function mapFirstRunError(message: string): MobileFirstRunResult {
     return {
       code: "configuration_unavailable",
       message:
-        "Current Terms and Privacy versions are not configured. Contact support before continuing.",
+        "The current Terms of Use and Privacy Policy aren't available. Contact support before you continue.",
       ok: false,
     };
   }
@@ -69,7 +69,7 @@ function mapFirstRunError(message: string): MobileFirstRunResult {
     return {
       code: "permission_denied",
       message:
-        "This account does not have an active GreenRoster membership. Contact a group administrator.",
+        "You aren't an active member of a group. Contact a group administrator.",
       ok: false,
     };
   }
@@ -77,7 +77,7 @@ function mapFirstRunError(message: string): MobileFirstRunResult {
   return {
     code: "unavailable",
     message:
-      "GreenRoster could not verify your profile. Check your connection and try again.",
+      "We couldn't check your profile. Check your connection and try again.",
     ok: false,
   };
 }

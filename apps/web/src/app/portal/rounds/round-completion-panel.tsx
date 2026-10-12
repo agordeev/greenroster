@@ -7,6 +7,7 @@ import {
   completeLiveRoundAction,
   reopenCompletedRoundAction,
 } from "@/app/actions/rounds";
+import { SectionHeading } from "@/components/ui";
 import {
   roundCompletionInputSchema,
   roundReopenInputSchema,
@@ -81,7 +82,7 @@ function RoundCompletePanel({
   if (unavailable || !preview) {
     return (
       <section
-        className="group-roles-panel"
+        className="page-section"
         aria-labelledby="round-completion-unavailable-title"
       >
         <p className="ledger-kicker">Completion review</p>
@@ -165,17 +166,16 @@ function RoundCompletePanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="round-completion-title"
       aria-busy={pending}
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Completion review</p>
-          <h2 id="round-completion-title">Review and complete round</h2>
-        </div>
-        <p>Live round</p>
-      </div>
+      <SectionHeading
+        kicker="Completion review"
+        title="Review and complete round"
+        titleId="round-completion-title"
+        meta="Live round"
+      />
       <p>
         Check the list below. Blank optional scores are warnings. Anything
         marked as a blocker must be fixed before you can complete the round.
@@ -392,14 +392,13 @@ function RoundReopenPanel({
   }
 
   return (
-    <section className="group-roles-panel" aria-labelledby="round-reopen-title">
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Completed round</p>
-          <h2 id="round-reopen-title">Reopen completed round</h2>
-        </div>
-        <p>Completed</p>
-      </div>
+    <section className="page-section" aria-labelledby="round-reopen-title">
+      <SectionHeading
+        kicker="Completed round"
+        title="Reopen completed round"
+        titleId="round-reopen-title"
+        meta="Completed"
+      />
       <p>
         Reopening returns the round to live so you can correct scores. Earlier
         score changes and official results stay in the history.
@@ -425,7 +424,7 @@ function RoundReopenPanel({
         </p>
       </aside>
       <form
-        className="group-profile-form"
+        className="form-stack"
         onSubmit={reopen}
         noValidate
         aria-busy={pending}

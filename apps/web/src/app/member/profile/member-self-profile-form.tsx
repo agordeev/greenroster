@@ -107,17 +107,14 @@ export function MemberSelfProfileForm({
           {message}
         </p>
       ) : null}
-      <section
-        className="member-read-section"
-        aria-labelledby="profile-details-title"
-      >
+      <section className="page-section" aria-labelledby="profile-details-title">
         <p className="ledger-kicker">Your details</p>
         <h2 id="profile-details-title">Keep your details up to date</h2>
         <p className="member-read-note">
           Choose which contact details your group can see.
         </p>
-        <div className="group-profile-form" aria-busy={pending}>
-          <div className="group-profile-fields">
+        <div className="form-stack" aria-busy={pending}>
+          <div className="form-row">
             <TextField
               id="member-first-name"
               label="First name"
@@ -292,14 +289,14 @@ export function MemberSelfProfileForm({
         </div>
       </section>
 
-      <section className="member-read-section" aria-labelledby="handicap-title">
+      <section className="page-section" aria-labelledby="handicap-title">
         <p className="ledger-kicker">Your handicap</p>
         <h2 id="handicap-title">Update your handicap</h2>
         <p className="member-read-note">
           Enter your handicap and the date it applies from.
         </p>
-        <div className="group-profile-form" aria-busy={pending}>
-          <div className="group-profile-fields">
+        <div className="form-stack" aria-busy={pending}>
+          <div className="form-row">
             <TextField
               id="member-handicap-id"
               label="Handicap ID"

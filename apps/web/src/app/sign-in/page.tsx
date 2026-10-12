@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AuthForm } from "./auth-form";
+import { ActionRow } from "@/components/ui";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
 
 type SignInPageProps = {
@@ -56,11 +57,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           ) : null}
 
           <AuthForm returnPath={returnPath} />
-          <div className="information-actions">
+          <ActionRow>
             <Link className="secondary-link" href="/sign-up">
               Create your group
             </Link>
-          </div>
+          </ActionRow>
         </section>
 
         <aside className="auth-context" aria-label="About GreenRoster">

@@ -95,7 +95,7 @@ function validateRowNumbers(band: QuotaAdjustmentBand) {
     lower > upper ||
     (lower === upper && !(band.lowerInclusive && band.upperInclusive))
   ) {
-    return "Lower bound must precede upper bound; a single point must include both bounds.";
+    return "The lower bound must be below the upper bound, unless the band covers one value and includes both ends.";
   }
   return null;
 }

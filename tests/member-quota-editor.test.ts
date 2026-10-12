@@ -91,9 +91,9 @@ describe("member quota editor state", () => {
   it("requires an audit reason and explicit confirmation", () => {
     expect(
       validateMemberQuotaEditorDraft({ ...baseDraft, reason: "" }, true),
-    ).toBe("Provide a reason for this quota bootstrap change.");
+    ).toBe("Add a reason for this change.");
     expect(validateMemberQuotaEditorDraft(baseDraft, false)).toBe(
-      "Confirm the quota bootstrap change before saving.",
+      "Confirm the starting quota change before saving.",
     );
     expect(validateMemberQuotaEditorDraft(baseDraft, true)).toBeNull();
   });
@@ -130,7 +130,9 @@ describe("member quota editor state", () => {
         { ...baseDraft, initialQuota: "", useInitialQuota: true },
         true,
       ),
-    ).toBe("Enter an initial quota before selecting Use initial quota.");
+    ).toBe(
+      "Enter a starting quota before you select “Use this starting quota until enough history builds up.”",
+    );
   });
 
   it("builds a server input with confirmation and normalized seed ordering", () => {

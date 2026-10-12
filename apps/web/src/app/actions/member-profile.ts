@@ -35,7 +35,7 @@ export async function completeMemberFirstRunAction(
   } catch {
     return {
       status: "error",
-      message: "Your session is unavailable. Sign in again before continuing.",
+      message: "Sign in again to finish your profile.",
     };
   }
 
@@ -52,7 +52,7 @@ export async function completeMemberFirstRunAction(
     return {
       status: "error",
       message:
-        "Confirm your name and both current legal documents before continuing.",
+        "Enter your name and accept the current Terms of Use and Privacy Policy to continue.",
     };
   }
 
@@ -75,20 +75,20 @@ export async function completeMemberFirstRunAction(
         status: "error",
         message:
           error.code === "40001"
-            ? "The legal documents changed. Reload this page and review the current versions."
-            : "Your profile could not be completed. Try again in a moment.",
+            ? "The Terms of Use or Privacy Policy changed. Reload this page to review them."
+            : "We couldn't finish your profile. Try again in a moment.",
       };
     }
   } catch {
     return {
       status: "error",
-      message: "Your profile could not be completed. Try again in a moment.",
+      message: "We couldn't finish your profile. Try again in a moment.",
     };
   }
 
   return {
     status: "success",
-    message: "Profile confirmed. Your member experience is ready.",
+    message: "Your profile is ready.",
   };
 }
 

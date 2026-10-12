@@ -120,7 +120,7 @@ function mapError(
   ) {
     return {
       code: "permission_denied",
-      message: "This official result is no longer available to this account.",
+      message: "This result is no longer available to you.",
       ok: false,
     };
   }
@@ -131,14 +131,14 @@ function mapError(
   ) {
     return {
       code: "validation",
-      message: "The official result request is invalid. Refresh and try again.",
+      message: "We couldn't load this result. Refresh and try again.",
       ok: false,
     };
   }
   return {
     code: "unavailable",
     message:
-      "GreenRoster could not load this official result. Check your connection and try again.",
+      "We couldn't load this result. Check your connection and try again.",
     ok: false,
   };
 }
@@ -188,7 +188,7 @@ export function createMobileOfficialResultsApi(
       if (!parsedInput.success) {
         return {
           code: "validation",
-          message: "That round could not be loaded.",
+          message: "We couldn't load that round.",
           ok: false,
         };
       }
@@ -202,7 +202,8 @@ export function createMobileOfficialResultsApi(
         if (!parsed.success) {
           return {
             code: "unavailable",
-            message: "GreenRoster returned an invalid official result.",
+            message:
+              "We couldn't load this result. Check your connection and try again.",
             ok: false,
           };
         }

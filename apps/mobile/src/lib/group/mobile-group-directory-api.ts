@@ -101,7 +101,7 @@ function unavailableResult(): MobileGroupDirectoryResult {
   return {
     code: "unavailable",
     message:
-      "GreenRoster could not load your group directory. Check your connection and try again.",
+      "We couldn't load the group directory. Check your connection and try again.",
     ok: false,
   };
 }
@@ -117,7 +117,7 @@ function mapDirectoryError(message: string): MobileGroupDirectoryResult {
     return {
       code: "permission_denied",
       message:
-        "This account cannot access the group directory. Contact a group administrator.",
+        "You can't open the group directory. Contact a group administrator.",
       ok: false,
     };
   }

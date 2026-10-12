@@ -46,8 +46,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
   const [messageStatus, setMessageStatus] = useState<"success" | "error">(
     "error",
   );
-  const [createConfirmed, setCreateConfirmed] = useState(false);
-  const [inviteConfirmed, setInviteConfirmed] = useState(false);
   const [handicapRecorded, setHandicapRecorded] = useState(false);
   const [createdMembershipId, setCreatedMembershipId] = useState<string | null>(
     null,
@@ -79,12 +77,10 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       // browser snapshot cannot silently authorize the consequential action.
       setDraft({ ...recovery.draft, handicapConfirmed: false });
       setCreatedMembershipId(recovery.createdMembershipId);
-      setCreateConfirmed(false);
-      setInviteConfirmed(false);
       setHandicapRecorded(false);
       setPhase(recovery.createdMembershipId ? "ready" : "idle");
       setMessageStatus("success");
-      setMessage("Draft restored. Confirm each action before retrying.");
+      setMessage("Draft restored.");
       createOperation.current = recovery.createOperation;
       inviteOperation.current = recovery.inviteOperation;
       handicapOperation.current = recovery.handicapOperation;
@@ -174,7 +170,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     value: MemberCreateInviteDraft[K],
   ) {
     if (shouldResetMemberCreateConfirmation(createdMembershipId)) {
-      setCreateConfirmed(false);
       setPhase("idle");
       setMessage("");
     }
@@ -198,10 +193,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       setError(
         "Enter the member's first name, last name, and a valid invite e-mail.",
       );
-      return;
-    }
-    if (!createConfirmed) {
-      setError("Confirm the member details before adding them.");
       return;
     }
 
@@ -237,9 +228,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         setCreatedMembershipId(result.data.membershipId);
         setPhase("ready");
         setMessageStatus("success");
-        setMessage(
-          "Member added. Confirm their invite e-mail below to send the invitation.",
-        );
+        setMessage("Member added. Send their invitation below.");
       } catch {
         setError("We couldn't add this member. Try again.");
       }
@@ -319,10 +308,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       setError("Enter a valid invite e-mail before sending the invitation.");
       return;
     }
-    if (!inviteConfirmed) {
-      setError("Confirm the invite e-mail before sending it.");
-      return;
-    }
 
     const payload = {
       membershipId: createdMembershipId,
@@ -363,8 +348,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         setMessage("Invitation on its way. Opening the member…");
         clearRecoveryState();
         setDraft(emptyMemberCreateInviteDraft);
-        setCreateConfirmed(false);
-        setInviteConfirmed(false);
         setHandicapRecorded(false);
         setCreatedMembershipId(null);
         createOperation.current = emptyOperationState;
@@ -407,8 +390,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
     setPhase("idle");
     setMessage("");
     setMessageStatus("error");
-    setCreateConfirmed(false);
-    setInviteConfirmed(false);
     setHandicapRecorded(false);
     setCreatedMembershipId(null);
     createOperation.current = emptyOperationState;
@@ -473,8 +454,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
         </span>
       </div>
       <p className="member-create-copy">
-        Add the member first. Then confirm their invite e-mail to send the
-        invitation.
+        Add the member first. Then send their invitation.
       </p>
 
       <form className="member-create-form" onSubmit={submitCreate} noValidate>
@@ -513,7 +493,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 onChange={(event) => {
                   update("invitedEmail", event.target.value);
                   inviteOperation.current = emptyOperationState;
-                  setInviteConfirmed(false);
                 }}
                 autoComplete="email"
                 required
@@ -813,18 +792,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               Contact details stay private unless you choose to list them.
             </small>
           </fieldset>
-          <label
-            className="member-create-confirmation"
-            htmlFor="member-create-confirm"
-          >
-            <input
-              id="member-create-confirm"
-              type="checkbox"
-              checked={createConfirmed}
-              onChange={(event) => setCreateConfirmed(event.target.checked)}
-            />
-            <span>I confirm these details are correct.</span>
-          </label>
         </fieldset>
         <div className="member-create-actions">
           <button
@@ -899,7 +866,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             <legend>Send invitation</legend>
             <p>
               This member is pending (ID <code>{createdMembershipId}</code>). No
-              invitation is sent until you confirm it.
+              invitation is sent until you send it.
             </p>
             <label className="field-group" htmlFor="member-invite-email">
               <span>Invite e-mail</span>
@@ -911,25 +878,10 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 onChange={(event) => {
                   update("invitedEmail", event.target.value);
                   inviteOperation.current = emptyOperationState;
-                  setInviteConfirmed(false);
                 }}
                 autoComplete="email"
                 required
               />
-            </label>
-            <label
-              className="member-create-confirmation"
-              htmlFor="member-invite-confirm"
-            >
-              <input
-                id="member-invite-confirm"
-                type="checkbox"
-                checked={inviteConfirmed}
-                onChange={(event) => setInviteConfirmed(event.target.checked)}
-              />
-              <span>
-                I confirm this e-mail address should receive the invitation.
-              </span>
             </label>
           </fieldset>
           <div className="member-create-actions">

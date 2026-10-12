@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 
+import { Field } from "@/components/ui";
+
 type GroupActivityFilterProps = Readonly<{
   targetType?: string;
   targetId?: string;
@@ -47,8 +49,7 @@ export function GroupActivityFilterForm({
       method="get"
       onSubmit={handleSubmit}
     >
-      <div className="field-group">
-        <label htmlFor="activity-target-type">What changed</label>
+      <Field id="activity-target-type" label="What changed">
         <select
           id="activity-target-type"
           name="target_type"
@@ -66,9 +67,8 @@ export function GroupActivityFilterForm({
           <option value="membership">Member</option>
           <option value="round">Round</option>
         </select>
-      </div>
-      <div className="field-group">
-        <label htmlFor="activity-target-id">ID</label>
+      </Field>
+      <Field id="activity-target-id" label="ID">
         <input
           id="activity-target-id"
           name="target_id"
@@ -82,7 +82,7 @@ export function GroupActivityFilterForm({
           aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? "activity-filter-error" : undefined}
         />
-      </div>
+      </Field>
       <button className="secondary-button" type="submit">
         Apply filter
       </button>

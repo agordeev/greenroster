@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   useTransition,
-  type ReactNode,
   type FormEvent,
 } from "react";
 
@@ -14,6 +13,7 @@ import {
   createRoundDraftAction,
   updateRoundDraftAction,
 } from "@/app/actions/rounds";
+import { ActionRow, Field, SectionHeading } from "@/components/ui";
 import {
   createRoundDraftInputSchema,
   formatRoundFormat,
@@ -274,6 +274,10 @@ export function RoundDraftForm({
         setNotesVisibleToPlayers(true);
         setRsvpDeadlineLocal("");
         setFormat("individual_net");
+        router.push(
+          `/portal/rounds?round=${encodeURIComponent(result.data.roundId)}`,
+        );
+        return;
       }
       router.refresh();
     });
@@ -305,23 +309,21 @@ export function RoundDraftForm({
 
   return (
     <form
-      className="group-profile-form"
+      className="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">{isEdit ? "Edit draft" : "New draft"}</p>
-          <h2>{isEdit ? "Round details" : "New round"}</h2>
-        </div>
-        <p>{isEdit ? "Saved, not published" : "Not published yet"}</p>
-      </div>
+      <SectionHeading
+        kicker={isEdit ? "Edit draft" : "New draft"}
+        title={isEdit ? "Round details" : "New round"}
+        meta={isEdit ? "Saved, not published" : "Not published yet"}
+      />
       <p className="field-help">
         Enter times in your group’s time zone
         {value.groupTimeZone ? `, ${value.groupTimeZone}` : ""}.
       </p>
-      <div className="group-profile-fields">
+      <div className="form-row">
         <Field
           id={`${prefix}-description`}
           label="Description"
@@ -345,7 +347,7 @@ export function RoundDraftForm({
           />
         </Field>
       </div>
-      <div className="group-profile-fields">
+      <div className="form-row">
         <Field
           id={`${prefix}-scheduled`}
           label="Scheduled start"
@@ -433,7 +435,7 @@ export function RoundDraftForm({
       >
         {message}
       </p>
-      <div className="information-actions">
+      <ActionRow>
         <button className="primary-button" type="submit" disabled={disabled}>
           {pending ? "Saving…" : isEdit ? "Save draft" : "Create draft"}
         </button>
@@ -445,28 +447,8 @@ export function RoundDraftForm({
         >
           Cancel
         </button>
-      </div>
+      </ActionRow>
     </form>
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  children,
-}: Readonly<{
-  id: string;
-  label: string;
-  error?: string;
-  children: ReactNode;
-}>) {
-  return (
-    <div className="field-group">
-      <label htmlFor={id}>{label}</label>
-      {children}
-      {error ? <p className="field-error">{error}</p> : null}
-    </div>
   );
 }
 

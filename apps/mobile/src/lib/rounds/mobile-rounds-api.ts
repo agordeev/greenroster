@@ -167,21 +167,20 @@ function mapError(
   ) {
     return {
       code: "permission_denied",
-      message: "This account cannot access the group rounds.",
+      message: "You can't open the group's rounds.",
       ok: false,
     };
   }
   if (error.code === "22023" || normalized.includes("invalid")) {
     return {
       code: "validation",
-      message: "The round list request is invalid. Refresh and try again.",
+      message: "We couldn't load rounds. Refresh and try again.",
       ok: false,
     };
   }
   return {
     code: "unavailable",
-    message:
-      "GreenRoster could not load rounds. Check your connection and try again.",
+    message: "We couldn't load rounds. Check your connection and try again.",
     ok: false,
   };
 }
@@ -257,7 +256,7 @@ function mapMutationError(
       code: "stale",
       ...supportReference,
       message:
-        "This response changed elsewhere. Refresh the round and choose again.",
+        "Your response was changed somewhere else. Refresh the round and choose again.",
       ok: false,
     };
   }
@@ -270,7 +269,7 @@ function mapMutationError(
     return {
       code: "locked",
       ...supportReference,
-      message: "This round is no longer accepting RSVP changes.",
+      message: "You can no longer change your response to this round.",
       ok: false,
     };
   }
@@ -283,7 +282,7 @@ function mapMutationError(
     return {
       code: "permission_denied",
       ...supportReference,
-      message: "This account cannot respond for the selected round.",
+      message: "You can't respond to this round.",
       ok: false,
     };
   }
@@ -295,7 +294,7 @@ function mapMutationError(
     return {
       code: "permission_denied",
       ...supportReference,
-      message: "This round is no longer available to this account.",
+      message: "This round is no longer available to you.",
       ok: false,
     };
   }
@@ -316,7 +315,7 @@ function mapMutationError(
     code: "unavailable",
     ...supportReference,
     message:
-      "GreenRoster could not save your response. Check your connection and try again.",
+      "We couldn't save your response. Check your connection and try again.",
     ok: false,
   };
 }
@@ -364,7 +363,7 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
       if (!parsedQuery.success) {
         return {
           code: "validation",
-          message: "The round list request is invalid. Refresh and try again.",
+          message: "We couldn't load rounds. Refresh and try again.",
           ok: false,
         };
       }
@@ -378,7 +377,8 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
         if (!parsed.success) {
           return {
             code: "unavailable",
-            message: "GreenRoster returned an invalid round list.",
+            message:
+              "We couldn't load rounds. Check your connection and try again.",
             ok: false,
           };
         }
@@ -392,7 +392,7 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
       if (!parsedRoundId.success) {
         return {
           code: "validation",
-          message: "That round could not be loaded.",
+          message: "We couldn't load that round.",
           ok: false,
         };
       }
@@ -404,7 +404,7 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
         const parsed = z.array(roundRowSchema).safeParse(data);
         if (!parsed.success || parsed.data.length !== 1) {
           return invalidSummary(
-            "GreenRoster returned an invalid round summary.",
+            "We couldn't load this round. Check your connection and try again.",
           );
         }
         return { data: mapRow(parsed.data[0]), ok: true };
@@ -418,7 +418,7 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
       if (!parsedRoundId.success) {
         return {
           code: "validation",
-          message: "That round could not be loaded.",
+          message: "We couldn't load that round.",
           ok: false,
         };
       }
@@ -429,7 +429,9 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
         if (error) return mapError(error);
         const parsed = z.array(roundDetailRowSchema).safeParse(data);
         if (!parsed.success || parsed.data.length !== 1) {
-          return invalidDetail("GreenRoster returned an invalid round detail.");
+          return invalidDetail(
+            "We couldn't load this round. Check your connection and try again.",
+          );
         }
         return { data: mapDetailRow(parsed.data[0]), ok: true };
       } catch {
@@ -473,7 +475,8 @@ export function createMobileRoundsApi(client: MobileRoundsClient) {
           return {
             code: "unavailable",
             correlationId: operationContext.correlationId,
-            message: "GreenRoster returned an invalid RSVP receipt.",
+            message:
+              "We couldn't confirm your response. Check your connection and try again.",
             ok: false,
           };
         }

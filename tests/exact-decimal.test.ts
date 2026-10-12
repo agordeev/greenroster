@@ -20,7 +20,7 @@ describe("roundHalfAwayFromZero", () => {
 
   it("rejects exponent notation before binary arithmetic can enter", () => {
     expect(() => roundHalfAwayFromZero("1e-3", 2)).toThrowError(
-      "Decimal input must use plain base-10 notation",
+      "Enter a plain number, such as 12.5.",
     );
   });
 });

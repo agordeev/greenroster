@@ -176,7 +176,7 @@ describe("mobile score queue", () => {
       status: "failed",
       failure: {
         code: "locked",
-        message: "This round is no longer accepting score changes.",
+        message: "Scores can no longer be changed for this round.",
       },
     });
     expect(await queue.hasPendingUser(scope.userId)).toBe(true);

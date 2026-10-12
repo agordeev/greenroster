@@ -177,7 +177,7 @@ export function createMobilePushRegistration(
         return { status: "unsupported" };
       if (!dependencies.projectId) {
         return {
-          message: "Push notifications are not configured for this build.",
+          message: "Notifications aren't available in this version of the app.",
           status: "unavailable",
         };
       }
@@ -190,7 +190,7 @@ export function createMobilePushRegistration(
           await dependencies.setAndroidNotificationChannel();
         } catch {
           return {
-            message: "Notification channels could not be prepared.",
+            message: "We couldn't set up notifications on this device.",
             status: "unavailable",
           };
         }
@@ -204,7 +204,7 @@ export function createMobilePushRegistration(
           permission = requested.status === "granted" ? "granted" : "denied";
         } catch {
           return {
-            message: "Notification permission could not be requested.",
+            message: "We couldn't ask for permission to send notifications.",
             status: "unavailable",
           };
         }
@@ -219,7 +219,8 @@ export function createMobilePushRegistration(
         expoPushToken = token.data;
       } catch {
         return {
-          message: "This device could not get a push token. Try again later.",
+          message:
+            "We couldn't turn on notifications on this device. Try again later.",
           status: "unavailable",
         };
       }
@@ -233,7 +234,8 @@ export function createMobilePushRegistration(
           : `${expoPushToken.length}`;
       } catch {
         return {
-          message: "This device could not prepare a private registration.",
+          message:
+            "We couldn't turn on notifications on this device. Try again later.",
           status: "unavailable",
         };
       }
@@ -260,7 +262,7 @@ export function createMobilePushRegistration(
       if (!persistedPending) {
         return {
           message:
-            "This device could not save its registration safely. Try again.",
+            "We couldn't turn on notifications on this device. Try again.",
           status: "unavailable",
         };
       }
@@ -308,7 +310,8 @@ export function createMobilePushRegistration(
       });
       if (!persistedPending) {
         return {
-          message: "This device could not save its sign-out safely. Try again.",
+          message:
+            "We couldn't turn off notifications on this device. Try again.",
           status: "unavailable",
         };
       }

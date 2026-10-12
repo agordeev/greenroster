@@ -126,19 +126,19 @@ describe("member roster query boundary", () => {
     );
     expect(
       formatMemberRosterQuotaProvenance({ kind: "official_history" }),
-    ).toBe("Official history");
+    ).toBe("From official results");
     expect(formatMemberRosterQuotaProvenance({ kind: "method_c_chain" })).toBe(
-      "Method C chain",
+      "Method C adjustments",
     );
     expect(formatMemberRosterQuotaProvenance({ kind: "manual_override" })).toBe(
-      "Manual override",
+      "Entered by hand",
     );
     expect(formatMemberRosterQuotaProvenance({ kind: "not_ready" })).toBe(
       "Not ready",
     );
     expect(
       formatMemberRosterQuotaProvenance({ kind: "future_internal_kind" }),
-    ).toBe("Not recorded");
+    ).toBe("Not set yet");
     expect(formatMemberRosterQuotaProvenance(null)).toBeNull();
     expect(formatMemberRosterInitialQuotaUsage(true)).toBe(
       "Use initial quota: Enabled",

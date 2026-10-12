@@ -8,6 +8,7 @@ import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-regis
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
+import { ActionRow, SectionHeading } from "@/components/ui";
 import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
 import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -15,10 +16,6 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { GroupBootstrapForm } from "./group-bootstrap-form";
 import { OnboardingChecklist } from "./onboarding-checklist";
 import { PortalShell } from "./portal-shell";
-import {
-  QuotaSettingsForm,
-  type QuotaSettingsFormValue,
-} from "./quota-settings-form";
 
 const contextSchema = z
   .array(
@@ -39,32 +36,6 @@ const onboardingSchema = z
     }),
   )
   .max(1);
-
-const quotaSettingsSchema = z.object({
-  method: z.enum(["moving_average", "best_10_of_20", "previous_plus_minus"]),
-  moving_average_history_length: z.number().int().min(4).max(20).nullable(),
-  participation_merit: z.union([z.string(), z.number()]),
-  precision: z.union([z.literal(0), z.literal(1), z.literal(2)]),
-  standings_reset_date: z.string().nullable(),
-  version: z.number().int().positive(),
-});
-
-const quotaBandsSchema = z.array(
-  z.object({
-    adjustment: z.union([z.string(), z.number()]),
-    lower_bound: z.union([z.string(), z.number()]),
-    lower_inclusive: z.boolean(),
-    upper_bound: z.union([z.string(), z.number()]),
-    upper_inclusive: z.boolean(),
-  }),
-);
-
-const placementMeritRowsSchema = z.array(
-  z.object({
-    merit_points: z.union([z.string(), z.number()]),
-    rank: z.number().int().positive(),
-  }),
-);
 
 export default async function PortalPage() {
   const supabase = await createServerComponentSupabaseClient();
@@ -248,14 +219,14 @@ export default async function PortalPage() {
             You&apos;re signed in as a member, so this page isn&apos;t available
             to you.
           </p>
-          <div className="information-actions">
+          <ActionRow>
             <Link className="primary-link" href="/home">
               Home
             </Link>
             <Link className="secondary-link" href="/support">
               Contact support
             </Link>
-          </div>
+          </ActionRow>
         </section>
       </PortalShell>
     );
@@ -293,75 +264,6 @@ export default async function PortalPage() {
     onboarding.additional_membership_count,
   );
 
-  let quotaSettings: QuotaSettingsFormValue | null = null;
-  let quotaSettingsUnavailable = false;
-
-  if (context.role === "administrator") {
-    const [settingsResult, bandsResult, placementResult] = await Promise.all([
-      supabase
-        .from("group_quota_settings")
-        .select(
-          "method,moving_average_history_length,precision,version,participation_merit,standings_reset_date",
-        )
-        .eq("group_id", context.group_id)
-        .maybeSingle(),
-      supabase
-        .from("quota_adjustment_bands")
-        .select(
-          "lower_bound,lower_inclusive,upper_bound,upper_inclusive,adjustment",
-        )
-        .eq("group_id", context.group_id)
-        .order("position"),
-      supabase
-        .from("placement_merit_rows")
-        .select("rank,merit_points")
-        .eq("group_id", context.group_id)
-        .order("rank"),
-    ]);
-    const parsedSettings = quotaSettingsSchema
-      .nullable()
-      .safeParse(settingsResult.data);
-    const parsedBands = quotaBandsSchema.safeParse(bandsResult.data);
-    const parsedPlacement = placementMeritRowsSchema.safeParse(
-      placementResult.data,
-    );
-
-    quotaSettingsUnavailable = Boolean(
-      settingsResult.error ||
-      bandsResult.error ||
-      placementResult.error ||
-      !parsedSettings.success ||
-      !parsedBands.success ||
-      !parsedPlacement.success,
-    );
-
-    if (!quotaSettingsUnavailable && parsedSettings.data) {
-      quotaSettings = {
-        bands: parsedBands.success
-          ? parsedBands.data.map((band) => ({
-              adjustment: String(band.adjustment),
-              lowerBound: String(band.lower_bound),
-              lowerInclusive: band.lower_inclusive,
-              upperBound: String(band.upper_bound),
-              upperInclusive: band.upper_inclusive,
-            }))
-          : [],
-        historyLength: parsedSettings.data.moving_average_history_length,
-        method: parsedSettings.data.method,
-        precision: parsedSettings.data.precision,
-        participationMerit: String(parsedSettings.data.participation_merit),
-        placementMerit: parsedPlacement.success
-          ? parsedPlacement.data.map((placement) => ({
-              rank: placement.rank,
-              points: String(placement.merit_points),
-            }))
-          : [],
-        standingsResetDate: parsedSettings.data.standings_reset_date,
-        version: parsedSettings.data.version,
-      };
-    }
-  }
-
   let dashboardSummary: PortalDashboardSummary | null = null;
   let dashboardUnavailable = false;
   try {
@@ -386,40 +288,6 @@ export default async function PortalPage() {
           unavailable={dashboardUnavailable}
         />
         <OnboardingChecklist items={checklist} />
-        {context.role === "administrator" ? (
-          <section
-            className="quota-settings"
-            aria-labelledby="quota-settings-title"
-          >
-            <div className="quota-settings-heading">
-              <p className="ledger-kicker">Quota rules</p>
-              <h2 id="quota-settings-title">Set your quota and merit rules</h2>
-              <p>
-                New rules apply to rounds you publish after saving. Rounds
-                already published keep the rules they were published with. A
-                standings reset date changes which results count toward
-                standings right away. Results and quota history stay the same.
-              </p>
-            </div>
-            {quotaSettingsUnavailable ? (
-              <div className="quota-settings-error">
-                <p className="form-message" data-status="error">
-                  Your quota settings couldn&apos;t load. Refresh the page
-                  before you make changes.
-                </p>
-                <Link className="secondary-link" href="/portal">
-                  Reload quota settings
-                </Link>
-              </div>
-            ) : (
-              <QuotaSettingsForm
-                key={quotaSettings?.version ?? 0}
-                identityKey={context.group_id}
-                initialValue={quotaSettings}
-              />
-            )}
-          </section>
-        ) : null}
       </section>
     </PortalShell>
   );
@@ -437,17 +305,16 @@ function PortalDashboardSummaryCard({
       className="dashboard-summary"
       aria-labelledby="dashboard-summary-title"
     >
-      <div className="dashboard-summary-heading">
-        <div>
-          <p className="ledger-kicker">At a glance</p>
-          <h2 id="dashboard-summary-title">Roster, results, and standings</h2>
-        </div>
-        <p>Current counts for your group</p>
-      </div>
+      <SectionHeading
+        kicker="At a glance"
+        title="Roster, results, and standings"
+        titleId="dashboard-summary-title"
+        meta="Current counts for your group"
+      />
       {unavailable ? (
         <p className="dashboard-summary-unavailable" data-status="error">
           Your roster and invitation counts couldn&apos;t load. The checklist
-          and quota settings below still work. Refresh to try again.
+          below still works. Refresh to try again.
         </p>
       ) : summary ? (
         <>
@@ -510,15 +377,13 @@ function PortalDashboardSummaryCard({
               className="dashboard-notification-health"
               aria-labelledby="dashboard-notification-health-title"
             >
-              <div className="dashboard-summary-heading">
-                <div>
-                  <p className="ledger-kicker">Delivery</p>
-                  <h3 id="dashboard-notification-health-title">
-                    Notifications
-                  </h3>
-                </div>
-                <p>Totals only</p>
-              </div>
+              <SectionHeading
+                as="h3"
+                kicker="Delivery"
+                title="Notifications"
+                titleId="dashboard-notification-health-title"
+                meta="Totals only"
+              />
               <div className="dashboard-summary-grid">
                 <div className="dashboard-summary-card">
                   <span>Waiting to send</span>
@@ -652,7 +517,7 @@ function formatActionRequiredInvitationSummary(
       : null,
     summary.suppressed > 0 ? `${summary.suppressed} not sent` : null,
     summary.addressSuppression > 0
-      ? `${summary.addressSuppression} blocked by the e-mail provider`
+      ? `${summary.addressSuppression} blocked from sending`
       : null,
   ];
   return labels.filter((label): label is string => label !== null).join(" · ");

@@ -62,22 +62,21 @@ export function createMobileAuthActions(
           return {
             field: null,
             message:
-              "The recovery service could not be reached. Check your connection and try again.",
+              "We couldn't send your recovery link. Check your connection and try again.",
             status: "error",
           };
         }
 
         return {
           field: null,
-          message:
-            "If the address belongs to an account, password recovery instructions are on the way.",
+          message: "If you have an account, a recovery link is on its way.",
           status: "success",
         };
       } catch {
         return {
           field: null,
           message:
-            "The recovery service could not be reached. Check your connection and try again.",
+            "We couldn't send your recovery link. Check your connection and try again.",
           status: "error",
         };
       }
@@ -112,10 +111,10 @@ export function createMobileAuthActions(
             error.status === 429
               ? "Too many attempts. Wait a moment and try again."
               : isAuthRetryableFetchError(error)
-                ? "The sign-in service could not be reached. Check your connection and try again."
+                ? "We couldn't sign you in. Check your connection and try again."
                 : error.status !== undefined && error.status >= 500
-                  ? "The sign-in service could not be reached. Try again."
-                  : "The e-mail or password could not be verified.";
+                  ? "We couldn't sign you in. Try again."
+                  : "Check your e-mail and password, then try again.";
           return {
             field: null,
             message,
@@ -127,7 +126,7 @@ export function createMobileAuthActions(
           await auth.signOut({ scope: "local" });
           return {
             field: null,
-            message: "Verify your account e-mail before signing in.",
+            message: "Confirm your e-mail address before you sign in.",
             status: "error",
           };
         }
@@ -137,7 +136,7 @@ export function createMobileAuthActions(
         return {
           field: null,
           message:
-            "The sign-in service could not be reached. Check your connection and try again.",
+            "We couldn't sign you in. Check your connection and try again.",
           status: "error",
         };
       }
@@ -149,7 +148,7 @@ export function createMobileAuthActions(
         if (error) {
           return {
             field: null,
-            message: "GreenRoster could not sign out. Try again.",
+            message: "We couldn't sign you out. Try again.",
             status: "error",
           };
         }
@@ -158,7 +157,7 @@ export function createMobileAuthActions(
       } catch {
         return {
           field: null,
-          message: "GreenRoster could not sign out. Try again.",
+          message: "We couldn't sign you out. Try again.",
           status: "error",
         };
       }

@@ -150,7 +150,7 @@ describe("mobile official results API", () => {
 
     await expect(api.read(roundId)).resolves.toEqual({
       code: "permission_denied",
-      message: "This official result is no longer available to this account.",
+      message: "This result is no longer available to you.",
       ok: false,
     });
     await expect(api.read(roundId)).resolves.toMatchObject({

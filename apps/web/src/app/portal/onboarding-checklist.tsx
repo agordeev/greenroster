@@ -1,4 +1,13 @@
+import Link from "next/link";
+
 import type { OnboardingChecklistItem } from "@/lib/groups/onboarding-checklist";
+
+const taskHref: Record<OnboardingChecklistItem["key"], string> = {
+  "group-profile": "/portal/group",
+  rules: "/portal/quota",
+  members: "/portal/members/new",
+  "first-round": "/portal/rounds?new=1",
+};
 
 export function OnboardingChecklist({
   items,
@@ -9,7 +18,7 @@ export function OnboardingChecklist({
 
   return (
     <section className="onboarding-card" aria-labelledby="onboarding-title">
-      <div className="onboarding-heading">
+      <div className="section-heading">
         <div>
           <p className="ledger-kicker">Getting started</p>
           <h2 id="onboarding-title">Finish setting up the group</h2>
@@ -25,7 +34,13 @@ export function OnboardingChecklist({
               {item.status === "complete" ? "✓" : "—"}
             </span>
             <div>
-              <strong>{item.label}</strong>
+              <strong>
+                {item.status === "complete" ? (
+                  item.label
+                ) : (
+                  <Link href={taskHref[item.key]}>{item.label}</Link>
+                )}
+              </strong>
               <p>{item.detail}</p>
             </div>
             <em>{item.status === "complete" ? "Complete" : "To do"}</em>

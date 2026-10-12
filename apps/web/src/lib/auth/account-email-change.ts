@@ -76,7 +76,7 @@ export async function runAccountEmailChange(
   return {
     status: "verification_pending",
     message:
-      "Secure confirmation messages were requested. The change takes effect only after the account provider verifies the required confirmation step or steps.",
+      "We sent confirmation messages. Your account e-mail won't change until you follow the links in them.",
   };
 }
 
@@ -85,7 +85,7 @@ function mutationErrorState(error: unknown): AccountEmailChangeState {
   if (code === "authentication_required") {
     return {
       status: "error",
-      message: "Your session expired. Sign in and submit the change again.",
+      message: "You've been signed out. Sign in again, then submit the change.",
     };
   }
   if (code === "rate_limited") {
@@ -98,13 +98,14 @@ function mutationErrorState(error: unknown): AccountEmailChangeState {
     return {
       status: "error",
       message:
-        "Password recovery sessions cannot change account e-mail. Sign in normally and submit the change again.",
+        "You can't change your account e-mail during a password reset. Sign in normally, then submit the change again.",
     };
   }
   if (code === "validation") {
     return {
       status: "error",
-      message: "That account e-mail is unavailable or cannot be used.",
+      message:
+        "That e-mail address can't be used for your account. Try a different one.",
       fieldErrors: { email: ["Enter another account e-mail."] },
     };
   }
@@ -112,11 +113,11 @@ function mutationErrorState(error: unknown): AccountEmailChangeState {
     return {
       status: "error",
       message:
-        "The account service could not be reached. Check your connection and try again.",
+        "We couldn't update your account e-mail right now. Check your connection and try again.",
     };
   }
   return {
     status: "error",
-    message: "The account e-mail change could not be requested. Try again.",
+    message: "We couldn't start the e-mail change. Try again.",
   };
 }

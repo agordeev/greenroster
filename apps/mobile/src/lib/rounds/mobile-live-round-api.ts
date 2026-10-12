@@ -67,7 +67,7 @@ export const mobileScoreChangedFieldsSchema = z
     if (Object.keys(fields).length === 0) {
       context.addIssue({
         code: "custom",
-        message: "At least one score field is required.",
+        message: "Enter at least one score.",
       });
     }
   });
@@ -370,7 +370,7 @@ function mapError(
       ...supportReference,
       details: parseStaleDetails(error),
       message:
-        "This score changed elsewhere. Review the current value and enter your score again.",
+        "This score was changed somewhere else. Check the current score, then enter yours again.",
       ok: false,
     };
   }
@@ -382,7 +382,7 @@ function mapError(
     return {
       code: "locked",
       ...supportReference,
-      message: "This round is locked and no longer accepts score changes.",
+      message: "Scores can no longer be changed for this round.",
       ok: false,
     };
   }
@@ -396,7 +396,7 @@ function mapError(
     return {
       code: "permission_denied",
       ...supportReference,
-      message: "This account cannot edit the selected score.",
+      message: "You can't change this score.",
       ok: false,
     };
   }
@@ -408,7 +408,7 @@ function mapError(
     return {
       code: "permission_denied",
       ...supportReference,
-      message: "This live round is no longer available to this account.",
+      message: "This round is no longer available to you.",
       ok: false,
     };
   }
@@ -422,7 +422,7 @@ function mapError(
     return {
       code: "validation",
       ...supportReference,
-      message: "Check the score values and try again.",
+      message: "Check the scores and try again.",
       ok: false,
     };
   }
@@ -430,7 +430,7 @@ function mapError(
     code: "unavailable",
     ...supportReference,
     message:
-      "GreenRoster could not sync this score. Check your connection and try again.",
+      "We couldn't save this score. Check your connection and try again.",
     ok: false,
   };
 }
@@ -470,7 +470,7 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
       if (!parsedInput.success) {
         return {
           code: "validation",
-          message: "That round could not be loaded.",
+          message: "We couldn't load that round.",
           ok: false,
         };
       }
@@ -484,7 +484,8 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
         if (!parsed.success) {
           return {
             code: "unavailable",
-            message: "GreenRoster returned an invalid live round.",
+            message:
+              "We couldn't load this round. Check your connection and try again.",
             ok: false,
           };
         }
@@ -503,7 +504,7 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
         return {
           code: "validation",
           correlationId: operationContext.correlationId,
-          message: "Check the score values and try again.",
+          message: "Check the scores and try again.",
           ok: false,
         };
       }
@@ -527,7 +528,8 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
           return {
             code: "unavailable",
             correlationId: operationContext.correlationId,
-            message: "GreenRoster returned an invalid score receipt.",
+            message:
+              "We couldn't confirm that your score was saved. Check your connection and try again.",
             ok: false,
           };
         }
@@ -552,7 +554,7 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
         return {
           code: "validation",
           correlationId: operationContext.correlationId,
-          message: "The score synchronization receipt is invalid.",
+          message: "We couldn't confirm this score update. Try again.",
           ok: false,
         };
       }
@@ -572,7 +574,8 @@ export function createMobileLiveRoundApi(client: MobileLiveRoundApiClient) {
           return {
             code: "unavailable",
             correlationId: operationContext.correlationId,
-            message: "GreenRoster returned an invalid synchronization receipt.",
+            message:
+              "We couldn't confirm this score update. Check your connection and try again.",
             ok: false,
           };
         }

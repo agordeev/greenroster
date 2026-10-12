@@ -81,7 +81,7 @@ function StatusState({
         <h1 id="invitation-title">{title}</h1>
         <p>{message}</p>
       </div>
-      <div className="information-actions invitation-recovery-actions">
+      <div className="action-row invitation-recovery-actions">
         <Link className="primary-link" href="/sign-in">
           Sign in
         </Link>
@@ -157,7 +157,7 @@ export default async function InvitationAcceptPage({
             invitation stays saved in this browser while you do.
           </p>
         </div>
-        <div className="information-actions invitation-recovery-actions">
+        <div className="action-row invitation-recovery-actions">
           <Link
             className="primary-link"
             href="/sign-in?next=%2Finvitations%2Faccept"
@@ -309,7 +309,7 @@ export default async function InvitationAcceptPage({
       {user?.email_confirmed_at ? (
         <InvitationAcceptForm />
       ) : (
-        <div className="information-actions invitation-recovery-actions">
+        <div className="action-row invitation-recovery-actions">
           <Link
             className="primary-link"
             href="/sign-in?next=%2Finvitations%2Faccept"

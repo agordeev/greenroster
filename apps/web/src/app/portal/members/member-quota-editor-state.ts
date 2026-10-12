@@ -100,7 +100,7 @@ export function validateMemberQuotaEditorDraft(
 ) {
   const initialQuota = draft.initialQuota.trim();
   if (draft.useInitialQuota && initialQuota.length === 0) {
-    return "Enter an initial quota before selecting Use initial quota.";
+    return "Enter a starting quota before you select “Use this starting quota until enough history builds up.”";
   }
   if (draft.seedTotals.length > MAX_MEMBER_QUOTA_SEEDS) {
     return `Enter no more than ${MAX_MEMBER_QUOTA_SEEDS} ordered seed totals.`;
@@ -114,10 +114,10 @@ export function validateMemberQuotaEditorDraft(
     return "Complete each seed total or remove the empty row.";
   }
   if (draft.reason.trim().length === 0) {
-    return "Provide a reason for this quota bootstrap change.";
+    return "Add a reason for this change.";
   }
   if (!confirmed) {
-    return "Confirm the quota bootstrap change before saving.";
+    return "Confirm the starting quota change before saving.";
   }
   return null;
 }

@@ -7,12 +7,14 @@ import "@/global.css";
 
 import { Platform } from "react-native";
 
+// The light palette mirrors the web tokens in apps/web/src/app/globals.css
+// (--bentgrass, --graphite, --scorecard, --ledger, --quiet). Change both together.
 export const Colors = {
   light: {
-    accent: "#2C684A",
-    text: "#202820",
+    accent: "#285A3A",
+    text: "#20251F",
     background: "#F4F1E8",
-    backgroundElement: "#FCFBF6",
+    backgroundElement: "#FBFAF5",
     backgroundSelected: "#E5EBDD",
     textSecondary: "#667066",
     separator: "#D6D0C3",

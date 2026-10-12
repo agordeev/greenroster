@@ -286,7 +286,8 @@ function rowErrors(
     errors.push({
       code: "handicap_value_required",
       column: "handicap",
-      message: "handicap is required when handicap metadata is provided.",
+      message:
+        "handicap is required when handicap_id or handicap_as_of is filled in.",
       rowNumber,
     });
   }

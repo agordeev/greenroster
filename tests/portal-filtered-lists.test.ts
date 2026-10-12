@@ -80,13 +80,13 @@ describe("portal filtered list query boundaries", () => {
         deliveryState: "sent",
       }),
     ).toBe(
-      "Action required: the invited address is suppressed. Latest delivery: sent.",
+      "Ask the member for a new e-mail address. Messages to this one are blocked. Latest delivery: Sent.",
     );
     expect(
       describeInvitationDelivery({
         deliveryActionRequired: false,
         deliveryState: "sent",
       }),
-    ).toBe("Latest delivery: sent");
+    ).toBe("Latest delivery: Sent");
   });
 });

@@ -39,7 +39,7 @@ export type MobileLiveRoundFailure = Readonly<{
 }>;
 
 export const mobileLiveRoundParticipantLockedMessage =
-  "This participant is no longer eligible for score changes. The pending score was not sent.";
+  "This player can no longer be scored. The score you entered was not sent.";
 
 export type MobileLiveRoundParticipantState = Readonly<{
   participant: MobileLiveRoundParticipant;
@@ -444,7 +444,7 @@ export function applyMobileLiveRoundRealtimeScore(
         failure: {
           code: "stale",
           message:
-            "This score changed elsewhere. Review the current value and enter your score again.",
+            "This score was changed somewhere else. Check the current score, then enter yours again.",
           currentScore: score,
           permanent: true,
         },

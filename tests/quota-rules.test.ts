@@ -247,14 +247,14 @@ describe("quota rules", () => {
 
   it("rejects incomplete, overlapping, and out-of-range Method C policies", () => {
     expect(() => validateAdjustmentBands(completeBands.slice(1))).toThrow(
-      "must include -100",
+      "include -100",
     );
     expect(() =>
       validateAdjustmentBands([
         { ...completeBands[0]!, upperInclusive: true },
         completeBands[1]!,
       ]),
-    ).toThrow("exactly one band");
+    ).toThrow("in one band only");
     expect(() =>
       calculateQuota({
         adjustmentBands: completeBands,
@@ -265,7 +265,7 @@ describe("quota rules", () => {
         previousQuota: "99.50",
         useInitialQuota: false,
       }),
-    ).toThrow("Calculated quota must be between 0 and 100");
+    ).toThrow("Enter calculated quota from 0 to 100.");
   });
 
   it("validates history length, decimal scale, and precision boundaries", () => {
@@ -277,7 +277,7 @@ describe("quota rules", () => {
         precision: 2,
         useInitialQuota: false,
       }),
-    ).toThrow("between 4 and 20");
+    ).toThrow("from 4 through 20");
     expect(() =>
       calculateQuota({
         eligiblePointTotals: ["10.001"],
@@ -285,7 +285,7 @@ describe("quota rules", () => {
         precision: 2,
         useInitialQuota: false,
       }),
-    ).toThrow("at most 2 decimal places");
+    ).toThrow("up to 2 decimal places");
   });
 
   it("validates merit boundaries, ordered placement rows, and local reset dates", () => {
@@ -305,13 +305,13 @@ describe("quota rules", () => {
         { rank: 2, points: "5" },
         { rank: 1, points: "10" },
       ]),
-    ).toThrow("strictly ordered");
+    ).toThrow("each higher than the one above");
     expect(() =>
       validatePlacementMeritRows([{ rank: 1, points: "500.01" }]),
     ).toThrow();
     for (const points of ["-0", "-00", "-00.00"]) {
       expect(() => validatePlacementMeritRows([{ rank: 1, points }])).toThrow(
-        "negative zero",
+        "instead of -0",
       );
     }
 

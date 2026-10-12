@@ -81,7 +81,7 @@ export function participantDisplayName(
     .filter((value): value is string => Boolean(value?.trim()))
     .join(" ")
     .trim();
-  return name || "Unnamed participant";
+  return name || "Unnamed player";
 }
 
 export function formatParticipantRsvp(

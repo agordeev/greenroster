@@ -1,18 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import {
   previewPublishedRoundEditAction,
   updatePublishedRoundEditAction,
 } from "@/app/actions/rounds";
+import { ActionRow, Field, SectionHeading } from "@/components/ui";
 import {
   previewPublishedRoundEditInputSchema,
   updatePublishedRoundEditInputSchema,
@@ -210,22 +205,21 @@ export function PublishedRoundEditPanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="published-round-edit-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Published round</p>
-          <h2 id="published-round-edit-title">Change round details</h2>
-        </div>
-        <p>Preview before you apply</p>
-      </div>
+      <SectionHeading
+        kicker="Published round"
+        title="Change round details"
+        titleId="published-round-edit-title"
+        meta="Preview before you apply"
+      />
       <p>
         Format, players, guests, and scores stay as they are. Preview the
         changes before you apply them.
       </p>
-      <div className="group-profile-form" aria-busy={pending}>
-        <div className="group-profile-fields">
+      <div className="form-stack" aria-busy={pending}>
+        <div className="form-row">
           <Field
             id="published-round-edit-description"
             label="Description"
@@ -251,7 +245,7 @@ export function PublishedRoundEditPanel({
             />
           </Field>
         </div>
-        <div className="group-profile-fields">
+        <div className="form-row">
           <Field
             id="published-round-edit-scheduled"
             label="Scheduled start"
@@ -342,7 +336,7 @@ export function PublishedRoundEditPanel({
         >
           {message}
         </p>
-        <div className="information-actions">
+        <ActionRow>
           <button
             className="secondary-button"
             type="button"
@@ -359,29 +353,9 @@ export function PublishedRoundEditPanel({
           >
             {pending && preview ? "Applying…" : "Apply changes"}
           </button>
-        </div>
+        </ActionRow>
       </div>
     </section>
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  children,
-}: Readonly<{
-  id: string;
-  label: string;
-  error?: string;
-  children: ReactNode;
-}>) {
-  return (
-    <div className="field-group">
-      <label htmlFor={id}>{label}</label>
-      {children}
-      {error ? <p className="field-error">{error}</p> : null}
-    </div>
   );
 }
 

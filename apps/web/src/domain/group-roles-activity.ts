@@ -232,15 +232,86 @@ export function formatPortalRole(role: PortalRole): string {
 }
 
 export function formatInvitationState(state: InvitationState | null): string {
-  return state ? invitationLabels[state] : "No invitation record";
+  return state ? invitationLabels[state] : "No invitation sent yet";
 }
 
+const activityActionLabels = new Map<string, string>([
+  ["group.bootstrap", "Group created"],
+  ["group.organizer_signup", "Organizer signed up"],
+  ["group.profile_updated", "Group details updated"],
+  ["group.quota_rules_configured", "Quota rules changed"],
+  ["group.branding_saved", "Group branding saved"],
+  ["group.branding_removed", "Group branding removed"],
+  ["group.news_saved", "Group news saved"],
+  ["group.media_saved", "Group media saved"],
+  ["group.guest_permission_updated", "Guest permission changed"],
+  ["membership.invitation_issued", "Invitation sent"],
+  ["membership.invitation_regenerated", "Invitation sent again"],
+  ["membership.invitation_revoked", "Invitation cancelled"],
+  ["membership.invitation_accepted", "Invitation accepted"],
+  ["membership.invitation_address_corrected", "Invitation e-mail corrected"],
+  ["membership.role_changed", "Role changed"],
+  ["membership.administrator_transferred", "Administrator role transferred"],
+  ["membership.quota_bootstrap_configured", "Starting quota set"],
+  ["member.created", "Member added"],
+  ["member.updated", "Member details updated"],
+  ["member.status_changed", "Member status changed"],
+  ["member.handicap_changed", "Handicap changed"],
+  ["member.self_profile_updated", "Member updated their profile"],
+  ["member.private_contact_viewed", "Contact details viewed"],
+  ["member.notification_preference_changed", "Notification settings changed"],
+  ["member.push_device_registered", "Phone registered for notifications"],
+  ["member.push_device_retired", "Phone removed from notifications"],
+  ["account.email_changed", "E-mail address changed"],
+  ["round.published", "Round published"],
+  ["round.details_changed", "Round details changed"],
+  ["round.cancelled", "Round cancelled"],
+  ["round.completed", "Round completed"],
+  ["round.reopened", "Round reopened"],
+  ["round.scoring_opened", "Scoring opened"],
+  ["round.participant_rsvp_changed", "RSVP changed"],
+  ["round.score_updated", "Score updated"],
+  ["round.hole_score_updated", "Hole score updated"],
+  ["round.announcement_posted", "Announcement posted"],
+  ["round.guest_created", "Guest added"],
+  ["round.guest_updated", "Guest details updated"],
+  ["round.guest_withdrawn", "Guest removed"],
+  ["round.draft_created", "Round draft created"],
+  ["round.draft_updated", "Round draft updated"],
+  ["round.draft_score_fields_updated", "Scoring fields updated"],
+  ["member_csv_import.uploaded", "Member import uploaded"],
+  ["member_csv_import.validated", "Member import checked"],
+  ["member_csv_import.apply_requested", "Member import started"],
+  ["member_csv_import.completed", "Member import completed"],
+  ["round.message_posted", "Message posted"],
+  ["round.message_removed", "Message removed"],
+]);
+
+const activityKindLabels: Readonly<Record<SafeAuditSummary["kind"], string>> = {
+  member: "Member",
+  invitation: "Invitation",
+  handicap: "Handicap",
+  group: "Group",
+  import: "Import",
+  security: "Security",
+  profile: "Profile",
+  unknown: "Activity",
+};
+
+const handicapSourceLabels = new Map<string, string>([
+  ["manual", "entered by hand"],
+  ["import", "imported"],
+]);
+
 export function formatActivityAction(action: string): string {
-  return action
+  const known = activityActionLabels.get(action);
+  if (known) return known;
+  const words = action
     .split(/[._-]+/u)
     .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+    .join(" ")
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 export function formatActivitySummary(
@@ -252,11 +323,13 @@ export function formatActivitySummary(
   if (summary.role) parts.push(`Role: ${formatPortalRole(summary.role)}`);
   if (summary.duesPaid !== null)
     parts.push(`Dues: ${summary.duesPaid ? "paid" : "unpaid"}`);
-  if (summary.state) parts.push(`State: ${summary.state}`);
+  if (summary.state) parts.push(`Stage: ${summary.state.replaceAll("_", " ")}`);
   if (summary.handicap) {
-    const provenance = [summary.source, summary.asOf]
-      .filter(Boolean)
-      .join(" · ");
+    const source = summary.source
+      ? (handicapSourceLabels.get(summary.source) ??
+        summary.source.replaceAll("_", " "))
+      : null;
+    const provenance = [source, summary.asOf].filter(Boolean).join(" · ");
     parts.push(
       `Handicap: ${summary.handicap}${provenance ? ` (${provenance})` : ""}`,
     );
@@ -265,20 +338,13 @@ export function formatActivitySummary(
   if (summary.complete !== null)
     parts.push(summary.complete ? "Complete" : "Incomplete");
   if (summary.appliedRows !== null)
-    parts.push(`Applied rows: ${summary.appliedRows}`);
-  if (summary.membershipVersion !== null)
-    parts.push(`Membership v${summary.membershipVersion}`);
-  if (summary.profileVersion !== null)
-    parts.push(`Profile v${summary.profileVersion}`);
-  if (summary.contactVersion !== null)
-    parts.push(`Contact v${summary.contactVersion}`);
-  if (summary.version !== null) parts.push(`Version v${summary.version}`);
-  if (summary.projectionVersion !== null)
-    parts.push(`Projection v${summary.projectionVersion}`);
-  if (summary.settingsVersion !== null)
-    parts.push(`Settings v${summary.settingsVersion}`);
+    parts.push(`Rows applied: ${summary.appliedRows}`);
   if (summary.changedFields?.length) {
-    parts.push(`Changed: ${summary.changedFields.join(", ")}`);
+    parts.push(
+      `Changed: ${summary.changedFields.map((field) => field.replaceAll("_", " ")).join(", ")}`,
+    );
   }
-  return parts.length > 0 ? parts.join(" · ") : summary.kind;
+  return parts.length > 0
+    ? parts.join(" · ")
+    : activityKindLabels[summary.kind];
 }

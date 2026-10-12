@@ -31,7 +31,11 @@ export const roundCompletionInputSchema = z
 export const roundReopenInputSchema = z
   .object({
     roundId: uuidSchema,
-    reason: z.string().trim().min(1).max(500),
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Add a reason between 1 and 500 characters.")
+      .max(500, "Add a reason between 1 and 500 characters."),
     expectedRoundVersion: z.number().int().positive(),
     confirmed: z.literal(true),
     operationId: uuidSchema,

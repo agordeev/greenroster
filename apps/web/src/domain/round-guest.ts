@@ -6,27 +6,32 @@ import type { MutationResult } from "../lib/mutations/result";
 
 const numericInput = z.union([
   z.number().finite(),
-  z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u),
+  z.string().regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)$/u, "Enter a number."),
 ]);
 
 const quotaInput = numericInput
   .transform((value) => Number(value))
   .refine(
     (value) => value >= 0 && value <= 100 && Number.isInteger(value * 100),
+    "Enter a quota from 0 to 100, with up to 2 decimal places.",
   );
 
 const handicapInput = numericInput
   .transform((value) => Number(value))
   .refine(
     (value) => value >= -10 && value <= 54 && Number.isInteger(value * 10),
+    "Enter a handicap from -10 to 54, with at most one decimal place.",
   );
 
 const guestName = z
   .string()
   .trim()
-  .min(1)
-  .max(100)
-  .refine((value) => !/\s{2,}/u.test(value));
+  .min(1, "Enter a name for the guest.")
+  .max(100, "Keep the guest's name to 100 characters or fewer.")
+  .refine(
+    (value) => !/\s{2,}/u.test(value),
+    "Remove the extra spaces from the name.",
+  );
 
 export const createRoundGuestInputSchema = z
   .object({

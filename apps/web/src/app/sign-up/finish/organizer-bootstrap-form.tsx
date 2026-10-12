@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { bootstrapOrganizerAction } from "@/app/actions/auth";
+import { Field } from "@/components/ui";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
 import { resolveLocalTimeZone } from "@/lib/local-time-zone";
 
@@ -114,8 +115,7 @@ export function OrganizerBootstrapForm({
       aria-busy={pending}
       noValidate
     >
-      <div className="field-group">
-        <label htmlFor="firstName">First name</label>
+      <Field id="firstName" label="First name" error={errors.firstName}>
         <input
           id="firstName"
           name="firstName"
@@ -124,12 +124,8 @@ export function OrganizerBootstrapForm({
           autoComplete="given-name"
           required
         />
-        {errors.firstName ? (
-          <p className="field-error">{errors.firstName}</p>
-        ) : null}
-      </div>
-      <div className="field-group">
-        <label htmlFor="lastName">Last name</label>
+      </Field>
+      <Field id="lastName" label="Last name" error={errors.lastName}>
         <input
           id="lastName"
           name="lastName"
@@ -138,12 +134,8 @@ export function OrganizerBootstrapForm({
           autoComplete="family-name"
           required
         />
-        {errors.lastName ? (
-          <p className="field-error">{errors.lastName}</p>
-        ) : null}
-      </div>
-      <div className="field-group">
-        <label htmlFor="groupName">Group name</label>
+      </Field>
+      <Field id="groupName" label="Group name" error={errors.groupName}>
         <input
           id="groupName"
           name="groupName"
@@ -152,12 +144,13 @@ export function OrganizerBootstrapForm({
           autoComplete="organization"
           required
         />
-        {errors.groupName ? (
-          <p className="field-error">{errors.groupName}</p>
-        ) : null}
-      </div>
-      <div className="field-group">
-        <label htmlFor="groupTimeZone">Group time zone</label>
+      </Field>
+      <Field
+        id="groupTimeZone"
+        label="Group time zone"
+        help="Round times and reminders use this time zone."
+        error={errors.groupTimeZone}
+      >
         <input
           id="groupTimeZone"
           name="groupTimeZone"
@@ -166,13 +159,7 @@ export function OrganizerBootstrapForm({
           placeholder="Your local time zone"
           required
         />
-        <p className="field-help">
-          Round times and reminders use this time zone.
-        </p>
-        {errors.groupTimeZone ? (
-          <p className="field-error">{errors.groupTimeZone}</p>
-        ) : null}
-      </div>
+      </Field>
       <p className="field-help">
         You already accept the current <Link href="/terms">Terms of Use</Link>{" "}
         and <Link href="/privacy">Privacy Policy</Link>.

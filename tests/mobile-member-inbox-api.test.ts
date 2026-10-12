@@ -79,7 +79,7 @@ describe("mobile member inbox API", () => {
     });
     await expect(mobileMemberInboxApi.read()).resolves.toEqual({
       code: "permission_denied",
-      message: "You can't open your round updates with this account.",
+      message: "You can't open your round updates.",
       ok: false,
     });
   });

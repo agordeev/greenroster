@@ -101,7 +101,7 @@ function MemberStandingsContent({
             </div>
           </section>
           <section
-            className="member-read-section"
+            className="page-section"
             aria-labelledby="standings-table-title"
           >
             <p className="ledger-kicker">Current standings</p>
@@ -149,7 +149,7 @@ function MemberStandingsContent({
             </p>
           </section>
           <section
-            className="member-read-section"
+            className="page-section"
             aria-labelledby="quota-history-title"
           >
             <p className="ledger-kicker">Your quota history</p>

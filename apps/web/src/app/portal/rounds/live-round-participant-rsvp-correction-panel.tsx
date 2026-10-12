@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setLiveRoundParticipantNotPlayingAction } from "@/app/actions/rounds";
+import { EmptyState, SectionHeading } from "@/components/ui";
 import { liveRoundParticipantNotPlayingInputSchema } from "@/domain/live-round-participant-rsvp-correction";
 import type {
   LiveRoundScoreParticipant,
@@ -25,27 +26,24 @@ export function LiveRoundParticipantRsvpCorrectionPanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="live-rsvp-correction-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round day</p>
-          <h2 id="live-rsvp-correction-title">Mark a player not playing</h2>
-        </div>
-        <p>{playingParticipants.length} playing</p>
-      </div>
+      <SectionHeading
+        kicker="Round day"
+        title="Mark a player not playing"
+        titleId="live-rsvp-correction-title"
+        meta={<>{playingParticipants.length} playing</>}
+      />
       <p>
         Use this if a playing player has to be marked not playing after their
         score was entered. Their score comes off the live leaderboard but stays
         in the round history. Add a reason, then confirm before you save.
       </p>
       {playingParticipants.length === 0 ? (
-        <p className="group-empty" role="status">
-          No players are playing right now.
-        </p>
+        <EmptyState>No players are playing right now.</EmptyState>
       ) : (
-        <div className="group-role-list">
+        <div className="row-list">
           {playingParticipants.map((participant) => (
             <ParticipantRsvpCorrection
               key={participantSyncKey(participant)}
@@ -191,8 +189,8 @@ function ParticipantRsvpCorrection({
   }
 
   return (
-    <article className="group-role-row" data-rsvp-state={rsvpStatus}>
-      <div className="group-panel-heading">
+    <article className="row-item" data-rsvp-state={rsvpStatus}>
+      <div className="section-heading">
         <div>
           <h3>{playerLabel}</h3>
           <p>
@@ -225,7 +223,7 @@ function ParticipantRsvpCorrection({
 
       {rsvpStatus === "playing" ? (
         <form
-          className="group-profile-form"
+          className="form-stack"
           onSubmit={submit}
           aria-busy={pending}
           noValidate

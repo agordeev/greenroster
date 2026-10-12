@@ -28,10 +28,12 @@ export function validatePlacementMeritRows(
   let previousRank = 0;
   for (const row of rows) {
     if (!Number.isInteger(row.rank) || row.rank <= previousRank) {
-      throw new Error("Placement ranks must be positive and strictly ordered");
+      throw new Error(
+        "Enter placement ranks as whole numbers, each higher than the one above.",
+      );
     }
     if (/^-0+(?:\.0+)?$/.test(row.points.trim())) {
-      throw new Error("Placement merit cannot use negative zero");
+      throw new Error("Enter 0 instead of -0.");
     }
     parseHundredths(row.points, 0, 500, "Placement merit");
     previousRank = row.rank;
@@ -42,7 +44,7 @@ export function validatePlacementMeritRows(
 export function validateStandingsResetDate(value: string | null): void {
   if (value === null || value === "") return;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) throw new Error("Standings reset date must be a valid date");
+  if (!match) throw new Error("Enter a valid standings reset date.");
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
@@ -53,7 +55,7 @@ export function validateStandingsResetDate(value: string | null): void {
     date.getUTCMonth() !== month - 1 ||
     date.getUTCDate() !== day
   ) {
-    throw new Error("Standings reset date must be a valid date");
+    throw new Error("Enter a valid standings reset date.");
   }
 }
 
@@ -87,8 +89,7 @@ const HUNDRED = BigInt(100);
 export function validateAdjustmentBands(
   bands: readonly QuotaAdjustmentBand[],
 ): void {
-  if (bands.length === 0)
-    throw new Error("Method C bands must cover -100 to 100");
+  if (bands.length === 0) throw new Error("Add bands that cover -100 to 100.");
 
   const parsed = bands.map((band) => ({
     adjustment: parseHundredths(band.adjustment, -20, 20, "Adjustment"),
@@ -100,33 +101,37 @@ export function validateAdjustmentBands(
 
   for (const band of parsed) {
     if (band.lower > band.upper)
-      throw new Error("Band lower bound exceeds upper bound");
+      throw new Error(
+        "Set each band's lower bound at or below its upper bound.",
+      );
     if (
       band.lower === band.upper &&
       !(band.lowerInclusive && band.upperInclusive)
     ) {
-      throw new Error("A single-point band must include its bound");
+      throw new Error(
+        "Include both ends of a band that covers a single value.",
+      );
     }
   }
 
   const first = parsed[0];
   const last = parsed.at(-1);
   if (!first || first.lower !== BigInt(-10_000) || !first.lowerInclusive) {
-    throw new Error("Method C bands must include -100");
+    throw new Error("Start the first band at -100 and include -100.");
   }
   if (!last || last.upper !== BigInt(10_000) || !last.upperInclusive) {
-    throw new Error("Method C bands must include 100");
+    throw new Error("End the last band at 100 and include 100.");
   }
 
   for (let index = 1; index < parsed.length; index += 1) {
     const previous = parsed[index - 1];
     const current = parsed[index];
-    if (!previous || !current) throw new Error("Band ordering is invalid");
+    if (!previous || !current) throw new Error("Check the order of the bands.");
     if (previous.upper !== current.lower) {
-      throw new Error("Method C bands contain a gap or overlap");
+      throw new Error("Close the gap or overlap between bands.");
     }
     if (previous.upperInclusive === current.lowerInclusive) {
-      throw new Error("A shared band boundary must belong to exactly one band");
+      throw new Error("Include each shared boundary in one band only.");
     }
   }
 }
@@ -145,7 +150,7 @@ export function calculateQuota(input: CalculateQuotaInput): QuotaCalculation {
       historyLength < 4 ||
       historyLength > 20
     ) {
-      throw new Error("Moving-average history length must be between 4 and 20");
+      throw new Error("Enter a whole number from 4 through 20.");
     }
 
     if (pointTotals.length === 0) {
@@ -165,7 +170,7 @@ export function calculateQuota(input: CalculateQuotaInput): QuotaCalculation {
 
   if (input.method === "best_10_of_20") {
     if (input.historyLength !== undefined) {
-      throw new Error("Best 10 of 20 does not accept a history length");
+      throw new Error("Remove the history length for Best 10 of 20.");
     }
     if (pointTotals.length === 0) {
       return initialOrNotReady(initialQuota, input.precision, false);
@@ -189,10 +194,10 @@ export function calculateQuota(input: CalculateQuotaInput): QuotaCalculation {
   }
 
   if (input.historyLength !== undefined) {
-    throw new Error("Method C does not accept a history length");
+    throw new Error("Remove the history length for Method C.");
   }
   if (input.plusMinus === undefined)
-    throw new Error("Method C requires plus/minus");
+    throw new Error("Enter a plus/minus value for Method C.");
   const bands = input.adjustmentBands ?? [];
   validateAdjustmentBands(bands);
   const plusMinus = parseHundredths(input.plusMinus, -100, 100, "Plus/minus");
@@ -209,7 +214,10 @@ export function calculateQuota(input: CalculateQuotaInput): QuotaCalculation {
       (plusMinus < upper || (plusMinus === upper && band.upperInclusive))
     );
   });
-  if (position < 0) throw new Error("No Method C band matches plus/minus");
+  if (position < 0)
+    throw new Error(
+      "No band covers this plus/minus value. Check that the bands cover -100 to 100.",
+    );
 
   const adjustment = parseHundredths(
     bands[position]?.adjustment ?? "",
@@ -278,13 +286,15 @@ function parseHundredths(
   const match = /^([+-]?)(\d+)(?:\.(\d{1,2}))?$/.exec(value.trim());
   if (!match)
     throw new Error(
-      `${label} must be a base-10 value with at most 2 decimal places`,
+      `Enter ${label.toLowerCase()} as a number with up to 2 decimal places.`,
     );
   const [, sign, integer = "0", fraction = ""] = match;
   const magnitude = BigInt(integer) * HUNDRED + BigInt(fraction.padEnd(2, "0"));
   const parsed = sign === "-" ? -magnitude : magnitude;
   if (parsed < BigInt(minimum * 100) || parsed > BigInt(maximum * 100)) {
-    throw new Error(`${label} must be between ${minimum} and ${maximum}`);
+    throw new Error(
+      `Enter ${label.toLowerCase()} from ${minimum} to ${maximum}.`,
+    );
   }
   return parsed;
 }
@@ -326,6 +336,6 @@ function validatePrecision(
   precision: number,
 ): asserts precision is DecimalScale {
   if (precision !== 0 && precision !== 1 && precision !== 2) {
-    throw new Error("Quota precision must be 0, 1, or 2");
+    throw new Error("Choose 0, 1, or 2 quota decimal places.");
   }
 }

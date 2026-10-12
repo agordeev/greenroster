@@ -472,7 +472,7 @@ function AdministratorQuotaDetails({
               : "Not in use"}
         </Definition>
         <Definition label="Initial quota source">
-          {details.initialQuotaProvenance ?? "Not recorded"}
+          {details.initialQuotaProvenance ?? "Not set yet"}
         </Definition>
         <Definition label="Calculation method">
           {details.settingsMethod
@@ -637,9 +637,9 @@ function formatQuotaProvenance(source: Readonly<Record<string, unknown>>) {
   const kind = typeof source.kind === "string" ? source.kind : null;
   if (kind === "initial_quota") return "Initial quota";
   if (kind === "seed_history") return "Seed history";
-  if (kind === "official_history") return "Official history";
+  if (kind === "official_history") return "From official results";
   if (kind === "not_ready") return "Not ready";
-  return "Not recorded";
+  return "Not set yet";
 }
 
 function formatEventType(value: string) {

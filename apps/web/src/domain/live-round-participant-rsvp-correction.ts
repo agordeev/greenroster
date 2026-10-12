@@ -12,7 +12,11 @@ export const liveRoundParticipantNotPlayingInputSchema = z
     expectedScoreVersion: z.number().int().positive(),
     expectedScoreRevisionId: z.uuid(),
     confirmed: z.literal(true),
-    reason: z.string().trim().min(1).max(500),
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Add a reason for marking this player not playing.")
+      .max(500, "Keep the reason to 500 characters or fewer."),
     operationId: z.uuid(),
   })
   .strict();

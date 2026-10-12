@@ -109,7 +109,7 @@ export async function runLegacyImportUpload(
   } catch {
     return failure(correlationId, {
       code: "invalid_form",
-      message: "You upload one profiled CSV file and its source profile.",
+      message: "Upload one CSV file with its source profile.",
     });
   }
   const file = formData.get("file");

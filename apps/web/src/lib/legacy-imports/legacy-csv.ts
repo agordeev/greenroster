@@ -91,7 +91,7 @@ export function validateLegacyImportProfile(
     errors.push({
       code: "schema_version_invalid",
       field: "schemaVersion",
-      message: "Choose a source schema version.",
+      message: "Choose the version of the source file this CSV came from.",
     });
   }
   if (!legacyTypeHeader || !HEADER_PATTERN.test(legacyTypeHeader)) {
@@ -104,7 +104,7 @@ export function validateLegacyImportProfile(
     errors.push({
       code: "legacy_type_header_sensitive",
       field: "legacyTypeHeader",
-      message: "Choose a source column that does not contain a secret.",
+      message: "Choose a column without passwords, tokens, or card details.",
     });
   }
   if (!legacyKeyHeader || !HEADER_PATTERN.test(legacyKeyHeader)) {
@@ -117,7 +117,7 @@ export function validateLegacyImportProfile(
     errors.push({
       code: "legacy_key_header_sensitive",
       field: "legacyKeyHeader",
-      message: "Choose a source column that does not contain a secret.",
+      message: "Choose a column without passwords, tokens, or card details.",
     });
   }
   if (
@@ -136,7 +136,7 @@ export function validateLegacyImportProfile(
     errors.push({
       code: "mappings_required",
       field: "mappings",
-      message: "Map at least one source field before you stage a file.",
+      message: "Match at least one column before you upload the file.",
     });
   }
   const mappings: Array<{ sourceHeader: string; targetField: string }> = [];
@@ -164,7 +164,7 @@ export function validateLegacyImportProfile(
       errors.push({
         code: "source_header_sensitive",
         field: `mappings.${index}.sourceHeader`,
-        message: "Choose a source column that does not contain a secret.",
+        message: "Choose a column without passwords, tokens, or card details.",
       });
       continue;
     }
@@ -176,7 +176,8 @@ export function validateLegacyImportProfile(
       errors.push({
         code: "target_field_invalid",
         field: `mappings.${index}.targetField`,
-        message: "Choose a non-sensitive destination field.",
+        message:
+          "Choose a field that can't hold passwords, tokens, or card details.",
       });
       continue;
     }
@@ -259,7 +260,7 @@ function parseRecords(
         ok: false,
         error: {
           code: "invalid_quote",
-          message: "You close a quoted value before the row ends.",
+          message: "Put a comma or line break right after a closing quote.",
         },
       };
     }
@@ -269,7 +270,8 @@ function parseRecords(
           ok: false,
           error: {
             code: "invalid_quote",
-            message: "You start a quoted value with a quote.",
+            message:
+              "A quote can only start a value. Remove the quote in the middle of this value.",
           },
         };
       quoted = true;
@@ -285,7 +287,7 @@ function parseRecords(
       ok: false,
       error: {
         code: "unclosed_quote",
-        message: "You leave a quoted value open at the end of the CSV.",
+        message: "Close the quoted value before the end of the file.",
       },
     };
   if (field !== "" || record.length > 0 || quoteClosed) finishRecord();
@@ -395,14 +397,14 @@ export function parseProfiledLegacyCsv(
       errors.push({
         code: "legacy_type_required",
         column: profile.legacyTypeHeader,
-        message: `You add a legacy row type on row ${rowNumber}.`,
+        message: `Add a legacy row type on row ${rowNumber}.`,
         rowNumber,
       });
     if (!legacyKey)
       errors.push({
         code: "legacy_key_required",
         column: profile.legacyKeyHeader,
-        message: `You add a legacy key on row ${rowNumber}.`,
+        message: `Add a legacy key on row ${rowNumber}.`,
         rowNumber,
       });
     if (!legacyType || !legacyKey) continue;
@@ -410,7 +412,7 @@ export function parseProfiledLegacyCsv(
       errors.push({
         code: "legacy_key_invalid",
         column: profile.legacyKeyHeader,
-        message: `You use a valid legacy key on row ${rowNumber}.`,
+        message: `Row ${rowNumber} needs a legacy key of up to 200 characters with no hidden characters.`,
         rowNumber,
       });
       continue;
@@ -420,7 +422,7 @@ export function parseProfiledLegacyCsv(
       errors.push({
         code: "duplicate_legacy_key",
         column: profile.legacyKeyHeader,
-        message: `You repeat the legacy key from row ${duplicateRow} on row ${rowNumber}.`,
+        message: `Row ${rowNumber} repeats the legacy key from row ${duplicateRow}.`,
         rowNumber,
       });
       continue;

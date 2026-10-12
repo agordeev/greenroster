@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { updateGroupProfileAction } from "@/app/actions/groups";
+import { ActionRow } from "@/components/ui";
 import { isSupportedTimeZone } from "@/lib/groups/group-profile";
 
 export type GroupProfileFormValue = Readonly<{
@@ -206,12 +207,12 @@ export function GroupProfileForm({
 
   return (
     <form
-      className="group-profile-form"
+      className="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <div className="group-profile-fields">
+      <div className="form-row">
         <div className="field-group">
           <label htmlFor="group-profile-name">Group name</label>
           <input
@@ -304,7 +305,7 @@ export function GroupProfileForm({
       >
         {message}
       </p>
-      <div className="information-actions">
+      <ActionRow>
         <button className="primary-button" type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save group details"}
         </button>
@@ -316,7 +317,7 @@ export function GroupProfileForm({
         >
           Cancel
         </button>
-      </div>
+      </ActionRow>
     </form>
   );
 }

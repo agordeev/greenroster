@@ -46,6 +46,20 @@ export function filterManageableInvitations<
   return invitations.filter((invitation) => invitation.deliveryActionRequired);
 }
 
+const deliveryStateLabels = new Map<string, string>([
+  ["queued", "Queued"],
+  ["sending", "Sending"],
+  ["sent", "Sent"],
+  ["retryable", "Retrying"],
+  ["failed_permanent", "Could not be delivered"],
+  ["suppressed", "Not sent to this address"],
+  ["cancelled", "Cancelled"],
+]);
+
+function deliveryStateLabel(state: string): string {
+  return deliveryStateLabels.get(state) ?? state.replaceAll("_", " ");
+}
+
 export function describeInvitationDelivery(
   invitation: Pick<
     ManageableInvitation,
@@ -58,12 +72,12 @@ export function describeInvitationDelivery(
     invitation.deliveryState !== "suppressed"
   ) {
     const latest = invitation.deliveryState
-      ? ` Latest delivery: ${invitation.deliveryState.replaceAll("_", " ")}.`
+      ? ` Latest delivery: ${deliveryStateLabel(invitation.deliveryState)}.`
       : "";
-    return `Action required: the invited address is suppressed.${latest}`;
+    return `Ask the member for a new e-mail address. Messages to this one are blocked.${latest}`;
   }
 
   return invitation.deliveryState
-    ? `Latest delivery: ${invitation.deliveryState.replaceAll("_", " ")}`
+    ? `Latest delivery: ${deliveryStateLabel(invitation.deliveryState)}`
     : "Delivery has not started";
 }

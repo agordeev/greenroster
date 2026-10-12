@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 
 import { postRoundMessageAction } from "@/app/actions/clubhouse";
+import { SectionHeading } from "@/components/ui";
 import type { RoundMessage } from "@/domain/clubhouse-content";
 
 export function RoundMessagePanel({
@@ -55,17 +56,13 @@ export function RoundMessagePanel({
     });
   }
   return (
-    <section
-      className="group-roles-panel"
-      aria-labelledby="round-message-title"
-    >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Round conversation</p>
-          <h2 id="round-message-title">Messages for this round</h2>
-        </div>
-        <p>{messages.length}</p>
-      </div>
+    <section className="page-section" aria-labelledby="round-message-title">
+      <SectionHeading
+        kicker="Round conversation"
+        title="Messages for this round"
+        titleId="round-message-title"
+        meta={String(messages.length)}
+      />
       <div className="member-inbox-list">
         {messages.map((message) => (
           <article className="member-inbox-item" key={message.messageId}>

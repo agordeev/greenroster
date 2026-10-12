@@ -159,7 +159,7 @@ function mapError(
   ) {
     return {
       code: "permission_denied",
-      message: "These standings and history are not available to this account.",
+      message: "Standings and history aren't available to you.",
       ok: false,
     };
   }
@@ -171,14 +171,14 @@ function mapError(
   ) {
     return {
       code: "validation",
-      message: "The standings request is invalid. Refresh and try again.",
+      message: "We couldn't load standings. Refresh and try again.",
       ok: false,
     };
   }
   return {
     code: "unavailable",
     message:
-      "GreenRoster could not load standings and history. Check your connection and try again.",
+      "We couldn't load standings and history. Check your connection and try again.",
     ok: false,
   };
 }
@@ -245,7 +245,8 @@ export function createMobileMemberStandingsApi(
         if (!parsed.success) {
           return {
             code: "unavailable",
-            message: "GreenRoster returned invalid standings.",
+            message:
+              "We couldn't load standings. Check your connection and try again.",
             ok: false,
           };
         }
@@ -271,7 +272,8 @@ export function createMobileMemberQuotaHistoryApi(
         if (!parsed.success) {
           return {
             code: "unavailable",
-            message: "GreenRoster returned invalid quota history.",
+            message:
+              "We couldn't load your quota history. Check your connection and try again.",
             ok: false,
           };
         }

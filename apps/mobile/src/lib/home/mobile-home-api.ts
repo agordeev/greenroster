@@ -56,8 +56,7 @@ function failureFrom(result: HomeReadResult): MobileHomeResult | null {
 function safeFailure(): MobileHomeResult {
   return {
     code: "unavailable",
-    message:
-      "GreenRoster could not load Home. Check your connection and try again.",
+    message: "We couldn't load Home. Check your connection and try again.",
     ok: false,
   };
 }

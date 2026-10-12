@@ -35,14 +35,14 @@ export const roundScoreChangedFieldsSchema = z
     if (keys.length === 0) {
       context.addIssue({
         code: "custom",
-        message: "At least one score field is required.",
+        message: "Enter at least one score before saving.",
       });
     }
     for (const key of keys) {
       if (!(scoreFieldNames as readonly string[]).includes(key)) {
         context.addIssue({
           code: "custom",
-          message: "Only enabled authored score fields may be changed.",
+          message: "You can't change this score for this round.",
           path: [key],
         });
         continue;
@@ -52,7 +52,7 @@ export const roundScoreChangedFieldsSchema = z
       if (!fieldSchema.safeParse(fields[key]).success) {
         context.addIssue({
           code: "custom",
-          message: "The score value is outside the supported range or scale.",
+          message: "Enter a score within the allowed range.",
           path: [key],
         });
       }

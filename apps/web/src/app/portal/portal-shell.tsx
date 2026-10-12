@@ -6,6 +6,108 @@ import { InformationFooter } from "@/app/information-footer";
 
 type PortalRole = "member" | "coordinator" | "administrator";
 
+type PortalSection =
+  | "home"
+  | "members"
+  | "invitations"
+  | "rounds"
+  | "standings"
+  | "reports"
+  | "group"
+  | "quota"
+  | "content"
+  | "branding"
+  | "billing";
+
+type NavItem = Readonly<{
+  href: string;
+  label: string;
+  // Sections that light this item up; the first one is the item itself.
+  sections: readonly PortalSection[];
+  roles: readonly PortalRole[];
+}>;
+
+const everyone = ["member", "coordinator", "administrator"] as const;
+const organizers = ["coordinator", "administrator"] as const;
+const administrators = ["administrator"] as const;
+
+const primaryNav: readonly NavItem[] = [
+  { href: "/portal", label: "Home", sections: ["home"], roles: everyone },
+  {
+    href: "/portal/members",
+    label: "Members",
+    sections: ["members", "invitations"],
+    roles: everyone,
+  },
+  {
+    href: "/portal/rounds",
+    label: "Rounds",
+    sections: ["rounds"],
+    roles: organizers,
+  },
+  {
+    href: "/portal/standings",
+    label: "Standings",
+    sections: ["standings", "reports"],
+    roles: organizers,
+  },
+  {
+    href: "/portal/content",
+    label: "Clubhouse",
+    sections: ["content"],
+    roles: organizers,
+  },
+  {
+    href: "/portal/group",
+    label: "Settings",
+    sections: ["group", "quota", "branding", "billing"],
+    roles: organizers,
+  },
+];
+
+const secondaryNav: readonly (readonly NavItem[])[] = [
+  [
+    {
+      href: "/portal/members",
+      label: "Roster",
+      sections: ["members"],
+      roles: everyone,
+    },
+    {
+      href: "/portal/invitations",
+      label: "Invitations",
+      sections: ["invitations"],
+      roles: everyone,
+    },
+  ],
+  [
+    {
+      href: "/portal/group",
+      label: "Group",
+      sections: ["group"],
+      roles: organizers,
+    },
+    {
+      href: "/portal/quota",
+      label: "Quota rules",
+      sections: ["quota"],
+      roles: administrators,
+    },
+    {
+      href: "/portal/branding",
+      label: "Branding",
+      sections: ["branding"],
+      roles: administrators,
+    },
+    {
+      href: "/portal/billing",
+      label: "Billing",
+      sections: ["billing"],
+      roles: administrators,
+    },
+  ],
+];
+
 const roleLabel: Record<PortalRole, string> = {
   member: "Member",
   coordinator: "Coordinator",
@@ -26,21 +128,18 @@ export function PortalShell({
   role?: PortalRole;
   roleStatus?: string;
   timeZone: string;
-  currentSection?:
-    | "home"
-    | "members"
-    | "invitations"
-    | "rounds"
-    | "standings"
-    | "reports"
-    | "group"
-    | "content"
-    | "branding"
-    | "billing";
+  currentSection?: PortalSection;
 }>) {
   const visibleRole = role
     ? roleLabel[role]
     : (roleStatus ?? "Access not resolved");
+  const allowed = (item: NavItem) =>
+    role ? item.roles.includes(role) : item.roles === everyone;
+  const tabs = (
+    secondaryNav.find((group) =>
+      group.some((item) => item.sections.includes(currentSection)),
+    ) ?? []
+  ).filter(allowed);
 
   return (
     <div className="portal-shell">
@@ -59,80 +158,21 @@ export function PortalShell({
         </Link>
 
         <nav className="portal-nav" aria-label="Portal">
-          <Link
-            href="/portal"
-            aria-current={currentSection === "home" ? "page" : undefined}
-          >
-            Home
-          </Link>
-          <Link
-            href="/portal/members"
-            aria-current={currentSection === "members" ? "page" : undefined}
-          >
-            Members
-          </Link>
-          <Link
-            href="/portal/invitations"
-            aria-current={currentSection === "invitations" ? "page" : undefined}
-          >
-            Invitations
-          </Link>
-          {role && role !== "member" ? (
+          {primaryNav.filter(allowed).map((item) => (
             <Link
-              href="/portal/rounds"
-              aria-current={currentSection === "rounds" ? "page" : undefined}
+              key={item.href}
+              href={item.href}
+              aria-current={
+                item.sections[0] === currentSection
+                  ? "page"
+                  : item.sections.includes(currentSection)
+                    ? "true"
+                    : undefined
+              }
             >
-              Rounds
+              {item.label}
             </Link>
-          ) : null}
-          {role && role !== "member" ? (
-            <Link
-              href="/portal/content"
-              aria-current={currentSection === "content" ? "page" : undefined}
-            >
-              Clubhouse
-            </Link>
-          ) : null}
-          {role === "administrator" ? (
-            <Link
-              href="/portal/branding"
-              aria-current={currentSection === "branding" ? "page" : undefined}
-            >
-              Branding
-            </Link>
-          ) : null}
-          {role && role !== "member" ? (
-            <Link
-              href="/portal/standings"
-              aria-current={currentSection === "standings" ? "page" : undefined}
-            >
-              Standings
-            </Link>
-          ) : null}
-          {role && role !== "member" ? (
-            <Link
-              href="/portal/reports"
-              aria-current={currentSection === "reports" ? "page" : undefined}
-            >
-              Reports
-            </Link>
-          ) : null}
-          {role && role !== "member" ? (
-            <Link
-              href="/portal/group"
-              aria-current={currentSection === "group" ? "page" : undefined}
-            >
-              Group
-            </Link>
-          ) : null}
-          {role === "administrator" ? (
-            <Link
-              href="/portal/billing"
-              aria-current={currentSection === "billing" ? "page" : undefined}
-            >
-              Billing
-            </Link>
-          ) : null}
+          ))}
         </nav>
 
         <div className="account-block">
@@ -155,6 +195,21 @@ export function PortalShell({
           </form>
         </div>
       </header>
+      {tabs.length > 1 ? (
+        <nav className="portal-tabs" aria-label="Section">
+          {tabs.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={
+                item.sections.includes(currentSection) ? "page" : undefined
+              }
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       <main id="main-content" tabIndex={-1} className="portal-main">
         {children}
       </main>

@@ -27,8 +27,8 @@ export function memberImportAccessFailure(
   return {
     accessMessage:
       code === "authentication_required"
-        ? "Your session expired. Sign in again to continue."
-        : "Your role no longer permits access to this import.",
+        ? "You've been signed out. Sign in again to continue."
+        : "You no longer have access to this import.",
     applyMessage: "",
     clearConfirmation: false,
     clearJob: true,
@@ -47,8 +47,7 @@ export function memberImportApplyFailure(
   if (code === "stale_version") {
     return {
       accessMessage: "",
-      applyMessage:
-        "The import changed. Its current status is being refreshed.",
+      applyMessage: "This import has changed. We're loading its latest status.",
       clearConfirmation: true,
       clearJob: false,
       refreshStatus: true,
@@ -57,7 +56,7 @@ export function memberImportApplyFailure(
   }
   return {
     accessMessage: "",
-    applyMessage: `Apply could not be queued. Correlation ID: ${correlationId}`,
+    applyMessage: `We couldn't start the import. Try again, or contact support with reference ${correlationId}.`,
     clearConfirmation: false,
     clearJob: false,
     refreshStatus: false,
@@ -69,7 +68,7 @@ export function memberImportApplyTransportFailure(): MemberImportFailurePlan {
   return {
     accessMessage: "",
     applyMessage:
-      "The confirmation response was lost. The current import status is being refreshed.",
+      "We didn't hear back after you confirmed. We're loading the import's latest status.",
     clearConfirmation: false,
     clearJob: false,
     refreshStatus: true,

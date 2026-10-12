@@ -59,13 +59,13 @@ export function MembershipInvitationEmailDocument(
             Accept your invitation
           </Button>
           <Text style={mutedTextStyle}>
-            This invitation expires on <strong>{expiresAt}</strong>. The link is
-            single-use.
+            This invitation expires on <strong>{expiresAt}</strong>. The link
+            works only once.
           </Text>
           <Hr style={ruleStyle} />
           <Text style={mutedTextStyle}>
             If you did not expect this invitation, you can safely ignore this
-            email.
+            e-mail.
           </Text>
         </Container>
       </Body>
@@ -89,9 +89,9 @@ export function buildMembershipInvitationEmail(
     "",
     `Accept your invitation: ${input.acceptanceUrl}`,
     "",
-    `This invitation expires on ${expiresAt}. The link is single-use.`,
+    `This invitation expires on ${expiresAt}. The link works only once.`,
     "",
-    "If you did not expect this invitation, you can safely ignore this email.",
+    "If you did not expect this invitation, you can safely ignore this e-mail.",
   ].join("\n");
 
   return {

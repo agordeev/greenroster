@@ -35,27 +35,27 @@ export function InvitationDeliveryFailedEmailDocument(
   return (
     <Html lang="en">
       <Head />
-      <Preview>{`The invitation to ${invitedAddress} could not be delivered.`}</Preview>
+      <Preview>{`We couldn't deliver the invitation to ${invitedAddress}.`}</Preview>
       <Body style={bodyStyle}>
         <Container style={containerStyle}>
           <Heading style={headingStyle}>
-            Invitation could not be delivered
+            We couldn&apos;t deliver an invitation
           </Heading>
           <Text style={textStyle}>
-            GreenRoster could not deliver the invitation for {groupName} to{" "}
+            We couldn&apos;t deliver the invitation for {groupName} to{" "}
             <strong>{invitedAddress}</strong>.
           </Text>
           <Text style={mutedTextStyle}>
-            Check the address, correct the member record, and resend the
-            invitation from the group dashboard.
+            Check the e-mail address, fix it, and send a new link from the
+            invitations page.
           </Text>
           <Button href={input.actionUrl} style={buttonStyle}>
             Open invitations
           </Button>
           <Hr style={ruleStyle} />
           <Text style={mutedTextStyle}>
-            The invitation remains visible as an action-required delivery issue
-            until it is corrected or resolved.
+            It stays on your invitations list, marked as needing action, until
+            you fix it or resolve it.
           </Text>
         </Container>
       </Body>
@@ -70,17 +70,17 @@ export function buildInvitationDeliveryFailedEmail(
   const invitedAddress = singleLine(input.invitedAddress);
   return {
     html: "",
-    subject: `Invitation could not be delivered in ${groupName}`,
+    subject: `We couldn't deliver an invitation in ${groupName}`,
     text: [
-      "Invitation could not be delivered.",
+      "We couldn't deliver an invitation.",
       "",
-      `GreenRoster could not deliver the invitation for ${groupName} to ${invitedAddress}.`,
+      `We couldn't deliver the invitation for ${groupName} to ${invitedAddress}.`,
       "",
-      "Check the address, correct the member record, and resend the invitation from the group dashboard.",
+      "Check the e-mail address, fix it, and send a new link from the invitations page.",
       "",
       `Open invitations: ${input.actionUrl}`,
       "",
-      "The invitation remains visible as an action-required delivery issue until it is corrected or resolved.",
+      "It stays on your invitations list, marked as needing action, until you fix it or resolve it.",
     ].join("\n"),
   };
 }

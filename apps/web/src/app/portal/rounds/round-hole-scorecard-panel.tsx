@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 
 import { setRoundParticipantHoleScoreAction } from "@/app/actions/rounds";
+import { SectionHeading } from "@/components/ui";
 import {
   roundHoleScoreInputSchema,
   type RoundHoleScoreRow,
@@ -69,31 +70,30 @@ export function RoundHoleScorecardPanel({
 
   return (
     <section
-      className="group-roles-panel"
+      className="page-section"
       aria-labelledby="round-hole-scorecard-title"
     >
-      <div className="group-panel-heading">
-        <div>
-          <p className="ledger-kicker">Scoring</p>
-          <h2 id="round-hole-scorecard-title">Hole scorecard</h2>
-        </div>
-        <p>
-          {rows.length === 0
+      <SectionHeading
+        kicker="Scoring"
+        title="Hole scorecard"
+        titleId="round-hole-scorecard-title"
+        meta={
+          rows.length === 0
             ? "No holes yet"
-            : `${byParticipant.length} player${byParticipant.length === 1 ? "" : "s"}`}
-        </p>
-      </div>
+            : `${byParticipant.length} player${byParticipant.length === 1 ? "" : "s"}`
+        }
+      />
       <p>
         Enter strokes, putts, fairways, greens, sand saves, and an optional note
         for each hole. This doesn’t change points or standings.
       </p>
       {message ? <p role="status">{message}</p> : null}
       {byParticipant.length === 0 ? (
-        <p className="group-empty">
+        <p className="empty-state">
           Hole details appear once players join this round.
         </p>
       ) : (
-        <div className="group-role-list">
+        <div className="row-list">
           {byParticipant.map((participantRows) => (
             <ParticipantHoleScorecard
               key={participantRows[0].participantId}
@@ -195,8 +195,8 @@ function ParticipantHoleScorecard({
   }
 
   return (
-    <article className="group-role-row">
-      <div className="group-panel-heading">
+    <article className="row-item">
+      <div className="section-heading">
         <h3>
           {displayName(rows[0])}
           {rows[0].participantKind === "guest" ? " · Guest" : ""}

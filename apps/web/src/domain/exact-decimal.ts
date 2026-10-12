@@ -13,7 +13,7 @@ export function roundHalfAwayFromZero(
   const match = DECIMAL_PATTERN.exec(input.trim());
 
   if (!match) {
-    throw new Error("Decimal input must use plain base-10 notation");
+    throw new Error("Enter a plain number, such as 12.5.");
   }
 
   const [, sign, integerPart, fractionPart = ""] = match;

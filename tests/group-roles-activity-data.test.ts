@@ -324,7 +324,7 @@ describe("group roles and activity presentation", () => {
 
   it("keeps invitation and safe-summary states readable", () => {
     expect(formatInvitationState("accepted")).toBe("Invitation accepted");
-    expect(formatInvitationState(null)).toBe("No invitation record");
+    expect(formatInvitationState(null)).toBe("No invitation sent yet");
     expect(
       formatActivitySummary(
         visibleSummary({
@@ -335,9 +335,7 @@ describe("group roles and activity presentation", () => {
           contactVersion: 4,
         }),
       ),
-    ).toBe(
-      "Status: active · Role: Coordinator · Dues: paid · Profile v3 · Contact v4",
-    );
+    ).toBe("Status: active · Role: Coordinator · Dues: paid");
     expect(
       formatActivitySummary(
         visibleSummary({
@@ -347,7 +345,7 @@ describe("group roles and activity presentation", () => {
           asOf: "2026-07-27",
         }),
       ),
-    ).toBe("Handicap: 8.40 (manual · 2026-07-27)");
+    ).toBe("Handicap: 8.40 (entered by hand · 2026-07-27)");
     expect(
       formatActivitySummary(
         visibleSummary({
@@ -364,6 +362,6 @@ describe("group roles and activity presentation", () => {
           changedFields: ["name", "time_zone"],
         }),
       ),
-    ).toBe("Changed: name, time_zone");
+    ).toBe("Changed: name, time zone");
   });
 });
