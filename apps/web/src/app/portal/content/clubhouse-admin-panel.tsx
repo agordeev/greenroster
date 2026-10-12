@@ -71,15 +71,25 @@ export function ClubhouseAdminPanel({
     });
   }
   return (
-    <section className="page-section" aria-labelledby="clubhouse-admin-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="clubhouse-admin-title"
+    >
       <SectionHeading
         kicker="Clubhouse"
         title="Share news and videos"
         titleId="clubhouse-admin-title"
         meta={<>{initial.news.length + initial.media.length} published</>}
       />
-      <div className="form-stack">
-        <label className="field-group" htmlFor="clubhouse-title">
+      <div
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
+      >
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="clubhouse-title"
+        >
           <span>Title</span>
           <Input
             id="clubhouse-title"
@@ -88,7 +98,11 @@ export function ClubhouseAdminPanel({
             disabled={pending}
           />
         </label>
-        <label className="field-group" htmlFor="clubhouse-body">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="clubhouse-body"
+        >
           <span>News text</span>
           <Textarea
             id="clubhouse-body"
@@ -102,7 +116,11 @@ export function ClubhouseAdminPanel({
         <Button type="button" onClick={saveNews} disabled={pending}>
           {pending ? "Saving…" : "Publish news"}
         </Button>
-        <label className="field-group" htmlFor="clubhouse-url">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="clubhouse-url"
+        >
           <span>Video link</span>
           <Input
             id="clubhouse-url"

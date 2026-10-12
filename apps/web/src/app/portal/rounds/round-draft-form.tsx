@@ -319,7 +319,8 @@ export function RoundDraftForm({
 
   return (
     <form
-      className="form-stack"
+      className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+      data-slot="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
@@ -329,7 +330,7 @@ export function RoundDraftForm({
         title={isEdit ? "Round details" : "New round"}
         meta={isEdit ? "Draft" : "Not published yet"}
       />
-      <div className="form-row">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
         <Field
           id={`${prefix}-description`}
           label="Description"
@@ -353,7 +354,7 @@ export function RoundDraftForm({
           />
         </Field>
       </div>
-      <div className="form-row">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
         <Field
           id={`${prefix}-scheduled`}
           label="Start time"
@@ -424,7 +425,11 @@ export function RoundDraftForm({
           disabled={disabled}
         />
       </Field>
-      <label className="bound-choice" htmlFor={`${prefix}-notes-visible`}>
+      <label
+        className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+        data-slot="bound-choice"
+        htmlFor={`${prefix}-notes-visible`}
+      >
         <Checkbox
           id={`${prefix}-notes-visible`}
           checked={notesVisibleToPlayers}

@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { updateGroupProfileAction } from "@/app/actions/groups";
-import { ActionRow, FormMessage } from "@/components/blocks";
+import { ActionRow, FieldError, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -210,13 +210,17 @@ export function GroupProfileForm({
 
   return (
     <form
-      className="form-stack"
+      className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+      data-slot="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <div className="form-row">
-        <div className="field-group">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="group-profile-name">Group name</label>
           <Input
             id="group-profile-name"
@@ -236,12 +240,15 @@ export function GroupProfileForm({
             disabled={pending}
           />
           {fieldErrors.groupName ? (
-            <p id="group-profile-name-error" className="field-error">
+            <FieldError id="group-profile-name-error">
               {fieldErrors.groupName}
-            </p>
+            </FieldError>
           ) : null}
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="group-profile-time-zone">Group time zone</label>
           <Input
             id="group-profile-time-zone"
@@ -265,13 +272,16 @@ export function GroupProfileForm({
             disabled={pending}
           />
           {fieldErrors.groupTimeZone ? (
-            <p id="group-profile-time-zone-error" className="field-error">
+            <FieldError id="group-profile-time-zone-error">
               {fieldErrors.groupTimeZone}
-            </p>
+            </FieldError>
           ) : null}
         </div>
       </div>
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="group-profile-reason">Reason for change</label>
         <Textarea
           id="group-profile-reason"
@@ -292,9 +302,9 @@ export function GroupProfileForm({
           disabled={pending}
         />
         {fieldErrors.reason ? (
-          <p id="group-profile-reason-error" className="field-error">
+          <FieldError id="group-profile-reason-error">
             {fieldErrors.reason}
-          </p>
+          </FieldError>
         ) : null}
       </div>
       <FormMessage

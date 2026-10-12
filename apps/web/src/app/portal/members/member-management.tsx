@@ -22,7 +22,7 @@ import {
   shouldAllowMemberFormSubmit,
 } from "@/lib/memberships/member-management";
 import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
-import { FormMessage } from "@/components/blocks";
+import { FieldHelp, FormMessage, Kicker, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -119,10 +119,13 @@ export function MemberManagement({
   }
 
   return (
-    <div className="member-management">
+    <div className="mt-10 gap-6 grid grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.7fr)] max-[720px]:grid-cols-[1fr] [&>[data-slot='alert']]:col-span-full [&>[data-slot=member-editor]]:col-span-full">
       {selectedMember ? null : (
-        <div className="member-list" aria-label="Group members">
-          <div className="member-list-heading">
+        <div
+          className="border bg-muted self-start col-span-full [&_[data-slot=member-roster-cards]]:m-0 [&_[data-slot=member-roster-cards]]:p-0 [&_[data-slot=member-roster-cards]]:hidden [&_[data-slot=member-roster-cards]]:list-none max-[960px]:[&_[data-slot=member-roster-cards]]:grid!"
+          aria-label="Group members"
+        >
+          <div className="p-5 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:m-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_span]:text-muted-foreground [&_span]:text-[0.75rem]!">
             <h2>Roster</h2>
             <span>
               {totalCount} {totalCount === 1 ? "member" : "members"}
@@ -166,12 +169,15 @@ function MemberRosterFilters({
 }: Readonly<{ query: MemberRosterQuery }>) {
   return (
     <form
-      className="member-roster-filters"
+      className="p-5 gap-4 border-b border-b-border/50 grid"
       action="/portal/members"
       method="get"
     >
-      <div className="member-roster-filter-grid">
-        <label className="field-group member-roster-search">
+      <div className="gap-3 grid grid-cols-6 max-[960px]:grid-cols-2 max-[720px]:grid-cols-[1fr]">
+        <label
+          className="gap-2 grid col-span-3 max-[960px]:col-span-full max-[720px]:col-[auto] [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Search by name, invite e-mail, or Handicap ID</span>
           <Input
             name="search"
@@ -181,7 +187,10 @@ function MemberRosterFilters({
             autoComplete="off"
           />
         </label>
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Status</span>
           <NativeSelect name="status" defaultValue={query.status ?? ""}>
             <option value="">All statuses</option>
@@ -193,7 +202,10 @@ function MemberRosterFilters({
         {query.alphabet ? (
           <input type="hidden" name="alphabet" value={query.alphabet} />
         ) : null}
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Role</span>
           <NativeSelect name="role" defaultValue={query.role ?? ""}>
             <option value="">All roles</option>
@@ -202,7 +214,10 @@ function MemberRosterFilters({
             <option value="administrator">Administrator</option>
           </NativeSelect>
         </label>
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Dues</span>
           <NativeSelect name="dues" defaultValue={query.dues ?? ""}>
             <option value="">All dues</option>
@@ -210,7 +225,10 @@ function MemberRosterFilters({
             <option value="unpaid">Not set yet</option>
           </NativeSelect>
         </label>
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Per page</span>
           <NativeSelect name="pageSize" defaultValue={String(query.pageSize)}>
             <option value="25">25</option>
@@ -218,7 +236,10 @@ function MemberRosterFilters({
             <option value="100">100</option>
           </NativeSelect>
         </label>
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Sort by</span>
           <NativeSelect name="sort" defaultValue={query.sort}>
             <option value="name">Name</option>
@@ -232,7 +253,10 @@ function MemberRosterFilters({
             <option value="invitation">Invitation</option>
           </NativeSelect>
         </label>
-        <label className="field-group">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <span>Order</span>
           <NativeSelect name="direction" defaultValue={query.direction}>
             <option value="asc">Ascending</option>
@@ -240,16 +264,14 @@ function MemberRosterFilters({
           </NativeSelect>
         </label>
       </div>
-      <div className="member-roster-filter-actions">
+      <div className="gap-3 flex items-center flex-wrap">
         <Button variant="outline" type="submit">
           Apply filters
         </Button>
         {memberRosterQueryHasFilters(query) ||
         query.page !== 1 ||
         query.pageSize !== 25 ? (
-          <Link className="secondary-link" href="/portal/members">
-            Clear filters
-          </Link>
+          <TextLink href="/portal/members">Clear filters</TextLink>
         ) : null}
       </div>
     </form>
@@ -261,7 +283,7 @@ function MemberAlphabetFilter({
 }: Readonly<{ query: MemberRosterQuery }>) {
   return (
     <nav
-      className="member-alphabet-filter"
+      className="py-[0.85rem] px-5 gap-[0.35rem] border-b border-b-border/50 flex items-center flex-wrap text-muted-foreground text-[0.75rem] [&>span]:mr-[0.35rem] [&>span]:font-bold [&_a:hover]:bg-card [&_a[aria-current='page']]:rounded-lg [&_a[aria-current='page']]:text-card [&_a[aria-current='page']]:font-bold [&_a[aria-current='page']]:border-primary! [&_a[aria-current='page']]:bg-primary! [&_a]:px-[0.35rem] [&_a]:border [&_a]:border-transparent [&_a]:inline-grid [&_a]:min-w-[1.65rem] [&_a]:min-h-[1.65rem] [&_a]:place-items-center [&_a]:rounded-lg [&_a]:text-primary [&_a]:no-underline"
       aria-label="Filter members by surname initial"
     >
       <span>Alphabet</span>
@@ -318,18 +340,20 @@ function MemberRosterContent({
 
   if (pageOutOfRange) {
     return (
-      <div className="member-roster-empty" role="status">
+      <div
+        className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
+        role="status"
+      >
         <h3>No members on this page</h3>
         <p>
           These members fill {totalPages} page{totalPages === 1 ? "" : "s"}. Go
           back to the first page.
         </p>
-        <Link
-          className="secondary-link"
+        <TextLink
           href={buildMemberRosterHref(query, { page: 1, membership: null })}
         >
           Go to first page
-        </Link>
+        </TextLink>
       </div>
     );
   }
@@ -337,7 +361,10 @@ function MemberRosterContent({
   if (members.length === 0) {
     const filtered = memberRosterQueryHasFilters(query);
     return (
-      <div className="member-roster-empty" role="status">
+      <div
+        className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
+        role="status"
+      >
         <h3>
           {filtered ? "No members match these filters" : "No members yet"}
         </h3>
@@ -347,9 +374,7 @@ function MemberRosterContent({
             : "Add a member or import a list to start your roster."}
         </p>
         {filtered ? (
-          <Link className="secondary-link" href="/portal/members">
-            Clear filters
-          </Link>
+          <TextLink href="/portal/members">Clear filters</TextLink>
         ) : null}
       </div>
     );
@@ -358,17 +383,23 @@ function MemberRosterContent({
   return (
     <>
       {noActiveMembers ? (
-        <div className="member-roster-empty" role="status">
+        <div
+          className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
+          role="status"
+        >
           <h3>No active members</h3>
         </div>
       ) : null}
-      <p className="member-roster-result-summary" aria-live="polite">
+      <p
+        className="m-0 py-[0.85rem] px-5 border-b border-b-border/50 text-muted-foreground text-[0.75rem]"
+        aria-live="polite"
+      >
         Showing {members.length} of {totalCount} matching member
         {totalCount === 1 ? "" : "s"}. Page {query.page} of {totalPages}.
       </p>
-      <div className="member-roster-table-wrap">
-        <table className="member-roster-table">
-          <caption className="visually-hidden">Group member roster</caption>
+      <div className="overflow-hidden w-full max-[960px]:hidden">
+        <table className="w-full border-collapse table-fixed text-[0.8125rem] [&_:is(th,td):first-child]:pl-5 [&_:is(th,td):first-child]:w-[20%] [&_:is(th,td):last-child]:pr-5 [&_tbody_th]:font-semibold [&_tbody_th]:text-[0.875rem]! [&_tbody_th_a:hover]:text-primary [&_tbody_th_a:hover]:underline [&_tbody_th_a:hover]:underline-offset-[0.2em] [&_tbody_th_a[aria-current='page']]:text-primary [&_tbody_th_a[aria-current='page']]:underline [&_tbody_th_a[aria-current='page']]:underline-offset-[0.2em] [&_tbody_th_a]:text-inherit [&_tbody_th_a]:no-underline [&_tbody_tr:last-child_:is(th,td)]:border-b-0 [&_td]:py-3 [&_td]:px-[0.6rem] [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:align-top [&_td]:wrap-anywhere [&_th]:py-3 [&_th]:px-[0.6rem] [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:align-top [&_th]:wrap-anywhere [&_thead_a:focus-visible]:text-primary [&_thead_a:focus-visible]:underline [&_thead_a:hover]:text-primary [&_thead_a:hover]:underline [&_thead_a]:text-inherit [&_thead_a]:no-underline [&_thead_a]:underline-offset-[0.2em] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.04em] [&_thead_th]:[overflow-wrap:normal] [&_thead_th]:uppercase [&_thead_th]:whitespace-nowrap">
+          <caption className="sr-only">Group member roster</caption>
           <thead>
             <tr>
               <MemberSortHeader label="Member" query={query} sortKey="name" />
@@ -407,7 +438,7 @@ function MemberRosterContent({
         </table>
       </div>
       <ul
-        className="member-roster-cards"
+        data-slot="member-roster-cards"
         aria-label="Group member roster cards"
       >
         {members.map((member) => (
@@ -510,10 +541,10 @@ function MemberRosterCard({
 }>) {
   return (
     <article
-      className="member-roster-card"
+      className="p-5 gap-4 border-b border-b-border/50 grid [&[data-selected='true']]:[box-shadow:inset_0.2rem_0_var(--primary)] [&[data-selected='true']]:bg-card [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-y-[0.85rem] [&_dl]:gap-x-4 max-[720px]:[&_dl]:grid-cols-[1fr]! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.06em] [&_dt]:uppercase"
       data-selected={selected || undefined}
     >
-      <div className="member-roster-card-heading">
+      <div className="gap-4 flex items-start justify-between [&>span]:text-muted-foreground [&>span]:font-bold [&>span]:uppercase [&>span]:text-[0.6875rem]! [&>span]:tracking-[0.06em]! [&_a:hover]:underline [&_a:hover]:underline-offset-[0.2em] [&_a:hover]:text-primary! [&_a[aria-current='page']]:underline [&_a[aria-current='page']]:underline-offset-[0.2em] [&_a[aria-current='page']]:text-primary! [&_a]:no-underline [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold">
         <h3>
           <Link
             href={buildMemberRosterHref(query, {
@@ -568,7 +599,10 @@ function MemberRosterPagination({
 }: Readonly<{ query: MemberRosterQuery; totalPages: number }>) {
   if (totalPages <= 1) return null;
   return (
-    <nav className="member-roster-pagination" aria-label="Member roster pages">
+    <nav
+      className="py-4 px-5 gap-4 flex items-center justify-between text-muted-foreground text-[0.75rem] [&>div]:gap-3 [&>div]:flex [&_a]:text-primary [&_a]:font-bold [&_a]:underline-offset-[0.2em]"
+      aria-label="Member roster pages"
+    >
       <span>
         Page {query.page} of {totalPages}
       </span>
@@ -755,10 +789,10 @@ function MemberEditor({
       if (
         !dirty ||
         !(form instanceof HTMLFormElement) ||
-        form.classList.contains("member-edit-form") ||
-        form.classList.contains("member-status-form") ||
-        form.classList.contains("member-role-form") ||
-        form.classList.contains("member-handicap-form")
+        form.dataset.form === "member-edit-form" ||
+        form.dataset.form === "member-status-form" ||
+        form.dataset.form === "member-role-form" ||
+        form.dataset.form === "member-handicap-form"
       ) {
         return;
       }
@@ -1152,18 +1186,21 @@ function MemberEditor({
   }
 
   return (
-    <div className="member-editor">
-      <div className="member-editor-heading">
+    <div className="pb-6 gap-6 border bg-muted grid" data-slot="member-editor">
+      <div className="p-5 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h2]:mt-[0.35rem]!">
         <div>
-          <p className="ledger-kicker">Member</p>
+          <Kicker>Member</Kicker>
           <h2>{formatMemberName(member)}</h2>
         </div>
-        <span className={`member-status member-status-${member.status}`}>
+        <span
+          className="text-[0.6875rem] font-bold tracking-[0.08em] uppercase text-muted-foreground data-[status=active]:text-primary"
+          data-status={member.status}
+        >
           {formatStatus(member.status)}
         </span>
       </div>
 
-      <dl className="member-summary">
+      <dl className="my-0 mx-5 pb-5 gap-4 border-b border-b-border/50 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dd]:mt-[0.35rem]! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:uppercase [&_dt]:tracking-[0.08em]!">
         <div>
           <dt>Role</dt>
           <dd>{formatRole(member.role)}</dd>
@@ -1174,10 +1211,15 @@ function MemberEditor({
         </div>
       </dl>
 
-      <form className="member-edit-form" onSubmit={submitEdit} noValidate>
+      <form
+        className="my-0 mx-5 gap-5 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+        data-form="member-edit-form"
+        onSubmit={submitEdit}
+        noValidate
+      >
         <fieldset disabled={pending || !canEdit}>
           <legend>Profile and contact details</legend>
-          <div className="member-form-grid">
+          <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
             <Field
               label="First name"
               value={values.firstName}
@@ -1200,7 +1242,10 @@ function MemberEditor({
               value={values.spouseLastName ?? ""}
               onChange={(value) => update("spouseLastName", value || null)}
             />
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Tee location</span>
               <NativeSelect
                 value={values.teeLocation ?? ""}
@@ -1218,7 +1263,7 @@ function MemberEditor({
                 <option value="front">Front</option>
               </NativeSelect>
             </label>
-            <label className="member-check">
+            <label className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]">
               <Checkbox
                 checked={values.duesPaid}
                 onCheckedChange={(checked) =>
@@ -1229,9 +1274,12 @@ function MemberEditor({
             </label>
           </div>
 
-          <fieldset className="member-contact-fieldset">
+          <fieldset
+            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+            data-slot="member-contact-fieldset"
+          >
             <legend>Private contact details</legend>
-            <div className="member-form-grid">
+            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
               <Field
                 label="Secondary e-mail"
                 type="email"
@@ -1284,7 +1332,7 @@ function MemberEditor({
                 onChange={(value) => update("country", value || null)}
               />
             </div>
-            <div className="member-visibility-grid">
+            <div className="flex flex-wrap gap-y-3 gap-x-4">
               <Visibility
                 label="List secondary e-mail"
                 checked={values.secondaryEmailVisible}
@@ -1313,7 +1361,10 @@ function MemberEditor({
             </div>
           </fieldset>
 
-          <label className="field-group">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+          >
             <span>Reason (optional)</span>
             <Textarea
               value={editReason}
@@ -1329,22 +1380,24 @@ function MemberEditor({
       </form>
 
       <form
-        className="member-handicap-form"
+        className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
+        data-form="member-handicap-form"
         onSubmit={submitHandicap}
         noValidate
       >
         <fieldset disabled={pending || !canEdit}>
           <legend>Enter a handicap</legend>
-          <p className="field-help">
-            Earlier handicaps stay in the history below.
-          </p>
-          <div className="member-form-grid">
+          <FieldHelp>Earlier handicaps stay in the history below.</FieldHelp>
+          <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
             <Field
               label="Handicap ID"
               value={handicapId}
               onChange={setHandicapId}
             />
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Handicap</span>
               <Input
                 type="number"
@@ -1356,7 +1409,10 @@ function MemberEditor({
                 required
               />
             </label>
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Handicap date</span>
               <Input
                 type="date"
@@ -1366,7 +1422,10 @@ function MemberEditor({
               />
             </label>
           </div>
-          <label className="field-group">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+          >
             <span>Reason (required)</span>
             <Textarea
               value={handicapReason}
@@ -1377,7 +1436,7 @@ function MemberEditor({
             />
           </label>
           <label
-            className="invitation-confirmation"
+            className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
             htmlFor={`member-handicap-confirm-${member.membershipId}`}
           >
             <Checkbox
@@ -1416,25 +1475,31 @@ function MemberEditor({
       </form>
 
       {member.status === "pending" ? (
-        <p className="field-help">
+        <FieldHelp>
           This member must accept their invitation before you can change their
           status.
-        </p>
+        </FieldHelp>
       ) : (
-        <form className="member-status-form" onSubmit={submitStatus} noValidate>
+        <form
+          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_[data-slot=field-help]]:text-muted-foreground [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+          data-form="member-status-form"
+          onSubmit={submitStatus}
+          noValidate
+        >
           <fieldset disabled={pending || !canChangeStatus}>
             <legend>Member status</legend>
             {restrictedTarget ? (
-              <p className="field-help">
+              <FieldHelp>
                 Only administrators can change another administrator.
-              </p>
+              </FieldHelp>
             ) : null}
             {member.membershipId === actorMembershipId ? (
-              <p className="field-help">
-                You can&apos;t change your own status.
-              </p>
+              <FieldHelp>You can&apos;t change your own status.</FieldHelp>
             ) : null}
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Reason (required)</span>
               <Textarea
                 value={statusReason}
@@ -1445,7 +1510,7 @@ function MemberEditor({
               />
             </label>
             <label
-              className="invitation-confirmation"
+              className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
               htmlFor={`member-status-confirm-${member.membershipId}`}
             >
               <Checkbox
@@ -1476,10 +1541,18 @@ function MemberEditor({
       )}
 
       {canChangeRole ? (
-        <form className="member-role-form" onSubmit={submitRole} noValidate>
+        <form
+          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
+          data-form="member-role-form"
+          onSubmit={submitRole}
+          noValidate
+        >
           <fieldset disabled={pending}>
             <legend>Role</legend>
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Role</span>
               <NativeSelect
                 value={selectedRole}
@@ -1492,7 +1565,10 @@ function MemberEditor({
                 <option value="administrator">Administrator</option>
               </NativeSelect>
             </label>
-            <label className="field-group">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
               <span>Reason (required)</span>
               <Textarea
                 value={roleReason}
@@ -1503,7 +1579,7 @@ function MemberEditor({
               />
             </label>
             <label
-              className="invitation-confirmation"
+              className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
               htmlFor={`member-role-confirm-${member.membershipId}`}
             >
               <Checkbox
@@ -1532,19 +1608,17 @@ function MemberEditor({
             {selectedRole === member.role ||
             roleReason.trim().length === 0 ||
             !roleConfirmed ? (
-              <p className="field-help" role="status">
+              <FieldHelp role="status">
                 Choose a different role, add a reason, and confirm the change
                 before saving.
-              </p>
+              </FieldHelp>
             ) : null}
           </fieldset>
         </form>
       ) : null}
 
       {dirty ? (
-        <p className="field-help" role="status">
-          You have unsaved changes.
-        </p>
+        <FieldHelp role="status">You have unsaved changes.</FieldHelp>
       ) : null}
     </div>
   );
@@ -1582,7 +1656,10 @@ function Field({
   required?: boolean;
 }>) {
   return (
-    <label className="field-group">
+    <label
+      className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+      data-slot="field"
+    >
       <span>{label}</span>
       <Input
         type={type}
@@ -1604,7 +1681,7 @@ function Visibility({
   onChange: (value: boolean) => void;
 }>) {
   return (
-    <label className="member-check">
+    <label className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]">
       <Checkbox
         checked={checked}
         onCheckedChange={(checked) => onChange(checked === true)}

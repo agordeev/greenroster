@@ -1,3 +1,4 @@
+import { Kicker } from "@/components/blocks";
 export type MemberNotificationPreference = Readonly<{
   category: string;
   mandatory: boolean;
@@ -14,23 +15,26 @@ export function MemberNotificationPreferences({
 }>) {
   return (
     <section
-      className="member-preferences-list"
+      className="mt-8 gap-3 grid"
       id="notifications"
       aria-labelledby="member-notifications-title"
     >
-      <p className="ledger-kicker">Notification preferences</p>
+      <Kicker>Notification preferences</Kicker>
       <h2 id="member-notifications-title">How you get updates</h2>
-      <p className="member-results-intro">
+      <p className="text-muted-foreground leading-[1.55]">
         To change these, open the GreenRoster app.
       </p>
       {preferences === null ? (
-        <p className="member-read-empty" role="status">
+        <p className="text-muted-foreground leading-[1.55]" role="status">
           We could not load your notification settings. Open the app to review
           them.
         </p>
       ) : (
         preferences.map((preference) => (
-          <section className="member-preference-row" key={preference.category}>
+          <section
+            className="p-4 gap-6 border grid grid-cols-[minmax(0,1fr)_auto] bg-muted max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:font-bold [&_dl]:m-0 [&_dl]:gap-4 [&_dl]:flex [&_dl_div]:min-w-16 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase [&_h2]:m-0 [&_h2]:text-[1.125rem] [&_h2]:font-semibold [&_p]:mx-0 [&_p]:mt-[0.35rem] [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:text-[0.8125rem]"
+            key={preference.category}
+          >
             <div>
               <h3>{formatCategory(preference.category)}</h3>
               <p>{preference.mandatory ? "Always on." : "Optional."}</p>
@@ -60,7 +64,7 @@ export function MemberNotificationPreferences({
           </section>
         ))
       )}
-      <p className="member-read-note">
+      <p className="text-muted-foreground leading-[1.55]">
         You always get cancellation and account security messages.
       </p>
     </section>

@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { updatePasswordAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
-import { FormMessage } from "@/components/blocks";
+import { FieldError, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
@@ -27,9 +27,12 @@ export function ResetForm() {
   }, [state]);
 
   return (
-    <form action={formAction} className="auth-form" noValidate>
-      <div className="field-group">
-        <div className="label-row">
+    <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
+        <div className="flex items-baseline justify-between">
           <label htmlFor="password">New password</label>
           <Button
             variant="link"
@@ -55,12 +58,15 @@ export function ResetForm() {
           required
         />
         {state.fieldErrors?.password ? (
-          <p id="new-password-error" className="field-error">
+          <FieldError id="new-password-error">
             Use at least {MINIMUM_PASSWORD_LENGTH} characters.
-          </p>
+          </FieldError>
         ) : null}
       </div>
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="confirmPassword">Confirm new password</label>
         <Input
           id="confirmPassword"
@@ -77,9 +83,9 @@ export function ResetForm() {
           required
         />
         {state.fieldErrors?.confirmPassword ? (
-          <p id="confirm-password-error" className="field-error">
+          <FieldError id="confirm-password-error">
             Passwords must match.
-          </p>
+          </FieldError>
         ) : null}
       </div>
       <FormMessage

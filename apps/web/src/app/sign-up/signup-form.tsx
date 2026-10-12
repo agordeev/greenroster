@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { initialAuthFormState } from "@/app/actions/auth-state";
 import { registerOrganizerAction } from "@/app/actions/auth";
-import { Field, FormMessage } from "@/components/blocks";
+import { Field, FieldError, FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,7 +27,10 @@ export function OrganizerSignupForm() {
 
   if (state.status === "success") {
     return (
-      <div className="invitation-action-success" role="status">
+      <div
+        className="mt-8 gap-3 grid justify-items-start [&_[data-slot='button']]:mt-1"
+        role="status"
+      >
         <FormMessage tone="success" data-status="success">
           {state.message}
         </FormMessage>
@@ -39,8 +42,11 @@ export function OrganizerSignupForm() {
   }
 
   return (
-    <form action={formAction} className="auth-form" noValidate>
-      <div className="field-group">
+    <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="email">Account e-mail</label>
         <Input
           id="email"
@@ -56,14 +62,17 @@ export function OrganizerSignupForm() {
           required
         />
         {state.fieldErrors?.email ? (
-          <p id="email-error" className="field-error">
+          <FieldError id="email-error">
             Enter a valid account e-mail.
-          </p>
+          </FieldError>
         ) : null}
       </div>
 
-      <div className="field-group">
-        <div className="label-row">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
+        <div className="flex items-baseline justify-between">
           <label htmlFor="password">Password</label>
           <Button
             variant="link"
@@ -85,9 +94,9 @@ export function OrganizerSignupForm() {
           aria-describedby="password-help"
           required
         />
-        <p id="password-help" className="field-help">
+        <FieldHelp id="password-help">
           Use a password of at least {MINIMUM_PASSWORD_LENGTH} characters.
-        </p>
+        </FieldHelp>
       </div>
 
       <Field id="confirmPassword" label="Confirm password">
@@ -100,13 +109,13 @@ export function OrganizerSignupForm() {
         />
       </Field>
 
-      <label className="confirmation-row">
+      <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45] [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]">
         <Checkbox name="acceptedTerms" required />
         <span>
           I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
-      <label className="confirmation-row">
+      <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45] [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]">
         <Checkbox name="acceptedPrivacy" required />
         <span>
           I accept the current <Link href="/privacy">Privacy Policy</Link>.

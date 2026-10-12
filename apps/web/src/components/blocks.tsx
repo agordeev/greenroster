@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "cn";
+import Link from "next/link";
 
 import { Alert } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,7 @@ const fieldTextClass =
 export function FieldHelp({ className, ...props }: ComponentProps<"p">) {
   return (
     <p
+      data-slot="field-help"
       className={cn(fieldTextClass, "text-muted-foreground", className)}
       {...props}
     />
@@ -45,6 +47,7 @@ export function FieldHelp({ className, ...props }: ComponentProps<"p">) {
 export function FieldError({ className, ...props }: ComponentProps<"p">) {
   return (
     <p
+      data-slot="field-error"
       className={cn(fieldTextClass, "text-destructive", className)}
       {...props}
     />
@@ -54,8 +57,22 @@ export function FieldError({ className, ...props }: ComponentProps<"p">) {
 export function Kicker({ className, ...props }: ComponentProps<"p">) {
   return (
     <p
+      data-slot="kicker"
       className={cn(
-        "m-0 text-xs font-bold tracking-[0.14em] text-primary uppercase",
+        "m-0 text-[0.75rem] font-bold tracking-[0.14em] text-primary uppercase",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function TextLink({ className, ...props }: ComponentProps<typeof Link>) {
+  return (
+    <Link
+      data-slot="text-link"
+      className={cn(
+        "justify-self-start text-[0.875rem] font-bold text-primary underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-ring focus-visible:outline-solid",
         className,
       )}
       {...props}

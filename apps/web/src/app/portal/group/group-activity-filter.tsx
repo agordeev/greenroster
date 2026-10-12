@@ -48,7 +48,7 @@ export function GroupActivityFilterForm({
 
   return (
     <form
-      className="group-activity-filter"
+      className="mt-6 p-4 gap-3 border border-border/50 grid grid-cols-[minmax(10rem,0.7fr)_minmax(15rem,1.3fr)_auto_auto] items-end bg-muted max-[720px]:grid-cols-[1fr] [&_[data-slot=text-link]]:mb-[0.7rem] max-[720px]:[&_[data-slot=text-link]]:mb-0!"
       method="get"
       onSubmit={handleSubmit}
     >
@@ -90,13 +90,17 @@ export function GroupActivityFilterForm({
         Apply filter
       </Button>
       {targetType ? (
-        <a className="secondary-link" href="/portal/group">
+        <a
+          className="justify-self-start text-primary text-[0.875rem] font-bold underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-ring focus-visible:outline-offset-[3px]"
+          data-slot="text-link"
+          href="/portal/group"
+        >
           Clear filter
         </a>
       ) : null}
       {error ? (
         <p
-          className="group-filter-error"
+          className="m-0 col-span-full text-destructive text-[0.8125rem]"
           id="activity-filter-error"
           role="alert"
         >

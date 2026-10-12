@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 
 import {
   executeReadMemberQuotaHistory,
@@ -7,7 +6,7 @@ import {
 } from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
-import { SkipLink } from "@/components/blocks";
+import { Kicker, SkipLink, TextLink } from "@/components/blocks";
 
 export default async function MemberStandingsPage() {
   const access = await resolveMemberPageSession();
@@ -53,33 +52,34 @@ function MemberStandingsContent({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
         <section
-          className="auth-ledger member-results-page"
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card w-[min(100%,72rem)]! max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
           aria-labelledby="member-standings-title"
         >
-          <nav className="member-results-nav" aria-label="Member navigation">
-            <Link className="secondary-link" href="/member/home">
-              Home
-            </Link>
-            <Link className="secondary-link" href="/member/home#notifications">
+          <nav
+            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
+            aria-label="Member navigation"
+          >
+            <TextLink href="/member/home">Home</TextLink>
+            <TextLink href="/member/home#notifications">
               Notification preferences
-            </Link>
-            <Link className="secondary-link" href="/member/profile">
-              Profile
-            </Link>
+            </TextLink>
+            <TextLink href="/member/profile">Profile</TextLink>
           </nav>
-          <p className="ledger-kicker">Standings and history</p>
+          <Kicker>Standings and history</Kicker>
           <h1 id="member-standings-title">
             {context?.group_name ?? "Your group"}
           </h1>
-          <p className="member-results-intro">
+          <p className="text-muted-foreground leading-[1.55]">
             Order of Merit · counting from:{" "}
             {formatDate(context?.standings_reset_date ?? null)}
           </p>
           <section
-            className="member-stats-summary"
+            className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:bg-muted [&_span]:text-muted-foreground [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:text-[1.5rem] [&_strong]:font-semibold"
+            data-slot="member-stats-summary"
             aria-label="Your standings summary"
           >
             <div>
@@ -100,21 +100,19 @@ function MemberStandingsContent({
             </div>
           </section>
           <section
-            className="page-section"
+            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
             aria-labelledby="standings-table-title"
           >
-            <p className="ledger-kicker">Current standings</p>
+            <Kicker>Current standings</Kicker>
             <h2 id="standings-table-title">Order of Merit</h2>
             {standings.length === 0 ? (
-              <p className="member-read-empty">
+              <p className="text-muted-foreground leading-[1.55]">
                 No members are on the standings yet.
               </p>
             ) : (
-              <div className="member-results-table-wrap">
-                <table className="member-results-table">
-                  <caption className="visually-hidden">
-                    Current group standings
-                  </caption>
+              <div className="mt-5 border relative overflow-x-auto bg-card">
+                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+                  <caption className="sr-only">Current group standings</caption>
                   <thead>
                     <tr>
                       <th scope="col">Rank</th>
@@ -142,27 +140,25 @@ function MemberStandingsContent({
                 </table>
               </div>
             )}
-            <p className="member-read-note">
+            <p className="text-muted-foreground leading-[1.55]">
               The reset date only affects rounds played and Order of Merit
               totals.
             </p>
           </section>
           <section
-            className="page-section"
+            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
             aria-labelledby="quota-history-title"
           >
-            <p className="ledger-kicker">Your quota history</p>
+            <Kicker>Your quota history</Kicker>
             <h2 id="quota-history-title">Your official rounds</h2>
             {history.length === 0 ? (
-              <p className="member-read-empty">
+              <p className="text-muted-foreground leading-[1.55]">
                 No completed rounds are in your quota history yet.
               </p>
             ) : (
-              <div className="member-results-table-wrap">
-                <table className="member-results-table">
-                  <caption className="visually-hidden">
-                    Your quota history
-                  </caption>
+              <div className="mt-5 border relative overflow-x-auto bg-card">
+                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+                  <caption className="sr-only">Your quota history</caption>
                   <thead>
                     <tr>
                       <th scope="col">Date</th>
@@ -182,12 +178,11 @@ function MemberStandingsContent({
                           }).format(new Date(row.completed_at))}
                         </th>
                         <td>
-                          <Link
-                            className="secondary-link"
+                          <TextLink
                             href={`/member/results?round_id=${row.round_id}`}
                           >
                             {row.round_description ?? "Completed round"}
-                          </Link>
+                          </TextLink>
                         </td>
                         <td>{row.point_total}</td>
                         <td>{row.plus_minus ?? "Not applicable"}</td>
@@ -215,15 +210,16 @@ function MemberStandingsUnavailable() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
-        <section className="auth-ledger">
-          <p className="ledger-kicker">Standings and history</p>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+        >
+          <Kicker>Standings and history</Kicker>
           <h1>We couldn&apos;t load your standings</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
-          <Link className="secondary-link" href="/member/home">
-            Return to your home
-          </Link>
+          <TextLink href="/member/home">Return to your home</TextLink>
         </section>
       </main>
     </>

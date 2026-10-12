@@ -8,6 +8,7 @@ import type {
   MemberDetailProjection,
   MemberDetailQuotaHistory,
 } from "@/lib/memberships/member-detail";
+import { Kicker } from "@/components/blocks";
 
 export type MemberDetailSectionsProps = Readonly<{
   projection: MemberDetailProjection;
@@ -33,16 +34,19 @@ export function MemberDetailSections({
 
   return (
     <section
-      className="member-detail-sections"
+      className="mt-6 gap-4 grid col-span-full"
       aria-labelledby="member-detail-sections-title"
     >
-      <div className="member-detail-heading">
-        <p className="ledger-kicker">Member history</p>
+      <div className="p-5 border bg-muted max-[720px]:p-4 [&>p:last-child]:mx-0 [&>p:last-child]:mt-[0.65rem] [&>p:last-child]:mb-0 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.55] [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem]">
+        <Kicker>Member history</Kicker>
         <h2 id="member-detail-sections-title">Full history</h2>
       </div>
 
       <DetailSection title="Account" id="member-detail-account">
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Account e-mail">
             {projection.accountEmail ??
               "This member hasn't created an account yet."}
@@ -56,13 +60,13 @@ export function MemberDetailSections({
         ) : (
           <>
             {hasPendingInvitation(projection.invitations) ? (
-              <p className="member-detail-inline-link">
+              <p className="py-[0.8rem] px-4 border-l-[0.25rem] bg-card [&_a]:text-primary [&_a]:font-bold [&_a]:underline-offset-[0.2em]">
                 <Link href="/portal/invitations">
                   Manage pending invitations
                 </Link>
               </p>
             ) : null}
-            <ol className="member-detail-event-list">
+            <ol className="mx-0 mt-4 mb-0 p-0 gap-3 grid list-none">
               {projection.invitations.map((invitation) => (
                 <InvitationRecord
                   key={invitation.invitationId}
@@ -79,7 +83,7 @@ export function MemberDetailSections({
         {projection.deliveries.length === 0 ? (
           <EmptyState>No notifications for this member yet.</EmptyState>
         ) : (
-          <ol className="member-detail-event-list">
+          <ol className="mx-0 mt-4 mb-0 p-0 gap-3 grid list-none">
             {projection.deliveries.map((delivery) => (
               <DeliveryRecord
                 key={delivery.deliveryId}
@@ -92,7 +96,10 @@ export function MemberDetailSections({
       </DetailSection>
 
       <DetailSection title="Quota" id="member-detail-quota">
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Current quota">
             {projection.quota.projectedQuota ?? "Not available yet"}
           </Definition>
@@ -114,11 +121,11 @@ export function MemberDetailSections({
           </Definition>
         </dl>
 
-        <h4 className="member-detail-subheading">Quota history</h4>
+        <h4 className="mx-0 mt-[0.35rem] mb-0 font-semibold">Quota history</h4>
         {projection.quota.history.length === 0 ? (
           <EmptyState>No quota changes yet.</EmptyState>
         ) : (
-          <ol className="member-detail-event-list">
+          <ol className="mx-0 mt-4 mb-0 p-0 gap-3 grid list-none">
             {projection.quota.history.map((entry) => (
               <QuotaHistoryRecord
                 key={entry.eventId}
@@ -135,7 +142,7 @@ export function MemberDetailSections({
         {administratorQuota ? (
           <AdministratorQuotaDetails details={administratorQuota} />
         ) : projection.actorRole === "coordinator" ? (
-          <p className="member-detail-restricted-note">
+          <p className="py-[0.8rem] px-4 border-l-[0.25rem] bg-card">
             Only administrators can see how this quota was set up.
           </p>
         ) : (
@@ -146,7 +153,10 @@ export function MemberDetailSections({
       <DetailSection title="Handicap" id="member-detail-handicap">
         {currentHandicap ? (
           <>
-            <dl className="member-detail-definition-list">
+            <dl
+              className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+              data-slot="member-detail-definition-list"
+            >
               <Definition label="Current handicap">
                 {currentHandicap.handicap}
               </Definition>
@@ -161,8 +171,10 @@ export function MemberDetailSections({
                 />
               </Definition>
             </dl>
-            <h3 className="member-detail-subheading">Handicap history</h3>
-            <ol className="member-detail-event-list">
+            <h3 className="mx-0 mt-[0.35rem] mb-0 font-semibold">
+              Handicap history
+            </h3>
+            <ol className="mx-0 mt-4 mb-0 p-0 gap-3 grid list-none">
               {projection.handicaps.map((handicap) => (
                 <HandicapRecord
                   key={handicap.recordId}
@@ -181,7 +193,7 @@ export function MemberDetailSections({
         {projection.activity.length === 0 ? (
           <EmptyState>No activity yet.</EmptyState>
         ) : (
-          <ol className="member-detail-event-list">
+          <ol className="mx-0 mt-4 mb-0 p-0 gap-3 grid list-none">
             {projection.activity.map((activity) => (
               <ActivityRecord
                 key={activity.eventId}
@@ -206,7 +218,10 @@ function DetailSection({
   title: string;
 }>) {
   return (
-    <section className="member-detail-section" aria-labelledby={id}>
+    <section
+      className="p-5 border bg-muted max-[720px]:p-4 [&_h3]:mx-0 [&_h3]:mt-[0.35rem] [&_h3]:mb-0 [&_h3]:pb-[0.8rem] [&_h3]:border-b [&_h3]:border-b-border/50 [&_h3]:font-semibold [&_h3]:text-[1.125rem] [&_h4]:mx-0 [&_h4]:mt-[0.35rem] [&_h4]:mb-0 [&_h4]:[font-family:var(--font-sans)] [&_h4]:text-[0.875rem] [&_h4]:font-bold"
+      aria-labelledby={id}
+    >
       <h3 id={id}>{title}</h3>
       {children}
     </section>
@@ -226,7 +241,9 @@ function Definition({
 }
 
 function EmptyState({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <p className="member-detail-empty">{children}</p>;
+  return (
+    <p className="py-[0.8rem] px-4 border-l-[0.25rem] bg-card">{children}</p>
+  );
 }
 
 function Timestamp({
@@ -253,9 +270,12 @@ function InvitationRecord({
 }: Readonly<{ invitation: MemberDetailInvitation; timeZone?: string }>) {
   return (
     <li>
-      <article className="member-detail-event-card">
+      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
         <h4>{formatInvitationStatus(invitation.status)}</h4>
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Invited e-mail">
             {invitation.invitedEmail}
           </Definition>
@@ -293,9 +313,12 @@ function DeliveryRecord({
 }: Readonly<{ delivery: MemberDetailDelivery; timeZone?: string }>) {
   return (
     <li>
-      <article className="member-detail-event-card">
+      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
         <h4>{formatMemberDetailDeliveryState(delivery)}</h4>
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Event">
             {formatEventType(delivery.eventType)}
           </Definition>
@@ -334,9 +357,12 @@ function HandicapRecord({
 }: Readonly<{ handicap: MemberDetailHandicap; timeZone?: string }>) {
   return (
     <li>
-      <article className="member-detail-event-card">
+      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
         <h4>{handicap.handicap}</h4>
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Source">
             {formatHandicapSource(handicap.source)}
           </Definition>
@@ -366,13 +392,16 @@ function QuotaHistoryRecord({
 }>) {
   return (
     <li>
-      <article className="member-detail-event-card">
+      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
         <h4>
           {entry.projectedQuota === null
             ? "Quota not available yet"
             : `Quota ${entry.projectedQuota}`}
         </h4>
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Readiness">
             {entry.projectionReady ? "Ready" : "Needs more history"}
           </Definition>
@@ -409,9 +438,12 @@ function ActivityRecord({
 }: Readonly<{ activity: MemberDetailActivity; timeZone?: string }>) {
   return (
     <li>
-      <article className="member-detail-event-card">
+      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
         <h4>{formatEventType(activity.action)}</h4>
-        <dl className="member-detail-definition-list">
+        <dl
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          data-slot="member-detail-definition-list"
+        >
           <Definition label="Source">{activity.source}</Definition>
           <Definition label="Occurred">
             <Timestamp value={activity.occurredAt} timeZone={timeZone} />
@@ -431,9 +463,12 @@ function AdministratorQuotaDetails({
   details: NonNullable<MemberDetailProjection["quota"]["administratorDetails"]>;
 }>) {
   return (
-    <div className="member-detail-admin-quota">
+    <div className="mt-5 pt-5 border-t border-t-border/50 [&_h4+[data-slot=member-detail-definition-list]]:mt-3!">
       <h4>Quota setup</h4>
-      <dl className="member-detail-definition-list">
+      <dl
+        className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+        data-slot="member-detail-definition-list"
+      >
         <Definition label="Starting quota">
           {details.initialQuota ?? "Not set"}
         </Definition>
@@ -467,11 +502,13 @@ function AdministratorQuotaDetails({
         </Definition>
       </dl>
       {details.seedTotals.length === 0 ? (
-        <p className="member-detail-empty">No seed totals yet.</p>
+        <p className="py-[0.8rem] px-4 border-l-[0.25rem] bg-card">
+          No seed totals yet.
+        </p>
       ) : (
         <>
           <h4>Seed totals, oldest first</h4>
-          <ol className="member-detail-seed-list">
+          <ol className="mx-0 mt-4 mb-0 p-0 gap-2 grid list-none [counter-reset:member-detail-seed] [&_li]:py-[0.65rem] [&_li]:px-[0.8rem] [&_li]:gap-4 [&_li]:border [&_li]:border-border/50 [&_li]:flex [&_li]:items-baseline [&_li]:justify-between [&_li]:[counter-increment:member-detail-seed] [&_li_span::before]:[content:counter(member-detail-seed)_'._'] [&_li_span::before]:text-muted-foreground [&_strong]:text-primary [&_strong]:font-semibold">
             {details.seedTotals.map((seed) => (
               <li key={seed.position}>
                 <span>Seed {seed.position}</span>

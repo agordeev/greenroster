@@ -11,6 +11,7 @@ import {
   ActionRow,
   Field,
   FormMessage,
+  Kicker,
   SectionHeading,
 } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
@@ -214,7 +215,7 @@ export function PublishedRoundEditPanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="published-round-edit-title"
     >
       <SectionHeading
@@ -224,8 +225,12 @@ export function PublishedRoundEditPanel({
         meta="Preview before you apply"
       />
       <p>Preview your changes before you apply them.</p>
-      <div className="form-stack" aria-busy={pending}>
-        <div className="form-row">
+      <div
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
+        aria-busy={pending}
+      >
+        <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
           <Field
             id="published-round-edit-description"
             label="Description"
@@ -251,7 +256,7 @@ export function PublishedRoundEditPanel({
             />
           </Field>
         </div>
-        <div className="form-row">
+        <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
           <Field
             id="published-round-edit-scheduled"
             label="Start time"
@@ -311,7 +316,10 @@ export function PublishedRoundEditPanel({
             disabled={pending}
           />
         </Field>
-        <label className="bound-choice">
+        <label
+          className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+          data-slot="bound-choice"
+        >
           <Checkbox
             checked={values.notesVisibleToPlayers}
             onCheckedChange={(checked) =>
@@ -323,7 +331,10 @@ export function PublishedRoundEditPanel({
         </label>
         {preview ? <ImpactSummary preview={preview} /> : null}
         {preview && preview.changedFields.length > 0 ? (
-          <label className="bound-choice">
+          <label
+            className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+            data-slot="bound-choice"
+          >
             <Checkbox
               checked={announce}
               onCheckedChange={(checked) => setAnnounce(checked === true)}
@@ -367,7 +378,7 @@ function ImpactSummary({
 }: Readonly<{ preview: PublishedRoundEditPreview }>) {
   return (
     <section aria-labelledby="published-round-edit-impact-title">
-      <p className="ledger-kicker">Preview</p>
+      <Kicker>Preview</Kicker>
       <h3 id="published-round-edit-impact-title">What this changes</h3>
       <p>
         {preview.affectedParticipantCount} affected player
@@ -383,7 +394,10 @@ function ImpactSummary({
         values={preview.scoringConsequences}
       />
       {preview.affectedParticipants.length > 0 ? (
-        <div className="publication-member-list round-detail-table-wrap">
+        <div
+          className="mt-8 max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
+          data-slot="round-detail-table-wrap"
+        >
           <table>
             <caption>Affected players</caption>
             <thead>

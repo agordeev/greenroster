@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { signInAction } from "@/app/actions/auth";
 import { initialAuthFormState } from "@/app/actions/auth-state";
-import { FormMessage } from "@/components/blocks";
+import { FieldError, FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -24,9 +23,12 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
   }, [state]);
 
   return (
-    <form action={formAction} className="auth-form" noValidate>
+    <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
       <input name="returnPath" type="hidden" value={returnPath} />
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="email">Account e-mail</label>
         <Input
           id="email"
@@ -42,14 +44,17 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
           required
         />
         {state.fieldErrors?.email ? (
-          <p id="email-error" className="field-error">
+          <FieldError id="email-error">
             Enter a valid account e-mail.
-          </p>
+          </FieldError>
         ) : null}
       </div>
 
-      <div className="field-group">
-        <div className="label-row">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
+        <div className="flex items-baseline justify-between">
           <label htmlFor="password">Password</label>
           <Button
             variant="link"
@@ -75,9 +80,7 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
           required
         />
         {state.fieldErrors?.password ? (
-          <p id="password-error" className="field-error">
-            Enter your password.
-          </p>
+          <FieldError id="password-error">Enter your password.</FieldError>
         ) : null}
       </div>
 
@@ -93,9 +96,7 @@ export function AuthForm({ returnPath }: Readonly<{ returnPath: string }>) {
         {pending ? "Verifying…" : "Sign in"}
       </Button>
 
-      <Link className="secondary-link" href="/recover-password">
-        Forgot your password?
-      </Link>
+      <TextLink href="/recover-password">Forgot your password?</TextLink>
     </form>
   );
 }

@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 
 import { requestAccountEmailChangeAction } from "@/app/actions/account";
 import { initialAccountEmailChangeState } from "@/lib/auth/account-email-change";
-import { FormMessage } from "@/components/blocks";
+import { FieldError, FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,19 +23,18 @@ export function AccountEmailForm({
   }, [state]);
 
   return (
-    <form
-      action={formAction}
-      className="auth-form account-email-form"
-      noValidate
-    >
-      <dl className="account-email-current">
+    <form action={formAction} className="mt-6 gap-5 grid max-w-120" noValidate>
+      <dl className="m-0 p-4 border border-border/50 bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
         <div>
           <dt>Current account e-mail</dt>
           <dd>{currentEmail}</dd>
         </div>
       </dl>
 
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="new-account-email">New account e-mail</label>
         <Input
           id="new-account-email"
@@ -52,18 +51,18 @@ export function AccountEmailForm({
           }
           required
         />
-        <p id="new-account-email-help" className="field-help">
+        <FieldHelp id="new-account-email-help">
           This changes the address you sign in with, and where we send recovery
           links and GreenRoster notifications.
-        </p>
+        </FieldHelp>
         {state.fieldErrors?.email ? (
-          <p id="new-account-email-error" className="field-error">
+          <FieldError id="new-account-email-error">
             {state.fieldErrors.email[0]}
-          </p>
+          </FieldError>
         ) : null}
       </div>
 
-      <label className="account-email-confirmation">
+      <label className="gap-[0.6rem] flex items-start text-muted-foreground leading-[1.5]">
         <Checkbox name="confirmed" value="true" required />
         <span>
           I understand my e-mail won&apos;t change until I follow the
@@ -71,7 +70,7 @@ export function AccountEmailForm({
         </span>
       </label>
       {state.fieldErrors?.confirmed ? (
-        <p className="field-error">Tick the box to continue.</p>
+        <FieldError>Tick the box to continue.</FieldError>
       ) : null}
 
       <FormMessage aria-live="polite" data-status={state.status}>

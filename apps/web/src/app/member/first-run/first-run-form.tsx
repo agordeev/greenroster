@@ -28,7 +28,10 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
 
   if (state.status === "success") {
     return (
-      <div className="invitation-action-success" role="status">
+      <div
+        className="mt-8 gap-3 grid justify-items-start [&_[data-slot='button']]:mt-1"
+        role="status"
+      >
         <FormMessage tone="success" data-status="success">
           {state.message}
         </FormMessage>
@@ -40,7 +43,7 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
   }
 
   return (
-    <form action={formAction} className="auth-form" noValidate>
+    <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
       <input name="operationId" type="hidden" value={props.operationId} />
       <input name="termsVersion" type="hidden" value={props.termsVersion} />
       <input name="privacyVersion" type="hidden" value={props.privacyVersion} />
@@ -66,13 +69,13 @@ export function MemberFirstRunForm(props: MemberFirstRunFormProps) {
         />
       </Field>
 
-      <label className="confirmation-row">
+      <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45] [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]">
         <Checkbox name="acceptedTerms" required />
         <span>
           I accept the current <Link href="/terms">Terms of Use</Link>.
         </span>
       </label>
-      <label className="confirmation-row">
+      <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45] [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]">
         <Checkbox name="acceptedPrivacy" required />
         <span>
           I accept the current <Link href="/privacy">Privacy Policy</Link>.

@@ -7,7 +7,7 @@ import {
   initialInvitationActionState,
   registerInvitationAction,
 } from "@/app/actions/invitations";
-import { Field, FormMessage } from "@/components/blocks";
+import { Field, FieldHelp, FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
@@ -20,8 +20,11 @@ export function InvitationRegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={formAction} className="auth-form" noValidate>
-      <div className="field-group">
+    <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="email">Account e-mail</label>
         <Input
           id="email"
@@ -32,13 +35,16 @@ export function InvitationRegisterForm() {
           aria-describedby="registration-email-help"
           required
         />
-        <p id="registration-email-help" className="field-help">
+        <FieldHelp id="registration-email-help">
           Use the invited address or another address you can open.
-        </p>
+        </FieldHelp>
       </div>
 
-      <div className="field-group">
-        <div className="label-row">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
+        <div className="flex items-baseline justify-between">
           <label htmlFor="password">Password</label>
           <Button
             variant="link"
@@ -59,9 +65,9 @@ export function InvitationRegisterForm() {
           aria-describedby="registration-password-help"
           required
         />
-        <p id="registration-password-help" className="field-help">
+        <FieldHelp id="registration-password-help">
           Use a password of at least {MINIMUM_PASSWORD_LENGTH} characters.
-        </p>
+        </FieldHelp>
       </div>
 
       <Field id="confirmPassword" label="Confirm password">
@@ -92,9 +98,7 @@ export function InvitationRegisterForm() {
         </Button>
       )}
 
-      <Link className="secondary-link" href="/invitations/accept">
-        Return to invitation
-      </Link>
+      <TextLink href="/invitations/accept">Return to invitation</TextLink>
     </form>
   );
 }

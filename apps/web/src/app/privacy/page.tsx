@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export default function PrivacyPage() {
   return (
     <InformationShell kicker="Legal" title="Privacy Policy">
-      <div className="information-copy">
+      <div className="max-w-168 text-muted-foreground leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-8 [&_h2]:mb-2 [&_h2]:text-foreground [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
         <FormMessage tone="info" className="mb-6" role="status">
           Effective {LEGAL_EFFECTIVE_DATE} · Version {PRIVACY_VERSION}
         </FormMessage>

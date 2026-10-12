@@ -4,7 +4,12 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { setLiveRoundParticipantNotPlayingAction } from "@/app/actions/rounds";
-import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import {
+  EmptyState,
+  FieldHelp,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { liveRoundParticipantNotPlayingInputSchema } from "@/domain/live-round-participant-rsvp-correction";
@@ -28,7 +33,7 @@ export function LiveRoundParticipantRsvpCorrectionPanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="live-rsvp-correction-title"
     >
       <SectionHeading
@@ -44,7 +49,7 @@ export function LiveRoundParticipantRsvpCorrectionPanel({
       {playingParticipants.length === 0 ? (
         <EmptyState>No players are playing right now.</EmptyState>
       ) : (
-        <div className="row-list">
+        <div className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
           {playingParticipants.map((participant) => (
             <ParticipantRsvpCorrection
               key={participantSyncKey(participant)}
@@ -188,8 +193,11 @@ function ParticipantRsvpCorrection({
   }
 
   return (
-    <article className="row-item" data-rsvp-state={rsvpStatus}>
-      <div className="section-heading">
+    <article
+      className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!"
+      data-rsvp-state={rsvpStatus}
+    >
+      <div className="gap-4 flex items-end justify-between max-[720px]:items-start max-[720px]:flex-col [&>p]:mx-0 [&>p]:mb-0 [&>p]:text-muted-foreground [&>p]:whitespace-nowrap [&>p]:mt-0! [&>p]:text-[0.75rem]! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0">
         <div>
           <h3>{playerLabel}</h3>
           <p>
@@ -201,7 +209,7 @@ function ParticipantRsvpCorrection({
         <p>{rsvpStatus === "playing" ? "Playing" : "Not playing"}</p>
       </div>
 
-      <dl className="group-profile-facts">
+      <dl className="mx-0 mt-5 mb-0 gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
         <div>
           <dt>Golf points</dt>
           <dd>{formatScore(score.golfPoints)}</dd>
@@ -222,12 +230,17 @@ function ParticipantRsvpCorrection({
 
       {rsvpStatus === "playing" ? (
         <form
-          className="form-stack"
+          className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+          data-slot="form-stack"
           onSubmit={submit}
           aria-busy={pending}
           noValidate
         >
-          <label className="field-group" htmlFor={`${formId}-reason`}>
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+            htmlFor={`${formId}-reason`}
+          >
             <span>Reason for the change</span>
             <Textarea
               id={`${formId}-reason`}
@@ -243,14 +256,18 @@ function ParticipantRsvpCorrection({
               disabled={pending || !canEdit}
               aria-describedby={`${formId}-help`}
             />
-            <small id={`${formId}-help`} className="field-help">
+            <small
+              id={`${formId}-help`}
+              className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+              data-slot="field-help"
+            >
               Required.
             </small>
           </label>
           {!scoreReady ? (
-            <p className="field-help">
+            <FieldHelp>
               You can only do this for a player who has a score.
-            </p>
+            </FieldHelp>
           ) : null}
           {message ? (
             <FormMessage

@@ -9,7 +9,7 @@ import {
   issueMembershipInvitationAction,
   setMemberHandicapAction,
 } from "@/app/actions/memberships";
-import { FormMessage } from "@/components/blocks";
+import { FieldHelp, FormMessage, Kicker } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -135,9 +135,9 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       if (
         !draftDirty ||
         !(form instanceof HTMLFormElement) ||
-        form.classList.contains("member-create-form") ||
-        form.classList.contains("member-invite-form") ||
-        form.classList.contains("member-handicap-form")
+        form.dataset.form === "member-create-form" ||
+        form.dataset.form === "member-invite-form" ||
+        form.dataset.form === "member-handicap-form"
       ) {
         return;
       }
@@ -447,24 +447,33 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
 
   return (
     <section
-      className="member-create-invite"
+      className="mt-10 p-6 gap-5 border grid bg-muted"
       aria-labelledby="member-create-title"
     >
-      <div className="member-create-heading">
+      <div className="pb-4 gap-4 border-b border-b-border/50 flex items-start justify-between max-[720px]:grid-cols-[1fr] [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
         <div>
-          <p className="ledger-kicker">New member</p>
+          <Kicker>New member</Kicker>
           <h2 id="member-create-title">Create and invite</h2>
         </div>
-        <span className="member-create-step">
+        <span className="text-muted-foreground text-[0.6875rem] font-bold tracking-[0.08em] uppercase">
           {memberCreated ? "Step 2 of 2" : "Step 1 of 2"}
         </span>
       </div>
 
-      <form className="member-create-form" onSubmit={submitCreate} noValidate>
+      <form
+        className="gap-5 grid [&>fieldset]:m-0 [&>fieldset]:p-0 [&>fieldset]:gap-5 [&>fieldset]:border-0 [&>fieldset]:grid [&>fieldset]:min-w-0 [&_[data-slot=member-contact-fieldset]]:p-4 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+        data-form="member-create-form"
+        onSubmit={submitCreate}
+        noValidate
+      >
         <fieldset disabled={busy || memberCreated}>
           <legend>Member details</legend>
-          <div className="member-form-grid">
-            <label className="field-group" htmlFor="member-create-first-name">
+          <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-first-name"
+            >
               <span>First name</span>
               <Input
                 id="member-create-first-name"
@@ -475,7 +484,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 required
               />
             </label>
-            <label className="field-group" htmlFor="member-create-last-name">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-last-name"
+            >
               <span>Last name</span>
               <Input
                 id="member-create-last-name"
@@ -486,7 +499,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 required
               />
             </label>
-            <label className="field-group" htmlFor="member-create-email">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-email"
+            >
               <span>Invite e-mail</span>
               <Input
                 id="member-create-email"
@@ -501,7 +518,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 required
               />
             </label>
-            <label className="field-group" htmlFor="member-create-tee">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-tee"
+            >
               <span>Preferred tee</span>
               <NativeSelect
                 id="member-create-tee"
@@ -518,7 +539,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <option value="front">Front</option>
               </NativeSelect>
             </label>
-            <label className="field-group" htmlFor="member-create-spouse-first">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-spouse-first"
+            >
               <span>Spouse first name (optional)</span>
               <Input
                 id="member-create-spouse-first"
@@ -529,7 +554,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 }
               />
             </label>
-            <label className="field-group" htmlFor="member-create-spouse-last">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-spouse-last"
+            >
               <span>Spouse last name (optional)</span>
               <Input
                 id="member-create-spouse-last"
@@ -540,7 +569,10 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 }
               />
             </label>
-            <label className="member-check" htmlFor="member-create-dues">
+            <label
+              className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+              htmlFor="member-create-dues"
+            >
               <Checkbox
                 id="member-create-dues"
                 name="duesPaid"
@@ -551,7 +583,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               />
               <span>Dues paid</span>
             </label>
-            <label className="field-group" htmlFor="member-create-reason">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-create-reason"
+            >
               <span>Reason (optional)</span>
               <Input
                 id="member-create-reason"
@@ -561,11 +597,15 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               />
             </label>
           </div>
-          <fieldset className="member-contact-fieldset">
+          <fieldset
+            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+            data-slot="member-contact-fieldset"
+          >
             <legend>Contact details (optional)</legend>
-            <div className="member-form-grid">
+            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-secondary-email"
               >
                 <span>Secondary e-mail</span>
@@ -580,7 +620,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                   autoComplete="email"
                 />
               </label>
-              <label className="field-group" htmlFor="member-create-home-phone">
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+                htmlFor="member-create-home-phone"
+              >
                 <span>Home phone</span>
                 <Input
                   id="member-create-home-phone"
@@ -591,7 +635,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                   autoComplete="tel"
                 />
               </label>
-              <label className="field-group" htmlFor="member-create-work-phone">
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+                htmlFor="member-create-work-phone"
+              >
                 <span>Work phone</span>
                 <Input
                   id="member-create-work-phone"
@@ -603,7 +651,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 />
               </label>
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-mobile-phone"
               >
                 <span>Mobile phone</span>
@@ -621,11 +670,15 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </div>
           </fieldset>
 
-          <fieldset className="member-contact-fieldset">
+          <fieldset
+            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+            data-slot="member-contact-fieldset"
+          >
             <legend>Postal address (optional)</legend>
-            <div className="member-form-grid">
+            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-address-line1"
               >
                 <span>Address line 1</span>
@@ -640,7 +693,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 />
               </label>
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-address-line2"
               >
                 <span>Address line 2</span>
@@ -654,7 +708,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                   autoComplete="address-line2"
                 />
               </label>
-              <label className="field-group" htmlFor="member-create-city">
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+                htmlFor="member-create-city"
+              >
                 <span>City</span>
                 <Input
                   id="member-create-city"
@@ -665,7 +723,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 />
               </label>
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-state-region"
               >
                 <span>State / region</span>
@@ -680,7 +739,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 />
               </label>
               <label
-                className="field-group"
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
                 htmlFor="member-create-postal-code"
               >
                 <span>Postal code</span>
@@ -692,7 +752,11 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                   autoComplete="postal-code"
                 />
               </label>
-              <label className="field-group" htmlFor="member-create-country">
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+                htmlFor="member-create-country"
+              >
                 <span>Country</span>
                 <Input
                   id="member-create-country"
@@ -705,12 +769,15 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </div>
           </fieldset>
 
-          <fieldset className="member-contact-fieldset">
+          <fieldset
+            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+            data-slot="member-contact-fieldset"
+          >
             <legend>Handicap (optional)</legend>
-            <p className="field-help">
+            <FieldHelp>
               Enter the handicap here. You&apos;ll save it in the next step,
               after you add the member.
-            </p>
+            </FieldHelp>
             <HandicapFields
               draft={draft}
               idPrefix="member-create"
@@ -718,11 +785,14 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             />
           </fieldset>
 
-          <fieldset className="member-contact-fieldset">
+          <fieldset
+            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+            data-slot="member-contact-fieldset"
+          >
             <legend>Show in the member directory</legend>
-            <div className="member-visibility-grid">
+            <div className="flex flex-wrap gap-y-3 gap-x-4">
               <label
-                className="member-check"
+                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
                 htmlFor="member-create-secondary-visible"
               >
                 <Checkbox
@@ -735,7 +805,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <span>List secondary e-mail</span>
               </label>
               <label
-                className="member-check"
+                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
                 htmlFor="member-create-home-visible"
               >
                 <Checkbox
@@ -748,7 +818,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <span>List home phone</span>
               </label>
               <label
-                className="member-check"
+                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
                 htmlFor="member-create-work-visible"
               >
                 <Checkbox
@@ -761,7 +831,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <span>List work phone</span>
               </label>
               <label
-                className="member-check"
+                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
                 htmlFor="member-create-mobile-visible"
               >
                 <Checkbox
@@ -774,7 +844,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
                 <span>List mobile phone</span>
               </label>
               <label
-                className="member-check"
+                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
                 htmlFor="member-create-address-listed"
               >
                 <Checkbox
@@ -789,7 +859,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
             </div>
           </fieldset>
         </fieldset>
-        <div className="member-create-actions">
+        <div className="gap-3 flex flex-wrap">
           <Button type="submit" disabled={busy || memberCreated}>
             {phase === "creating" ? "Adding…" : "Add member"}
           </Button>
@@ -808,7 +878,8 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
 
       {createdMembershipId ? (
         <form
-          className="member-handicap-form"
+          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
+          data-form="member-handicap-form"
           onSubmit={submitHandicap}
           noValidate
         >
@@ -824,7 +895,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               onChange={(key, value) => update(key, value)}
             />
           </fieldset>
-          <div className="member-create-actions">
+          <div className="gap-3 flex flex-wrap">
             <Button
               variant="outline"
               type="submit"
@@ -854,14 +925,23 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
       ) : null}
 
       {createdMembershipId ? (
-        <form className="member-invite-form" onSubmit={submitInvite} noValidate>
+        <form
+          className="pt-5 gap-5 border-t border-t-border/50 grid [&>fieldset]:m-0 [&>fieldset]:p-0 [&>fieldset]:gap-5 [&>fieldset]:border-0 [&>fieldset]:grid [&>fieldset]:min-w-0 [&_code]:text-foreground [&_code]:text-[0.75rem] [&_code]:wrap-anywhere [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold [&_p]:m-0 [&_p]:text-muted-foreground [&_p]:leading-[1.5]"
+          data-form="member-invite-form"
+          onSubmit={submitInvite}
+          noValidate
+        >
           <fieldset disabled={busy || handicapRequiredBeforeInvite}>
             <legend>Send invitation</legend>
             <p>
               This member hasn&apos;t been invited yet. Send the invitation when
               you&apos;re ready.
             </p>
-            <label className="field-group" htmlFor="member-invite-email">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-invite-email"
+            >
               <span>Invite e-mail</span>
               <Input
                 id="member-invite-email"
@@ -877,7 +957,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               />
             </label>
           </fieldset>
-          <div className="member-create-actions">
+          <div className="gap-3 flex flex-wrap">
             <Button
               type="submit"
               disabled={busy || handicapRequiredBeforeInvite}
@@ -885,9 +965,9 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               {phase === "inviting" ? "Sending…" : "Send invitation"}
             </Button>
             {handicapRequiredBeforeInvite ? (
-              <p className="field-help" role="status">
+              <FieldHelp role="status">
                 Save the handicap before sending the invitation.
-              </p>
+              </FieldHelp>
             ) : null}
           </div>
         </form>
@@ -925,8 +1005,12 @@ function HandicapFields({
 }>) {
   return (
     <>
-      <div className="member-form-grid">
-        <label className="field-group" htmlFor={`${idPrefix}-handicap-id`}>
+      <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor={`${idPrefix}-handicap-id`}
+        >
           <span>Handicap ID (optional)</span>
           <Input
             id={`${idPrefix}-handicap-id`}
@@ -936,7 +1020,11 @@ function HandicapFields({
             autoComplete="off"
           />
         </label>
-        <label className="field-group" htmlFor={`${idPrefix}-handicap-value`}>
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor={`${idPrefix}-handicap-value`}
+        >
           <span>Handicap</span>
           <Input
             id={`${idPrefix}-handicap-value`}
@@ -950,7 +1038,11 @@ function HandicapFields({
             onChange={(event) => onChange("handicap", event.target.value)}
           />
         </label>
-        <label className="field-group" htmlFor={`${idPrefix}-handicap-as-of`}>
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor={`${idPrefix}-handicap-as-of`}
+        >
           <span>Handicap date</span>
           <Input
             id={`${idPrefix}-handicap-as-of`}
@@ -961,7 +1053,11 @@ function HandicapFields({
           />
         </label>
       </div>
-      <label className="field-group" htmlFor={`${idPrefix}-handicap-reason`}>
+      <label
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+        htmlFor={`${idPrefix}-handicap-reason`}
+      >
         <span>Reason (required to save a handicap)</span>
         <Textarea
           id={`${idPrefix}-handicap-reason`}
@@ -973,7 +1069,7 @@ function HandicapFields({
         />
       </label>
       <label
-        className="member-create-confirmation"
+        className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] leading-[1.45]"
         htmlFor={`${idPrefix}-handicap-confirm`}
       >
         <Checkbox

@@ -16,7 +16,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { OrganizerBootstrapForm } from "./organizer-bootstrap-form";
 import { cookies } from "next/headers";
-import { FormMessage, SkipLink } from "@/components/blocks";
+import { FormMessage, Kicker, SkipLink, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 
 type SignupFinishPageProps = {
@@ -134,11 +134,15 @@ export default async function SignupFinishPage({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto max-[480px]:[&_[data-slot=auth-ledger]]:border-0!"
       >
-        <section className="auth-ledger" aria-labelledby="finish-title">
-          <div className="auth-heading">
-            <p className="ledger-kicker">Group setup</p>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+          aria-labelledby="finish-title"
+        >
+          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+            <Kicker>Group setup</Kicker>
             <h1 id="finish-title">Add your group details</h1>
             <p>
               You are signed in as {user.email ?? "your account"}. Add your name
@@ -160,9 +164,7 @@ export default async function SignupFinishPage({
             identityKey={user.id}
             operationId={randomUUID()}
           />
-          <Link className="secondary-link" href="/sign-in">
-            Sign out and return to sign in
-          </Link>
+          <TextLink href="/sign-in">Sign out and return to sign in</TextLink>
         </section>
       </main>
     </>
@@ -188,10 +190,14 @@ function FinishState({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto max-[480px]:[&_[data-slot=auth-ledger]]:border-0!"
       >
-        <section className="auth-ledger" aria-labelledby="finish-state-title">
-          <p className="ledger-kicker">Group setup</p>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+          aria-labelledby="finish-state-title"
+        >
+          <Kicker>Group setup</Kicker>
           <h1 id="finish-state-title">{title}</h1>
           {email ? <p>{email}</p> : null}
           <p>{message}</p>
@@ -200,9 +206,7 @@ function FinishState({
               <Link href={actionHref}>{actionLabel}</Link>
             </Button>
           ) : null}
-          <Link className="secondary-link" href="/sign-in">
-            Return to sign in
-          </Link>
+          <TextLink href="/sign-in">Return to sign in</TextLink>
         </section>
       </main>
     </>

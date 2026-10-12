@@ -52,7 +52,7 @@ export function LiveRoundScoreEntryPanel({
 }>) {
   return (
     <section
-      className="page-section live-score-entry"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! live-score-entry"
       aria-labelledby="live-score-entry-title"
     >
       <SectionHeading
@@ -72,7 +72,7 @@ export function LiveRoundScoreEntryPanel({
       {participants.length === 0 ? (
         <EmptyState>No players are available to score yet.</EmptyState>
       ) : (
-        <div className="row-list">
+        <div className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
           {participants.map((participant) => (
             <ParticipantScoreEditor
               key={participantSyncKey(participant)}
@@ -236,8 +236,11 @@ function ParticipantScoreEditor({
   }
 
   return (
-    <article className="row-item" data-score-state={scoreState.toLowerCase()}>
-      <div className="section-heading">
+    <article
+      className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!"
+      data-score-state={scoreState.toLowerCase()}
+    >
+      <div className="gap-4 flex items-end justify-between max-[720px]:items-start max-[720px]:flex-col [&>p]:mx-0 [&>p]:mb-0 [&>p]:text-muted-foreground [&>p]:whitespace-nowrap [&>p]:mt-0! [&>p]:text-[0.75rem]! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0">
         <div>
           <h3>{playerLabel}</h3>
           <p>
@@ -261,12 +264,13 @@ function ParticipantScoreEditor({
 
       <form
         id={formId}
-        className="form-stack"
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
         onSubmit={submit}
         aria-busy={pending}
         noValidate
       >
-        <div className="form-row">
+        <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
           {fields.map((field) => (
             <ScoreFieldInput
               key={field}
@@ -282,7 +286,11 @@ function ParticipantScoreEditor({
         </div>
 
         {score.version > 0 && !readOnly ? (
-          <label className="field-group" htmlFor={`${formId}-reason`}>
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+            htmlFor={`${formId}-reason`}
+          >
             <span>Reason for the change</span>
             <Textarea
               id={`${formId}-reason`}
@@ -298,13 +306,17 @@ function ParticipantScoreEditor({
               disabled={pending}
               aria-describedby={`${formId}-reason-help`}
             />
-            <small id={`${formId}-reason-help`} className="field-help">
+            <small
+              id={`${formId}-reason-help`}
+              className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+              data-slot="field-help"
+            >
               Required to change a score that’s already saved.
             </small>
           </label>
         ) : null}
 
-        <dl className="group-profile-facts">
+        <dl className="mx-0 mt-5 mb-0 gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
           <div>
             <dt>Plus/minus as you type</dt>
             <dd>{formatServerValue(typedPlusMinus)} </dd>
@@ -356,7 +368,11 @@ function ScoreFieldInput({
   const helpId = `${inputId}-help`;
   const constraints = fieldConstraints[field];
   return (
-    <label className="field-group" htmlFor={inputId}>
+    <label
+      className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+      data-slot="field"
+      htmlFor={inputId}
+    >
       <span>{fieldLabels[field]}</span>
       <Input
         id={inputId}
@@ -372,7 +388,11 @@ function ScoreFieldInput({
         aria-label={`${fieldLabels[field]} for ${playerLabel}`}
         aria-describedby={helpId}
       />
-      <small id={helpId} className="field-help">
+      <small
+        id={helpId}
+        className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+        data-slot="field-help"
+      >
         Saved: {formatServerValue(confirmedValue)}
       </small>
     </label>

@@ -141,7 +141,7 @@ export function PublicationReviewPanel({
 
   return (
     <section
-      className="page-section publication-review"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! publication-review"
       aria-labelledby="publication-review-title"
     >
       <SectionHeading
@@ -154,7 +154,10 @@ export function PublicationReviewPanel({
       />
       <p>Everyone on this list is invited when you publish.</p>
 
-      <dl className="publication-summary" aria-label="Player summary">
+      <dl
+        className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase"
+        aria-label="Player summary"
+      >
         <SummaryItem
           label="Active members"
           value={review.summary.activeMemberCount}
@@ -176,9 +179,9 @@ export function PublicationReviewPanel({
         />
       </dl>
 
-      <div className="publication-member-list">
+      <div className="mt-8 [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold">
         <h3>Members to review</h3>
-        <ul className="row-list">
+        <ul className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
           {review.members.map((member) => (
             <PublicationMemberRow
               key={member.membershipId}
@@ -228,9 +231,12 @@ function PublicationMemberRow({
   const explicitlyExcluded = member.eligibilityState === "excluded";
   const missingQuota = format === "individual_net" && !member.projectionReady;
   return (
-    <li className="row-item publication-member-row">
+    <li className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_[data-slot=bound-choice]]:m-0 [&_[data-slot=bound-choice]_strong]:text-foreground max-[720px]:[&_[data-slot=row-meta]]:text-left [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!">
       <div>
-        <label className="bound-choice">
+        <label
+          className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+          data-slot="bound-choice"
+        >
           <Checkbox
             aria-label={`Exclude ${publicationMemberName(member)}`}
             checked={
@@ -256,7 +262,10 @@ function PublicationMemberRow({
                 : "Excluded"}
         </p>
       </div>
-      <div className="row-meta">
+      <div
+        className="gap-1 grid text-muted-foreground text-[0.75rem] text-right max-[720px]:text-left [&_time]:text-muted-foreground [&_time]:text-[0.6875rem]"
+        data-slot="row-meta"
+      >
         <span>{member.emailReady ? "Gets e-mail" : "Won't get e-mail"}</span>
         {member.projectedQuota ? (
           <span>Quota {member.projectedQuota}</span>

@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { updateGroupGuestPermissionAction } from "@/app/actions/groups";
-import { ActionRow, FormMessage } from "@/components/blocks";
+import { ActionRow, FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -129,12 +129,13 @@ export function GroupGuestPermissionForm({
 
   return (
     <form
-      className="form-stack group-guest-permission-form"
+      className="mt-5 gap-5 grid [&_[data-slot=checkbox-field]]:gap-[0.65rem] [&_[data-slot=checkbox-field]]:flex [&_[data-slot=checkbox-field]]:items-start [&_[data-slot=checkbox-field]]:text-muted-foreground [&_[data-slot=field-help]]:max-w-192 [:where(&)>*]:my-0"
+      data-slot="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <label className="checkbox-field">
+      <label data-slot="checkbox-field">
         <Checkbox
           checked={allowMemberGuests}
           onCheckedChange={(checked) => setAllowMemberGuests(checked === true)}
@@ -142,9 +143,9 @@ export function GroupGuestPermissionForm({
         />
         <span>Let members who are playing bring guests</span>
       </label>
-      <p className="field-help">
+      <FieldHelp>
         Guests don&apos;t need an account and don&apos;t appear in standings.
-      </p>
+      </FieldHelp>
       <label htmlFor="guest-permission-reason">Reason for change</label>
       <Textarea
         id="guest-permission-reason"

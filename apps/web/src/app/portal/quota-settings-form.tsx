@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
 import { configureQuotaSettingsAction } from "@/app/actions/groups";
-import { FormMessage } from "@/components/blocks";
+import { FieldError, FormMessage, Kicker } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -161,7 +161,7 @@ export function QuotaSettingsForm({
       if (
         !dirty ||
         !(form instanceof HTMLFormElement) ||
-        form.classList.contains("quota-settings-form")
+        form.dataset.form === "quota-settings-form"
       ) {
         return;
       }
@@ -301,12 +301,14 @@ export function QuotaSettingsForm({
 
   return (
     <form
-      className="quota-settings-form"
+      className="mt-8 gap-6 grid [&_[data-slot=field]>span]:mb-2.5 [&_[data-slot=field]>span]:text-[0.8125rem] [&_[data-slot=field]>span]:font-bold [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:border-0 [&_legend]:mb-2.5 [&_legend]:text-[0.8125rem] [&_legend]:font-bold"
+      data-slot="quota-settings-form"
+      data-form="quota-settings-form"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <fieldset className="quota-methods">
+      <fieldset className="gap-3 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&>label>span]:border [&>label>span]:border-primary [&>label>span]:grid [&>label>span]:w-8 [&>label>span]:h-8 [&>label>span]:place-items-center [&>label>span]:rounded-full [&>label>span]:text-primary [&>label[data-selected='true']>span]:bg-primary [&>label[data-selected='true']>span]:text-card [&>label[data-selected='true']]:border-primary [&>label[data-selected='true']]:bg-card [&>label[data-selected='true']]:[box-shadow:inset_0_0_0_1px_var(--primary)] [&>label]:p-4 [&>label]:border [&>label]:grid [&>label]:grid-cols-[auto_1fr] [&>label]:content-start [&>label]:items-center [&>label]:gap-y-3 [&>label]:gap-x-2.5 [&>label]:min-h-30 [&>label]:bg-muted [&>label]:text-foreground [&>label]:cursor-pointer [&>label]:font-bold [&>label]:text-[0.875rem]! max-[720px]:[&>label]:min-h-auto! [&>legend]:col-span-full [&_label:focus-within]:outline-[3px] [&_label:focus-within]:outline-solid [&_label:focus-within]:outline-ring [&_label:focus-within]:outline-offset-[2px] [&_small]:col-span-full [&_small]:text-muted-foreground [&_small]:font-normal [&_small]:leading-[1.45]">
         <legend>Calculation method</legend>
         {(
           [
@@ -346,9 +348,12 @@ export function QuotaSettingsForm({
         ))}
       </fieldset>
 
-      <div className="quota-policy-row">
+      <div className="py-5 px-0 gap-6 border-y border-t-border/50 border-b-border/50 grid grid-cols-[minmax(0,1fr)_minmax(16rem,1fr)] max-[720px]:grid-cols-[1fr]">
         {method === "moving_average" ? (
-          <label className="field-group">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+          >
             <span>Rounds to average</span>
             <Input
               type="number"
@@ -365,13 +370,17 @@ export function QuotaSettingsForm({
             />
             <small>From 4 to 20.</small>
             {historyError ? (
-              <small className="field-error" id="quota-history-error">
+              <small
+                className="m-0 min-h-5 text-destructive text-[0.8125rem] leading-[1.45]"
+                data-slot="field-error"
+                id="quota-history-error"
+              >
                 {historyError}
               </small>
             ) : null}
           </label>
         ) : (
-          <p className="quota-policy-note">
+          <p className="text-muted-foreground leading-[1.55]">
             {method === "best_10_of_20"
               ? "Always uses the latest 20 point totals."
               : method === "previous_plus_minus"
@@ -379,7 +388,7 @@ export function QuotaSettingsForm({
                 : "Choose a calculation method to see its options."}
           </p>
         )}
-        <fieldset className="precision-options">
+        <fieldset className="flex flex-wrap content-start gap-y-3 gap-x-4 [&_label]:items-center [&_label]:gap-[0.4rem]! [&_label]:flex! [&_label]:text-[0.8125rem]! [&_legend]:w-full">
           <legend>Quota decimal places</legend>
           {([0, 1, 2] as const).map((value) => (
             <label key={value}>
@@ -396,13 +405,10 @@ export function QuotaSettingsForm({
         </fieldset>
       </div>
 
-      <section
-        className="merit-settings"
-        aria-labelledby="merit-settings-title"
-      >
-        <div className="band-editor-heading">
+      <section className="gap-5 grid" aria-labelledby="merit-settings-title">
+        <div className="gap-4 flex flex-wrap items-end justify-between [&_:is(h3,h4)]:mx-0 [&_:is(h3,h4)]:mt-1.5 [&_:is(h3,h4)]:mb-0 [&_p:not([data-slot=kicker])]:mx-0 [&_p:not([data-slot=kicker])]:mt-2 [&_p:not([data-slot=kicker])]:mb-0 [&_p:not([data-slot=kicker])]:max-w-168 [&_p:not([data-slot=kicker])]:text-[0.875rem] [&_p]:text-muted-foreground [&_p]:leading-[1.55]">
           <div>
-            <p className="ledger-kicker">Merit and standings</p>
+            <Kicker>Merit and standings</Kicker>
             <h3 id="merit-settings-title">
               Set how Order of Merit points are awarded
             </h3>
@@ -413,8 +419,11 @@ export function QuotaSettingsForm({
             </p>
           </div>
         </div>
-        <div className="quota-policy-row">
-          <label className="field-group">
+        <div className="py-5 px-0 gap-6 border-y border-t-border/50 border-b-border/50 grid grid-cols-[minmax(0,1fr)_minmax(16rem,1fr)] max-[720px]:grid-cols-[1fr]">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+          >
             <span>Participation merit</span>
             <Input
               value={participationMerit}
@@ -430,12 +439,19 @@ export function QuotaSettingsForm({
             />
             <small>Enter 0 for no participation points.</small>
             {participationMeritError ? (
-              <small className="field-error" id="participation-merit-error">
+              <small
+                className="m-0 min-h-5 text-destructive text-[0.8125rem] leading-[1.45]"
+                data-slot="field-error"
+                id="participation-merit-error"
+              >
                 {participationMeritError}
               </small>
             ) : null}
           </label>
-          <label className="field-group">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+          >
             <span>Standings reset date</span>
             <Input
               type="date"
@@ -453,13 +469,17 @@ export function QuotaSettingsForm({
               it blank to count every result.
             </small>
             {standingsResetDateError ? (
-              <small className="field-error" id="standings-reset-date-error">
+              <small
+                className="m-0 min-h-5 text-destructive text-[0.8125rem] leading-[1.45]"
+                data-slot="field-error"
+                id="standings-reset-date-error"
+              >
                 {standingsResetDateError}
               </small>
             ) : null}
           </label>
         </div>
-        <div className="band-editor-heading">
+        <div className="gap-4 flex flex-wrap items-end justify-between [&_:is(h3,h4)]:mx-0 [&_:is(h3,h4)]:mt-1.5 [&_:is(h3,h4)]:mb-0 [&_p:not([data-slot=kicker])]:mx-0 [&_p:not([data-slot=kicker])]:mt-2 [&_p:not([data-slot=kicker])]:mb-0 [&_p:not([data-slot=kicker])]:max-w-168 [&_p:not([data-slot=kicker])]:text-[0.875rem] [&_p]:text-muted-foreground [&_p]:leading-[1.55]">
           <div>
             <h4>Points by finishing place</h4>
             <p>
@@ -487,7 +507,10 @@ export function QuotaSettingsForm({
           </Button>
         </div>
         {placementMerit.map((row, index) => (
-          <fieldset className="band-row" key={row.id}>
+          <fieldset
+            className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] bg-muted p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
+            key={row.id}
+          >
             <legend>Placement rank {index + 1}</legend>
             <label>
               Rank
@@ -541,22 +564,23 @@ export function QuotaSettingsForm({
           </fieldset>
         ))}
         {placementMeritError ? (
-          <p className="field-error" role="alert">
-            {placementMeritError}
-          </p>
+          <FieldError role="alert">{placementMeritError}</FieldError>
         ) : null}
       </section>
 
       {methodExample ? (
         <div className="quota-rule-example">
-          <p className="ledger-kicker">Example</p>
+          <Kicker>Example</Kicker>
           <p>{methodExample}</p>
         </div>
       ) : null}
 
       {method === "previous_plus_minus" ? (
-        <section className="band-editor" aria-labelledby="band-editor-title">
-          <div className="band-editor-heading">
+        <section
+          className="gap-4 grid [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0 [&_h3]:font-semibold"
+          aria-labelledby="band-editor-title"
+        >
+          <div className="gap-4 flex flex-wrap items-end justify-between [&_:is(h3,h4)]:mx-0 [&_:is(h3,h4)]:mt-1.5 [&_:is(h3,h4)]:mb-0 [&_p:not([data-slot=kicker])]:mx-0 [&_p:not([data-slot=kicker])]:mt-2 [&_p:not([data-slot=kicker])]:mb-0 [&_p:not([data-slot=kicker])]:max-w-168 [&_p:not([data-slot=kicker])]:text-[0.875rem] [&_p]:text-muted-foreground [&_p]:leading-[1.55]">
             <div>
               <h3 id="band-editor-title">Adjustment bands</h3>
               <p>Bands are checked in the order listed, from −100 to 100.</p>
@@ -582,7 +606,10 @@ export function QuotaSettingsForm({
             </Button>
           </div>
           {bands.map((band, index) => (
-            <fieldset className="band-row" key={band.id}>
+            <fieldset
+              className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] bg-muted p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
+              key={band.id}
+            >
               <legend>Band {index + 1}</legend>
               <label>
                 Lower
@@ -601,7 +628,10 @@ export function QuotaSettingsForm({
                   inputMode="decimal"
                 />
               </label>
-              <label className="bound-choice">
+              <label
+                className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+                data-slot="bound-choice"
+              >
                 <Checkbox
                   checked={band.lowerInclusive}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
@@ -633,7 +663,10 @@ export function QuotaSettingsForm({
                   inputMode="decimal"
                 />
               </label>
-              <label className="bound-choice">
+              <label
+                className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+                data-slot="bound-choice"
+              >
                 <Checkbox
                   checked={band.upperInclusive}
                   aria-invalid={Boolean(bandValidation.rowErrors[index])}
@@ -665,7 +698,7 @@ export function QuotaSettingsForm({
                   inputMode="decimal"
                 />
               </label>
-              <div className="band-actions">
+              <div className="gap-2 col-span-full flex max-[720px]:col-[1] [&_button:disabled]:cursor-not-allowed [&_button:disabled]:opacity-45 [&_button]:py-[0.35rem] [&_button]:px-[0.65rem] [&_button]:border [&_button]:min-h-9 [&_button]:rounded-lg [&_button]:bg-card [&_button]:cursor-pointer">
                 <button
                   type="button"
                   onClick={() => moveBand(index, -1)}
@@ -696,7 +729,8 @@ export function QuotaSettingsForm({
               </div>
               {bandValidation.rowErrors[index] ? (
                 <p
-                  className="field-error band-row-error"
+                  className="m-0 min-h-5 text-destructive text-[0.8125rem] leading-[1.45] col-span-full"
+                  data-slot="field-error"
                   id={`quota-band-${index + 1}-error`}
                 >
                   {bandValidation.rowErrors[index]}
@@ -705,11 +739,11 @@ export function QuotaSettingsForm({
             </fieldset>
           ))}
           {bands.length === 0 && bandError ? (
-            <p className="field-error">{bandError}</p>
+            <FieldError>{bandError}</FieldError>
           ) : null}
-          <div className="quota-test">
+          <div className="p-4 gap-4 border-y flex flex-wrap items-end justify-between max-[720px]:items-stretch [&>label]:font-bold [&>label]:max-w-40 [&>label]:gap-[0.35rem]! [&>label]:grid! [&>label]:text-muted-foreground! [&>label]:text-[0.75rem]! max-[720px]:[&>label]:[flex:1_1_9rem] max-[720px]:[&>label]:max-w-none! [&>small]:[flex-basis:100%] [&>small]:text-muted-foreground! [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0 [&_h3]:font-semibold [&_output]:min-w-20 [&_output]:text-primary [&_output]:text-[2rem] [&_output]:text-right">
             <div>
-              <p className="ledger-kicker">Test the rule</p>
+              <Kicker>Test the rule</Kicker>
               <h3>Projected next quota</h3>
             </div>
             <label>
@@ -739,7 +773,10 @@ export function QuotaSettingsForm({
         </section>
       ) : null}
 
-      <label className="field-group quota-reason">
+      <label
+        className="gap-2 grid max-w-128 [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <span>Reason for change</span>
         <Input
           value={reason}
@@ -752,7 +789,7 @@ export function QuotaSettingsForm({
         {message}
       </FormMessage>
       <p
-        className="quota-validation-summary"
+        className="m-0 min-h-5 text-destructive text-[0.8125rem]"
         id="quota-save-summary"
         role={bandError || historyError || meritError ? "alert" : undefined}
       >
@@ -764,7 +801,7 @@ export function QuotaSettingsForm({
               ? `Can't save yet: ${meritError}`
               : ""}
       </p>
-      <div className="quota-form-actions">
+      <div className="gap-4 flex flex-wrap items-end justify-start">
         <Button
           type="submit"
           aria-describedby={

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
-import { FormMessage } from "@/components/blocks";
+import { FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { setRoundRsvpAction } from "@/app/actions/rounds";
 import type { MemberNextRound } from "@/domain/member-next-round";
@@ -80,13 +80,16 @@ export function MemberNextRoundRsvp({
 
   return (
     <div className="member-home-rsvp-controls">
-      <p className="field-help">
+      <FieldHelp>
         Your answer: <strong>{formatRsvp(rsvpStatus)}</strong>
         {changedAt ? (
           <span> Updated {formatRsvpChangedAt(changedAt, groupTimeZone)}</span>
         ) : null}
-      </p>
-      <div className="action-row" aria-label="Round RSVP">
+      </FieldHelp>
+      <div
+        className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5"
+        aria-label="Round RSVP"
+      >
         <Button
           variant={rsvpStatus === "playing" ? "default" : "outline"}
           type="button"

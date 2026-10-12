@@ -4,7 +4,7 @@ import {
   executeReadPublicScoreboard,
   type PublicScoreboardPlayer,
 } from "@/lib/scoreboard/scoreboard-access-data";
-import { SkipLink } from "@/components/blocks";
+import { Kicker, SkipLink } from "@/components/blocks";
 
 import { KioskRefresh } from "./kiosk-refresh";
 
@@ -45,19 +45,20 @@ export default async function ScoreboardPage({
       <main
         id="main-content"
         tabIndex={-1}
-        className={`auth-shell auth-shell-single invitation-shell${kiosk ? " scoreboard-kiosk" : ""}`}
+        className={`p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!${kiosk ? " scoreboard-kiosk" : ""}`}
       >
         <section
-          className="auth-ledger member-results-page"
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card w-[min(100%,72rem)]! max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
           aria-labelledby="scoreboard-title"
         >
-          <p className="ledger-kicker">Live scores</p>
+          <Kicker>Live scores</Kicker>
           <h1 id="scoreboard-title">{scoreboard.groupName}</h1>
-          <p className="member-results-intro">
+          <p className="text-muted-foreground leading-[1.55]">
             {scoreboard.roundDescription ?? "Live round"} · Ranked by{" "}
             {rankingLabel.toLowerCase()}.
           </p>
-          <p className="member-results-format-note">
+          <p className="mt-2 text-muted-foreground leading-[1.55] text-[0.875rem]">
             Scores as of {formatTimestamp(scoreboard.lastUpdatedAt)}.
           </p>
           <KioskRefresh enabled={kiosk} />
@@ -80,7 +81,10 @@ export default async function ScoreboardPage({
             </a>
           ))}
           {scoreboard.players.length === 0 ? (
-            <section className="member-home-empty" aria-live="polite">
+            <section
+              className="mt-10 pt-8 border-t [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
+              aria-live="polite"
+            >
               <h2>No players yet.</h2>
               <p>Players appear here after they join this round.</p>
             </section>
@@ -122,9 +126,9 @@ function ScoreboardTable({
   players: readonly PublicScoreboardPlayer[];
 }>) {
   return (
-    <div className="member-results-table-wrap">
-      <table className="member-results-table">
-        <caption className="visually-hidden">Live scores</caption>
+    <div className="mt-5 border relative overflow-x-auto bg-card">
+      <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+        <caption className="sr-only">Live scores</caption>
         <thead>
           <tr>
             <th scope="col">Rank</th>
@@ -142,7 +146,9 @@ function ScoreboardTable({
               <td>
                 <strong>{player.playerName}</strong>
                 {player.participantKind === "guest" ? (
-                  <span className="member-results-guest">Guest</span>
+                  <span className="mt-1 block text-muted-foreground text-[0.6875rem] tracking-[0.08em] uppercase">
+                    Guest
+                  </span>
                 ) : null}
               </td>
               <td>{player.golfPoints ?? "—"}</td>
@@ -177,13 +183,14 @@ function ScoreboardUnavailable() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
         <section
-          className="auth-ledger"
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
           aria-labelledby="scoreboard-unavailable-title"
         >
-          <p className="ledger-kicker">Live scores</p>
+          <Kicker>Live scores</Kicker>
           <h1 id="scoreboard-unavailable-title">
             These live scores aren’t available.
           </h1>

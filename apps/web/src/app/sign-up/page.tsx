@@ -3,7 +3,7 @@ import Link from "next/link";
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
 
 import { OrganizerSignupForm } from "./signup-form";
-import { FormMessage, SkipLink } from "@/components/blocks";
+import { FormMessage, Kicker, SkipLink, TextLink } from "@/components/blocks";
 
 type SignupPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -19,21 +19,30 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto max-[480px]:[&_[data-slot=auth-ledger]]:border-0!"
       >
-        <section className="auth-ledger" aria-labelledby="sign-up-title">
-          <div className="brand-lockup">
-            <span className="brand-mark" aria-hidden="true">
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+          aria-labelledby="sign-up-title"
+        >
+          <div className="mb-[clamp(3rem,9vh,6.5rem)] gap-3.5 flex items-center max-[800px]:mb-12">
+            <span
+              className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
+              aria-hidden="true"
+            >
               GR
             </span>
             <div>
-              <p className="eyebrow">GreenRoster</p>
-              <p className="brand-note">Your group. Your rounds. One roster.</p>
+              <p className="m-0 text-[1.125rem] font-bold">GreenRoster</p>
+              <p className="mx-0 mt-0.5 mb-0 text-muted-foreground text-[0.8125rem]">
+                Your group. Your rounds. One roster.
+              </p>
             </div>
           </div>
 
-          <div className="auth-heading">
-            <p className="ledger-kicker">New group</p>
+          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+            <Kicker>New group</Kicker>
             <h1 id="sign-up-title">Start your group</h1>
             <p>Create your account, then set up your group.</p>
           </div>
@@ -65,9 +74,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             </FormMessage>
           )}
 
-          <Link className="secondary-link" href="/sign-in">
-            Sign in instead
-          </Link>
+          <TextLink href="/sign-in">Sign in instead</TextLink>
         </section>
       </main>
     </>

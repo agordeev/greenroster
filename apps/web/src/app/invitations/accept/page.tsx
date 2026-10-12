@@ -18,6 +18,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { Button } from "@/components/ui/button";
 
 import { InvitationAcceptForm } from "./accept-form";
+import { Kicker, TextLink } from "@/components/blocks";
 
 type InvitationAcceptPageProps = Readonly<{
   searchParams: Promise<{ status?: string }>;
@@ -54,15 +55,24 @@ function InvitationFrame({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
-      <section className="auth-ledger" aria-labelledby="invitation-title">
-        <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">
+    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
+      <section
+        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        data-slot="auth-ledger"
+        aria-labelledby="invitation-title"
+      >
+        <div className="mb-[clamp(3rem,9vh,6.5rem)] gap-3.5 flex items-center max-[800px]:mb-12">
+          <span
+            className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
+            aria-hidden="true"
+          >
             GR
           </span>
           <div>
-            <p className="eyebrow">GreenRoster</p>
-            <p className="brand-note">Your group. Your rounds. One roster.</p>
+            <p className="m-0 text-[1.125rem] font-bold">GreenRoster</p>
+            <p className="mx-0 mt-0.5 mb-0 text-muted-foreground text-[0.8125rem]">
+              Your group. Your rounds. One roster.
+            </p>
           </div>
         </div>
         {children}
@@ -77,18 +87,16 @@ function StatusState({
 }: Readonly<{ message: string; title?: string }>) {
   return (
     <InvitationFrame>
-      <div className="auth-heading">
-        <p className="ledger-kicker">Invitation</p>
+      <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+        <Kicker>Invitation</Kicker>
         <h1 id="invitation-title">{title}</h1>
         <p>{message}</p>
       </div>
-      <div className="action-row invitation-recovery-actions">
+      <div className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5">
         <Button asChild>
           <Link href="/sign-in">Sign in</Link>
         </Button>
-        <Link className="secondary-link" href="/help">
-          Get help
-        </Link>
+        <TextLink href="/help">Get help</TextLink>
       </div>
     </InvitationFrame>
   );
@@ -151,23 +159,23 @@ export default async function InvitationAcceptPage({
   if (!user) {
     return (
       <InvitationFrame>
-        <div className="auth-heading">
-          <p className="ledger-kicker">Invitation</p>
+        <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+          <Kicker>Invitation</Kicker>
           <h1 id="invitation-title">Sign in to review your invitation</h1>
           <p>
             Sign in or create an account to see who invited you and which group
             you&apos;re joining.
           </p>
         </div>
-        <div className="action-row invitation-recovery-actions">
+        <div className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5">
           <Button asChild>
             <Link href="/sign-in?next=%2Finvitations%2Faccept">
               Sign in to continue
             </Link>
           </Button>
-          <Link className="secondary-link" href="/invitations/accept/register">
+          <TextLink href="/invitations/accept/register">
             Create an account
-          </Link>
+          </TextLink>
         </div>
       </InvitationFrame>
     );
@@ -257,15 +265,18 @@ export default async function InvitationAcceptPage({
 
   return (
     <InvitationFrame>
-      <div className="auth-heading">
-        <p className="ledger-kicker">Invitation</p>
+      <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+        <Kicker>Invitation</Kicker>
         <h1 id="invitation-title">
           {preview.memberFirstName}, you’re invited to {preview.groupName}
         </h1>
         <p>Check the details below before you accept.</p>
       </div>
 
-      <dl className="invitation-summary">
+      <dl
+        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+        data-slot="invitation-summary"
+      >
         <div>
           <dt>Invited e-mail</dt>
           <dd>{preview.invitedEmail}</dd>
@@ -298,7 +309,10 @@ export default async function InvitationAcceptPage({
         </div>
       </dl>
 
-      <p className="field-help invitation-legal-note">
+      <p
+        className="mx-0 mt-6 mb-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground max-w-168 [&_a]:underline [&_a]:text-primary [&_a]:font-bold [&_a]:underline-offset-[0.2em]"
+        data-slot="field-help"
+      >
         Before you start, review the current <Link href="/terms">Terms</Link>{" "}
         and <Link href="/privacy">Privacy Policy</Link>.
       </p>
@@ -306,15 +320,15 @@ export default async function InvitationAcceptPage({
       {user?.email_confirmed_at ? (
         <InvitationAcceptForm />
       ) : (
-        <div className="action-row invitation-recovery-actions">
+        <div className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5">
           <Button asChild>
             <Link href="/sign-in?next=%2Finvitations%2Faccept">
               Sign in to accept
             </Link>
           </Button>
-          <Link className="secondary-link" href="/invitations/accept/register">
+          <TextLink href="/invitations/accept/register">
             Create an account
-          </Link>
+          </TextLink>
         </div>
       )}
     </InvitationFrame>

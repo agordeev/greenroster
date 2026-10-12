@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "./legacy.css" layer(components);
 
 @custom-variant dark (&:is(.dark *));
 
@@ -88,12 +87,53 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
+  }
+  html {
+    @apply bg-background font-sans;
   }
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 1.125rem;
+  }
+  h4 {
+    font-size: 1rem;
+  }
+  label,
+  legend {
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  label small {
+    font-weight: 400;
+  }
+  /* A label that wraps a checkbox or radio lays the control beside its text. */
+  label:where(:has(> [data-slot="checkbox"], > input[type="radio"])) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+  label > [data-slot="checkbox"] {
+    margin-top: 0.125rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -7,7 +7,7 @@ import {
   completeLiveRoundAction,
   reopenCompletedRoundAction,
 } from "@/app/actions/rounds";
-import { FormMessage, SectionHeading } from "@/components/blocks";
+import { FormMessage, Kicker, SectionHeading } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -84,10 +84,10 @@ function RoundCompletePanel({
   if (unavailable || !preview) {
     return (
       <section
-        className="page-section"
+        className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
         aria-labelledby="round-completion-unavailable-title"
       >
-        <p className="ledger-kicker">Before you complete</p>
+        <Kicker>Before you complete</Kicker>
         <h2 id="round-completion-unavailable-title">
           We couldn&apos;t check this round
         </h2>
@@ -165,7 +165,7 @@ function RoundCompletePanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="round-completion-title"
       aria-busy={pending}
     >
@@ -191,10 +191,10 @@ function RoundCompletePanel({
         </span>
       </div>
       <aside
-        className="member-results-winner"
+        className="mt-10 pt-8 border-t [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
         aria-labelledby="round-completion-consequences-title"
       >
-        <p className="ledger-kicker">Before you confirm</p>
+        <Kicker>Before you confirm</Kicker>
         <h3 id="round-completion-consequences-title">
           {preview.consequences.winnerCount > 0
             ? `${preview.consequences.winnerCount} winner${preview.consequences.winnerCount === 1 ? "" : "s"}${preview.consequences.winnerIsTie ? " (tied)" : ""}`
@@ -221,9 +221,9 @@ function RoundCompletePanel({
           complete the round once they have.
         </FormMessage>
       ) : null}
-      <div className="member-results-table-wrap">
-        <table className="member-results-table">
-          <caption className="visually-hidden">
+      <div className="mt-5 border relative overflow-x-auto bg-card">
+        <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+          <caption className="sr-only">
             Completion check for {description}
           </caption>
           <thead>
@@ -246,10 +246,12 @@ function RoundCompletePanel({
                     {participant.participantName || "Unnamed player"}
                   </strong>
                   {participant.participantKind === "guest" ? (
-                    <span className="member-results-guest">Guest</span>
+                    <span className="mt-1 block text-muted-foreground text-[0.6875rem] tracking-[0.08em] uppercase">
+                      Guest
+                    </span>
                   ) : null}
                   {participant.isWinner ? (
-                    <small className="member-results-meta">
+                    <small className="mt-1 block text-muted-foreground text-[0.75rem]">
                       {participant.winnerTieSize > 1 ? "Tied winner" : "Winner"}
                     </small>
                   ) : null}
@@ -391,7 +393,10 @@ function RoundReopenPanel({
   }
 
   return (
-    <section className="page-section" aria-labelledby="round-reopen-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="round-reopen-title"
+    >
       <SectionHeading
         kicker="Completed round"
         title="Reopen completed round"
@@ -400,10 +405,10 @@ function RoundReopenPanel({
       />
       <p>Reopening returns the round to live so you can correct scores.</p>
       <aside
-        className="member-results-winner"
+        className="mt-10 pt-8 border-t [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
         aria-labelledby="round-reopen-consequences-title"
       >
-        <p className="ledger-kicker">Before you confirm</p>
+        <Kicker>Before you confirm</Kicker>
         <h3 id="round-reopen-consequences-title">
           {winners.length > 0
             ? `${winners.map(displayName).join(" and ")} — ${winners.length > 1 ? "tied " : ""}winner at rank 1`
@@ -420,12 +425,17 @@ function RoundReopenPanel({
         </p>
       </aside>
       <form
-        className="form-stack"
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
         onSubmit={reopen}
         noValidate
         aria-busy={pending}
       >
-        <label className="field-group" htmlFor="round-reopen-reason">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="round-reopen-reason"
+        >
           <span>Reason</span>
           <Textarea
             id="round-reopen-reason"

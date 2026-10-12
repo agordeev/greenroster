@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 
-import { FormMessage } from "@/components/blocks";
+import { FormMessage, Kicker } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { markMemberInboxReadAction } from "@/app/actions/notifications";
 import type { MemberInboxItem } from "@/domain/member-inbox";
@@ -57,7 +57,7 @@ export function MemberInboxList({
 
   if (items.length === 0) {
     return (
-      <p className="member-read-empty" role="status">
+      <p className="text-muted-foreground leading-[1.55]" role="status">
         You have no round updates yet.
       </p>
     );
@@ -66,15 +66,15 @@ export function MemberInboxList({
   return (
     <>
       {message ? <FormMessage role="status">{message}</FormMessage> : null}
-      <div className="member-inbox-list">
+      <div className="mt-8 gap-4 grid">
         {items.map((item) => (
           <article
-            className={`member-inbox-item${item.readAt ? "" : " member-inbox-item-unread"}`}
+            className={`p-5 gap-3 border grid bg-muted [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start${item.readAt ? "" : " border-primary!"}`}
             key={item.inboxItemId}
           >
-            <div className="member-inbox-item-heading">
+            <div className="gap-4 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.25rem] [&_h2]:font-semibold [&_time]:text-muted-foreground [&_time]:text-[0.8125rem]">
               <div>
-                <p className="ledger-kicker">{item.readAt ? "Read" : "New"}</p>
+                <Kicker>{item.readAt ? "Read" : "New"}</Kicker>
                 <h2>{item.roundDescription ?? "Your round"}</h2>
               </div>
               <time dateTime={item.createdAt}>
@@ -82,7 +82,7 @@ export function MemberInboxList({
               </time>
             </div>
             <p>{item.body}</p>
-            <p className="member-inbox-author">
+            <p className="text-muted-foreground text-[0.8125rem]">
               {item.authorDisplayName} · {formatRole(item.authorRole)}
             </p>
             {!item.readAt ? (

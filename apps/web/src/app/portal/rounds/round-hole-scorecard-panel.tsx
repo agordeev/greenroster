@@ -72,7 +72,7 @@ export function RoundHoleScorecardPanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="round-hole-scorecard-title"
     >
       <SectionHeading
@@ -91,11 +91,11 @@ export function RoundHoleScorecardPanel({
       </p>
       {message ? <p role="status">{message}</p> : null}
       {byParticipant.length === 0 ? (
-        <p className="empty-state">
+        <p className="mx-0 mt-6 mb-0 p-4 border border-border/50 text-muted-foreground leading-[1.55]">
           Hole details appear once this round has players.
         </p>
       ) : (
-        <div className="row-list">
+        <div className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
           {byParticipant.map((participantRows) => (
             <ParticipantHoleScorecard
               key={participantRows[0].participantId}
@@ -197,8 +197,8 @@ function ParticipantHoleScorecard({
   }
 
   return (
-    <article className="row-item">
-      <div className="section-heading">
+    <article className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!">
+      <div className="gap-4 flex items-end justify-between max-[720px]:items-start max-[720px]:flex-col [&>p]:mx-0 [&>p]:mb-0 [&>p]:text-muted-foreground [&>p]:whitespace-nowrap [&>p]:mt-0! [&>p]:text-[0.75rem]! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0">
         <h3>
           {displayName(rows[0])}
           {rows[0].participantKind === "guest" ? " · Guest" : ""}
@@ -207,7 +207,8 @@ function ParticipantHoleScorecard({
       </div>
       {!readOnly ? (
         <label
-          className="field-group"
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
           htmlFor={`hole-reason-${rows[0].participantId}`}
         >
           <span>Reason for the change</span>
@@ -221,7 +222,7 @@ function ParticipantHoleScorecard({
       ) : null}
       <div className="table-scroll">
         <table>
-          <caption className="visually-hidden">
+          <caption className="sr-only">
             Hole details for {displayName(rows[0])}
           </caption>
           <thead>

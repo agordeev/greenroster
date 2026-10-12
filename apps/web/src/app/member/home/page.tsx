@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { z } from "zod";
 
 import type { MemberNextRound } from "@/domain/member-next-round";
@@ -22,7 +21,7 @@ import {
   MemberNotificationPreferences,
   type MemberNotificationPreference,
 } from "./member-notification-preferences";
-import { SkipLink } from "@/components/blocks";
+import { Kicker, SkipLink, TextLink } from "@/components/blocks";
 
 const firstRunSchema = z
   .array(z.object({ is_complete: z.boolean() }))
@@ -114,42 +113,39 @@ export default async function MemberHomePage() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
-        <section className="auth-ledger" aria-labelledby="member-home-title">
-          <nav className="member-results-nav" aria-label="Member navigation">
-            <Link className="secondary-link" href="/member/standings">
-              Standings and history
-            </Link>
-            <Link className="secondary-link" href="#notifications">
-              Notification preferences
-            </Link>
-            <Link className="secondary-link" href="/member/inbox">
-              Inbox
-            </Link>
-            <Link className="secondary-link" href="/member/profile">
-              Profile
-            </Link>
-            <Link className="secondary-link" href="/member/directory">
-              Directory
-            </Link>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+          aria-labelledby="member-home-title"
+        >
+          <nav
+            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
+            aria-label="Member navigation"
+          >
+            <TextLink href="/member/standings">Standings and history</TextLink>
+            <TextLink href="#notifications">Notification preferences</TextLink>
+            <TextLink href="/member/inbox">Inbox</TextLink>
+            <TextLink href="/member/profile">Profile</TextLink>
+            <TextLink href="/member/directory">Directory</TextLink>
           </nav>
-          <div className="auth-heading">
-            <p className="ledger-kicker">Home</p>
+          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+            <Kicker>Home</Kicker>
             <h1 id="member-home-title">
               {groupResult.data?.name ?? "Your GreenRoster group"}
             </h1>
-            <p className="member-home-intro">
+            <p className="text-muted-foreground leading-[1.65]">
               Your next round, recent results, and where you stand.
             </p>
             {nextRound ? (
               <NextRoundCard round={nextRound} />
             ) : (
               <section
-                className="member-home-empty"
+                className="mt-10 pt-8 border-t [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
                 aria-labelledby="next-round-title"
               >
-                <p className="ledger-kicker">Next round</p>
+                <Kicker>Next round</Kicker>
                 <h2 id="next-round-title">Nothing published yet</h2>
                 <p>
                   Your next round will appear here once your group publishes it
@@ -164,9 +160,7 @@ export default async function MemberHomePage() {
             />
             <MemberClubhouseSummary projection={clubhouseResult} />
             <MemberNotificationPreferences preferences={preferences} />
-            <Link className="secondary-link" href="/account">
-              Change account e-mail
-            </Link>
+            <TextLink href="/account">Change account e-mail</TextLink>
           </div>
         </section>
       </main>
@@ -179,35 +173,42 @@ function MemberClubhouseSummary({
 }: Readonly<{ projection: ClubhouseProjection | null }>) {
   return (
     <section
-      className="member-home-results-summary"
+      className="mt-10 pt-8 gap-4 border-t grid [&_[data-slot=member-stats-summary]]:mt-2! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem] [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0 [&_h3]:font-semibold [&_h3]:text-[1.5rem]"
       aria-labelledby="clubhouse-title"
     >
-      <div className="member-home-round-heading">
-        <p className="ledger-kicker">Clubhouse</p>
+      <div className="[&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
+        <Kicker>Clubhouse</Kicker>
         <h2 id="clubhouse-title">News and videos</h2>
       </div>
       {!projection ? (
-        <p className="member-read-empty">
+        <p className="text-muted-foreground leading-[1.55]">
           We could not load clubhouse news. Refresh the page to try again.
         </p>
       ) : projection.news.length === 0 && projection.media.length === 0 ? (
-        <p className="member-read-empty">
+        <p className="text-muted-foreground leading-[1.55]">
           Your group has no clubhouse news yet.
         </p>
       ) : (
         <>
           {projection.news.slice(0, 3).map((item) => (
-            <article className="member-home-recent-result" key={item.id}>
+            <article
+              className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
+              key={item.id}
+            >
               <h3>{item.title}</h3>
               <p>{item.body}</p>
               <p>{item.author}</p>
             </article>
           ))}
           {projection.media.slice(0, 3).map((item) => (
-            <article className="member-home-recent-result" key={item.id}>
+            <article
+              className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
+              key={item.id}
+            >
               <h3>{item.title}</h3>
               <a
-                className="secondary-link"
+                className="justify-self-start text-primary text-[0.875rem] font-bold underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-ring focus-visible:outline-offset-[3px]"
+                data-slot="text-link"
                 href={item.mediaUrl}
                 target="_blank"
                 rel="noreferrer"
@@ -246,16 +247,16 @@ function MemberHomeResultsSummary({
 
   return (
     <section
-      className="member-home-results-summary"
+      className="mt-10 pt-8 gap-4 border-t grid [&_[data-slot=member-stats-summary]]:mt-2! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem] [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0 [&_h3]:font-semibold [&_h3]:text-[1.5rem]"
       aria-labelledby="member-home-summary-title"
     >
-      <div className="member-home-round-heading">
-        <p className="ledger-kicker">Results and standings</p>
+      <div className="[&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
+        <Kicker>Results and standings</Kicker>
         <h2 id="member-home-summary-title">Your results and standings</h2>
       </div>
       {recentResult ? (
-        <article className="member-home-recent-result">
-          <p className="ledger-kicker">Recent result</p>
+        <article className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!">
+          <Kicker>Recent result</Kicker>
           <h3>{recentResult.history.round_description ?? "Completed round"}</h3>
           <p>
             {formatCompletedAt(
@@ -273,27 +274,30 @@ function MemberHomeResultsSummary({
               {winners.map(displayName).join(" and ")}
             </p>
           ) : null}
-          <Link
-            className="secondary-link"
+          <TextLink
             href={
               "/member/results?round_id=" +
               encodeURIComponent(recentResult.history.round_id)
             }
           >
             See full results
-          </Link>
+          </TextLink>
         </article>
       ) : history === null ? (
-        <p className="member-read-empty" role="status">
+        <p className="text-muted-foreground leading-[1.55]" role="status">
           We could not load results and standings. Refresh the page to try
           again.
         </p>
       ) : (
-        <p className="member-read-empty" role="status">
+        <p className="text-muted-foreground leading-[1.55]" role="status">
           No official results are available yet.
         </p>
       )}
-      <dl className="member-stats-summary" aria-label="Your standings summary">
+      <dl
+        className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:bg-muted [&_span]:text-muted-foreground [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:text-[1.5rem] [&_strong]:font-semibold"
+        data-slot="member-stats-summary"
+        aria-label="Your standings summary"
+      >
         <div>
           <dt>Current quota</dt>
           <dd>{own?.projected_quota ?? "Not available"}</dd>
@@ -311,9 +315,7 @@ function MemberHomeResultsSummary({
           <dd>{own?.standing_rank ?? "Not ranked"}</dd>
         </div>
       </dl>
-      <Link className="secondary-link" href="/member/standings">
-        Open standings and history
-      </Link>
+      <TextLink href="/member/standings">Open standings and history</TextLink>
     </section>
   );
 }
@@ -339,12 +341,19 @@ function formatCompletedAt(value: string, timeZone: string) {
 
 function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
   return (
-    <section className="member-home-round" aria-labelledby="next-round-title">
-      <div className="member-home-round-heading">
-        <p className="ledger-kicker">Next round</p>
+    <section
+      className="mt-10 pt-8 border-t [&_[data-slot=invitation-summary]]:mb-0"
+      aria-labelledby="next-round-title"
+    >
+      <div className="[&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
+        <Kicker>Next round</Kicker>
         <h2 id="next-round-title">{round.description ?? "Golf round"}</h2>
       </div>
-      <dl className="invitation-summary" aria-label="Next round details">
+      <dl
+        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+        data-slot="invitation-summary"
+        aria-label="Next round details"
+      >
         <div>
           <dt>When</dt>
           <dd>{formatGroupDateTime(round.scheduledAt, round.groupTimeZone)}</dd>
@@ -367,11 +376,11 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
         ) : null}
       </dl>
       {round.notes ? (
-        <p className="member-home-round-notes">
+        <p className="mx-0 mt-6 mb-0 p-4 bg-muted text-muted-foreground leading-[1.55]">
           <strong>Notes for players:</strong> {round.notes}
         </p>
       ) : null}
-      <div className="member-home-rsvp">
+      <div className="mt-6 pt-6 border-t border-t-border/50 [&>[data-slot=field-help]]:mx-0 [&>[data-slot=field-help]]:mb-0 [&>[data-slot=field-help]]:mt-0!">
         <MemberNextRoundRsvp
           key={`${round.roundId}:${round.participant.version}`}
           roundId={round.roundId}
@@ -381,12 +390,9 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
           initialChangedAt={round.participant.changedAt}
         />
       </div>
-      <Link
-        className="secondary-link"
-        href={`/member/rounds/${encodeURIComponent(round.roundId)}`}
-      >
+      <TextLink href={`/member/rounds/${encodeURIComponent(round.roundId)}`}>
         Open this round
-      </Link>
+      </TextLink>
     </section>
   );
 }
@@ -410,10 +416,13 @@ function MemberHomeUnavailable() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
-        <section className="auth-ledger">
-          <p className="ledger-kicker">Home</p>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+        >
+          <Kicker>Home</Kicker>
           <h1>We could not load your home page</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>
         </section>

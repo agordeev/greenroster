@@ -4,7 +4,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { setRoundScoreFieldsAction } from "@/app/actions/rounds";
-import { ActionRow, FormMessage, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  FieldHelp,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { RoundFormat } from "@/domain/round-drafts";
@@ -86,16 +91,23 @@ export function RoundScoreFieldsPanel({
   }
 
   return (
-    <section className="page-section" aria-labelledby="score-fields-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="score-fields-title"
+    >
       <SectionHeading
         kicker="Scoring"
         title="Score options"
         titleId="score-fields-title"
         meta="Draft"
       />
-      <p className="field-help">Choose which scores to enter for this round.</p>
-      <div className="precision-options">
-        <label className="bound-choice" htmlFor="round-enable-gross-score">
+      <FieldHelp>Choose which scores to enter for this round.</FieldHelp>
+      <div className="flex flex-wrap content-start gap-y-3 gap-x-4 [&_label]:items-center [&_label]:gap-[0.4rem]! [&_label]:flex! [&_label]:text-[0.8125rem]! [&_legend]:w-full">
+        <label
+          className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+          data-slot="bound-choice"
+          htmlFor="round-enable-gross-score"
+        >
           <Checkbox
             id="round-enable-gross-score"
             checked={grossScore}
@@ -104,7 +116,11 @@ export function RoundScoreFieldsPanel({
           />
           Enter gross scores
         </label>
-        <label className="bound-choice" htmlFor="round-enable-net-score">
+        <label
+          className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+          data-slot="bound-choice"
+          htmlFor="round-enable-net-score"
+        >
           <Checkbox
             id="round-enable-net-score"
             checked={netScore}
@@ -115,9 +131,9 @@ export function RoundScoreFieldsPanel({
         </label>
       </div>
       {format === "individual_gross" ? (
-        <p className="field-help">
+        <FieldHelp>
           Net scores aren&apos;t used in Individual Gross rounds.
-        </p>
+        </FieldHelp>
       ) : null}
       <FormMessage
         tone={messageTone === "success" ? "success" : "error"}

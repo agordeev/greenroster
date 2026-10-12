@@ -14,7 +14,7 @@ export function LiveRoundScoreboard({
 
   return (
     <section
-      className="page-section live-scoreboard"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! [&_[data-slot=round-detail-table-wrap]_table]:min-w-240 [&_tr[data-score-state='confirmed']_td:last-child]:font-bold [&_tr[data-score-state='confirmed']_td:last-child]:text-primary! [&_tr[data-score-state='locked']_td:last-child]:text-destructive [&_tr[data-score-state='missing']_td:last-child]:text-destructive"
       aria-labelledby="live-scoreboard-title"
     >
       <SectionHeading
@@ -34,9 +34,12 @@ export function LiveRoundScoreboard({
       {participants.length === 0 ? (
         <EmptyState>No players are available to score yet.</EmptyState>
       ) : (
-        <div className="publication-member-list round-detail-table-wrap">
+        <div
+          className="mt-8 max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
+          data-slot="round-detail-table-wrap"
+        >
           <table>
-            <caption className="visually-hidden">Live scorecard</caption>
+            <caption className="sr-only">Live scorecard</caption>
             <thead>
               <tr>
                 <th scope="col">Player</th>

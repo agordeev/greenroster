@@ -56,24 +56,34 @@ export function RoundMessagePanel({
     });
   }
   return (
-    <section className="page-section" aria-labelledby="round-message-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="round-message-title"
+    >
       <SectionHeading
         kicker="Round conversation"
         title="Messages for this round"
         titleId="round-message-title"
         meta={String(messages.length)}
       />
-      <div className="member-inbox-list">
+      <div className="mt-8 gap-4 grid">
         {messages.map((message) => (
-          <article className="member-inbox-item" key={message.messageId}>
+          <article
+            className="p-5 gap-3 border grid bg-muted [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start"
+            key={message.messageId}
+          >
             <p>{message.body ?? "This message was removed."}</p>
-            <p className="member-inbox-author">
+            <p className="text-muted-foreground text-[0.8125rem]">
               {message.authorDisplayName} · {message.authorRole}
             </p>
           </article>
         ))}
       </div>
-      <label className="field-group" htmlFor="round-message-body">
+      <label
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+        htmlFor="round-message-body"
+      >
         <span>Write a message</span>
         <Textarea
           id="round-message-body"
@@ -84,7 +94,10 @@ export function RoundMessagePanel({
           rows={3}
         />
       </label>
-      <p className="form-help" aria-live="polite">
+      <p
+        className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+        aria-live="polite"
+      >
         {300 - body.length} characters left.
       </p>
       <Button type="button" onClick={submit} disabled={pending}>

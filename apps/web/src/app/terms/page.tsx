@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/blocks";
 export default function TermsPage() {
   return (
     <InformationShell kicker="Legal" title="Terms of Use">
-      <div className="information-copy">
+      <div className="max-w-168 text-muted-foreground leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-8 [&_h2]:mb-2 [&_h2]:text-foreground [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
         <FormMessage tone="info" className="mb-6" role="status">
           Effective {LEGAL_EFFECTIVE_DATE} · Version {TERMS_VERSION}
         </FormMessage>

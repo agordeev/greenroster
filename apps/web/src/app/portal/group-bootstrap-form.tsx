@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
-import { FormMessage } from "@/components/blocks";
+import { FieldError, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { bootstrapGroupAction } from "@/app/actions/groups";
@@ -99,12 +99,15 @@ export function GroupBootstrapForm({
 
   return (
     <form
-      className="bootstrap-form"
+      className="mt-8 gap-5 grid max-w-120"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="groupName">Group name</label>
         <Input
           id="groupName"
@@ -118,13 +121,14 @@ export function GroupBootstrapForm({
           required
         />
         {errors.groupName ? (
-          <p id="group-name-error" className="field-error">
-            {errors.groupName}
-          </p>
+          <FieldError id="group-name-error">{errors.groupName}</FieldError>
         ) : null}
       </div>
 
-      <div className="field-group">
+      <div
+        className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+        data-slot="field"
+      >
         <label htmlFor="groupTimeZone">Group time zone</label>
         <Input
           id="groupTimeZone"
@@ -143,9 +147,9 @@ export function GroupBootstrapForm({
           required
         />
         {errors.groupTimeZone ? (
-          <p id="group-time-zone-error" className="field-error">
+          <FieldError id="group-time-zone-error">
             {errors.groupTimeZone}
-          </p>
+          </FieldError>
         ) : null}
       </div>
 

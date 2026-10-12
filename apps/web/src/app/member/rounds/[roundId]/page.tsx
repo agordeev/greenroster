@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -7,7 +6,7 @@ import type { MemberRoundDetail } from "@/domain/member-round-detail";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberRoundDetail } from "@/lib/rounds/member-round-detail-data";
-import { SkipLink } from "@/components/blocks";
+import { FieldHelp, Kicker, SkipLink, TextLink } from "@/components/blocks";
 
 const roundIdSchema = z.uuid();
 
@@ -45,26 +44,33 @@ export default async function MemberRoundPage({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
-        <section className="auth-ledger" aria-labelledby="member-round-title">
-          <nav className="member-results-nav" aria-label="Member navigation">
-            <Link className="secondary-link" href="/member/home">
-              Home
-            </Link>
-            <Link className="secondary-link" href="/member/standings">
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+          aria-labelledby="member-round-title"
+        >
+          <nav
+            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
+            aria-label="Member navigation"
+          >
+            <TextLink href="/member/home">Home</TextLink>
+            <TextLink href="/member/standings">
               Open standings and history
-            </Link>
-            <Link className="secondary-link" href="/member/profile">
-              Profile
-            </Link>
+            </TextLink>
+            <TextLink href="/member/profile">Profile</TextLink>
           </nav>
-          <p className="ledger-kicker">Your round</p>
+          <Kicker>Your round</Kicker>
           <h1 id="member-round-title">{detail.description ?? "Golf round"}</h1>
-          <p className="member-home-intro">
+          <p className="text-muted-foreground leading-[1.65]">
             {formatState(detail.state)} · {formatRound(detail.format)}
           </p>
-          <dl className="invitation-summary" aria-label="Round details">
+          <dl
+            className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+            data-slot="invitation-summary"
+            aria-label="Round details"
+          >
             <div>
               <dt>When</dt>
               <dd>
@@ -91,23 +97,27 @@ export default async function MemberRoundPage({
             ) : null}
           </dl>
           {detail.notes ? (
-            <p className="member-home-round-notes">
+            <p className="mx-0 mt-6 mb-0 p-4 bg-muted text-muted-foreground leading-[1.55]">
               <strong>Notes for players:</strong> {detail.notes}
             </p>
           ) : null}
           {detail.roundUrl ? (
             <p>
-              <a className="secondary-link" href={detail.roundUrl}>
+              <a
+                className="justify-self-start text-primary text-[0.875rem] font-bold underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-ring focus-visible:outline-offset-[3px]"
+                data-slot="text-link"
+                href={detail.roundUrl}
+              >
                 Open round link
               </a>
             </p>
           ) : null}
           {detail.participantVersion !== null ? (
             <section
-              className="page-section"
+              className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
               aria-labelledby="your-response-title"
             >
-              <p className="ledger-kicker">Your response</p>
+              <Kicker>Your response</Kicker>
               <h2 id="your-response-title">Are you playing?</h2>
               {detail.state === "published" ? (
                 <MemberNextRoundRsvp
@@ -118,24 +128,24 @@ export default async function MemberRoundPage({
                   initialChangedAt={detail.rsvpChangedAt}
                 />
               ) : (
-                <p className="field-help">
+                <FieldHelp>
                   You are {formatParticipantStatus(detail.participantStatus)}.
                   You can&apos;t change your answer once scoring has opened.
-                </p>
+                </FieldHelp>
               )}
             </section>
           ) : null}
 
           {detail.state === "live" ? (
             <section
-              className="page-section"
+              className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
               aria-labelledby="round-day-access-title"
             >
-              <p className="ledger-kicker">Round day</p>
+              <Kicker>Round day</Kicker>
               <h2 id="round-day-access-title">Your round is live</h2>
-              <p className="field-help">
+              <FieldHelp>
                 Open the GreenRoster app to enter scores and manage guests.
-              </p>
+              </FieldHelp>
             </section>
           ) : null}
         </section>
@@ -175,17 +185,16 @@ function formatDateTime(value: string | null, timeZone: string): string {
 
 function MemberRoundUnavailable() {
   return (
-    <main className="auth-shell auth-shell-single invitation-shell">
+    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
       <section
-        className="auth-ledger"
+        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        data-slot="auth-ledger"
         aria-labelledby="member-round-error-title"
       >
-        <p className="ledger-kicker">Your round</p>
+        <Kicker>Your round</Kicker>
         <h1 id="member-round-error-title">We couldn&apos;t load this round</h1>
         <p>Return to your home and try again.</p>
-        <Link className="secondary-link" href="/member/home">
-          Home
-        </Link>
+        <TextLink href="/member/home">Home</TextLink>
       </section>
     </main>
   );

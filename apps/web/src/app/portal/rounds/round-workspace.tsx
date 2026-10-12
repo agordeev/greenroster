@@ -31,6 +31,7 @@ import { RoundAnnouncementPanel } from "./round-announcement-panel";
 import { ScoreboardAccessPanel } from "./scoreboard-access-panel";
 import { RoundHoleScorecardPanel } from "./round-hole-scorecard-panel";
 import { RoundMessagePanel } from "./round-message-panel";
+import { Kicker } from "@/components/blocks";
 
 export function RoundWorkspace({
   identityKey,
@@ -89,10 +90,10 @@ export function RoundWorkspace({
       <>
         {roundDetailUnavailable || !roundDetail ? (
           <section
-            className="page-section"
+            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
             aria-labelledby="round-detail-unavailable-title"
           >
-            <p className="ledger-kicker">Round detail</p>
+            <Kicker>Round detail</Kicker>
             <h2 id="round-detail-unavailable-title">
               We couldn&apos;t load this round
             </h2>
@@ -156,10 +157,10 @@ export function RoundWorkspace({
         {roundId && state === "live" ? (
           liveScoresUnavailable ? (
             <section
-              className="page-section"
+              className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
               aria-labelledby="live-scoreboard-unavailable-title"
             >
-              <p className="ledger-kicker">Round day</p>
+              <Kicker>Round day</Kicker>
               <h2 id="live-scoreboard-unavailable-title">
                 We couldn&apos;t load the live scorecard
               </h2>
@@ -185,10 +186,10 @@ export function RoundWorkspace({
         (state === "published" || state === "live" || state === "completed") ? (
           holeScoresUnavailable ? (
             <section
-              className="page-section"
+              className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
               aria-labelledby="round-hole-scorecard-unavailable-title"
             >
-              <p className="ledger-kicker">Scoring</p>
+              <Kicker>Scoring</Kicker>
               <h2 id="round-hole-scorecard-unavailable-title">
                 We couldn&apos;t load the hole scorecard
               </h2>
@@ -255,10 +256,10 @@ export function RoundWorkspace({
       {roundId && format ? (
         publicationReviewUnavailable || !publicationReview ? (
           <section
-            className="page-section"
+            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
             aria-labelledby="publication-review-unavailable-title"
           >
-            <p className="ledger-kicker">Before you publish</p>
+            <Kicker>Before you publish</Kicker>
             <h2 id="publication-review-unavailable-title">
               We couldn&apos;t check the player list
             </h2>

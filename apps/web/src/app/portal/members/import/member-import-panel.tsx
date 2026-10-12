@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
-import { Field, FormMessage } from "@/components/blocks";
+import { Field, FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -263,19 +263,20 @@ export function MemberImportPanel() {
   }
 
   return (
-    <div className="member-import-panel">
-      <div className="member-import-actions">
+    <div className="mt-10 pt-8 gap-8 border-t grid">
+      <div className="gap-4 flex flex-wrap items-center">
         <Button asChild variant="outline">
           <Link href="/api/member-imports/template" prefetch={false}>
             Download CSV template
           </Link>
         </Button>
-        <Link className="secondary-link" href="/portal/members">
-          Return to members
-        </Link>
+        <TextLink href="/portal/members">Return to members</TextLink>
       </div>
 
-      <form onSubmit={submit} className="member-import-form">
+      <form
+        onSubmit={submit}
+        className="gap-5 grid max-w-152 [&_:is([data-slot=field],[data-slot='field'])]:gap-2 [&_:is([data-slot=field],[data-slot='field'])]:grid"
+      >
         <Field id="member-import-file" label="CSV file" help="Up to 500 rows.">
           <Input
             ref={fileInput}
@@ -292,7 +293,10 @@ export function MemberImportPanel() {
         </Button>
       </form>
 
-      <div className="member-import-result" aria-live="polite">
+      <div
+        className="[&>div]:p-5 [&>div]:border [&_[data-status='error']]:border-destructive! [&_[data-status='success']]:border-primary [&_code]:wrap-anywhere [&_h2]:mx-0 [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-semibold"
+        aria-live="polite"
+      >
         {accessMessage ? (
           <div data-status="error">
             <h2>You can&apos;t import members</h2>
@@ -310,7 +314,10 @@ export function MemberImportPanel() {
               <FormMessage data-status="error">{statusMessage}</FormMessage>
             ) : null}
             {job?.state === "ready" ? (
-              <form className="member-import-confirm" onSubmit={confirmApply}>
+              <form
+                className="mt-6 pt-6 gap-4 border-t grid [&_:is([data-slot=field],[data-slot='field'])]:gap-2 [&_:is([data-slot=field],[data-slot='field'])]:grid"
+                onSubmit={confirmApply}
+              >
                 <Field id="member-import-reason" label="Reason">
                   <Input
                     id="member-import-reason"
@@ -321,7 +328,7 @@ export function MemberImportPanel() {
                     disabled={applyPending}
                   />
                 </Field>
-                <label className="confirmation-row">
+                <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45] [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]">
                   <Checkbox
                     checked={applyConfirmed}
                     onCheckedChange={(checked) =>
@@ -390,7 +397,7 @@ function formatJobState(state: JobProjection["state"]): string {
 
 function JobProgress({ job }: Readonly<{ job: JobProjection }>) {
   return (
-    <div className="member-import-progress">
+    <div className="[&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-[1.5rem] [&_dl>div]:p-3 [&_dl>div]:border-t [&_dl]:my-4 [&_dl]:mx-0 [&_dl]:gap-3 [&_dl]:grid [&_dl]:grid-cols-4 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.06em] [&_dt]:uppercase">
       <dl>
         <div>
           <dt>Valid</dt>

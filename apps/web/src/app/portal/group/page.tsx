@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { ActionRow, EmptyState, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  EmptyState,
+  Kicker,
+  SectionHeading,
+  TextLink,
+} from "@/components/blocks";
 import {
   formatActivityAction,
   formatActivitySummary,
@@ -79,19 +85,17 @@ export default async function GroupRolesActivityPage({
         currentSection="group"
       >
         <section
-          className="portal-ledger role-denied"
+          className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
           aria-labelledby="group-denied-title"
         >
-          <p className="ledger-kicker">Your group</p>
+          <Kicker>Your group</Kicker>
           <h1 id="group-denied-title">You can&apos;t open this page</h1>
           <p>
             You can see the group directory in the app. Only coordinators and
             administrators can see who runs the group and what changed.
           </p>
           <ActionRow>
-            <Link className="secondary-link" href="/portal">
-              Return to portal home
-            </Link>
+            <TextLink href="/portal">Return to portal home</TextLink>
           </ActionRow>
         </section>
       </PortalShell>
@@ -109,16 +113,14 @@ export default async function GroupRolesActivityPage({
         currentSection="group"
       >
         <section
-          className="portal-ledger role-denied"
+          className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
           aria-labelledby="group-filter-error-title"
         >
-          <p className="ledger-kicker">What changed</p>
+          <Kicker>What changed</Kicker>
           <h1 id="group-filter-error-title">Check the filter</h1>
           <p>{activityFilterErrorMessage(query.filterError)}</p>
           <ActionRow>
-            <Link className="secondary-link" href="/portal/group">
-              Clear filter
-            </Link>
+            <TextLink href="/portal/group">Clear filter</TextLink>
           </ActionRow>
         </section>
       </PortalShell>
@@ -155,17 +157,20 @@ export default async function GroupRolesActivityPage({
       currentSection="group"
     >
       <section
-        className="portal-ledger group-roles-activity"
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] group-roles-activity"
         aria-labelledby="group-title"
       >
-        <p className="ledger-kicker">Your group</p>
+        <Kicker>Your group</Kicker>
         <h1 id="group-title">Group</h1>
         <p>
           See who runs your group and what changed recently. To change a role,
           open that person&apos;s member page.
         </p>
 
-        <section className="page-section" aria-labelledby="profile-title">
+        <section
+          className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+          aria-labelledby="profile-title"
+        >
           <SectionHeading
             kicker="Group details"
             title="Group name and time zone"
@@ -183,7 +188,7 @@ export default async function GroupRolesActivityPage({
               }}
             />
           ) : (
-            <dl className="group-profile-facts">
+            <dl className="mx-0 mt-5 mb-0 gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
               <div>
                 <dt>Group name</dt>
                 <dd>{projection.group.name}</dd>
@@ -197,7 +202,7 @@ export default async function GroupRolesActivityPage({
         </section>
 
         <section
-          className="page-section group-guest-permission-panel"
+          className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! group-guest-permission-panel"
           aria-labelledby="guest-permission-title"
         >
           <SectionHeading
@@ -224,7 +229,10 @@ export default async function GroupRolesActivityPage({
           )}
         </section>
 
-        <section className="page-section" aria-labelledby="roles-title">
+        <section
+          className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+          aria-labelledby="roles-title"
+        >
           <SectionHeading
             kicker="Who runs the group"
             title="Administrators and coordinators"
@@ -236,12 +244,15 @@ export default async function GroupRolesActivityPage({
               No coordinators or administrators to show yet.
             </EmptyState>
           ) : (
-            <ul className="row-list">
+            <ul className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
               {projection.roles.map((role) => (
-                <li key={role.membershipId} className="row-item">
+                <li
+                  key={role.membershipId}
+                  className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!"
+                >
                   <div>
                     <Link
-                      className="row-title"
+                      className="text-primary text-[1.125rem] font-semibold underline-offset-[0.2em]"
                       href={`/portal/members?membership=${encodeURIComponent(role.membershipId)}`}
                     >
                       {formatRoleHolderName(role.firstName, role.lastName)}
@@ -250,7 +261,10 @@ export default async function GroupRolesActivityPage({
                       {formatPortalRole(role.role)} · {role.status}
                     </p>
                   </div>
-                  <div className="row-meta">
+                  <div
+                    className="gap-1 grid text-muted-foreground text-[0.75rem] text-right max-[720px]:text-left [&_time]:text-muted-foreground [&_time]:text-[0.6875rem]"
+                    data-slot="row-meta"
+                  >
                     <span>{formatInvitationState(role.invitationState)}</span>
                     {role.invitationAcceptedAt ? (
                       <time dateTime={role.invitationAcceptedAt}>
@@ -276,7 +290,10 @@ export default async function GroupRolesActivityPage({
           )}
         </section>
 
-        <section className="page-section" aria-labelledby="activity-title">
+        <section
+          className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+          aria-labelledby="activity-title"
+        >
           <SectionHeading
             kicker="What changed"
             title="Recent activity"
@@ -299,10 +316,13 @@ export default async function GroupRolesActivityPage({
                 : "Nothing has changed yet."}
             </EmptyState>
           ) : (
-            <ol className="group-activity-list">
+            <ol className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
               {projection.activity.items.map((item) => (
-                <li key={item.eventId} className="group-activity-item">
-                  <div className="group-activity-heading">
+                <li
+                  key={item.eventId}
+                  className="p-4 border border-border/50 bg-muted"
+                >
+                  <div className="gap-4 flex items-baseline justify-between max-[720px]:items-start max-[720px]:flex-col [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold [&_time]:text-muted-foreground [&_time]:text-[0.6875rem] [&_time]:text-right max-[720px]:[&_time]:text-left!">
                     <h3>{formatActivityAction(item.action)}</h3>
                     <time dateTime={item.occurredAt}>
                       {formatTimestamp(
@@ -311,7 +331,7 @@ export default async function GroupRolesActivityPage({
                       )}
                     </time>
                   </div>
-                  <dl className="group-activity-facts">
+                  <dl className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-3 gap-x-4 max-[720px]:grid-cols-[1fr] [&_code]:text-[0.75rem] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
                     <div>
                       <dt>Changed by</dt>
                       <dd>
@@ -345,7 +365,7 @@ export default async function GroupRolesActivityPage({
                   {formatActivitySummary(item.before) ||
                   formatActivitySummary(item.after) ? (
                     <div
-                      className="group-activity-summary"
+                      className="mt-4 pt-3 border-t border-t-border/50 flex flex-wrap gap-y-2 gap-x-4 text-muted-foreground text-[0.75rem]"
                       aria-label="Change summary"
                     >
                       <span>
@@ -363,10 +383,8 @@ export default async function GroupRolesActivityPage({
             </ol>
           )}
           {projection.activity.hasMore && nextHref ? (
-            <p className="group-activity-next">
-              <Link className="secondary-link" href={nextHref}>
-                See older changes
-              </Link>
+            <p className="mx-0 mt-6 mb-0">
+              <TextLink href={nextHref}>See older changes</TextLink>
             </p>
           ) : null}
         </section>
@@ -436,8 +454,11 @@ function renderGroupError(error: unknown, context?: PortalContext) {
         : { roleStatus: "Access unavailable", timeZone: "" })}
       currentSection="group"
     >
-      <section className="portal-ledger" aria-labelledby="group-error-title">
-        <p className="ledger-kicker">Your group</p>
+      <section
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
+        aria-labelledby="group-error-title"
+      >
+        <Kicker>Your group</Kicker>
         <h1 id="group-error-title">
           {forbidden
             ? "You can't open this page"

@@ -8,7 +8,12 @@ import {
   updateRoundGuestAction,
   withdrawRoundGuestAction,
 } from "@/app/actions/rounds";
-import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import {
+  EmptyState,
+  FieldHelp,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -103,7 +108,10 @@ export function RoundGuestPanel({
   }
 
   return (
-    <section className="page-section" aria-labelledby="round-guests-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="round-guests-title"
+    >
       <SectionHeading
         kicker="Guests"
         title="Guests"
@@ -113,9 +121,12 @@ export function RoundGuestPanel({
       <p>Add a guest to this round.</p>
 
       {guests.length > 0 ? (
-        <div className="round-detail-table-wrap">
+        <div
+          className="max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
+          data-slot="round-detail-table-wrap"
+        >
           <table>
-            <caption className="visually-hidden">Round guests</caption>
+            <caption className="sr-only">Round guests</caption>
             <thead>
               <tr>
                 <th scope="col">Guest</th>
@@ -141,8 +152,11 @@ export function RoundGuestPanel({
         <EmptyState>No guests in this round yet.</EmptyState>
       )}
 
-      <div className="form-row">
-        <div className="field-group">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-first-name">Guest first name</label>
           <Input
             id="round-guest-first-name"
@@ -151,7 +165,10 @@ export function RoundGuestPanel({
             disabled={pending}
           />
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-last-name">Guest last name</label>
           <Input
             id="round-guest-last-name"
@@ -160,7 +177,10 @@ export function RoundGuestPanel({
             disabled={pending}
           />
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-sponsor">Sponsor</label>
           <NativeSelect
             id="round-guest-sponsor"
@@ -179,7 +199,10 @@ export function RoundGuestPanel({
             ))}
           </NativeSelect>
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-quota">
             Quota{quotaRequired ? " (required)" : ""}
           </label>
@@ -191,7 +214,10 @@ export function RoundGuestPanel({
             disabled={pending}
           />
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-handicap">Handicap</label>
           <Input
             id="round-guest-handicap"
@@ -201,7 +227,10 @@ export function RoundGuestPanel({
             disabled={pending}
           />
         </div>
-        <div className="field-group">
+        <div
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+        >
           <label htmlFor="round-guest-tee">Tee</label>
           <NativeSelect
             id="round-guest-tee"
@@ -217,11 +246,11 @@ export function RoundGuestPanel({
           </NativeSelect>
         </div>
       </div>
-      <p className="field-help">
+      <FieldHelp>
         {quotaRequired
           ? "Enter a quota before you add a guest to this net round."
           : "You can leave quota blank for this gross round."}
-      </p>
+      </FieldHelp>
       <FormMessage
         tone={messageTone === "success" ? "success" : "error"}
         aria-live="polite"

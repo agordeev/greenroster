@@ -6,7 +6,12 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { FormEvent } from "react";
 
 import { configureMemberQuotaBootstrapAction } from "@/app/actions/memberships";
-import { FormMessage } from "@/components/blocks";
+import {
+  FieldError,
+  FieldHelp,
+  FormMessage,
+  Kicker,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,7 +92,7 @@ export function MemberQuotaEditor({
       if (
         !dirty ||
         !(form instanceof HTMLFormElement) ||
-        form.classList.contains("member-quota-form")
+        form.dataset.form === "member-quota-form"
       ) {
         return;
       }
@@ -376,20 +381,20 @@ export function MemberQuotaEditor({
 
   return (
     <section
-      className="member-quota-editor"
+      className="mt-6 p-6 gap-6 border grid col-span-full bg-muted max-[720px]:p-5"
       aria-labelledby="member-quota-title"
     >
-      <div className="member-quota-editor-heading">
+      <div className="pb-4 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem]">
         <div>
-          <p className="ledger-kicker">Quota setup</p>
+          <Kicker>Quota setup</Kicker>
           <h2 id="member-quota-title">Quota and seed history</h2>
         </div>
-        <span className="member-quota-editor-badge">
+        <span className="text-primary text-[0.6875rem] font-bold tracking-[0.08em] uppercase">
           {settingsReady ? "Ready" : "Needs setup"}
         </span>
       </div>
 
-      <dl className="member-quota-summary">
+      <dl className="m-0 pb-5 gap-4 border-b border-b-border/50 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
         <div>
           <dt>Current quota</dt>
           <dd>{context.projectedQuota ?? "Not ready"}</dd>
@@ -428,22 +433,31 @@ export function MemberQuotaEditor({
       </dl>
 
       {!settingsReady ? (
-        <p className="member-quota-setup-note">
+        <p className="m-0 p-4 border-l-[0.25rem] border-l-destructive leading-[1.55] bg-border text-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline-offset-[0.2em]">
           Choose your group&apos;s quota rules before you set a member&apos;s
           starting quota. <Link href="/portal/quota">Open quota rules</Link>
         </p>
       ) : null}
 
-      <form className="member-quota-form" onSubmit={submit} noValidate>
+      <form
+        className="gap-5 grid [&>fieldset]:m-0 [&>fieldset]:p-0 [&>fieldset]:gap-5 [&>fieldset]:border-0 [&>fieldset]:grid [&>fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+        data-form="member-quota-form"
+        onSubmit={submit}
+        noValidate
+      >
         <fieldset disabled={pending || !settingsReady}>
           <legend>Starting quota for this member</legend>
-          <p className="member-quota-copy">
+          <p className="m-0 text-muted-foreground leading-[1.55]">
             Seed totals are starting point totals, entered oldest first, that
             the group&apos;s quota method uses.
           </p>
 
-          <div className="member-quota-form-grid">
-            <label className="field-group" htmlFor="member-initial-quota">
+          <div className="gap-4 grid grid-cols-[minmax(0,1fr)_minmax(15rem,1fr)] items-start max-[720px]:grid-cols-[1fr]">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-initial-quota"
+            >
               <span>Starting quota (optional)</span>
               <Input
                 id="member-initial-quota"
@@ -453,12 +467,16 @@ export function MemberQuotaEditor({
                 onChange={(event) => updateInitialQuota(event.target.value)}
                 aria-describedby="member-initial-quota-help"
               />
-              <small id="member-initial-quota-help" className="field-help">
+              <small
+                id="member-initial-quota-help"
+                className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+                data-slot="field-help"
+              >
                 Enter it with the decimal places shown above.
               </small>
             </label>
             <label
-              className="member-quota-confirmation"
+              className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] leading-[1.45]"
               htmlFor="member-use-initial"
             >
               <Checkbox
@@ -476,12 +494,12 @@ export function MemberQuotaEditor({
             </label>
           </div>
 
-          <div className="member-quota-seed-heading">
+          <div className="pt-5 gap-4 border-t border-t-border/50 flex justify-between items-end max-[720px]:items-start max-[720px]:flex-col [&_[data-slot=field-help]]:mx-0 [&_[data-slot=field-help]]:mt-[0.3rem] [&_[data-slot=field-help]]:mb-0 [&_h3]:mx-0 [&_h3]:mt-[0.35rem] [&_h3]:mb-0 [&_h3]:font-semibold [&_h3]:text-[1.125rem]">
             <div>
               <h3>Seed point totals</h3>
-              <p className="field-help">
+              <FieldHelp>
                 Oldest first. Up to {MAX_MEMBER_QUOTA_SEEDS} values.
-              </p>
+              </FieldHelp>
             </div>
             <Button
               variant="outline"
@@ -493,15 +511,19 @@ export function MemberQuotaEditor({
             </Button>
           </div>
           {draft.seedTotals.length === 0 ? (
-            <p className="member-quota-empty-seeds">
+            <p className="m-0 text-muted-foreground leading-[1.55]">
               No seed totals yet. Add them if this member has earlier history.
             </p>
           ) : (
-            <ol className="member-quota-seeds" aria-label="Seed point totals">
+            <ol
+              className="m-0 p-0 gap-3 grid list-none [counter-reset:member-seed] [&_:is([data-slot=field],[data-slot='field'])]:min-w-0 [&_li::before]:[content:''] [&_li::before]:hidden! [&_li]:py-[0.9rem] [&_li]:px-4 [&_li]:gap-3 [&_li]:border [&_li]:border-border/50 [&_li]:grid [&_li]:grid-cols-[minmax(0,1fr)_auto] [&_li]:items-end [&_li]:bg-card [&_li]:[counter-increment:member-seed] max-[720px]:[&_li]:grid-cols-[1fr]!"
+              aria-label="Seed point totals"
+            >
               {draft.seedTotals.map((value, index) => (
                 <li key={index}>
                   <label
-                    className="field-group"
+                    className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                    data-slot="field"
                     htmlFor={`member-seed-${index}`}
                   >
                     <span>Seed total {index + 1}</span>
@@ -529,24 +551,21 @@ export function MemberQuotaEditor({
           )}
 
           <div
-            className="member-quota-preview"
+            className="p-4 border-y grid grid-cols-[minmax(0,1fr)_auto] items-center gap-y-3 gap-x-4 max-[720px]:grid-cols-[1fr] [&_[data-slot=field-error]]:col-span-full [&_output]:min-w-20 [&_output]:text-primary [&_output]:text-[2rem] [&_output]:text-right max-[720px]:[&_output]:text-left! [&_p]:m-0"
             aria-labelledby="member-quota-preview-title"
           >
             <div>
-              <p className="ledger-kicker" id="member-quota-preview-title">
-                Preview
-              </p>
+              <Kicker id="member-quota-preview-title">Preview</Kicker>
             </div>
             <output aria-live="polite">
               {preview.projection?.quota ?? "Not ready"}
             </output>
-            {preview.error ? (
-              <p className="field-error">{preview.error}</p>
-            ) : null}
+            {preview.error ? <FieldError>{preview.error}</FieldError> : null}
           </div>
 
           <label
-            className="field-group member-quota-reason"
+            className="gap-2 grid max-w-152 [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
             htmlFor="member-quota-reason"
           >
             <span>Reason (required)</span>
@@ -561,7 +580,7 @@ export function MemberQuotaEditor({
           </label>
 
           <label
-            className="member-quota-confirmation"
+            className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] leading-[1.45]"
             htmlFor="member-quota-confirm"
           >
             <Checkbox

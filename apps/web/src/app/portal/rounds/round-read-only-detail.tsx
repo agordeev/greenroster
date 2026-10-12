@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
+import {
+  EmptyState,
+  FormMessage,
+  Kicker,
+  SectionHeading,
+} from "@/components/blocks";
 
 import {
   formatParticipantRsvp,
@@ -19,7 +24,10 @@ export function RoundReadOnlyDetail({
   detail,
 }: Readonly<{ detail: RoundCoordinatorDetail }>) {
   return (
-    <section className="page-section" aria-labelledby="round-detail-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="round-detail-title"
+    >
       <SectionHeading
         kicker="Round"
         title={detail.description || "Untitled round"}
@@ -27,11 +35,22 @@ export function RoundReadOnlyDetail({
         meta={formatRoundState(detail.state)}
       />
 
-      <nav aria-label="Round detail sections" className="action-row">
-        <a className="secondary-link" href="#round-detail-overview">
+      <nav
+        aria-label="Round detail sections"
+        className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5"
+      >
+        <a
+          className="justify-self-start text-primary text-[0.875rem] font-bold underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-ring focus-visible:outline-offset-[3px]"
+          data-slot="text-link"
+          href="#round-detail-overview"
+        >
           Overview
         </a>
-        <a className="secondary-link" href="#round-detail-players">
+        <a
+          className="justify-self-start text-primary text-[0.875rem] font-bold underline-offset-[0.2em] focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-ring focus-visible:outline-offset-[3px]"
+          data-slot="text-link"
+          href="#round-detail-players"
+        >
           Players
         </a>
       </nav>
@@ -40,9 +59,9 @@ export function RoundReadOnlyDetail({
         id="round-detail-overview"
         aria-labelledby="round-detail-overview-title"
       >
-        <p className="ledger-kicker">Overview</p>
+        <Kicker>Overview</Kicker>
         <h3 id="round-detail-overview-title">Details</h3>
-        <dl className="publication-summary round-detail-summary">
+        <dl className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase round-detail-summary">
           <SummaryItem label="Status" value={formatRoundState(detail.state)} />
           <SummaryItem
             label="Scheduled"
@@ -82,10 +101,10 @@ export function RoundReadOnlyDetail({
         ) : null}
 
         <section aria-labelledby="round-detail-rule-snapshot-title">
-          <p className="ledger-kicker">Rules</p>
+          <Kicker>Rules</Kicker>
           <h3 id="round-detail-rule-snapshot-title">Rules for this round</h3>
           {detail.ruleSnapshot ? (
-            <dl className="publication-summary round-detail-summary">
+            <dl className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase round-detail-summary">
               <SummaryItem
                 label="Format"
                 value={formatRoundFormat(detail.ruleSnapshot.format)}
@@ -120,14 +139,17 @@ export function RoundReadOnlyDetail({
         id="round-detail-players"
         aria-labelledby="round-detail-players-title"
       >
-        <p className="ledger-kicker">Players</p>
+        <Kicker>Players</Kicker>
         <h3 id="round-detail-players-title">Players</h3>
         {detail.participants.length === 0 ? (
           <EmptyState>This round has no players.</EmptyState>
         ) : (
-          <div className="publication-member-list round-detail-table-wrap">
+          <div
+            className="mt-8 max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
+            data-slot="round-detail-table-wrap"
+          >
             <table>
-              <caption className="visually-hidden">Round players</caption>
+              <caption className="sr-only">Round players</caption>
               <thead>
                 <tr>
                   <th scope="col">Player</th>

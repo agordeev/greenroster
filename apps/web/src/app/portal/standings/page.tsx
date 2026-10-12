@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { ActionRow, EmptyState } from "@/components/blocks";
+import { ActionRow, EmptyState, Kicker, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
@@ -64,18 +64,16 @@ export default async function PortalStandingsPage() {
         currentSection="standings"
       >
         <section
-          className="portal-ledger role-denied"
+          className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
           aria-labelledby="standings-denied-title"
         >
-          <p className="ledger-kicker">Order of Merit</p>
+          <Kicker>Order of Merit</Kicker>
           <h1 id="standings-denied-title">You can&apos;t open this page</h1>
           <p>
             You can see standings from your member home. Only coordinators and
             administrators can open this page.
           </p>
-          <Link className="secondary-link" href="/portal">
-            Return to portal home
-          </Link>
+          <TextLink href="/portal">Return to portal home</TextLink>
         </section>
       </PortalShell>
     );
@@ -107,32 +105,27 @@ export default async function PortalStandingsPage() {
       currentSection="standings"
     >
       <section
-        className="portal-ledger member-results-page"
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card w-[min(100%,72rem)]! max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
         aria-labelledby="portal-standings-title"
       >
-        <p className="ledger-kicker">Order of Merit</p>
+        <Kicker>Order of Merit</Kicker>
         <h1 id="portal-standings-title">Standings</h1>
         <p>
           Merit totals, ranks, rounds played, and current quotas for{" "}
           {context?.group_name ?? portalContext.groupName}.
         </p>
         <p>
-          <Link
-            className="secondary-link"
-            href="/api/portal/exports?kind=standings"
-          >
+          <TextLink href="/api/portal/exports?kind=standings">
             Download standings (CSV)
-          </Link>{" "}
-          <Link
-            className="secondary-link"
-            href="/api/portal/exports?kind=standings&format=pdf"
-          >
+          </TextLink>{" "}
+          <TextLink href="/api/portal/exports?kind=standings&format=pdf">
             Download standings (PDF)
-          </Link>
+          </TextLink>
         </p>
 
         <section
-          className="member-stats-summary"
+          className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:bg-muted [&_span]:text-muted-foreground [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:text-[1.5rem] [&_strong]:font-semibold"
+          data-slot="member-stats-summary"
           aria-label="Standings summary"
         >
           <div>
@@ -152,17 +145,17 @@ export default async function PortalStandingsPage() {
         </section>
 
         <section
-          className="page-section"
+          className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
           aria-labelledby="portal-standings-table-title"
         >
-          <p className="ledger-kicker">Current standings</p>
+          <Kicker>Current standings</Kicker>
           <h2 id="portal-standings-table-title">Members</h2>
           {standings.length === 0 ? (
             <EmptyState>No active members to show in standings yet.</EmptyState>
           ) : (
-            <div className="member-results-table-wrap">
-              <table className="member-results-table">
-                <caption className="visually-hidden">
+            <div className="mt-5 border relative overflow-x-auto bg-card">
+              <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+                <caption className="sr-only">
                   Current Order of Merit standings
                 </caption>
                 <thead>
@@ -184,7 +177,9 @@ export default async function PortalStandingsPage() {
                           {displayName(row.first_name, row.last_name)}
                         </strong>
                         {row.is_actor ? (
-                          <span className="member-results-guest">You</span>
+                          <span className="mt-1 block text-muted-foreground text-[0.6875rem] tracking-[0.08em] uppercase">
+                            You
+                          </span>
                         ) : null}
                       </td>
                       <td>{row.merit_total ?? "0"}</td>
@@ -203,7 +198,7 @@ export default async function PortalStandingsPage() {
               </table>
             </div>
           )}
-          <p className="member-read-note">
+          <p className="text-muted-foreground leading-[1.55]">
             Ranks and totals cover rounds since the reset date.
           </p>
         </section>
@@ -265,10 +260,10 @@ function renderQuotaRulesNeeded(context: PortalContext) {
       currentSection="standings"
     >
       <section
-        className="portal-ledger"
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
         aria-labelledby="standings-setup-title"
       >
-        <p className="ledger-kicker">Order of Merit</p>
+        <Kicker>Order of Merit</Kicker>
         <h1 id="standings-setup-title">Standings</h1>
         <p>
           {administrator
@@ -307,10 +302,10 @@ function renderStandingsError(error: unknown, context?: PortalContext) {
       currentSection="standings"
     >
       <section
-        className="portal-ledger"
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
         aria-labelledby="standings-error-title"
       >
-        <p className="ledger-kicker">Order of Merit</p>
+        <Kicker>Order of Merit</Kicker>
         <h1 id="standings-error-title">
           {forbidden
             ? "You can&apos;t open this page"

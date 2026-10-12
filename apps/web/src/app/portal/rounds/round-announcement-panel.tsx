@@ -62,7 +62,7 @@ export function RoundAnnouncementPanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="round-announcement-title"
     >
       <SectionHeading
@@ -79,7 +79,11 @@ export function RoundAnnouncementPanel({
           {message}
         </FormMessage>
       ) : null}
-      <div className="form-stack" aria-busy={pending}>
+      <div
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
+        aria-busy={pending}
+      >
         <label htmlFor="round-announcement-body">Your update</label>
         <Textarea
           id="round-announcement-body"
@@ -90,7 +94,10 @@ export function RoundAnnouncementPanel({
           aria-describedby="round-announcement-help"
           disabled={pending}
         />
-        <p id="round-announcement-help" className="form-help">
+        <p
+          id="round-announcement-help"
+          className="m-0 min-h-5 text-[0.8125rem] leading-[1.45] text-muted-foreground [&_a]:text-primary [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-[0.2em]"
+        >
           Up to 300 characters.
         </p>
         <Button

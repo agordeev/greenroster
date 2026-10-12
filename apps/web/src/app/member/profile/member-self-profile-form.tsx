@@ -7,7 +7,7 @@ import {
   setMemberSelfHandicapAction,
   updateMemberSelfProfileAction,
 } from "@/app/actions/member-profile";
-import { FormMessage } from "@/components/blocks";
+import { FormMessage, Kicker } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -115,11 +115,18 @@ export function MemberSelfProfileForm({
           {message}
         </FormMessage>
       ) : null}
-      <section className="page-section" aria-labelledby="profile-details-title">
-        <p className="ledger-kicker">Your details</p>
+      <section
+        className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+        aria-labelledby="profile-details-title"
+      >
+        <Kicker>Your details</Kicker>
         <h2 id="profile-details-title">Keep your details up to date</h2>
-        <div className="form-stack" aria-busy={pending}>
-          <div className="form-row">
+        <div
+          className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+          data-slot="form-stack"
+          aria-busy={pending}
+        >
+          <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
             <TextField
               id="member-first-name"
               label="First name"
@@ -152,7 +159,11 @@ export function MemberSelfProfileForm({
               onChange={(value) => updateDraft("spouseLastName", value || null)}
               disabled={pending}
             />
-            <label className="field-group" htmlFor="member-tee-location">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-tee-location"
+            >
               <span>Preferred tee</span>
               <NativeSelect
                 id="member-tee-location"
@@ -245,7 +256,7 @@ export function MemberSelfProfileForm({
               disabled={pending}
             />
           </div>
-          <fieldset className="member-profile-visibility">
+          <fieldset className="my-5 mx-0 p-4 gap-3 border grid bg-muted [&_[data-slot=checkbox-field]]:gap-[0.65rem] [&_[data-slot=checkbox-field]]:flex [&_[data-slot=checkbox-field]]:items-start [&_[data-slot=checkbox-field]]:text-muted-foreground [&_[data-slot=checkbox-field]]:text-[0.8125rem] [&_legend]:py-0 [&_legend]:px-[0.35rem] [&_legend]:text-muted-foreground [&_legend]:text-[0.6875rem] [&_legend]:tracking-[0.08em] [&_legend]:uppercase">
             <legend>Choose what your group sees</legend>
             <CheckField
               id="member-secondary-email-visible"
@@ -289,11 +300,18 @@ export function MemberSelfProfileForm({
         </div>
       </section>
 
-      <section className="page-section" aria-labelledby="handicap-title">
-        <p className="ledger-kicker">Your handicap</p>
+      <section
+        className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+        aria-labelledby="handicap-title"
+      >
+        <Kicker>Your handicap</Kicker>
         <h2 id="handicap-title">Update your handicap</h2>
-        <div className="form-stack" aria-busy={pending}>
-          <div className="form-row">
+        <div
+          className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+          data-slot="form-stack"
+          aria-busy={pending}
+        >
+          <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
             <TextField
               id="member-handicap-id"
               label="Handicap ID"
@@ -310,7 +328,11 @@ export function MemberSelfProfileForm({
               inputMode="decimal"
               required
             />
-            <label className="field-group" htmlFor="member-handicap-as-of">
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+              htmlFor="member-handicap-as-of"
+            >
               <span>Handicap date</span>
               <Input
                 id="member-handicap-as-of"
@@ -366,7 +388,11 @@ function TextField({
   inputMode?: "decimal";
 }>) {
   return (
-    <label className="field-group" htmlFor={id}>
+    <label
+      className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+      data-slot="field"
+      htmlFor={id}
+    >
       <span>{label}</span>
       <Input
         id={id}
@@ -395,7 +421,7 @@ function CheckField({
   disabled: boolean;
 }>) {
   return (
-    <label className="checkbox-field" htmlFor={id}>
+    <label data-slot="checkbox-field" htmlFor={id}>
       <Checkbox
         id={id}
         checked={checked}

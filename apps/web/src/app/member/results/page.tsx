@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { z } from "zod";
 
 import {
@@ -8,7 +7,7 @@ import {
 } from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
-import { SkipLink } from "@/components/blocks";
+import { Kicker, SkipLink, TextLink } from "@/components/blocks";
 
 const roundIdSchema = z.uuid();
 
@@ -68,47 +67,45 @@ function MemberResultsContent({
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
         <section
-          className="auth-ledger member-results-page"
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card w-[min(100%,72rem)]! max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
           aria-labelledby="member-results-title"
         >
-          <nav className="member-results-nav" aria-label="Member navigation">
-            <Link className="secondary-link" href="/member/home">
-              Home
-            </Link>
-            <Link className="secondary-link" href="/member/standings">
-              Standings and history
-            </Link>
-            <Link className="secondary-link" href="/member/home#notifications">
+          <nav
+            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
+            aria-label="Member navigation"
+          >
+            <TextLink href="/member/home">Home</TextLink>
+            <TextLink href="/member/standings">Standings and history</TextLink>
+            <TextLink href="/member/home#notifications">
               Notification preferences
-            </Link>
-            <Link className="secondary-link" href="/member/profile">
-              Profile
-            </Link>
+            </TextLink>
+            <TextLink href="/member/profile">Profile</TextLink>
           </nav>
-          <p className="ledger-kicker">Official results</p>
+          <Kicker>Official results</Kicker>
           <h1 id="member-results-title">
             {round.description ?? "Completed round"}
           </h1>
-          <p className="member-results-intro">
+          <p className="text-muted-foreground leading-[1.55]">
             {formatLabel} · Published{" "}
             {formatDate(
               results[0]?.completed_at ?? null,
               round.group_time_zone,
             )}
           </p>
-          <p className="member-results-format-note">
+          <p className="mt-2 text-muted-foreground leading-[1.55] text-[0.875rem]">
             Ranked by{" "}
             {round.format === "individual_net" ? "plus/minus" : "golf points"}.
           </p>
           {winners.length > 0 ? (
             <section
-              className="member-results-winner"
+              className="mt-10 pt-8 border-t [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
               aria-labelledby="winner-title"
             >
-              <p className="ledger-kicker">Winner</p>
+              <Kicker>Winner</Kicker>
               <h2 id="winner-title">
                 {winners.map(displayName).join(" and ")}
                 {winners.length > 1 ? " (tied)" : ""}
@@ -116,7 +113,10 @@ function MemberResultsContent({
             </section>
           ) : null}
           {results.length === 0 ? (
-            <section className="member-home-empty" aria-live="polite">
+            <section
+              className="mt-10 pt-8 border-t [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
+              aria-live="polite"
+            >
               <h2>No results yet</h2>
               <p>This round is complete, but no results are available yet.</p>
             </section>
@@ -140,9 +140,9 @@ function ResultsTable({
   results: MemberOfficialResult[];
 }>) {
   return (
-    <div className="member-results-table-wrap">
-      <table className="member-results-table">
-        <caption className="visually-hidden">Official round results</caption>
+    <div className="mt-5 border relative overflow-x-auto bg-card">
+      <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+        <caption className="sr-only">Official round results</caption>
         <thead>
           <tr>
             <th scope="col">Rank</th>
@@ -163,12 +163,14 @@ function ResultsTable({
               <td>
                 <strong>{displayName(result)}</strong>
                 {result.participant_kind === "guest" ? (
-                  <span className="member-results-guest">Guest</span>
+                  <span className="mt-1 block text-muted-foreground text-[0.6875rem] tracking-[0.08em] uppercase">
+                    Guest
+                  </span>
                 ) : null}
               </td>
               <td>
                 {formatRsvp(result.rsvp_status)}
-                <small className="member-results-meta">
+                <small className="mt-1 block text-muted-foreground text-[0.75rem]">
                   {result.rsvp_changed_at
                     ? formatDate(result.rsvp_changed_at, groupTimeZone)
                     : "Time not available"}
@@ -180,7 +182,7 @@ function ResultsTable({
               <td>{formatValue(result.quota_snapshot)}</td>
               <td>{formatValue(result.plus_minus)}</td>
               <td>
-                <span className="member-results-merit">
+                <span className="gap-[0.2rem] grid text-muted-foreground whitespace-nowrap [&_span:last-child]:text-foreground [&_span:last-child]:font-bold">
                   <span>
                     Participation {formatValue(result.participation_merit)}
                   </span>
@@ -234,14 +236,15 @@ function MemberResultsUnavailable() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="auth-shell auth-shell-single invitation-shell"
+        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
       >
-        <section className="auth-ledger">
-          <p className="ledger-kicker">Official results</p>
+        <section
+          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          data-slot="auth-ledger"
+        >
+          <Kicker>Official results</Kicker>
           <h1>These results are not available</h1>
-          <Link className="secondary-link" href="/member/home">
-            Return to your home
-          </Link>
+          <TextLink href="/member/home">Return to your home</TextLink>
         </section>
       </main>
     </>

@@ -92,7 +92,7 @@ export function RoundScoringPanel({
 
   return (
     <section
-      className="page-section"
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
       aria-labelledby="open-round-scoring-title"
     >
       <SectionHeading
@@ -116,7 +116,11 @@ export function RoundScoringPanel({
           {message}
         </FormMessage>
       ) : null}
-      <div className="form-stack" aria-busy={pending}>
+      <div
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
+        aria-busy={pending}
+      >
         <Button
           type="button"
           disabled={pending || roundScoringBlockedByDraftChanges(draftDirty)}

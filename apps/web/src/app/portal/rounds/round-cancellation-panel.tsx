@@ -94,7 +94,10 @@ export function RoundCancellationPanel({
   }
 
   return (
-    <section className="page-section" aria-labelledby="cancel-round-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="cancel-round-title"
+    >
       <SectionHeading
         kicker="Cancellation"
         title={<>Cancel this {state} round</>}
@@ -116,12 +119,17 @@ export function RoundCancellationPanel({
         </FormMessage>
       ) : null}
       <form
-        className="form-stack"
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
         onSubmit={submit}
         aria-busy={pending}
         noValidate
       >
-        <label className="field-group" htmlFor="round-cancellation-reason">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="round-cancellation-reason"
+        >
           <span>Reason</span>
           <Textarea
             id="round-cancellation-reason"

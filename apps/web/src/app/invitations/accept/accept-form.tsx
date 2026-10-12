@@ -7,7 +7,7 @@ import {
   acceptInvitationAction,
   initialInvitationActionState,
 } from "@/app/actions/invitations";
-import { FormMessage } from "@/components/blocks";
+import { FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 
 export function InvitationAcceptForm() {
@@ -18,7 +18,10 @@ export function InvitationAcceptForm() {
 
   if (state.status === "success") {
     return (
-      <div className="invitation-action-success" role="status">
+      <div
+        className="mt-8 gap-3 grid justify-items-start [&_[data-slot='button']]:mt-1"
+        role="status"
+      >
         <FormMessage tone="success" data-status="success">
           {state.message}
         </FormMessage>
@@ -30,19 +33,16 @@ export function InvitationAcceptForm() {
   }
 
   return (
-    <form action={formAction} className="auth-form invitation-action-form">
+    <form action={formAction} className="mt-8 gap-5 grid max-w-120">
       <FormMessage aria-live="polite" data-status={state.status}>
         {state.message}
       </FormMessage>
       <Button type="submit" disabled={pending}>
         {pending ? "Accepting…" : "Accept invitation"}
       </Button>
-      <Link
-        className="secondary-link"
-        href="/sign-in?next=%2Finvitations%2Faccept"
-      >
+      <TextLink href="/sign-in?next=%2Finvitations%2Faccept">
         Use a different account
-      </Link>
+      </TextLink>
     </form>
   );
 }

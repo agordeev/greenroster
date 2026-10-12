@@ -6,7 +6,7 @@ import {
   removeBrandingAssetAction,
   uploadBrandingAssetAction,
 } from "@/app/actions/clubhouse";
-import { FormMessage, SectionHeading } from "@/components/blocks";
+import { FormMessage, Kicker, SectionHeading } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -151,14 +151,24 @@ export function BrandingForm({ assets }: BrandingFormProps) {
   }
 
   return (
-    <section className="page-section" aria-labelledby="branding-form-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="branding-form-title"
+    >
       <SectionHeading
         kicker="Scoreboard branding"
         title="Choose your scoreboard banner"
         titleId="branding-form-title"
       />
-      <div className="form-stack">
-        <label className="field-group" htmlFor="branding-slot">
+      <div
+        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+        data-slot="form-stack"
+      >
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="branding-slot"
+        >
           <span>Banner location</span>
           <NativeSelect
             id="branding-slot"
@@ -171,7 +181,11 @@ export function BrandingForm({ assets }: BrandingFormProps) {
           </NativeSelect>
         </label>
         {slot === "scoreboard_footer" ? (
-          <label className="field-group" htmlFor="branding-order">
+          <label
+            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            data-slot="field"
+            htmlFor="branding-order"
+          >
             <span>Banner position</span>
             <NativeSelect
               id="branding-order"
@@ -185,7 +199,11 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             </NativeSelect>
           </label>
         ) : null}
-        <label className="field-group" htmlFor="branding-file">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="branding-file"
+        >
           <span>Upload image</span>
           <small>PNG, JPEG, GIF, BMP, or WebP up to 1 MB.</small>
           <Input
@@ -199,7 +217,11 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             required
           />
         </label>
-        <label className="field-group" htmlFor="branding-alt">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="branding-alt"
+        >
           <span>Describe this image</span>
           <Input
             id="branding-alt"
@@ -209,7 +231,11 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             required={!decorative}
           />
         </label>
-        <label className="field-group" htmlFor="branding-click-url">
+        <label
+          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+          data-slot="field"
+          htmlFor="branding-click-url"
+        >
           <span>Link to open when someone clicks the banner (optional)</span>
           <Input
             id="branding-click-url"
@@ -220,7 +246,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             disabled={pending}
           />
         </label>
-        <label className="checkbox-label">
+        <label className="gap-2 flex items-start text-muted-foreground text-[0.8125rem] font-normal leading-[1.45]">
           <Checkbox
             checked={decorative}
             onCheckedChange={(checked) => setDecorative(checked === true)}
@@ -255,9 +281,7 @@ export function BrandingForm({ assets }: BrandingFormProps) {
             className="group-branding-preview"
             aria-labelledby="branding-preview-title"
           >
-            <p className="ledger-kicker" id="branding-preview-title">
-              Your preview
-            </p>
+            <Kicker id="branding-preview-title">Your preview</Kicker>
             <a
               href={previewClickUrl ?? currentAsset?.clickUrl ?? undefined}
               target={

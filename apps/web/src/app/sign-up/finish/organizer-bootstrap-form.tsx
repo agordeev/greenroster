@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { bootstrapOrganizerAction } from "@/app/actions/auth";
-import { Field, FormMessage } from "@/components/blocks";
+import { Field, FieldError, FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
@@ -112,7 +112,7 @@ export function OrganizerBootstrapForm({
 
   return (
     <form
-      className="auth-form"
+      className="mt-9 gap-5 grid max-w-120"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
@@ -161,12 +161,12 @@ export function OrganizerBootstrapForm({
           required
         />
       </Field>
-      <p className="field-help">
+      <FieldHelp>
         You&apos;ve already accepted the current{" "}
         <Link href="/terms">Terms of Use</Link> and{" "}
         <Link href="/privacy">Privacy Policy</Link>.
-      </p>
-      {errors.legal ? <p className="field-error">{errors.legal}</p> : null}
+      </FieldHelp>
+      {errors.legal ? <FieldError>{errors.legal}</FieldError> : null}
       <FormMessage aria-live="polite" data-status="error">
         {message}
       </FormMessage>

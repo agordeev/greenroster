@@ -23,7 +23,13 @@ import { executePreviewLiveRoundCompletion } from "@/lib/rounds/round-completion
 import { executePreviewRoundPublication } from "@/lib/rounds/round-publication-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
 import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data";
-import { ActionRow, EmptyState, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  EmptyState,
+  Kicker,
+  SectionHeading,
+  TextLink,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 
 import { PortalShell } from "../portal-shell";
@@ -84,18 +90,16 @@ export default async function RoundsPage({
         currentSection="rounds"
       >
         <section
-          className="portal-ledger role-denied"
+          className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
           aria-labelledby="rounds-denied-title"
         >
-          <p className="ledger-kicker">Coordinator access</p>
+          <Kicker>Coordinator access</Kicker>
           <h1 id="rounds-denied-title">
             Only coordinators and administrators manage rounds
           </h1>
           <p>You can respond to published rounds in the app.</p>
           <ActionRow>
-            <Link className="secondary-link" href="/portal">
-              Return to portal home
-            </Link>
+            <TextLink href="/portal">Return to portal home</TextLink>
           </ActionRow>
         </section>
       </PortalShell>
@@ -246,14 +250,15 @@ export default async function RoundsPage({
       timeZone={portalContext.timeZone}
       currentSection="rounds"
     >
-      <section className="portal-ledger" aria-labelledby="rounds-title">
-        <p className="ledger-kicker">Your group</p>
+      <section
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
+        aria-labelledby="rounds-title"
+      >
+        <Kicker>Your group</Kicker>
         <h1 id="rounds-title">Rounds</h1>
         {selectedRound || creating ? (
           <p>
-            <Link className="secondary-link" href="/portal/rounds">
-              ← All rounds
-            </Link>
+            <TextLink href="/portal/rounds">← All rounds</TextLink>
           </p>
         ) : (
           <>
@@ -300,7 +305,10 @@ export default async function RoundsPage({
             completionPreviewUnavailable={completionPreviewUnavailable}
           />
         ) : (
-          <section className="page-section" aria-labelledby="round-list-title">
+          <section
+            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+            aria-labelledby="round-list-title"
+          >
             <SectionHeading
               title="Your rounds"
               titleId="round-list-title"
@@ -313,12 +321,15 @@ export default async function RoundsPage({
             {rounds.length === 0 ? (
               <EmptyState>No rounds yet. Create your first one.</EmptyState>
             ) : (
-              <ul className="row-list">
+              <ul className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
                 {rounds.map((round) => (
-                  <li key={round.roundId} className="row-item">
+                  <li
+                    key={round.roundId}
+                    className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!"
+                  >
                     <div>
                       <Link
-                        className="row-title"
+                        className="text-primary text-[1.125rem] font-semibold underline-offset-[0.2em]"
                         href={`/portal/rounds?round=${encodeURIComponent(round.roundId)}`}
                       >
                         {round.description || "Untitled round"}
@@ -328,7 +339,10 @@ export default async function RoundsPage({
                         {formatRoundFormat(round.format)}
                       </p>
                     </div>
-                    <div className="row-meta">
+                    <div
+                      className="gap-1 grid text-muted-foreground text-[0.75rem] text-right max-[720px]:text-left [&_time]:text-muted-foreground [&_time]:text-[0.6875rem]"
+                      data-slot="row-meta"
+                    >
                       <span>
                         {formatRoundSchedule(
                           round.scheduledAt,
@@ -336,7 +350,7 @@ export default async function RoundsPage({
                         )}
                       </span>
                       {round.state === "completed" ? (
-                        <span className="action-row">
+                        <span className="mt-6 flex flex-wrap items-center gap-y-3 gap-x-5">
                           <Button asChild variant="link" size="inline">
                             <Link
                               href={`/api/portal/exports?kind=results&round_id=${round.roundId}`}
@@ -434,8 +448,11 @@ function renderRoundError(error: unknown, context?: PortalContext) {
         : { roleStatus: "Access unavailable", timeZone: "" })}
       currentSection="rounds"
     >
-      <section className="portal-ledger" aria-labelledby="round-error-title">
-        <p className="ledger-kicker">Your group</p>
+      <section
+        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
+        aria-labelledby="round-error-title"
+      >
+        <Kicker>Your group</Kicker>
         <h1 id="round-error-title">
           {forbidden
             ? "Only coordinators and administrators manage rounds"

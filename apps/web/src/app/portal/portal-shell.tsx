@@ -158,11 +158,17 @@ export function PortalShell({
   ).filter(allowed);
 
   return (
-    <div className="portal-shell">
+    <div className="p-[clamp(1.5rem,4vw,3rem)] min-h-screen bg-background max-[480px]:p-0">
       <SkipLink />
-      <header className="portal-header">
-        <Link className="portal-brand" href="/portal">
-          <span className="brand-mark" aria-hidden="true">
+      <header className="mx-auto py-4 px-6 border grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-y-3 gap-x-8 max-w-288 bg-card max-[800px]:grid-cols-[minmax(0,1fr)_auto] max-[480px]:p-4 max-[480px]:border-x-0 max-[480px]:border-t-0 max-[480px]:border-b">
+        <Link
+          className="gap-3 inline-flex items-center text-inherit no-underline [&>span:last-child]:gap-0.5 [&>span:last-child]:grid [&>span:last-child]:min-w-0 [&_small]:text-muted-foreground [&_small]:text-[0.75rem] [&_small]:wrap-anywhere [&_strong]:text-[1rem] [&_strong]:tracking-[0.02em]"
+          href="/portal"
+        >
+          <span
+            className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
+            aria-hidden="true"
+          >
             GR
           </span>
           <span>
@@ -171,7 +177,10 @@ export function PortalShell({
           </span>
         </Link>
 
-        <nav className="portal-nav" aria-label="Portal">
+        <nav
+          className="flex items-center min-w-0 flex-wrap gap-y-1 gap-x-4 max-[800px]:col-span-full max-[800px]:[grid-row:2] [&_a:hover]:text-foreground [&_a[aria-current]]:border-b-primary [&_a[aria-current]]:font-bold [&_a[aria-current]]:text-primary! [&_a]:border-y-2 [&_a]:border-t-transparent [&_a]:border-b-transparent [&_a]:text-muted-foreground [&_a]:text-[0.8125rem] [&_a]:underline-offset-[0.25rem] [&_a]:inline-flex [&_a]:min-h-[2.75rem] [&_a]:items-center [&_a]:no-underline"
+          aria-label="Portal"
+        >
           {primaryNav.filter(allowed).map((item) => (
             <Link
               key={item.href}
@@ -192,7 +201,10 @@ export function PortalShell({
         <AccountMenu email={email} role={visibleRole} />
       </header>
       {tabs.length > 1 ? (
-        <nav className="portal-tabs" aria-label="Section">
+        <nav
+          className="my-0 mx-auto px-6 pt-2 pb-0 border-b flex flex-wrap gap-y-1 gap-x-6 max-w-288 [&_a:hover]:text-foreground! [&_a[aria-current='page']]:border-b-primary [&_a[aria-current='page']]:font-bold [&_a[aria-current='page']]:text-primary! [&_a]:mb-[-1px] [&_a]:py-2.5 [&_a]:border-b-2 [&_a]:border-b-transparent [&_a]:text-muted-foreground [&_a]:text-[0.8125rem] [&_a]:no-underline"
+          aria-label="Section"
+        >
           {tabs.map((item) => (
             <Link
               key={item.href}
@@ -206,7 +218,11 @@ export function PortalShell({
           ))}
         </nav>
       ) : null}
-      <main id="main-content" tabIndex={-1} className="portal-main">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-[calc(100vh_-_15rem)]"
+      >
         {children}
       </main>
       <InformationFooter />

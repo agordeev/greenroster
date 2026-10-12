@@ -1,4 +1,4 @@
-import { EmptyState, SectionHeading } from "@/components/blocks";
+import { EmptyState, Kicker, SectionHeading } from "@/components/blocks";
 import type {
   MemberOfficialResult,
   MemberOfficialRound,
@@ -17,10 +17,10 @@ export function OfficialResultsPanel({
   if (unavailable || !data) {
     return (
       <section
-        className="page-section"
+        className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
         aria-labelledby="official-results-unavailable-title"
       >
-        <p className="ledger-kicker">Published results</p>
+        <Kicker>Published results</Kicker>
         <h2 id="official-results-unavailable-title">
           We couldn&apos;t load the official results
         </h2>
@@ -42,7 +42,10 @@ export function OfficialResultsPanel({
       : "Individual Gross";
 
   return (
-    <section className="page-section" aria-labelledby="official-results-title">
+    <section
+      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+      aria-labelledby="official-results-title"
+    >
       <SectionHeading
         kicker="Published results"
         title="Official results"
@@ -64,10 +67,10 @@ export function OfficialResultsPanel({
       </p>
       {winners.length > 0 ? (
         <aside
-          className="member-results-winner"
+          className="mt-10 pt-8 border-t [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold"
           aria-labelledby="portal-winner-title"
         >
-          <p className="ledger-kicker">Winner</p>
+          <Kicker>Winner</Kicker>
           <h3 id="portal-winner-title">
             {winners.map(displayName).join(" and ")} —{" "}
             {winners.length > 1
@@ -79,9 +82,9 @@ export function OfficialResultsPanel({
       {data.results.length === 0 ? (
         <EmptyState>This round is complete, but it has no results.</EmptyState>
       ) : (
-        <div className="member-results-table-wrap">
-          <table className="member-results-table">
-            <caption className="visually-hidden">
+        <div className="mt-5 border relative overflow-x-auto bg-card">
+          <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+            <caption className="sr-only">
               Official results for {data.round.description || "completed round"}
             </caption>
             <thead>
@@ -104,12 +107,14 @@ export function OfficialResultsPanel({
                   <td>
                     <strong>{displayName(result)}</strong>
                     {result.participant_kind === "guest" ? (
-                      <span className="member-results-guest">Guest</span>
+                      <span className="mt-1 block text-muted-foreground text-[0.6875rem] tracking-[0.08em] uppercase">
+                        Guest
+                      </span>
                     ) : null}
                   </td>
                   <td>
                     {formatRsvp(result.rsvp_status)}
-                    <small className="member-results-meta">
+                    <small className="mt-1 block text-muted-foreground text-[0.75rem]">
                       {result.rsvp_changed_at
                         ? formatDate(
                             result.rsvp_changed_at,
@@ -124,7 +129,7 @@ export function OfficialResultsPanel({
                   <td>{formatValue(result.plus_minus)}</td>
                   <td>{formatValue(result.quota_snapshot)}</td>
                   <td>
-                    <span className="member-results-merit">
+                    <span className="gap-[0.2rem] grid text-muted-foreground whitespace-nowrap [&_span:last-child]:text-foreground [&_span:last-child]:font-bold">
                       <span>
                         Participation {formatValue(result.participation_merit)}
                       </span>

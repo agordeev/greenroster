@@ -8,7 +8,12 @@ import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-regis
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
-import { ActionRow, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  Kicker,
+  SectionHeading,
+  TextLink,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
 import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
@@ -166,8 +171,8 @@ export default async function PortalPage() {
         roleStatus="Not set up yet"
         timeZone="Set during setup"
       >
-        <section className="portal-ledger">
-          <p className="ledger-kicker">First-time setup</p>
+        <section className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]">
+          <Kicker>First-time setup</Kicker>
           <h1>Set up your group</h1>
           <p>Create your group, and you&apos;ll be its administrator.</p>
           <GroupBootstrapForm identityKey={userData.user.id} />
@@ -210,8 +215,8 @@ export default async function PortalPage() {
         role={context.role}
         timeZone={timeZone}
       >
-        <section className="portal-ledger role-denied">
-          <p className="ledger-kicker">Access limited</p>
+        <section className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]">
+          <Kicker>Access limited</Kicker>
           <h1>This page is for coordinators and administrators</h1>
           <p>
             You&apos;re signed in as a member, so this page isn&apos;t available
@@ -221,9 +226,7 @@ export default async function PortalPage() {
             <Button asChild>
               <Link href="/home">Home</Link>
             </Button>
-            <Link className="secondary-link" href="/support">
-              Contact support
-            </Link>
+            <TextLink href="/support">Contact support</TextLink>
           </ActionRow>
         </section>
       </PortalShell>
@@ -244,8 +247,8 @@ export default async function PortalPage() {
         role={context.role}
         timeZone={timeZone}
       >
-        <section className="portal-ledger">
-          <p className="ledger-kicker">Getting started</p>
+        <section className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]">
+          <Kicker>Getting started</Kicker>
           <h1>We couldn&apos;t load your setup progress</h1>
           <p>Refresh the page to keep setting up your group.</p>
         </section>
@@ -274,8 +277,8 @@ export default async function PortalPage() {
       role={context.role}
       timeZone={timeZone}
     >
-      <section className="portal-ledger">
-        <p className="ledger-kicker">Your group</p>
+      <section className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]">
+        <Kicker>Your group</Kicker>
         <h1>Welcome to your group</h1>
         <p>Set up your group, then run your rounds from here.</p>
         <PortalDashboardSummaryCard
@@ -300,7 +303,7 @@ function PortalDashboardSummaryCard({
 }>) {
   return (
     <section
-      className="dashboard-summary"
+      className="mt-10 pt-8 border-t"
       aria-labelledby="dashboard-summary-title"
     >
       <SectionHeading
@@ -309,15 +312,22 @@ function PortalDashboardSummaryCard({
         titleId="dashboard-summary-title"
       />
       {unavailable ? (
-        <p className="dashboard-summary-unavailable" data-status="error">
+        <p
+          className="mt-6 p-4 border text-muted-foreground leading-[1.55]"
+          data-status="error"
+        >
           We couldn&apos;t load your member and invitation counts. Refresh to
           try again.
         </p>
       ) : summary ? (
         <>
-          <div className="dashboard-summary-grid">
+          <div
+            className="mt-6 gap-3 grid grid-cols-3 max-[480px]:grid-cols-[1fr] min-[481px]:[&:is([data-columns='2'],[data-columns='4'])]:grid-cols-2 [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:text-[1.5rem] [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:leading-[1.2] min-[961px]:[&[data-columns='4']]:grid-cols-4"
+            data-slot="dashboard-summary-grid"
+          >
             <Link
-              className="dashboard-summary-card"
+              className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+              data-slot="dashboard-summary-card"
               href="/portal/members?status=pending"
               aria-label={`Review ${summary.membershipCounts.pending} pending members`}
             >
@@ -326,7 +336,8 @@ function PortalDashboardSummaryCard({
               <small>See members</small>
             </Link>
             <Link
-              className="dashboard-summary-card"
+              className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+              data-slot="dashboard-summary-card"
               href="/portal/members?status=active"
               aria-label={`Review ${summary.membershipCounts.active} active members`}
             >
@@ -335,7 +346,8 @@ function PortalDashboardSummaryCard({
               <small>See members</small>
             </Link>
             <Link
-              className="dashboard-summary-card"
+              className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+              data-slot="dashboard-summary-card"
               href="/portal/members?status=inactive"
               aria-label={`Review ${summary.membershipCounts.inactive} inactive members`}
             >
@@ -345,9 +357,9 @@ function PortalDashboardSummaryCard({
             </Link>
           </div>
           <Link
-            className={`dashboard-action-summary${
+            className={`mt-3 p-4 gap-4 border flex items-center justify-between bg-muted text-inherit no-underline [&>strong]:text-primary [&>strong]:font-semibold [&>strong]:text-[1.5rem]! [&_small]:text-muted-foreground [&_small]:text-[0.75rem] [&_span>strong]:font-semibold [&_span]:gap-[0.35rem] [&_span]:grid focus-visible:border-primary hover:border-primary${
               summary.actionRequiredInvitations.total === 0
-                ? " dashboard-action-summary--clear"
+                ? " [&>strong]:text-muted-foreground!"
                 : ""
             }`}
             href="/portal/invitations?delivery=action-required"
@@ -371,7 +383,7 @@ function PortalDashboardSummaryCard({
           </Link>
           {summary.notificationHealth ? (
             <section
-              className="dashboard-notification-health"
+              className="mt-10 [&+[data-slot=dashboard-summary-grid]]:mt-10"
               aria-labelledby="dashboard-notification-health-title"
             >
               <SectionHeading
@@ -380,8 +392,15 @@ function PortalDashboardSummaryCard({
                 title="Notifications"
                 titleId="dashboard-notification-health-title"
               />
-              <div className="dashboard-summary-grid" data-columns="4">
-                <div className="dashboard-summary-card">
+              <div
+                className="mt-6 gap-3 grid grid-cols-3 max-[480px]:grid-cols-[1fr] min-[481px]:[&:is([data-columns='2'],[data-columns='4'])]:grid-cols-2 [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:text-[1.5rem] [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:leading-[1.2] min-[961px]:[&[data-columns='4']]:grid-cols-4"
+                data-slot="dashboard-summary-grid"
+                data-columns="4"
+              >
+                <div
+                  className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                  data-slot="dashboard-summary-card"
+                >
                   <span>Waiting to send</span>
                   <strong>{summary.notificationHealth.queueDepth}</strong>
                   <small>
@@ -390,7 +409,10 @@ function PortalDashboardSummaryCard({
                       : "Nothing waiting"}
                   </small>
                 </div>
-                <div className="dashboard-summary-card">
+                <div
+                  className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                  data-slot="dashboard-summary-card"
+                >
                   <span>E-mails not delivered</span>
                   <strong>{summary.notificationHealth.emailFailures}</strong>
                   <small>
@@ -404,7 +426,10 @@ function PortalDashboardSummaryCard({
                     marked as spam
                   </small>
                 </div>
-                <div className="dashboard-summary-card">
+                <div
+                  className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                  data-slot="dashboard-summary-card"
+                >
                   <span>Push not delivered</span>
                   <strong>{summary.notificationHealth.pushFailures}</strong>
                   <small>
@@ -414,7 +439,10 @@ function PortalDashboardSummaryCard({
                     of phones no longer reachable
                   </small>
                 </div>
-                <div className="dashboard-summary-card">
+                <div
+                  className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                  data-slot="dashboard-summary-card"
+                >
                   <span>Confirmations failed</span>
                   <strong>{summary.notificationHealth.receiptFailures}</strong>
                 </div>
@@ -422,9 +450,14 @@ function PortalDashboardSummaryCard({
             </section>
           ) : null}
           {summary.completedResult !== undefined || summary.standingsSummary ? (
-            <div className="dashboard-summary-grid" data-columns="2">
+            <div
+              className="mt-6 gap-3 grid grid-cols-3 max-[480px]:grid-cols-[1fr] min-[481px]:[&:is([data-columns='2'],[data-columns='4'])]:grid-cols-2 [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:text-[1.5rem] [&[data-columns='2']_[data-slot=dashboard-summary-card]_strong]:leading-[1.2] min-[961px]:[&[data-columns='4']]:grid-cols-4"
+              data-slot="dashboard-summary-grid"
+              data-columns="2"
+            >
               <Link
-                className="dashboard-summary-card"
+                className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                data-slot="dashboard-summary-card"
                 href={
                   summary.completedResult
                     ? `/portal/rounds?round=${encodeURIComponent(summary.completedResult.roundId)}`
@@ -446,7 +479,8 @@ function PortalDashboardSummaryCard({
               </Link>
               {summary.standingsSummary ? (
                 <Link
-                  className="dashboard-summary-card"
+                  className="p-4 gap-[0.4rem] border grid content-start min-h-32 bg-muted text-inherit no-underline [&_small]:tracking-[0.06em] [&_small]:uppercase [&_small]:text-primary! [&_small]:text-[0.6875rem]! [&_span]:text-muted-foreground [&_span]:text-[0.75rem] [&_strong]:text-[2rem] [&_strong]:font-semibold focus-visible:border-primary hover:border-primary"
+                  data-slot="dashboard-summary-card"
                   href="/portal/standings"
                   aria-label="Open current Order of Merit standings"
                 >
@@ -531,8 +565,8 @@ function PortalState({
       roleStatus="Not checked yet"
       timeZone=""
     >
-      <section className="portal-ledger">
-        <p className="ledger-kicker">{kicker}</p>
+      <section className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]">
+        <Kicker>{kicker}</Kicker>
         <h1>{title}</h1>
         <p>{message}</p>
       </section>
