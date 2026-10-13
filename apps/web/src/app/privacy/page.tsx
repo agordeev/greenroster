@@ -1,16 +1,16 @@
 import { InformationShell } from "@/app/information-shell";
 import Link from "next/link";
 import { LEGAL_EFFECTIVE_DATE, PRIVACY_VERSION } from "@/lib/legal-documents";
-import { FormMessage } from "@/components/blocks";
+import { Prose } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 
 export default function PrivacyPage() {
   return (
     <InformationShell kicker="Legal" title="Privacy Policy">
-      <div className="max-w-168 text-muted-foreground leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-8 [&_h2]:mb-2 [&_h2]:text-foreground [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
-        <FormMessage tone="info" className="mb-6" role="status">
+      <Prose>
+        <p className="mb-6 font-mono text-[0.6875rem] text-muted-foreground">
           Effective {LEGAL_EFFECTIVE_DATE} · Version {PRIVACY_VERSION}
-        </FormMessage>
+        </p>
         <p>
           To use GreenRoster you share some information with us: your account
           e-mail, name, group membership, RSVPs, scores, results, and any
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
         <Button asChild className="mt-6">
           <Link href="/account/privacy">Open privacy requests</Link>
         </Button>
-      </div>
+      </Prose>
     </InformationShell>
   );
 }

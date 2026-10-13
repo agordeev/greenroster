@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import {
-  completeMemberFirstRunAction,
-  initialMemberFirstRunActionState,
-} from "@/app/actions/member-profile";
+import { completeMemberFirstRunAction } from "@/app/actions/member-profile";
+import { initialMemberFirstRunActionState } from "@/app/actions/member-first-run-action-state";
 import { Field, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

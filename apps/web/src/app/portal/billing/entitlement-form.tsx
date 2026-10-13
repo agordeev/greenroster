@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 export function BillingEntitlementForm({
   membershipId,
 }: Readonly<{ membershipId: string }>) {
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -29,6 +30,7 @@ export function BillingEntitlementForm({
         ok?: boolean;
         error?: { message?: string };
       };
+      if (result.ok) setOpen(false);
       setMessage(
         result.ok
           ? "Temporary access given."
@@ -39,6 +41,29 @@ export function BillingEntitlementForm({
     } finally {
       setBusy(false);
     }
+  }
+
+  if (!open) {
+    return (
+      <div className="grid justify-items-end gap-2 max-[720px]:justify-items-start">
+        <Button
+          className="justify-self-end max-[720px]:justify-self-start"
+          variant="outline"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          Give access
+        </Button>
+        {message ? (
+          <p
+            className="m-0 text-[0.8125rem] text-muted-foreground"
+            role="status"
+          >
+            {message}
+          </p>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -54,9 +79,19 @@ export function BillingEntitlementForm({
         Reason
         <Input name="reason" maxLength={1000} required />
       </label>
-      <Button variant="outline" type="submit" disabled={busy}>
-        {busy ? "Saving…" : "Give access"}
-      </Button>
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" disabled={busy}>
+          {busy ? "Saving…" : "Give access"}
+        </Button>
+        <Button
+          variant="outline"
+          type="button"
+          disabled={busy}
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </Button>
+      </div>
       {message ? <p role="status">{message}</p> : null}
     </form>
   );

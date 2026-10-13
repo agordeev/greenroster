@@ -29,7 +29,7 @@ export function InvitationManagement({
 }>) {
   if (invitations.length === 0) {
     return (
-      <div className="mt-10 p-6 border bg-muted [&_[data-slot=text-link]]:mt-4 [&_[data-slot=text-link]]:inline-block [&_h2]:m-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_p]:mb-0 [&_p]:text-muted-foreground">
+      <div className="mt-10 p-6 border rounded-lg [&_[data-slot=text-link]]:mt-4 [&_[data-slot=text-link]]:inline-block [&_h2]:m-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_p]:mb-0 [&_p]:text-muted-foreground">
         <h2>
           {deliveryFilter === "action-required"
             ? "No invitations need attention"
@@ -178,7 +178,7 @@ function InvitationCard({
 
   return (
     <article
-      className="p-6 gap-5 border grid bg-muted [&_[data-slot='alert']]:gap-2 [&_[data-slot='alert']]:grid! [&_[data-slot='alert']_a]:text-primary [&_[data-slot='alert']_a]:font-bold [&_[data-slot='alert']_a]:underline-offset-[0.2em] [&_[data-slot=invitation-summary]]:mx-0 [&_[data-slot=invitation-summary]]:mb-0 [&_[data-slot=invitation-summary]]:pt-4 [&_[data-slot=invitation-summary]]:mt-0! [&_[data-slot=invitation-summary]_dd]:mx-0 [&_[data-slot=invitation-summary]_dd]:mt-1.5 [&_[data-slot=invitation-summary]_dd]:mb-0 [&_[data-slot=invitation-summary]_dd]:text-muted-foreground [&_[data-slot=invitation-summary]_dd]:wrap-anywhere [&_[data-slot=invitation-summary]_dt]:text-muted-foreground [&_[data-slot=invitation-summary]_dt]:text-[0.6875rem] [&_[data-slot=invitation-summary]_dt]:tracking-[0.08em] [&_[data-slot=invitation-summary]_dt]:uppercase"
+      className="p-6 gap-5 border grid rounded-lg [&_[data-slot='alert']]:gap-2 [&_[data-slot='alert']]:grid! [&_[data-slot='alert']_a]:text-primary [&_[data-slot='alert']_a]:font-bold [&_[data-slot='alert']_a]:underline-offset-[0.2em] [&_[data-slot=invitation-summary]]:mx-0 [&_[data-slot=invitation-summary]]:mb-0 [&_[data-slot=invitation-summary]]:pt-4 [&_[data-slot=invitation-summary]]:mt-0! [&_[data-slot=invitation-summary]_dd]:mx-0 [&_[data-slot=invitation-summary]_dd]:mt-1.5 [&_[data-slot=invitation-summary]_dd]:mb-0 [&_[data-slot=invitation-summary]_dd]:text-muted-foreground [&_[data-slot=invitation-summary]_dd]:wrap-anywhere [&_[data-slot=invitation-summary]_dt]:text-muted-foreground [&_[data-slot=invitation-summary]_dt]:font-mono [&_[data-slot=invitation-summary]_dt]:text-[0.6875rem] [&_[data-slot=invitation-summary]_dt]:tracking-[0.08em] [&_[data-slot=invitation-summary]_dt]:uppercase"
       aria-labelledby={`invitation-${id}`}
     >
       <div className="gap-4 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h2]:mt-1.5!">
@@ -188,12 +188,12 @@ function InvitationCard({
             {invitation.memberFirstName} {invitation.memberLastName}
           </h2>
         </div>
-        <span className="text-primary text-[0.6875rem] font-bold tracking-[0.06em] text-right uppercase">
+        <span className="text-primary font-mono text-[0.6875rem] font-bold tracking-[0.06em] text-right uppercase">
           {formatStatus(invitation.status)}
         </span>
       </div>
       <dl
-        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
         data-slot="invitation-summary"
       >
         <div>

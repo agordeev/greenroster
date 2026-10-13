@@ -242,17 +242,6 @@ export function RoundWorkspace({
         />
       ) : null}
 
-      {roundId &&
-      (state === "draft" || state === "published" || state === "live") ? (
-        <RoundCancellationPanel
-          roundId={roundId}
-          description={description}
-          state={state}
-          version={version}
-          draftDirty={draftDirty}
-        />
-      ) : null}
-
       {roundId && format ? (
         publicationReviewUnavailable || !publicationReview ? (
           <section
@@ -272,6 +261,17 @@ export function RoundWorkspace({
             draftDirty={draftDirty}
           />
         )
+      ) : null}
+
+      {roundId &&
+      (state === "draft" || state === "published" || state === "live") ? (
+        <RoundCancellationPanel
+          roundId={roundId}
+          description={description}
+          state={state}
+          version={version}
+          draftDirty={draftDirty}
+        />
       ) : null}
     </>
   );

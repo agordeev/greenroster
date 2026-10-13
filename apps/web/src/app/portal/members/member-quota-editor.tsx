@@ -381,20 +381,17 @@ export function MemberQuotaEditor({
 
   return (
     <section
-      className="mt-6 p-6 gap-6 border grid col-span-full bg-muted max-[720px]:p-5"
+      className="mt-8 grid max-w-184 gap-6"
       aria-labelledby="member-quota-title"
     >
       <div className="pb-4 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem]">
-        <div>
-          <Kicker>Quota setup</Kicker>
-          <h2 id="member-quota-title">Quota and seed history</h2>
-        </div>
-        <span className="text-primary text-[0.6875rem] font-bold tracking-[0.08em] uppercase">
+        <h2 id="member-quota-title">Starting quota and earlier totals</h2>
+        <span className="text-primary font-mono text-[0.6875rem] font-bold tracking-[0.08em] uppercase">
           {settingsReady ? "Ready" : "Needs setup"}
         </span>
       </div>
 
-      <dl className="m-0 pb-5 gap-4 border-b border-b-border/50 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
+      <dl className="m-0 pb-5 gap-4 border-b border-b-border/50 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
         <div>
           <dt>Current quota</dt>
           <dd>{context.projectedQuota ?? "Not ready"}</dd>
@@ -606,8 +603,8 @@ export function MemberQuotaEditor({
         aria-live="polite"
         data-status={terminal.message ? terminal.status : undefined}
       >
-        {terminal.message}
-        {terminal.stale ? (
+        {terminal.message || null}
+        {terminal.message && terminal.stale ? (
           <Button
             variant="outline"
             className="member-quota-reload"

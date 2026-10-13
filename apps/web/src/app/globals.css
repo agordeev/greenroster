@@ -5,8 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
+  --font-mono: var(--font-figures);
+  --color-flag-foreground: var(--flag-foreground);
+  --color-flag: var(--flag);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,41 +51,48 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  /* Darker than stock so small text on muted panels keeps 4.5:1 contrast. */
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  /* Darker than the stock ring so focus indicators keep 3:1 contrast. */
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --font-sans: var(--font-geist);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Scorecard: cream card stock, fairway-green ink, one pin-flag yellow. */
+  --background: oklch(0.968 0.014 95);
+  --foreground: oklch(0.23 0.03 160);
+  --card: oklch(0.992 0.007 95);
+  --card-foreground: oklch(0.23 0.03 160);
+  --popover: oklch(0.992 0.007 95);
+  --popover-foreground: oklch(0.23 0.03 160);
+  --primary: oklch(0.35 0.075 158);
+  --primary-foreground: oklch(0.98 0.014 95);
+  --secondary: oklch(0.935 0.02 100);
+  --secondary-foreground: oklch(0.27 0.05 158);
+  --muted: oklch(0.945 0.016 95);
+  /* Dark enough that small text on muted panels keeps 4.5:1 contrast. */
+  --muted-foreground: oklch(0.45 0.03 155);
+  --accent: oklch(0.93 0.03 140);
+  --accent-foreground: oklch(0.27 0.05 158);
+  --destructive: oklch(0.5 0.19 27);
+  --border: oklch(0.885 0.02 100);
+  /* Dark enough that control edges keep 3:1 contrast on card stock. */
+  --input: oklch(0.62 0.03 140);
+  /* Dark enough that focus indicators keep 3:1 contrast on paper. */
+  --ring: oklch(0.5 0.1 158);
+  /* The one accent. Marks where you are and what is done; never body text. */
+  --flag: oklch(0.84 0.16 88);
+  --flag-foreground: oklch(0.23 0.03 160);
+  --chart-1: oklch(0.84 0.16 88);
+  --chart-2: oklch(0.62 0.1 158);
+  --chart-3: oklch(0.48 0.09 158);
+  --chart-4: oklch(0.35 0.075 158);
+  --chart-5: oklch(0.23 0.03 160);
+  --radius: 0.3125rem;
+  --font-sans: var(--font-instrument-sans);
+  --font-display: var(--font-besley);
+  --font-figures: var(--font-dm-mono);
+  --sidebar: oklch(0.945 0.016 95);
+  --sidebar-foreground: oklch(0.23 0.03 160);
+  --sidebar-primary: oklch(0.35 0.075 158);
+  --sidebar-primary-foreground: oklch(0.98 0.014 95);
+  --sidebar-accent: oklch(0.93 0.03 140);
+  --sidebar-accent-foreground: oklch(0.27 0.05 158);
+  --sidebar-border: oklch(0.885 0.02 100);
+  --sidebar-ring: oklch(0.5 0.1 158);
 }
 
 @layer base {
@@ -94,12 +104,27 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Paper grain, so the canvas reads as card stock and not a flat fill. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.14 0 0 0 0 0.2 0 0 0 0 0.16 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection {
+    background-color: var(--flag);
+    color: var(--flag-foreground);
   }
   h1,
   h2,
   h3,
   h4 {
     font-weight: 600;
+  }
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-feature-settings: "lnum";
+    text-wrap: balance;
+  }
+  table {
+    font-variant-numeric: tabular-nums;
   }
   h3 {
     font-size: 1.125rem;
@@ -112,8 +137,12 @@
     font-size: 0.8125rem;
     font-weight: 700;
   }
+  /* Help text inside a label reads at the same size as `FieldHelp`. */
   label small {
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
     font-weight: 400;
+    line-height: 1.45;
   }
   /* A label that wraps a checkbox or radio lays the control beside its text. */
   label:where(:has(> [data-slot="checkbox"], > input[type="radio"])) {
@@ -133,6 +162,8 @@
     *::before,
     *::after {
       scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }

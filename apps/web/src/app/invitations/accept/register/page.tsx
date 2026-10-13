@@ -11,34 +11,10 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { Button } from "@/components/ui/button";
 
 import { InvitationRegisterForm } from "./register-form";
-import { Kicker, TextLink } from "@/components/blocks";
+import { AuthPanel, Kicker, TextLink } from "@/components/blocks";
 
 function RegisterFrame({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
-      <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-        data-slot="auth-ledger"
-        aria-labelledby="register-title"
-      >
-        <div className="mb-[clamp(3rem,9vh,6.5rem)] gap-3.5 flex items-center max-[800px]:mb-12">
-          <span
-            className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
-            aria-hidden="true"
-          >
-            GR
-          </span>
-          <div>
-            <p className="m-0 text-[1.125rem] font-bold">GreenRoster</p>
-            <p className="mx-0 mt-0.5 mb-0 text-muted-foreground text-[0.8125rem]">
-              Create your account
-            </p>
-          </div>
-        </div>
-        {children}
-      </section>
-    </main>
-  );
+  return <AuthPanel titleId="register-title">{children}</AuthPanel>;
 }
 
 export default async function InvitationRegisterPage() {

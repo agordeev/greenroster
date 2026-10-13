@@ -2,13 +2,17 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { EmailChangeConfirmationStatus } from "./email-change-confirmation-status";
-import { Kicker } from "@/components/blocks";
+import {
+  Kicker,
+  standalonePageClass,
+  standalonePanelClass,
+} from "@/components/blocks";
 
 export default function EmailChangeConfirmedPage() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:max-w-176 max-[480px]:[&_[data-slot=auth-ledger]]:border-0!">
+    <main className={standalonePageClass}>
       <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        className={standalonePanelClass}
         data-slot="auth-ledger"
         aria-labelledby="email-confirmed-title"
       >

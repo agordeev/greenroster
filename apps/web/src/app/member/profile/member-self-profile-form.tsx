@@ -7,7 +7,7 @@ import {
   setMemberSelfHandicapAction,
   updateMemberSelfProfileAction,
 } from "@/app/actions/member-profile";
-import { FormMessage, Kicker } from "@/components/blocks";
+import { FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -119,7 +119,6 @@ export function MemberSelfProfileForm({
         className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
         aria-labelledby="profile-details-title"
       >
-        <Kicker>Your details</Kicker>
         <h2 id="profile-details-title">Keep your details up to date</h2>
         <div
           className="mt-5 gap-5 grid [:where(&)>*]:my-0"
@@ -256,7 +255,7 @@ export function MemberSelfProfileForm({
               disabled={pending}
             />
           </div>
-          <fieldset className="my-5 mx-0 p-4 gap-3 border grid bg-muted [&_[data-slot=checkbox-field]]:gap-[0.65rem] [&_[data-slot=checkbox-field]]:flex [&_[data-slot=checkbox-field]]:items-start [&_[data-slot=checkbox-field]]:text-muted-foreground [&_[data-slot=checkbox-field]]:text-[0.8125rem] [&_legend]:py-0 [&_legend]:px-[0.35rem] [&_legend]:text-muted-foreground [&_legend]:text-[0.6875rem] [&_legend]:tracking-[0.08em] [&_legend]:uppercase">
+          <fieldset className="my-5 mx-0 p-4 gap-3 border grid rounded-lg [&_[data-slot=checkbox-field]]:gap-[0.65rem] [&_[data-slot=checkbox-field]]:flex [&_[data-slot=checkbox-field]]:items-start [&_[data-slot=checkbox-field]]:text-muted-foreground [&_[data-slot=checkbox-field]]:text-[0.8125rem] [&_legend]:py-0 [&_legend]:px-[0.35rem] [&_legend]:text-muted-foreground [&_legend]:font-mono [&_legend]:text-[0.6875rem] [&_legend]:tracking-[0.08em] [&_legend]:uppercase">
             <legend>Choose what your group sees</legend>
             <CheckField
               id="member-secondary-email-visible"
@@ -304,7 +303,6 @@ export function MemberSelfProfileForm({
         className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
         aria-labelledby="handicap-title"
       >
-        <Kicker>Your handicap</Kicker>
         <h2 id="handicap-title">Update your handicap</h2>
         <div
           className="mt-5 gap-5 grid [:where(&)>*]:my-0"

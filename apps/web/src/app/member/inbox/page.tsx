@@ -5,7 +5,14 @@ import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberInbox } from "@/lib/notifications/member-inbox-data";
 
 import { MemberInboxList } from "./member-inbox-list";
-import { Kicker, SkipLink, TextLink } from "@/components/blocks";
+import {
+  Kicker,
+  SkipLink,
+  standalonePageWideClass,
+  standalonePanelClass,
+  TextLink,
+} from "@/components/blocks";
+import { MemberNav } from "../member-nav";
 
 export default async function MemberInboxPage() {
   const access = await resolveMemberPageSession();
@@ -26,24 +33,14 @@ export default async function MemberInboxPage() {
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className={standalonePanelClass}
           data-slot="auth-ledger"
           aria-labelledby="member-inbox-title"
         >
-          <nav
-            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
-            aria-label="Member navigation"
-          >
-            <TextLink href="/member/home">Home</TextLink>
-            <TextLink href="/member/profile">Profile</TextLink>
-          </nav>
-          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+          <MemberNav current="inbox" />
+          <div className="max-w-168 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
             <Kicker>Your inbox</Kicker>
             <h1 id="member-inbox-title">Round updates</h1>
             <p className="text-muted-foreground leading-[1.65]">
@@ -59,9 +56,9 @@ export default async function MemberInboxPage() {
 
 function MemberInboxUnavailable() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
+    <main className={standalonePageWideClass}>
       <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        className={standalonePanelClass}
         data-slot="auth-ledger"
         aria-labelledby="member-inbox-unavailable-title"
       >

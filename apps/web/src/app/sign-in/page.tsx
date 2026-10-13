@@ -1,6 +1,7 @@
 import { AuthForm } from "./auth-form";
 import {
   ActionRow,
+  BrandLockup,
   FormMessage,
   Kicker,
   SkipLink,
@@ -25,24 +26,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         className="min-h-screen grid grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] max-[800px]:grid-cols-[1fr]"
       >
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className="p-[clamp(2rem,7vw,6rem)] flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 max-[480px]:[&_form_button[type=submit]]:w-full [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
           data-slot="auth-ledger"
           aria-labelledby="sign-in-title"
         >
-          <div className="mb-[clamp(3rem,9vh,6.5rem)] gap-3.5 flex items-center max-[800px]:mb-12">
-            <span
-              className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
-              aria-hidden="true"
-            >
-              GR
-            </span>
-            <div>
-              <p className="m-0 text-[1.125rem] font-bold">GreenRoster</p>
-              <p className="mx-0 mt-0.5 mb-0 text-muted-foreground text-[0.8125rem]">
-                Your group. Your rounds. One roster.
-              </p>
-            </div>
-          </div>
+          <BrandLockup className="mb-[clamp(3rem,9vh,6.5rem)] max-[800px]:mb-12" />
 
           <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
             <Kicker>Welcome back</Kicker>
@@ -75,24 +63,37 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         </section>
 
         <aside
-          className="p-[clamp(2rem,7vw,6rem)] flex flex-col justify-end bg-background max-[800px]:border-t max-[800px]:min-h-120 max-[480px]:p-6 [&>p]:max-w-136 [&>p]:text-muted-foreground [&>p]:leading-[1.65] [&_dd]:mx-0 [&_dd]:mt-1.5 [&_dd]:mb-0 [&_dd]:text-[1rem] [&_dl]:mx-0 [&_dl]:mt-12 [&_dl]:mb-0 [&_dl]:border-t [&_dl]:grid [&_dl]:grid-cols-[repeat(3,1fr)] max-[480px]:[&_dl]:grid-cols-[1fr]! [&_dl_div]:pt-4 [&_dl_div]:pr-3 [&_dl_div]:pb-0 [&_dl_div]:pl-0 [&_dl_div]:border-r [&_dl_div]:border-r-border/50 max-[480px]:[&_dl_div]:pl-0 max-[480px]:[&_dl_div]:border-b max-[480px]:[&_dl_div]:border-b-border/50 max-[480px]:[&_dl_div]:py-3.5! max-[480px]:[&_dl_div]:pr-0! max-[480px]:[&_dl_div]:border-r-0! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase [&_h2]:mx-0 [&_h2]:mt-3 [&_h2]:mb-4 [&_h2]:max-w-120 [&_h2]:text-[length:clamp(2rem,4vw,3.5rem)] [&_h2]:font-semibold [&_h2]:tracking-[-0.03em] [&_h2]:leading-[1.05] [&_p]:m-0"
+          className="relative flex flex-col justify-end overflow-hidden bg-primary p-[clamp(2rem,7vw,6rem)] text-primary-foreground max-[480px]:p-6"
           aria-label="About GreenRoster"
         >
-          <div className="mb-auto w-16 h-1 bg-primary" />
-          <h2>Your next round, recent results, and where you stand.</h2>
-          <dl>
-            <div>
-              <dt>Rounds</dt>
-              <dd>RSVP for your next round</dd>
-            </div>
-            <div>
-              <dt>Results</dt>
-              <dd>See how you finished</dd>
-            </div>
-            <div>
-              <dt>Standings</dt>
-              <dd>Follow your quota and Order of Merit</dd>
-            </div>
+          {/* Scorecard rules: nine columns, fading out above the headline. */}
+          <div
+            className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black_10%,transparent_45%)] max-[800px]:hidden bg-[repeating-linear-gradient(to_right,transparent_0,transparent_calc(100%/9-1px),rgb(255_255_255/0.07)_calc(100%/9-1px),rgb(255_255_255/0.07)_calc(100%/9))]"
+            aria-hidden="true"
+          />
+          <div
+            className="relative mb-auto h-1 w-16 animate-in bg-flag duration-700 slide-in-from-left-8 fade-in"
+            aria-hidden="true"
+          />
+          <h2 className="relative mt-12 mb-0 max-w-136 animate-in text-[length:clamp(2rem,3.4vw,3rem)] leading-[1.08] font-semibold tracking-[-0.02em] duration-700 fade-in slide-in-from-bottom-3">
+            Your next round, recent results, and where you stand.
+          </h2>
+          <dl className="relative mt-12 mb-0 grid animate-in grid-cols-3 border-t border-primary-foreground/25 delay-150 duration-700 fill-mode-both fade-in slide-in-from-bottom-3 max-[480px]:grid-cols-1">
+            {[
+              ["Rounds", "RSVP for your next round"],
+              ["Results", "See how you finished"],
+              ["Standings", "Follow your quota and Order of Merit"],
+            ].map(([term, detail]) => (
+              <div
+                key={term}
+                className="border-primary-foreground/15 pt-4 pr-4 not-last:border-r not-first:pl-4 max-[480px]:border-r-0! max-[480px]:px-0! max-[480px]:py-3.5 max-[480px]:not-last:border-b"
+              >
+                <dt className="font-mono text-[0.6875rem] font-medium tracking-[0.16em] text-flag uppercase">
+                  {term}
+                </dt>
+                <dd className="mt-1.5 ml-0 text-base leading-snug">{detail}</dd>
+              </div>
+            ))}
           </dl>
         </aside>
       </main>

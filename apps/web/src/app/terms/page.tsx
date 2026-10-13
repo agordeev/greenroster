@@ -2,15 +2,15 @@ import Link from "next/link";
 
 import { InformationShell } from "@/app/information-shell";
 import { LEGAL_EFFECTIVE_DATE, TERMS_VERSION } from "@/lib/legal-documents";
-import { FormMessage } from "@/components/blocks";
+import { Prose } from "@/components/blocks";
 
 export default function TermsPage() {
   return (
     <InformationShell kicker="Legal" title="Terms of Use">
-      <div className="max-w-168 text-muted-foreground leading-[1.65] [&_h2]:mx-0 [&_h2]:mt-8 [&_h2]:mb-2 [&_h2]:text-foreground [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
-        <FormMessage tone="info" className="mb-6" role="status">
+      <Prose>
+        <p className="mb-6 font-mono text-[0.6875rem] text-muted-foreground">
           Effective {LEGAL_EFFECTIVE_DATE} · Version {TERMS_VERSION}
-        </FormMessage>
+        </p>
         <p>
           GreenRoster is for organizing golf groups, rounds, invitations,
           scores, standings, and results. These are the terms for using it.
@@ -61,7 +61,7 @@ export default function TermsPage() {
           When these Terms of Use change, we ask you to accept the new version.
           You need to accept it to keep using GreenRoster.
         </p>
-      </div>
+      </Prose>
     </InformationShell>
   );
 }

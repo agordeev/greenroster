@@ -325,11 +325,7 @@ export function RoundDraftForm({
       aria-busy={pending}
       noValidate
     >
-      <SectionHeading
-        kicker={isEdit ? "Edit draft" : "New draft"}
-        title={isEdit ? "Round details" : "New round"}
-        meta={isEdit ? "Draft" : "Not published yet"}
-      />
+      {isEdit ? <SectionHeading title="Round details" meta="Draft" /> : null}
       <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
         <Field
           id={`${prefix}-description`}

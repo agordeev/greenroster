@@ -69,7 +69,7 @@ export function RoundMessagePanel({
       <div className="mt-8 gap-4 grid">
         {messages.map((message) => (
           <article
-            className="p-5 gap-3 border grid bg-muted [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start"
+            className="p-5 gap-3 border grid rounded-lg [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start"
             key={message.messageId}
           >
             <p>{message.body ?? "This message was removed."}</p>

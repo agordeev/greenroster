@@ -9,7 +9,10 @@ import {
   issueMembershipInvitationAction,
   setMemberHandicapAction,
 } from "@/app/actions/memberships";
-import { FieldHelp, FormMessage, Kicker } from "@/components/blocks";
+import Link from "next/link";
+import { ChevronDownIcon } from "lucide-react";
+
+import { FieldHelp, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -447,27 +450,35 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
 
   return (
     <section
-      className="mt-10 p-6 gap-5 border grid bg-muted"
+      className="mt-8 grid max-w-184 gap-5"
       aria-labelledby="member-create-title"
     >
-      <div className="pb-4 gap-4 border-b border-b-border/50 flex items-start justify-between max-[720px]:grid-cols-[1fr] [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
-        <div>
-          <Kicker>New member</Kicker>
-          <h2 id="member-create-title">Create and invite</h2>
-        </div>
-        <span className="text-muted-foreground text-[0.6875rem] font-bold tracking-[0.08em] uppercase">
-          {memberCreated ? "Step 2 of 2" : "Step 1 of 2"}
-        </span>
-      </div>
+      <h2 className="sr-only" id="member-create-title">
+        New member
+      </h2>
+      <p className="m-0 font-mono text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+        {memberCreated ? "Step 2 of 2 · Invite" : "Step 1 of 2 · Details"}
+      </p>
+
+      <FormMessage
+        tone={messageStatus === "success" ? "success" : "error"}
+        aria-live="polite"
+        data-status={message ? messageStatus : undefined}
+      >
+        {message}
+      </FormMessage>
 
       <form
-        className="gap-5 grid [&>fieldset]:m-0 [&>fieldset]:p-0 [&>fieldset]:gap-5 [&>fieldset]:border-0 [&>fieldset]:grid [&>fieldset]:min-w-0 [&_[data-slot=member-contact-fieldset]]:p-4 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+        className="gap-5 grid [&>fieldset]:m-0 [&>fieldset]:p-0 [&>fieldset]:gap-5 [&>fieldset]:border-0 [&>fieldset]:grid [&>fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
         data-form="member-create-form"
         onSubmit={submitCreate}
         noValidate
       >
-        <fieldset disabled={busy || memberCreated}>
-          <legend>Member details</legend>
+        <fieldset
+          className={memberCreated ? "hidden!" : undefined}
+          disabled={busy || memberCreated}
+        >
+          <legend className="sr-only">Member details</legend>
           <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
             <label
               className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
@@ -588,7 +599,7 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               data-slot="field"
               htmlFor="member-create-reason"
             >
-              <span>Reason (optional)</span>
+              <span>Reason for adding (optional)</span>
               <Input
                 id="member-create-reason"
                 name="reason"
@@ -597,298 +608,338 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
               />
             </label>
           </div>
-          <fieldset
-            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-            data-slot="member-contact-fieldset"
-          >
-            <legend>Contact details (optional)</legend>
-            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-secondary-email"
-              >
-                <span>Secondary e-mail</span>
-                <Input
-                  id="member-create-secondary-email"
-                  name="secondaryEmail"
-                  type="email"
-                  value={draft.secondaryEmail}
-                  onChange={(event) =>
-                    update("secondaryEmail", event.target.value)
-                  }
-                  autoComplete="email"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-home-phone"
-              >
-                <span>Home phone</span>
-                <Input
-                  id="member-create-home-phone"
-                  name="homePhone"
-                  type="tel"
-                  value={draft.homePhone}
-                  onChange={(event) => update("homePhone", event.target.value)}
-                  autoComplete="tel"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-work-phone"
-              >
-                <span>Work phone</span>
-                <Input
-                  id="member-create-work-phone"
-                  name="workPhone"
-                  type="tel"
-                  value={draft.workPhone}
-                  onChange={(event) => update("workPhone", event.target.value)}
-                  autoComplete="tel"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-mobile-phone"
-              >
-                <span>Mobile phone</span>
-                <Input
-                  id="member-create-mobile-phone"
-                  name="mobilePhone"
-                  type="tel"
-                  value={draft.mobilePhone}
-                  onChange={(event) =>
-                    update("mobilePhone", event.target.value)
-                  }
-                  autoComplete="tel"
-                />
-              </label>
+          <details className="group/optional -mt-5 border-t first-of-type:mt-0 last-of-type:border-b [&[open]>summary]:mb-1 [&>summary]:flex [&>summary]:min-h-11 [&>summary]:cursor-pointer [&>summary]:list-none [&>summary]:items-center [&>summary]:justify-between [&>summary]:gap-3 [&>summary]:py-2 [&>summary]:text-[1rem] [&>summary]:font-semibold [&>summary::-webkit-details-marker]:hidden">
+            <summary>
+              Contact details (optional)
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-transform group-open/optional:rotate-180"
+              />
+            </summary>
+            <div className="grid gap-4 pb-5">
+              <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-secondary-email"
+                >
+                  <span>Secondary e-mail</span>
+                  <Input
+                    id="member-create-secondary-email"
+                    name="secondaryEmail"
+                    type="email"
+                    value={draft.secondaryEmail}
+                    onChange={(event) =>
+                      update("secondaryEmail", event.target.value)
+                    }
+                    autoComplete="email"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-home-phone"
+                >
+                  <span>Home phone</span>
+                  <Input
+                    id="member-create-home-phone"
+                    name="homePhone"
+                    type="tel"
+                    value={draft.homePhone}
+                    onChange={(event) =>
+                      update("homePhone", event.target.value)
+                    }
+                    autoComplete="tel"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-work-phone"
+                >
+                  <span>Work phone</span>
+                  <Input
+                    id="member-create-work-phone"
+                    name="workPhone"
+                    type="tel"
+                    value={draft.workPhone}
+                    onChange={(event) =>
+                      update("workPhone", event.target.value)
+                    }
+                    autoComplete="tel"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-mobile-phone"
+                >
+                  <span>Mobile phone</span>
+                  <Input
+                    id="member-create-mobile-phone"
+                    name="mobilePhone"
+                    type="tel"
+                    value={draft.mobilePhone}
+                    onChange={(event) =>
+                      update("mobilePhone", event.target.value)
+                    }
+                    autoComplete="tel"
+                  />
+                </label>
+              </div>
             </div>
-          </fieldset>
+          </details>
 
-          <fieldset
-            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-            data-slot="member-contact-fieldset"
-          >
-            <legend>Postal address (optional)</legend>
-            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-address-line1"
-              >
-                <span>Address line 1</span>
-                <Input
-                  id="member-create-address-line1"
-                  name="addressLine1"
-                  value={draft.addressLine1}
-                  onChange={(event) =>
-                    update("addressLine1", event.target.value)
-                  }
-                  autoComplete="address-line1"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-address-line2"
-              >
-                <span>Address line 2</span>
-                <Input
-                  id="member-create-address-line2"
-                  name="addressLine2"
-                  value={draft.addressLine2}
-                  onChange={(event) =>
-                    update("addressLine2", event.target.value)
-                  }
-                  autoComplete="address-line2"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-city"
-              >
-                <span>City</span>
-                <Input
-                  id="member-create-city"
-                  name="city"
-                  value={draft.city}
-                  onChange={(event) => update("city", event.target.value)}
-                  autoComplete="address-level2"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-state-region"
-              >
-                <span>State / region</span>
-                <Input
-                  id="member-create-state-region"
-                  name="stateRegion"
-                  value={draft.stateRegion}
-                  onChange={(event) =>
-                    update("stateRegion", event.target.value)
-                  }
-                  autoComplete="address-level1"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-postal-code"
-              >
-                <span>Postal code</span>
-                <Input
-                  id="member-create-postal-code"
-                  name="postalCode"
-                  value={draft.postalCode}
-                  onChange={(event) => update("postalCode", event.target.value)}
-                  autoComplete="postal-code"
-                />
-              </label>
-              <label
-                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-                data-slot="field"
-                htmlFor="member-create-country"
-              >
-                <span>Country</span>
-                <Input
-                  id="member-create-country"
-                  name="country"
-                  value={draft.country}
-                  onChange={(event) => update("country", event.target.value)}
-                  autoComplete="country-name"
-                />
-              </label>
+          <details className="group/optional -mt-5 border-t first-of-type:mt-0 last-of-type:border-b [&[open]>summary]:mb-1 [&>summary]:flex [&>summary]:min-h-11 [&>summary]:cursor-pointer [&>summary]:list-none [&>summary]:items-center [&>summary]:justify-between [&>summary]:gap-3 [&>summary]:py-2 [&>summary]:text-[1rem] [&>summary]:font-semibold [&>summary::-webkit-details-marker]:hidden">
+            <summary>
+              Postal address (optional)
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-transform group-open/optional:rotate-180"
+              />
+            </summary>
+            <div className="grid gap-4 pb-5">
+              <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-address-line1"
+                >
+                  <span>Address line 1</span>
+                  <Input
+                    id="member-create-address-line1"
+                    name="addressLine1"
+                    value={draft.addressLine1}
+                    onChange={(event) =>
+                      update("addressLine1", event.target.value)
+                    }
+                    autoComplete="address-line1"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-address-line2"
+                >
+                  <span>Address line 2</span>
+                  <Input
+                    id="member-create-address-line2"
+                    name="addressLine2"
+                    value={draft.addressLine2}
+                    onChange={(event) =>
+                      update("addressLine2", event.target.value)
+                    }
+                    autoComplete="address-line2"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-city"
+                >
+                  <span>City</span>
+                  <Input
+                    id="member-create-city"
+                    name="city"
+                    value={draft.city}
+                    onChange={(event) => update("city", event.target.value)}
+                    autoComplete="address-level2"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-state-region"
+                >
+                  <span>State / region</span>
+                  <Input
+                    id="member-create-state-region"
+                    name="stateRegion"
+                    value={draft.stateRegion}
+                    onChange={(event) =>
+                      update("stateRegion", event.target.value)
+                    }
+                    autoComplete="address-level1"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-postal-code"
+                >
+                  <span>Postal code</span>
+                  <Input
+                    id="member-create-postal-code"
+                    name="postalCode"
+                    value={draft.postalCode}
+                    onChange={(event) =>
+                      update("postalCode", event.target.value)
+                    }
+                    autoComplete="postal-code"
+                  />
+                </label>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                  htmlFor="member-create-country"
+                >
+                  <span>Country</span>
+                  <Input
+                    id="member-create-country"
+                    name="country"
+                    value={draft.country}
+                    onChange={(event) => update("country", event.target.value)}
+                    autoComplete="country-name"
+                  />
+                </label>
+              </div>
             </div>
-          </fieldset>
+          </details>
 
-          <fieldset
-            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-            data-slot="member-contact-fieldset"
-          >
-            <legend>Handicap (optional)</legend>
-            <FieldHelp>
-              Enter the handicap here. You&apos;ll save it in the next step,
-              after you add the member.
-            </FieldHelp>
-            <HandicapFields
-              draft={draft}
-              idPrefix="member-create"
-              onChange={(key, value) => update(key, value)}
-            />
-          </fieldset>
-
-          <fieldset
-            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-            data-slot="member-contact-fieldset"
-          >
-            <legend>Show in the member directory</legend>
-            <div className="flex flex-wrap gap-y-3 gap-x-4">
-              <label
-                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
-                htmlFor="member-create-secondary-visible"
-              >
-                <Checkbox
-                  id="member-create-secondary-visible"
-                  checked={draft.secondaryEmailVisible}
-                  onCheckedChange={(checked) =>
-                    update("secondaryEmailVisible", checked === true)
-                  }
-                />
-                <span>List secondary e-mail</span>
-              </label>
-              <label
-                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
-                htmlFor="member-create-home-visible"
-              >
-                <Checkbox
-                  id="member-create-home-visible"
-                  checked={draft.homePhoneVisible}
-                  onCheckedChange={(checked) =>
-                    update("homePhoneVisible", checked === true)
-                  }
-                />
-                <span>List home phone</span>
-              </label>
-              <label
-                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
-                htmlFor="member-create-work-visible"
-              >
-                <Checkbox
-                  id="member-create-work-visible"
-                  checked={draft.workPhoneVisible}
-                  onCheckedChange={(checked) =>
-                    update("workPhoneVisible", checked === true)
-                  }
-                />
-                <span>List work phone</span>
-              </label>
-              <label
-                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
-                htmlFor="member-create-mobile-visible"
-              >
-                <Checkbox
-                  id="member-create-mobile-visible"
-                  checked={draft.mobilePhoneVisible}
-                  onCheckedChange={(checked) =>
-                    update("mobilePhoneVisible", checked === true)
-                  }
-                />
-                <span>List mobile phone</span>
-              </label>
-              <label
-                className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
-                htmlFor="member-create-address-listed"
-              >
-                <Checkbox
-                  id="member-create-address-listed"
-                  checked={draft.addressListed}
-                  onCheckedChange={(checked) =>
-                    update("addressListed", checked === true)
-                  }
-                />
-                <span>List postal address</span>
-              </label>
+          <details className="group/optional -mt-5 border-t first-of-type:mt-0 last-of-type:border-b [&[open]>summary]:mb-1 [&>summary]:flex [&>summary]:min-h-11 [&>summary]:cursor-pointer [&>summary]:list-none [&>summary]:items-center [&>summary]:justify-between [&>summary]:gap-3 [&>summary]:py-2 [&>summary]:text-[1rem] [&>summary]:font-semibold [&>summary::-webkit-details-marker]:hidden">
+            <summary>
+              Handicap (optional)
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-transform group-open/optional:rotate-180"
+              />
+            </summary>
+            <div className="grid gap-4 pb-5">
+              <FieldHelp>
+                Enter the handicap here. You&apos;ll save it in the next step,
+                after you add the member.
+              </FieldHelp>
+              <HandicapFields
+                draft={draft}
+                idPrefix="member-create"
+                onChange={(key, value) => update(key, value)}
+              />
             </div>
-          </fieldset>
+          </details>
+
+          <details className="group/optional -mt-5 border-t first-of-type:mt-0 last-of-type:border-b [&[open]>summary]:mb-1 [&>summary]:flex [&>summary]:min-h-11 [&>summary]:cursor-pointer [&>summary]:list-none [&>summary]:items-center [&>summary]:justify-between [&>summary]:gap-3 [&>summary]:py-2 [&>summary]:text-[1rem] [&>summary]:font-semibold [&>summary::-webkit-details-marker]:hidden">
+            <summary>
+              Show in the member directory
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-transform group-open/optional:rotate-180"
+              />
+            </summary>
+            <div className="grid gap-4 pb-5">
+              <div className="flex flex-wrap gap-y-3 gap-x-4">
+                <label
+                  className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+                  htmlFor="member-create-secondary-visible"
+                >
+                  <Checkbox
+                    id="member-create-secondary-visible"
+                    checked={draft.secondaryEmailVisible}
+                    onCheckedChange={(checked) =>
+                      update("secondaryEmailVisible", checked === true)
+                    }
+                  />
+                  <span>Secondary e-mail</span>
+                </label>
+                <label
+                  className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+                  htmlFor="member-create-home-visible"
+                >
+                  <Checkbox
+                    id="member-create-home-visible"
+                    checked={draft.homePhoneVisible}
+                    onCheckedChange={(checked) =>
+                      update("homePhoneVisible", checked === true)
+                    }
+                  />
+                  <span>Home phone</span>
+                </label>
+                <label
+                  className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+                  htmlFor="member-create-work-visible"
+                >
+                  <Checkbox
+                    id="member-create-work-visible"
+                    checked={draft.workPhoneVisible}
+                    onCheckedChange={(checked) =>
+                      update("workPhoneVisible", checked === true)
+                    }
+                  />
+                  <span>Work phone</span>
+                </label>
+                <label
+                  className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+                  htmlFor="member-create-mobile-visible"
+                >
+                  <Checkbox
+                    id="member-create-mobile-visible"
+                    checked={draft.mobilePhoneVisible}
+                    onCheckedChange={(checked) =>
+                      update("mobilePhoneVisible", checked === true)
+                    }
+                  />
+                  <span>Mobile phone</span>
+                </label>
+                <label
+                  className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]"
+                  htmlFor="member-create-address-listed"
+                >
+                  <Checkbox
+                    id="member-create-address-listed"
+                    checked={draft.addressListed}
+                    onCheckedChange={(checked) =>
+                      update("addressListed", checked === true)
+                    }
+                  />
+                  <span>Postal address</span>
+                </label>
+              </div>
+            </div>
+          </details>
         </fieldset>
         <div className="gap-3 flex flex-wrap">
-          <Button type="submit" disabled={busy || memberCreated}>
-            {phase === "creating" ? "Adding…" : "Add member"}
-          </Button>
           {memberCreated ? (
-            <Button
-              variant="outline"
-              type="button"
-              onClick={reset}
-              disabled={busy}
-            >
-              Add another member
+            <>
+              <p className="m-0 basis-full leading-[1.55]">
+                <strong>
+                  {draft.firstName} {draft.lastName}
+                </strong>{" "}
+                is on your roster.
+              </p>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={reset}
+                disabled={busy}
+              >
+                Add another member
+              </Button>
+              <Button asChild variant="outline">
+                <Link
+                  href={`/portal/members?membership=${encodeURIComponent(createdMembershipId ?? "")}`}
+                >
+                  Open member details
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <Button type="submit" disabled={busy}>
+              {phase === "creating" ? "Adding…" : "Add member"}
             </Button>
-          ) : null}
+          )}
         </div>
       </form>
 
-      {createdMembershipId ? (
+      {createdMembershipId &&
+      (handicapRecorded || draft.handicap.trim() !== "") ? (
         <form
-          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
+          className="pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
           data-form="member-handicap-form"
           onSubmit={submitHandicap}
           noValidate
         >
           <fieldset disabled={busy || handicapRecorded}>
             <legend>Save handicap</legend>
-            <p>
-              Member added. If you entered a handicap, save it before sending
-              the invitation.
-            </p>
+            <p>Save the handicap you entered before you send the invitation.</p>
             <HandicapFields
               draft={draft}
               idPrefix="member-handicap"
@@ -972,14 +1023,6 @@ export function MemberCreateInvite({ role }: Readonly<{ role: MemberRole }>) {
           </div>
         </form>
       ) : null}
-
-      <FormMessage
-        tone={messageStatus === "success" ? "success" : "error"}
-        aria-live="polite"
-        data-status={message ? messageStatus : undefined}
-      >
-        {message}
-      </FormMessage>
     </section>
   );
 }

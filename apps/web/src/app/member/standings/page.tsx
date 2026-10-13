@@ -6,7 +6,15 @@ import {
 } from "@/lib/rounds/member-results-data";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
-import { Kicker, SkipLink, TextLink } from "@/components/blocks";
+import {
+  Kicker,
+  SkipLink,
+  standalonePageWideClass,
+  standalonePanelClass,
+  standalonePanelFullClass,
+  TextLink,
+} from "@/components/blocks";
+import { MemberNav } from "../member-nav";
 
 export default async function MemberStandingsPage() {
   const access = await resolveMemberPageSession();
@@ -49,36 +57,21 @@ function MemberStandingsContent({
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card w-[min(100%,72rem)]! max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className={standalonePanelFullClass}
           data-slot="auth-ledger"
           aria-labelledby="member-standings-title"
         >
-          <nav
-            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
-            aria-label="Member navigation"
-          >
-            <TextLink href="/member/home">Home</TextLink>
-            <TextLink href="/member/home#notifications">
-              Notification preferences
-            </TextLink>
-            <TextLink href="/member/profile">Profile</TextLink>
-          </nav>
-          <Kicker>Standings and history</Kicker>
-          <h1 id="member-standings-title">
-            {context?.group_name ?? "Your group"}
-          </h1>
+          <MemberNav current="standings" />
+          <Kicker>{context?.group_name ?? "Your group"}</Kicker>
+          <h1 id="member-standings-title">Standings</h1>
           <p className="text-muted-foreground leading-[1.55]">
             Order of Merit · counting from:{" "}
             {formatDate(context?.standings_reset_date ?? null)}
           </p>
           <section
-            className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:bg-muted [&_span]:text-muted-foreground [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:text-[1.5rem] [&_strong]:font-semibold"
+            className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:rounded-lg [&_span]:text-muted-foreground [&_span]:font-mono [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:font-mono [&_strong]:text-[1.5rem] [&_strong]:font-medium [&_strong]:tabular-nums"
             data-slot="member-stats-summary"
             aria-label="Your standings summary"
           >
@@ -111,7 +104,7 @@ function MemberStandingsContent({
               </p>
             ) : (
               <div className="mt-5 border relative overflow-x-auto bg-card">
-                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:font-mono [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
                   <caption className="sr-only">Current group standings</caption>
                   <thead>
                     <tr>
@@ -157,7 +150,7 @@ function MemberStandingsContent({
               </p>
             ) : (
               <div className="mt-5 border relative overflow-x-auto bg-card">
-                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
+                <table className="w-full min-w-192 border-collapse text-left [&_tbody_th]:font-semibold [&_tbody_th]:text-primary! [&_tbody_th]:text-[1.125rem]! [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_thead_th]:text-muted-foreground [&_thead_th]:font-mono [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase">
                   <caption className="sr-only">Your quota history</caption>
                   <thead>
                     <tr>
@@ -207,15 +200,8 @@ function MemberStandingsUnavailable() {
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
-        <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-          data-slot="auth-ledger"
-        >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
+        <section className={standalonePanelClass} data-slot="auth-ledger">
           <Kicker>Standings and history</Kicker>
           <h1>We couldn&apos;t load your standings</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>

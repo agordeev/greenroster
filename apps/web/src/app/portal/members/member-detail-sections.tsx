@@ -8,7 +8,6 @@ import type {
   MemberDetailProjection,
   MemberDetailQuotaHistory,
 } from "@/lib/memberships/member-detail";
-import { Kicker } from "@/components/blocks";
 
 export type MemberDetailSectionsProps = Readonly<{
   projection: MemberDetailProjection;
@@ -34,17 +33,16 @@ export function MemberDetailSections({
 
   return (
     <section
-      className="mt-6 gap-4 grid col-span-full"
+      className="mt-8 grid max-w-184 gap-8"
       aria-labelledby="member-detail-sections-title"
     >
-      <div className="p-5 border bg-muted max-[720px]:p-4 [&>p:last-child]:mx-0 [&>p:last-child]:mt-[0.65rem] [&>p:last-child]:mb-0 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.55] [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:font-semibold [&_h2]:text-[1.5rem]">
-        <Kicker>Member history</Kicker>
-        <h2 id="member-detail-sections-title">Full history</h2>
-      </div>
+      <h2 className="sr-only" id="member-detail-sections-title">
+        History
+      </h2>
 
       <DetailSection title="Account" id="member-detail-account">
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Account e-mail">
@@ -97,7 +95,7 @@ export function MemberDetailSections({
 
       <DetailSection title="Quota" id="member-detail-quota">
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Current quota">
@@ -154,7 +152,7 @@ export function MemberDetailSections({
         {currentHandicap ? (
           <>
             <dl
-              className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+              className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
               data-slot="member-detail-definition-list"
             >
               <Definition label="Current handicap">
@@ -219,7 +217,7 @@ function DetailSection({
 }>) {
   return (
     <section
-      className="p-5 border bg-muted max-[720px]:p-4 [&_h3]:mx-0 [&_h3]:mt-[0.35rem] [&_h3]:mb-0 [&_h3]:pb-[0.8rem] [&_h3]:border-b [&_h3]:border-b-border/50 [&_h3]:font-semibold [&_h3]:text-[1.125rem] [&_h4]:mx-0 [&_h4]:mt-[0.35rem] [&_h4]:mb-0 [&_h4]:[font-family:var(--font-sans)] [&_h4]:text-[0.875rem] [&_h4]:font-bold"
+      className="border-t pt-6 first-of-type:border-t-0 first-of-type:pt-0 [&_h3]:m-0 [&_h3]:font-semibold [&_h3]:text-[1.125rem] [&_h4]:mx-0 [&_h4]:mt-[0.35rem] [&_h4]:mb-0 [&_h4]:[font-family:var(--font-sans)] [&_h4]:text-[0.875rem] [&_h4]:font-bold"
       aria-labelledby={id}
     >
       <h3 id={id}>{title}</h3>
@@ -270,10 +268,10 @@ function InvitationRecord({
 }: Readonly<{ invitation: MemberDetailInvitation; timeZone?: string }>) {
   return (
     <li>
-      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
+      <article className="rounded-lg border p-4 [&_h4]:mt-0!">
         <h4>{formatInvitationStatus(invitation.status)}</h4>
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Invited e-mail">
@@ -313,10 +311,10 @@ function DeliveryRecord({
 }: Readonly<{ delivery: MemberDetailDelivery; timeZone?: string }>) {
   return (
     <li>
-      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
+      <article className="rounded-lg border p-4 [&_h4]:mt-0!">
         <h4>{formatMemberDetailDeliveryState(delivery)}</h4>
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Event">
@@ -357,10 +355,10 @@ function HandicapRecord({
 }: Readonly<{ handicap: MemberDetailHandicap; timeZone?: string }>) {
   return (
     <li>
-      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
+      <article className="rounded-lg border p-4 [&_h4]:mt-0!">
         <h4>{handicap.handicap}</h4>
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Source">
@@ -392,14 +390,14 @@ function QuotaHistoryRecord({
 }>) {
   return (
     <li>
-      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
+      <article className="rounded-lg border p-4 [&_h4]:mt-0!">
         <h4>
           {entry.projectedQuota === null
             ? "Quota not available yet"
             : `Quota ${entry.projectedQuota}`}
         </h4>
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Readiness">
@@ -438,10 +436,10 @@ function ActivityRecord({
 }: Readonly<{ activity: MemberDetailActivity; timeZone?: string }>) {
   return (
     <li>
-      <article className="p-4 border border-border/50 bg-card [&_h4]:mt-0!">
+      <article className="rounded-lg border p-4 [&_h4]:mt-0!">
         <h4>{formatEventType(activity.action)}</h4>
         <dl
-          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+          className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
           data-slot="member-detail-definition-list"
         >
           <Definition label="Source">{activity.source}</Definition>
@@ -466,7 +464,7 @@ function AdministratorQuotaDetails({
     <div className="mt-5 pt-5 border-t border-t-border/50 [&_h4+[data-slot=member-detail-definition-list]]:mt-3!">
       <h4>Quota setup</h4>
       <dl
-        className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
+        className="mx-0 mt-4 mb-0 grid grid-cols-2 gap-y-[0.8rem] gap-x-4 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:leading-[1.45] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase"
         data-slot="member-detail-definition-list"
       >
         <Definition label="Starting quota">

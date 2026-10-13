@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 
 import {
   changeMemberRoleAction,
@@ -22,7 +22,7 @@ import {
   shouldAllowMemberFormSubmit,
 } from "@/lib/memberships/member-management";
 import { shouldAllowDirtyNavigation } from "@/lib/groups/quota-settings-form-rules";
-import { FieldHelp, FormMessage, Kicker, TextLink } from "@/components/blocks";
+import { FieldHelp, FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -37,10 +37,7 @@ import {
   type MemberRosterQuery,
   type MemberRosterSortKey,
 } from "@/domain/member-roster-query";
-import {
-  formatMemberRosterInitialQuotaUsage,
-  formatMemberRosterQuotaProvenance,
-} from "@/domain/member-roster-presentation";
+import { formatMemberRosterQuotaProvenance } from "@/domain/member-roster-presentation";
 import type {
   ManageableMember,
   ManageableMemberRosterRow,
@@ -49,6 +46,8 @@ import type {
   MemberPrivateContact,
   MemberRoleInput,
 } from "@/lib/memberships/member-management";
+
+export type MemberEditorTab = "details" | "handicap" | "access";
 
 type EditorValues = Omit<
   MemberEditInput,
@@ -84,6 +83,7 @@ const emptyContact: MemberPrivateContact = {
 export function MemberManagement({
   actorMembershipId,
   activeCount,
+  editorTab,
   members,
   privateContact,
   role,
@@ -93,6 +93,7 @@ export function MemberManagement({
 }: Readonly<{
   actorMembershipId: string;
   activeCount: number;
+  editorTab: MemberEditorTab | null;
   members: readonly ManageableMemberRosterRow[];
   privateContact: MemberPrivateContact | null;
   role: "member" | "coordinator" | "administrator";
@@ -119,20 +120,10 @@ export function MemberManagement({
   }
 
   return (
-    <div className="mt-10 gap-6 grid grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.7fr)] max-[720px]:grid-cols-[1fr] [&>[data-slot='alert']]:col-span-full [&>[data-slot=member-editor]]:col-span-full">
+    <div className="mt-8 grid gap-6 [&>*]:min-w-0">
       {selectedMember ? null : (
-        <div
-          className="border bg-muted self-start col-span-full [&_[data-slot=member-roster-cards]]:m-0 [&_[data-slot=member-roster-cards]]:p-0 [&_[data-slot=member-roster-cards]]:hidden [&_[data-slot=member-roster-cards]]:list-none max-[960px]:[&_[data-slot=member-roster-cards]]:grid!"
-          aria-label="Group members"
-        >
-          <div className="p-5 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:m-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_span]:text-muted-foreground [&_span]:text-[0.75rem]!">
-            <h2>Roster</h2>
-            <span>
-              {totalCount} {totalCount === 1 ? "member" : "members"}
-            </span>
-          </div>
+        <section aria-label="Group members">
           <MemberRosterFilters query={rosterQuery} />
-          <MemberAlphabetFilter query={rosterQuery} />
           <MemberRosterContent
             activeCount={activeCount}
             members={members}
@@ -140,11 +131,12 @@ export function MemberManagement({
             selectedMemberId={null}
             totalCount={totalCount}
           />
-        </div>
+        </section>
       )}
 
-      {selectedMember ? (
+      {selectedMember && editorTab ? (
         <MemberEditor
+          tab={editorTab}
           key={`${selectedMember.membershipId}:${selectedMember.membershipVersion}:${selectedMember.profileVersion}:${privateContact?.contactVersion ?? 0}`}
           actorMembershipId={actorMembershipId}
           member={selectedMember}
@@ -167,155 +159,131 @@ export function MemberManagement({
 function MemberRosterFilters({
   query,
 }: Readonly<{ query: MemberRosterQuery }>) {
+  // Selects apply as soon as they change; search applies on Enter.
+  function applyOnChange(event: ChangeEvent<HTMLSelectElement>) {
+    event.currentTarget.form?.requestSubmit();
+  }
+
   return (
     <form
-      className="p-5 gap-4 border-b border-b-border/50 grid"
+      className="flex flex-wrap items-center gap-3"
       action="/portal/members"
       method="get"
+      role="search"
     >
-      <div className="gap-3 grid grid-cols-6 max-[960px]:grid-cols-2 max-[720px]:grid-cols-[1fr]">
-        <label
-          className="gap-2 grid col-span-3 max-[960px]:col-span-full max-[720px]:col-[auto] [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
+      <Input
+        className="min-w-0 flex-[3_1_18rem]"
+        name="search"
+        type="search"
+        aria-label="Search members"
+        placeholder="Name, e-mail or Handicap ID"
+        defaultValue={query.search}
+        maxLength={200}
+        autoComplete="off"
+      />
+      <NativeSelect
+        className="w-auto flex-[1_1_9rem]"
+        name="status"
+        aria-label="Status"
+        defaultValue={query.status ?? ""}
+        onChange={applyOnChange}
+      >
+        <option value="">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </NativeSelect>
+      <NativeSelect
+        className="w-auto flex-[1_1_9rem]"
+        name="role"
+        aria-label="Role"
+        defaultValue={query.role ?? ""}
+        onChange={applyOnChange}
+      >
+        <option value="">All roles</option>
+        <option value="member">Member</option>
+        <option value="coordinator">Coordinator</option>
+        <option value="administrator">Administrator</option>
+      </NativeSelect>
+      <NativeSelect
+        className="w-auto flex-[1_1_9rem]"
+        name="dues"
+        aria-label="Dues"
+        defaultValue={query.dues ?? ""}
+        onChange={applyOnChange}
+      >
+        <option value="">All dues</option>
+        <option value="paid">Paid</option>
+        <option value="unpaid">Not set yet</option>
+      </NativeSelect>
+      <RosterQueryFields query={query} keep={["sort", "pageSize"]} />
+      <Button variant="outline" type="submit">
+        Search
+      </Button>
+      {memberRosterQueryHasFilters(query) ? (
+        <TextLink
+          className="self-center"
+          href={buildMemberRosterHref(query, {
+            search: "",
+            alphabet: null,
+            status: null,
+            role: null,
+            dues: null,
+            page: 1,
+            membership: null,
+          })}
         >
-          <span>Search by name, invite e-mail, or Handicap ID</span>
-          <Input
-            name="search"
-            type="search"
-            defaultValue={query.search}
-            maxLength={200}
-            autoComplete="off"
-          />
-        </label>
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Status</span>
-          <NativeSelect name="status" defaultValue={query.status ?? ""}>
-            <option value="">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </NativeSelect>
-        </label>
-        {query.alphabet ? (
-          <input type="hidden" name="alphabet" value={query.alphabet} />
-        ) : null}
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Role</span>
-          <NativeSelect name="role" defaultValue={query.role ?? ""}>
-            <option value="">All roles</option>
-            <option value="member">Member</option>
-            <option value="coordinator">Coordinator</option>
-            <option value="administrator">Administrator</option>
-          </NativeSelect>
-        </label>
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Dues</span>
-          <NativeSelect name="dues" defaultValue={query.dues ?? ""}>
-            <option value="">All dues</option>
-            <option value="paid">Paid</option>
-            <option value="unpaid">Not set yet</option>
-          </NativeSelect>
-        </label>
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Per page</span>
-          <NativeSelect name="pageSize" defaultValue={String(query.pageSize)}>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </NativeSelect>
-        </label>
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Sort by</span>
-          <NativeSelect name="sort" defaultValue={query.sort}>
-            <option value="name">Name</option>
-            <option value="status">Status</option>
-            <option value="role">Role</option>
-            <option value="dues">Dues</option>
-            <option value="tee">Tee</option>
-            <option value="handicap">Handicap</option>
-            <option value="quota">Quota</option>
-            <option value="date_added">Date added</option>
-            <option value="invitation">Invitation</option>
-          </NativeSelect>
-        </label>
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-        >
-          <span>Order</span>
-          <NativeSelect name="direction" defaultValue={query.direction}>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </NativeSelect>
-        </label>
-      </div>
-      <div className="gap-3 flex items-center flex-wrap">
-        <Button variant="outline" type="submit">
-          Apply filters
-        </Button>
-        {memberRosterQueryHasFilters(query) ||
-        query.page !== 1 ||
-        query.pageSize !== 25 ? (
-          <TextLink href="/portal/members">Clear filters</TextLink>
-        ) : null}
-      </div>
+          Clear filters
+        </TextLink>
+      ) : null}
     </form>
   );
 }
 
-function MemberAlphabetFilter({
+// Carries the parts of the roster query a form does not edit itself.
+function RosterQueryFields({
   query,
-}: Readonly<{ query: MemberRosterQuery }>) {
+  keep,
+}: Readonly<{
+  query: MemberRosterQuery;
+  keep: readonly ("filters" | "sort" | "pageSize")[];
+}>) {
   return (
-    <nav
-      className="py-[0.85rem] px-5 gap-[0.35rem] border-b border-b-border/50 flex items-center flex-wrap text-muted-foreground text-[0.75rem] [&>span]:mr-[0.35rem] [&>span]:font-bold [&_a:hover]:bg-card [&_a[aria-current='page']]:rounded-lg [&_a[aria-current='page']]:text-card [&_a[aria-current='page']]:font-bold [&_a[aria-current='page']]:border-primary! [&_a[aria-current='page']]:bg-primary! [&_a]:px-[0.35rem] [&_a]:border [&_a]:border-transparent [&_a]:inline-grid [&_a]:min-w-[1.65rem] [&_a]:min-h-[1.65rem] [&_a]:place-items-center [&_a]:rounded-lg [&_a]:text-primary [&_a]:no-underline"
-      aria-label="Filter members by surname initial"
-    >
-      <span>Alphabet</span>
-      <Link
-        href={buildMemberRosterHref(query, {
-          alphabet: null,
-          page: 1,
-          membership: null,
-        })}
-        aria-current={query.alphabet === null ? "page" : undefined}
-      >
-        All
-      </Link>
-      {Array.from({ length: 26 }, (_, index) => {
-        const letter = String.fromCharCode(65 + index);
-        return (
-          <Link
-            key={letter}
-            href={buildMemberRosterHref(query, {
-              alphabet: letter,
-              page: 1,
-              membership: null,
-            })}
-            aria-current={query.alphabet === letter ? "page" : undefined}
-          >
-            {letter}
-          </Link>
-        );
-      })}
-    </nav>
+    <>
+      {keep.includes("filters") ? (
+        <>
+          {query.search ? (
+            <input type="hidden" name="search" value={query.search} />
+          ) : null}
+          {query.alphabet ? (
+            <input type="hidden" name="alphabet" value={query.alphabet} />
+          ) : null}
+          {query.status ? (
+            <input type="hidden" name="status" value={query.status} />
+          ) : null}
+          {query.role ? (
+            <input type="hidden" name="role" value={query.role} />
+          ) : null}
+          {query.dues ? (
+            <input type="hidden" name="dues" value={query.dues} />
+          ) : null}
+        </>
+      ) : null}
+      {keep.includes("sort") && query.sort !== "name" ? (
+        <input type="hidden" name="sort" value={query.sort} />
+      ) : null}
+      {keep.includes("sort") && query.direction !== "asc" ? (
+        <input type="hidden" name="direction" value={query.direction} />
+      ) : null}
+      {keep.includes("pageSize") && query.pageSize !== 25 ? (
+        <input type="hidden" name="pageSize" value={query.pageSize} />
+      ) : null}
+    </>
   );
 }
+
+const rosterNoticeClass =
+  "mt-6 grid gap-2 rounded-lg border border-dashed border-input bg-muted/50 p-4 text-muted-foreground [&_h2]:m-0 [&_h2]:font-sans [&_h2]:text-base [&_h2]:text-foreground [&_p]:m-0 [&_p]:leading-[1.5]";
 
 function MemberRosterContent({
   activeCount,
@@ -340,11 +308,8 @@ function MemberRosterContent({
 
   if (pageOutOfRange) {
     return (
-      <div
-        className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
-        role="status"
-      >
-        <h3>No members on this page</h3>
+      <div className={rosterNoticeClass} role="status">
+        <h2>No members on this page</h2>
         <p>
           These members fill {totalPages} page{totalPages === 1 ? "" : "s"}. Go
           back to the first page.
@@ -361,21 +326,15 @@ function MemberRosterContent({
   if (members.length === 0) {
     const filtered = memberRosterQueryHasFilters(query);
     return (
-      <div
-        className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
-        role="status"
-      >
-        <h3>
+      <div className={rosterNoticeClass} role="status">
+        <h2>
           {filtered ? "No members match these filters" : "No members yet"}
-        </h3>
+        </h2>
         <p>
           {filtered
             ? "Try a different search, or clear the filters."
             : "Add a member or import a list to start your roster."}
         </p>
-        {filtered ? (
-          <TextLink href="/portal/members">Clear filters</TextLink>
-        ) : null}
       </div>
     );
   }
@@ -383,22 +342,12 @@ function MemberRosterContent({
   return (
     <>
       {noActiveMembers ? (
-        <div
-          className="py-6 px-5 gap-3 grid text-muted-foreground [&_h3]:m-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-[1.25rem]! [&_p]:m-0 [&_p]:leading-[1.5]"
-          role="status"
-        >
-          <h3>No active members</h3>
+        <div className={rosterNoticeClass} role="status">
+          <h2>No active members</h2>
         </div>
       ) : null}
-      <p
-        className="m-0 py-[0.85rem] px-5 border-b border-b-border/50 text-muted-foreground text-[0.75rem]"
-        aria-live="polite"
-      >
-        Showing {members.length} of {totalCount} matching member
-        {totalCount === 1 ? "" : "s"}. Page {query.page} of {totalPages}.
-      </p>
-      <div className="overflow-hidden w-full max-[960px]:hidden">
-        <table className="w-full border-collapse table-fixed text-[0.8125rem] [&_:is(th,td):first-child]:pl-5 [&_:is(th,td):first-child]:w-[20%] [&_:is(th,td):last-child]:pr-5 [&_tbody_th]:font-semibold [&_tbody_th]:text-[0.875rem]! [&_tbody_th_a:hover]:text-primary [&_tbody_th_a:hover]:underline [&_tbody_th_a:hover]:underline-offset-[0.2em] [&_tbody_th_a[aria-current='page']]:text-primary [&_tbody_th_a[aria-current='page']]:underline [&_tbody_th_a[aria-current='page']]:underline-offset-[0.2em] [&_tbody_th_a]:text-inherit [&_tbody_th_a]:no-underline [&_tbody_tr:last-child_:is(th,td)]:border-b-0 [&_td]:py-3 [&_td]:px-[0.6rem] [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:align-top [&_td]:wrap-anywhere [&_th]:py-3 [&_th]:px-[0.6rem] [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:align-top [&_th]:wrap-anywhere [&_thead_a:focus-visible]:text-primary [&_thead_a:focus-visible]:underline [&_thead_a:hover]:text-primary [&_thead_a:hover]:underline [&_thead_a]:text-inherit [&_thead_a]:no-underline [&_thead_a]:underline-offset-[0.2em] [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.04em] [&_thead_th]:[overflow-wrap:normal] [&_thead_th]:uppercase [&_thead_th]:whitespace-nowrap">
+      <div className="mt-6 max-[960px]:hidden">
+        <table className="w-full table-fixed border-collapse text-left text-[0.875rem] [&_:is(th,td)]:border-b [&_:is(th,td)]:px-3 [&_:is(th,td)]:py-3.5 [&_:is(th,td)]:align-top [&_:is(th,td):first-child]:w-[30%] [&_:is(th,td):first-child]:pl-0 [&_:is(th,td):last-child]:pr-0 [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50 [&_thead_a]:text-inherit [&_thead_a]:no-underline [&_thead_a:hover]:text-foreground [&_thead_th]:border-t [&_thead_th]:py-2.5 [&_thead_th]:font-mono [&_thead_th]:text-[0.6875rem] [&_thead_th]:font-medium [&_thead_th]:tracking-[0.08em] [&_thead_th]:whitespace-nowrap [&_thead_th]:text-muted-foreground [&_thead_th]:uppercase [&_thead_th[aria-sort=ascending]]:text-foreground [&_thead_th[aria-sort=descending]]:text-foreground">
           <caption className="sr-only">Group member roster</caption>
           <thead>
             <tr>
@@ -406,23 +355,12 @@ function MemberRosterContent({
               <MemberSortHeader label="Status" query={query} sortKey="status" />
               <MemberSortHeader label="Role" query={query} sortKey="role" />
               <MemberSortHeader label="Dues" query={query} sortKey="dues" />
-              <MemberSortHeader label="Tee" query={query} sortKey="tee" />
               <MemberSortHeader
                 label="Handicap"
                 query={query}
                 sortKey="handicap"
               />
               <MemberSortHeader label="Quota" query={query} sortKey="quota" />
-              <MemberSortHeader
-                label="Added"
-                query={query}
-                sortKey="date_added"
-              />
-              <MemberSortHeader
-                label="Invitation"
-                query={query}
-                sortKey="invitation"
-              />
             </tr>
           </thead>
           <tbody>
@@ -438,6 +376,7 @@ function MemberRosterContent({
         </table>
       </div>
       <ul
+        className="m-0 mt-6 hidden list-none border-t p-0 max-[960px]:grid"
         data-slot="member-roster-cards"
         aria-label="Group member roster cards"
       >
@@ -451,7 +390,12 @@ function MemberRosterContent({
           </li>
         ))}
       </ul>
-      <MemberRosterPagination query={query} totalPages={totalPages} />
+      <MemberRosterFooter
+        query={query}
+        shownCount={members.length}
+        totalCount={totalCount}
+        totalPages={totalPages}
+      />
     </>
   );
 }
@@ -499,6 +443,65 @@ function MemberSortHeader({
   );
 }
 
+// An empty cell: a quiet dash, so the values that are set stand out.
+function NotSet() {
+  return (
+    <>
+      <span aria-hidden="true" className="text-muted-foreground/60">
+        —
+      </span>
+      <span className="sr-only">Not set</span>
+    </>
+  );
+}
+
+// A figure with an optional note under it, for handicap and quota.
+function RosterFigure({
+  value,
+  note,
+}: Readonly<{ value: string | null; note: string | null }>) {
+  return (
+    <>
+      {value === null ? (
+        note ? null : (
+          <NotSet />
+        )
+      ) : (
+        <span className="font-mono font-medium tabular-nums">{value}</span>
+      )}
+      {note ? (
+        <span className="block text-xs leading-[1.45] text-muted-foreground">
+          {note}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+function RosterStatus({
+  member,
+}: Readonly<{ member: ManageableMemberRosterRow }>) {
+  return (
+    <span
+      className={
+        member.status === "active" ? undefined : "text-muted-foreground"
+      }
+    >
+      {formatStatus(member.status)}
+    </span>
+  );
+}
+
+function RosterDues({
+  member,
+}: Readonly<{ member: ManageableMemberRosterRow }>) {
+  return member.duesPaid ? (
+    "Paid"
+  ) : (
+    <span className="text-muted-foreground">Not set yet</span>
+  );
+}
+
 function MemberRosterTableRow({
   member,
   query,
@@ -511,21 +514,38 @@ function MemberRosterTableRow({
   const href = buildMemberRosterHref(query, {
     membership: member.membershipId,
   });
+  const invitation = formatRosterInvitation(member);
   return (
     <tr>
-      <th scope="row">
-        <Link href={href} aria-current={selected ? "page" : undefined}>
+      <th scope="row" className="font-normal">
+        <Link
+          className="font-semibold text-foreground no-underline underline-offset-[0.2em] hover:text-primary hover:underline"
+          href={href}
+          aria-current={selected ? "page" : undefined}
+        >
           {formatMemberName(member)}
         </Link>
+        {invitation ? (
+          <span
+            className={`block text-xs leading-[1.45] ${member.invitationDeliveryActionRequired ? "text-destructive" : "text-muted-foreground"}`}
+          >
+            {invitation}
+          </span>
+        ) : null}
       </th>
-      <td>{formatStatus(member.status)}</td>
+      <td>
+        <RosterStatus member={member} />
+      </td>
       <td>{formatRole(member.role)}</td>
-      <td>{member.duesPaid ? "Paid" : "Not set yet"}</td>
-      <td>{member.teeLocation ? formatTee(member.teeLocation) : "Not set"}</td>
-      <td>{formatRosterHandicap(member)}</td>
-      <td>{formatRosterQuota(member)}</td>
-      <td>{formatDate(member.dateAdded)}</td>
-      <td>{formatInvitation(member)}</td>
+      <td>
+        <RosterDues member={member} />
+      </td>
+      <td>
+        <RosterFigure {...rosterHandicap(member)} />
+      </td>
+      <td>
+        <RosterFigure {...rosterQuota(member)} />
+      </td>
     </tr>
   );
 }
@@ -539,14 +559,13 @@ function MemberRosterCard({
   query: MemberRosterQuery;
   selected: boolean;
 }>) {
+  const invitation = formatRosterInvitation(member);
   return (
-    <article
-      className="p-5 gap-4 border-b border-b-border/50 grid [&[data-selected='true']]:[box-shadow:inset_0.2rem_0_var(--primary)] [&[data-selected='true']]:bg-card [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-y-[0.85rem] [&_dl]:gap-x-4 max-[720px]:[&_dl]:grid-cols-[1fr]! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.06em] [&_dt]:uppercase"
-      data-selected={selected || undefined}
-    >
-      <div className="gap-4 flex items-start justify-between [&>span]:text-muted-foreground [&>span]:font-bold [&>span]:uppercase [&>span]:text-[0.6875rem]! [&>span]:tracking-[0.06em]! [&_a:hover]:underline [&_a:hover]:underline-offset-[0.2em] [&_a:hover]:text-primary! [&_a[aria-current='page']]:underline [&_a[aria-current='page']]:underline-offset-[0.2em] [&_a[aria-current='page']]:text-primary! [&_a]:no-underline [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold">
-        <h3>
+    <article className="grid gap-3 border-b py-4 [&_dd]:m-0 [&_dd]:mt-1 [&_dd]:text-[0.875rem] [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-x-4 [&_dl]:gap-y-3 [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:font-medium [&_dt]:tracking-[0.08em] [&_dt]:text-muted-foreground [&_dt]:uppercase">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="m-0 font-sans text-base font-semibold">
           <Link
+            className="text-foreground no-underline underline-offset-[0.2em] hover:text-primary hover:underline"
             href={buildMemberRosterHref(query, {
               membership: member.membershipId,
             })}
@@ -554,9 +573,18 @@ function MemberRosterCard({
           >
             {formatMemberName(member)}
           </Link>
-        </h3>
-        <span>{formatStatus(member.status)}</span>
+        </h2>
+        <span className="text-[0.8125rem]">
+          <RosterStatus member={member} />
+        </span>
       </div>
+      {invitation ? (
+        <p
+          className={`m-0 text-xs ${member.invitationDeliveryActionRequired ? "text-destructive" : "text-muted-foreground"}`}
+        >
+          {invitation}
+        </p>
+      ) : null}
       <dl>
         <div>
           <dt>Role</dt>
@@ -564,111 +592,149 @@ function MemberRosterCard({
         </div>
         <div>
           <dt>Dues</dt>
-          <dd>{member.duesPaid ? "Paid" : "Not set yet"}</dd>
-        </div>
-        <div>
-          <dt>Tee</dt>
           <dd>
-            {member.teeLocation ? formatTee(member.teeLocation) : "Not set"}
+            <RosterDues member={member} />
           </dd>
         </div>
         <div>
           <dt>Handicap</dt>
-          <dd>{formatRosterHandicap(member)}</dd>
+          <dd>
+            <RosterFigure {...rosterHandicap(member)} />
+          </dd>
         </div>
         <div>
           <dt>Quota</dt>
-          <dd>{formatRosterQuota(member)}</dd>
-        </div>
-        <div>
-          <dt>Added</dt>
-          <dd>{formatDate(member.dateAdded)}</dd>
-        </div>
-        <div>
-          <dt>Invitation</dt>
-          <dd>{formatInvitation(member)}</dd>
+          <dd>
+            <RosterFigure {...rosterQuota(member)} />
+          </dd>
         </div>
       </dl>
     </article>
   );
 }
 
-function MemberRosterPagination({
+function MemberRosterFooter({
   query,
+  shownCount,
+  totalCount,
   totalPages,
-}: Readonly<{ query: MemberRosterQuery; totalPages: number }>) {
-  if (totalPages <= 1) return null;
+}: Readonly<{
+  query: MemberRosterQuery;
+  shownCount: number;
+  totalCount: number;
+  totalPages: number;
+}>) {
+  const first = (query.page - 1) * query.pageSize + 1;
+  const noun = `${memberRosterQueryHasFilters(query) ? "matching " : ""}member${totalCount === 1 ? "" : "s"}`;
   return (
-    <nav
-      className="py-4 px-5 gap-4 flex items-center justify-between text-muted-foreground text-[0.75rem] [&>div]:gap-3 [&>div]:flex [&_a]:text-primary [&_a]:font-bold [&_a]:underline-offset-[0.2em]"
-      aria-label="Member roster pages"
-    >
-      <span>
-        Page {query.page} of {totalPages}
-      </span>
-      <div>
-        {query.page > 1 ? (
-          <Link
-            href={buildMemberRosterHref(query, {
-              page: query.page - 1,
-              membership: null,
-            })}
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 text-[0.8125rem] text-muted-foreground">
+      <p className="m-0" aria-live="polite">
+        {totalPages > 1
+          ? `Showing ${first}–${first + shownCount - 1} of ${totalCount} ${noun}`
+          : `${totalCount} ${noun}`}
+      </p>
+      {totalCount > 25 ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <form
+            className="flex items-center gap-2"
+            action="/portal/members"
+            method="get"
           >
-            Previous
-          </Link>
-        ) : null}
-        {query.page < totalPages ? (
-          <Link
-            href={buildMemberRosterHref(query, {
-              page: query.page + 1,
-              membership: null,
-            })}
-          >
-            Next
-          </Link>
-        ) : null}
-      </div>
-    </nav>
+            <label
+              className="font-normal text-muted-foreground"
+              htmlFor="member-roster-page-size"
+            >
+              Members per page
+            </label>
+            <NativeSelect
+              className="w-20"
+              id="member-roster-page-size"
+              name="pageSize"
+              defaultValue={String(query.pageSize)}
+              onChange={(event) => event.currentTarget.form?.requestSubmit()}
+            >
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </NativeSelect>
+            <RosterQueryFields query={query} keep={["filters", "sort"]} />
+          </form>
+          {totalPages > 1 ? (
+            <nav className="flex gap-2" aria-label="Member roster pages">
+              {query.page > 1 ? (
+                <Button asChild variant="outline">
+                  <Link
+                    href={buildMemberRosterHref(query, {
+                      page: query.page - 1,
+                      membership: null,
+                    })}
+                  >
+                    Previous
+                  </Link>
+                </Button>
+              ) : null}
+              {query.page < totalPages ? (
+                <Button asChild variant="outline">
+                  <Link
+                    href={buildMemberRosterHref(query, {
+                      page: query.page + 1,
+                      membership: null,
+                    })}
+                  >
+                    Next
+                  </Link>
+                </Button>
+              ) : null}
+            </nav>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-function formatRosterHandicap(member: ManageableMemberRosterRow) {
-  if (member.handicapValue === null) return "Not set yet";
-  const source = member.handicapSource
-    ? ` · ${member.handicapSource === "manual" ? "Manual" : "Import"}`
-    : "";
-  const asOf = member.handicapAsOf ? ` · ${member.handicapAsOf}` : "";
-  return `${member.handicapValue}${source}${asOf}`;
-}
-
-function formatRosterQuota(member: ManageableMemberRosterRow) {
-  const initialQuotaUsage = formatMemberRosterInitialQuotaUsage(
-    member.usesInitialQuota,
-  );
-  if (member.currentQuota === null) {
-    return [
-      member.usesInitialQuota ? "Starting quota pending" : "Not set yet",
-      initialQuotaUsage,
-    ].join(" · ");
-  }
-  const provenance = formatMemberRosterQuotaProvenance(
-    member.currentQuotaProvenance,
-  );
-  const effective = member.currentQuotaEffectiveAt
-    ? `effective ${formatDate(member.currentQuotaEffectiveAt)}`
-    : null;
-  return [member.currentQuota, provenance, effective, initialQuotaUsage]
-    .filter((value): value is string => Boolean(value))
+function rosterHandicap(member: ManageableMemberRosterRow) {
+  if (member.handicapValue === null) return { value: null, note: null };
+  const note = [
+    member.handicapSource
+      ? member.handicapSource === "manual"
+        ? "Manual"
+        : "Import"
+      : null,
+    member.handicapAsOf,
+  ]
+    .filter((part): part is string => Boolean(part))
     .join(" · ");
+  return { value: member.handicapValue, note: note || null };
 }
 
-function formatInvitation(member: ManageableMemberRosterRow) {
-  if (member.invitationDeliveryActionRequired) {
-    return `${member.invitationState ? formatInvitationState(member.invitationState) : "Invitation"} · Needs attention`;
+function rosterQuota(member: ManageableMemberRosterRow) {
+  if (member.currentQuota === null) {
+    return {
+      value: null,
+      note: member.usesInitialQuota ? "Starting quota pending" : null,
+    };
   }
-  return member.invitationState
+  const note = [
+    formatMemberRosterQuotaProvenance(member.currentQuotaProvenance),
+    member.currentQuotaEffectiveAt
+      ? `effective ${formatDate(member.currentQuotaEffectiveAt)}`
+      : null,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" · ");
+  return { value: member.currentQuota, note: note || null };
+}
+
+// Shown under the name only while an invitation is still open or has failed.
+function formatRosterInvitation(member: ManageableMemberRosterRow) {
+  const state = member.invitationState
     ? formatInvitationState(member.invitationState)
-    : "None";
+    : null;
+  if (member.invitationDeliveryActionRequired) {
+    return `${state ?? "Invitation"} · Needs attention`;
+  }
+  return member.status === "pending" && state ? `Invitation: ${state}` : null;
 }
 
 function formatDate(value: string) {
@@ -683,9 +749,11 @@ function MemberEditor({
   onTerminalMessage,
   privateContact,
   role,
+  tab,
 }: Readonly<{
   actorMembershipId: string;
   member: ManageableMember;
+  tab: MemberEditorTab;
   onTerminalMessage: (status: "success" | "error", message: string) => void;
   privateContact: MemberPrivateContact;
   role: "member" | "coordinator" | "administrator";
@@ -1186,302 +1254,291 @@ function MemberEditor({
   }
 
   return (
-    <div className="pb-6 gap-6 border bg-muted grid" data-slot="member-editor">
-      <div className="p-5 gap-4 border-b border-b-border/50 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h2]:mt-[0.35rem]!">
-        <div>
-          <Kicker>Member</Kicker>
-          <h2>{formatMemberName(member)}</h2>
-        </div>
-        <span
-          className="text-[0.6875rem] font-bold tracking-[0.08em] uppercase text-muted-foreground data-[status=active]:text-primary"
-          data-status={member.status}
+    <div className="grid max-w-184 gap-8" data-slot="member-editor">
+      {tab === "details" ? (
+        <form
+          className="gap-5 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+          data-form="member-edit-form"
+          onSubmit={submitEdit}
+          noValidate
         >
-          {formatStatus(member.status)}
-        </span>
-      </div>
-
-      <dl className="my-0 mx-5 pb-5 gap-4 border-b border-b-border/50 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dd]:mt-[0.35rem]! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:uppercase [&_dt]:tracking-[0.08em]!">
-        <div>
-          <dt>Role</dt>
-          <dd>{formatRole(member.role)}</dd>
-        </div>
-        <div>
-          <dt>Dues</dt>
-          <dd>{member.duesPaid ? "Paid" : "Not set yet"}</dd>
-        </div>
-      </dl>
-
-      <form
-        className="my-0 mx-5 gap-5 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-        data-form="member-edit-form"
-        onSubmit={submitEdit}
-        noValidate
-      >
-        <fieldset disabled={pending || !canEdit}>
-          <legend>Profile and contact details</legend>
-          <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
-            <Field
-              label="First name"
-              value={values.firstName}
-              onChange={(value) => update("firstName", value)}
-              required
-            />
-            <Field
-              label="Last name"
-              value={values.lastName}
-              onChange={(value) => update("lastName", value)}
-              required
-            />
-            <Field
-              label="Spouse first name"
-              value={values.spouseFirstName ?? ""}
-              onChange={(value) => update("spouseFirstName", value || null)}
-            />
-            <Field
-              label="Spouse last name"
-              value={values.spouseLastName ?? ""}
-              onChange={(value) => update("spouseLastName", value || null)}
-            />
-            <label
-              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-              data-slot="field"
-            >
-              <span>Tee location</span>
-              <NativeSelect
-                value={values.teeLocation ?? ""}
-                onChange={(event) =>
-                  update(
-                    "teeLocation",
-                    (event.target.value || null) as EditorValues["teeLocation"],
-                  )
-                }
-              >
-                <option value="">Not set</option>
-                <option value="pro">Pro</option>
-                <option value="back">Back</option>
-                <option value="middle">Middle</option>
-                <option value="front">Front</option>
-              </NativeSelect>
-            </label>
-            <label className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]">
-              <Checkbox
-                checked={values.duesPaid}
-                onCheckedChange={(checked) =>
-                  update("duesPaid", checked === true)
-                }
-              />
-              <span>Dues paid</span>
-            </label>
-          </div>
-
-          <fieldset
-            className="m-0 p-4 gap-4 grid border! border-border/50! [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
-            data-slot="member-contact-fieldset"
-          >
-            <legend>Private contact details</legend>
+          <fieldset disabled={pending || !canEdit}>
+            <legend>Profile</legend>
             <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
               <Field
-                label="Secondary e-mail"
-                type="email"
-                value={values.secondaryEmail ?? ""}
-                onChange={(value) => update("secondaryEmail", value || null)}
+                label="First name"
+                value={values.firstName}
+                onChange={(value) => update("firstName", value)}
+                required
               />
               <Field
-                label="Home phone"
-                value={values.homePhone ?? ""}
-                onChange={(value) => update("homePhone", value || null)}
+                label="Last name"
+                value={values.lastName}
+                onChange={(value) => update("lastName", value)}
+                required
               />
               <Field
-                label="Work phone"
-                value={values.workPhone ?? ""}
-                onChange={(value) => update("workPhone", value || null)}
+                label="Spouse first name"
+                value={values.spouseFirstName ?? ""}
+                onChange={(value) => update("spouseFirstName", value || null)}
               />
               <Field
-                label="Mobile phone"
-                value={values.mobilePhone ?? ""}
-                onChange={(value) => update("mobilePhone", value || null)}
+                label="Spouse last name"
+                value={values.spouseLastName ?? ""}
+                onChange={(value) => update("spouseLastName", value || null)}
               />
-              <Field
-                label="Address line 1"
-                value={values.addressLine1 ?? ""}
-                onChange={(value) => update("addressLine1", value || null)}
-              />
-              <Field
-                label="Address line 2"
-                value={values.addressLine2 ?? ""}
-                onChange={(value) => update("addressLine2", value || null)}
-              />
-              <Field
-                label="City"
-                value={values.city ?? ""}
-                onChange={(value) => update("city", value || null)}
-              />
-              <Field
-                label="State / region"
-                value={values.stateRegion ?? ""}
-                onChange={(value) => update("stateRegion", value || null)}
-              />
-              <Field
-                label="Postal code"
-                value={values.postalCode ?? ""}
-                onChange={(value) => update("postalCode", value || null)}
-              />
-              <Field
-                label="Country"
-                value={values.country ?? ""}
-                onChange={(value) => update("country", value || null)}
-              />
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+              >
+                <span>Tee location</span>
+                <NativeSelect
+                  value={values.teeLocation ?? ""}
+                  onChange={(event) =>
+                    update(
+                      "teeLocation",
+                      (event.target.value ||
+                        null) as EditorValues["teeLocation"],
+                    )
+                  }
+                >
+                  <option value="">Not set</option>
+                  <option value="pro">Pro</option>
+                  <option value="back">Back</option>
+                  <option value="middle">Middle</option>
+                  <option value="front">Front</option>
+                </NativeSelect>
+              </label>
+              <label className="gap-2 flex items-center min-h-11 text-muted-foreground text-[0.8125rem]">
+                <Checkbox
+                  checked={values.duesPaid}
+                  onCheckedChange={(checked) =>
+                    update("duesPaid", checked === true)
+                  }
+                />
+                <span>Dues paid</span>
+              </label>
             </div>
-            <div className="flex flex-wrap gap-y-3 gap-x-4">
-              <Visibility
-                label="List secondary e-mail"
-                checked={values.secondaryEmailVisible}
-                onChange={(value) => update("secondaryEmailVisible", value)}
-              />
-              <Visibility
-                label="List home phone"
-                checked={values.homePhoneVisible}
-                onChange={(value) => update("homePhoneVisible", value)}
-              />
-              <Visibility
-                label="List work phone"
-                checked={values.workPhoneVisible}
-                onChange={(value) => update("workPhoneVisible", value)}
-              />
-              <Visibility
-                label="List mobile phone"
-                checked={values.mobilePhoneVisible}
-                onChange={(value) => update("mobilePhoneVisible", value)}
-              />
-              <Visibility
-                label="List address"
-                checked={values.addressListed}
-                onChange={(value) => update("addressListed", value)}
-              />
-            </div>
-          </fieldset>
 
-          <label
-            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-            data-slot="field"
-          >
-            <span>Reason (optional)</span>
-            <Textarea
-              value={editReason}
-              onChange={(event) => setEditReason(event.target.value)}
-              maxLength={500}
-              rows={3}
-            />
-          </label>
-          <Button type="submit">
-            {pending ? "Saving…" : "Save member details"}
-          </Button>
-        </fieldset>
-      </form>
+            <fieldset
+              className="m-0 mt-3! grid gap-4 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+              data-slot="member-contact-fieldset"
+            >
+              <legend>Contact details</legend>
+              <FieldHelp>
+                Only coordinators and administrators see these, unless you list
+                them in the member directory below.
+              </FieldHelp>
+              <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+                <Field
+                  label="Secondary e-mail"
+                  type="email"
+                  value={values.secondaryEmail ?? ""}
+                  onChange={(value) => update("secondaryEmail", value || null)}
+                />
+                <Field
+                  label="Home phone"
+                  value={values.homePhone ?? ""}
+                  onChange={(value) => update("homePhone", value || null)}
+                />
+                <Field
+                  label="Work phone"
+                  value={values.workPhone ?? ""}
+                  onChange={(value) => update("workPhone", value || null)}
+                />
+                <Field
+                  label="Mobile phone"
+                  value={values.mobilePhone ?? ""}
+                  onChange={(value) => update("mobilePhone", value || null)}
+                />
+                <Field
+                  label="Address line 1"
+                  value={values.addressLine1 ?? ""}
+                  onChange={(value) => update("addressLine1", value || null)}
+                />
+                <Field
+                  label="Address line 2"
+                  value={values.addressLine2 ?? ""}
+                  onChange={(value) => update("addressLine2", value || null)}
+                />
+                <Field
+                  label="City"
+                  value={values.city ?? ""}
+                  onChange={(value) => update("city", value || null)}
+                />
+                <Field
+                  label="State / region"
+                  value={values.stateRegion ?? ""}
+                  onChange={(value) => update("stateRegion", value || null)}
+                />
+                <Field
+                  label="Postal code"
+                  value={values.postalCode ?? ""}
+                  onChange={(value) => update("postalCode", value || null)}
+                />
+                <Field
+                  label="Country"
+                  value={values.country ?? ""}
+                  onChange={(value) => update("country", value || null)}
+                />
+              </div>
+              <p className="m-0 mt-2 text-[0.8125rem] font-bold">
+                Show in the member directory
+              </p>
+              <div className="flex flex-wrap gap-y-3 gap-x-4">
+                <Visibility
+                  label="Secondary e-mail"
+                  checked={values.secondaryEmailVisible}
+                  onChange={(value) => update("secondaryEmailVisible", value)}
+                />
+                <Visibility
+                  label="Home phone"
+                  checked={values.homePhoneVisible}
+                  onChange={(value) => update("homePhoneVisible", value)}
+                />
+                <Visibility
+                  label="Work phone"
+                  checked={values.workPhoneVisible}
+                  onChange={(value) => update("workPhoneVisible", value)}
+                />
+                <Visibility
+                  label="Mobile phone"
+                  checked={values.mobilePhoneVisible}
+                  onChange={(value) => update("mobilePhoneVisible", value)}
+                />
+                <Visibility
+                  label="Postal address"
+                  checked={values.addressListed}
+                  onChange={(value) => update("addressListed", value)}
+                />
+              </div>
+            </fieldset>
 
-      <form
-        className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
-        data-form="member-handicap-form"
-        onSubmit={submitHandicap}
-        noValidate
-      >
-        <fieldset disabled={pending || !canEdit}>
-          <legend>Enter a handicap</legend>
-          <FieldHelp>Earlier handicaps stay in the history below.</FieldHelp>
-          <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
-            <Field
-              label="Handicap ID"
-              value={handicapId}
-              onChange={setHandicapId}
-            />
             <label
               className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
               data-slot="field"
             >
-              <span>Handicap</span>
-              <Input
-                type="number"
-                min="-10"
-                max="54"
-                step="0.1"
-                value={handicap}
-                onChange={(event) => setHandicap(event.target.value)}
-                required
+              <span>Reason for the change (optional)</span>
+              <Textarea
+                value={editReason}
+                onChange={(event) => setEditReason(event.target.value)}
+                maxLength={500}
+                rows={2}
               />
             </label>
-            <label
-              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-              data-slot="field"
-            >
-              <span>Handicap date</span>
-              <Input
-                type="date"
-                value={handicapAsOf}
-                onChange={(event) => setHandicapAsOf(event.target.value)}
-                required
-              />
-            </label>
-          </div>
-          <label
-            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-            data-slot="field"
-          >
-            <span>Reason (required)</span>
-            <Textarea
-              value={handicapReason}
-              onChange={(event) => setHandicapReason(event.target.value)}
-              maxLength={500}
-              rows={3}
-              required
-            />
-          </label>
-          <label
-            className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
-            htmlFor={`member-handicap-confirm-${member.membershipId}`}
-          >
-            <Checkbox
-              id={`member-handicap-confirm-${member.membershipId}`}
-              checked={handicapConfirmed}
-              onCheckedChange={(checked) =>
-                setHandicapConfirmed(checked === true)
-              }
-              required
-            />
-            <span>I confirm this correction.</span>
-          </label>
-          <Button
-            variant="outline"
-            type="submit"
-            disabled={
-              !handicap ||
-              !handicapAsOf ||
-              !handicapReason.trim() ||
-              !handicapConfirmed
-            }
-          >
-            {pending ? "Recording…" : "Save handicap"}
-          </Button>
-          {handicapStale ? (
-            <Button
-              variant="link"
-              size="inline"
-              type="button"
-              onClick={reloadStaleHandicap}
-            >
-              Reload and keep what I typed
+            <Button type="submit">
+              {pending ? "Saving…" : "Save member details"}
             </Button>
-          ) : null}
-        </fieldset>
-      </form>
+          </fieldset>
+        </form>
+      ) : null}
 
-      {member.status === "pending" ? (
+      {tab === "handicap" ? (
+        <form
+          className="gap-5 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+          data-form="member-handicap-form"
+          onSubmit={submitHandicap}
+          noValidate
+        >
+          <fieldset disabled={pending || !canEdit}>
+            <legend>Enter a handicap</legend>
+            <FieldHelp>
+              Earlier handicaps stay in this member&apos;s history.
+            </FieldHelp>
+            <div className="gap-4 grid grid-cols-2 max-[720px]:grid-cols-[1fr]">
+              <Field
+                label="Handicap ID"
+                value={handicapId}
+                onChange={setHandicapId}
+              />
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+              >
+                <span>Handicap</span>
+                <Input
+                  type="number"
+                  min="-10"
+                  max="54"
+                  step="0.1"
+                  value={handicap}
+                  onChange={(event) => setHandicap(event.target.value)}
+                  required
+                />
+              </label>
+              <label
+                className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                data-slot="field"
+              >
+                <span>Handicap date</span>
+                <Input
+                  type="date"
+                  value={handicapAsOf}
+                  onChange={(event) => setHandicapAsOf(event.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <label
+              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+              data-slot="field"
+            >
+              <span>Reason (required)</span>
+              <Textarea
+                value={handicapReason}
+                onChange={(event) => setHandicapReason(event.target.value)}
+                maxLength={500}
+                rows={2}
+                required
+              />
+            </label>
+            <label
+              className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
+              htmlFor={`member-handicap-confirm-${member.membershipId}`}
+            >
+              <Checkbox
+                id={`member-handicap-confirm-${member.membershipId}`}
+                checked={handicapConfirmed}
+                onCheckedChange={(checked) =>
+                  setHandicapConfirmed(checked === true)
+                }
+                required
+              />
+              <span>I confirm this correction.</span>
+            </label>
+            <Button
+              type="submit"
+              disabled={
+                !handicap ||
+                !handicapAsOf ||
+                !handicapReason.trim() ||
+                !handicapConfirmed
+              }
+            >
+              {pending ? "Recording…" : "Save handicap"}
+            </Button>
+            {handicapStale ? (
+              <Button
+                variant="link"
+                size="inline"
+                type="button"
+                onClick={reloadStaleHandicap}
+              >
+                Reload and keep what I typed
+              </Button>
+            ) : null}
+          </fieldset>
+        </form>
+      ) : null}
+
+      {tab !== "access" ? null : member.status === "pending" ? (
         <FieldHelp>
           This member must accept their invitation before you can change their
           status.
         </FieldHelp>
       ) : (
         <form
-          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_[data-slot=field-help]]:text-muted-foreground [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
+          className="gap-5 grid [&_[data-slot=field-help]]:text-muted-foreground [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
           data-form="member-status-form"
           onSubmit={submitStatus}
           noValidate
@@ -1496,53 +1553,59 @@ function MemberEditor({
             {member.membershipId === actorMembershipId ? (
               <FieldHelp>You can&apos;t change your own status.</FieldHelp>
             ) : null}
-            <label
-              className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-              data-slot="field"
-            >
-              <span>Reason (required)</span>
-              <Textarea
-                value={statusReason}
-                onChange={(event) => setStatusReason(event.target.value)}
-                maxLength={500}
-                rows={3}
-                required
-              />
-            </label>
-            <label
-              className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
-              htmlFor={`member-status-confirm-${member.membershipId}`}
-            >
-              <Checkbox
-                id={`member-status-confirm-${member.membershipId}`}
-                checked={statusConfirmed}
-                onCheckedChange={(checked) =>
-                  setStatusConfirmed(checked === true)
-                }
-                required
-              />
-              <span>
-                I understand this changes whether the member can RSVP and get
-                notifications.
-              </span>
-            </label>
-            <Button
-              variant={nextStatus === "inactive" ? "destructive" : "outline"}
-              type="submit"
-            >
-              {pending
-                ? "Working…"
-                : nextStatus === "inactive"
-                  ? "Mark inactive"
-                  : "Reactivate member"}
-            </Button>
+            {canChangeStatus ? (
+              <>
+                <label
+                  className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+                  data-slot="field"
+                >
+                  <span>Reason (required)</span>
+                  <Textarea
+                    value={statusReason}
+                    onChange={(event) => setStatusReason(event.target.value)}
+                    maxLength={500}
+                    rows={2}
+                    required
+                  />
+                </label>
+                <label
+                  className="gap-2 flex items-start text-muted-foreground text-[0.75rem] leading-[1.45]"
+                  htmlFor={`member-status-confirm-${member.membershipId}`}
+                >
+                  <Checkbox
+                    id={`member-status-confirm-${member.membershipId}`}
+                    checked={statusConfirmed}
+                    onCheckedChange={(checked) =>
+                      setStatusConfirmed(checked === true)
+                    }
+                    required
+                  />
+                  <span>
+                    I understand this changes whether the member can RSVP and
+                    get notifications.
+                  </span>
+                </label>
+                <Button
+                  variant={
+                    nextStatus === "inactive" ? "destructive" : "outline"
+                  }
+                  type="submit"
+                >
+                  {pending
+                    ? "Working…"
+                    : nextStatus === "inactive"
+                      ? "Mark inactive"
+                      : "Reactivate member"}
+                </Button>
+              </>
+            ) : null}
           </fieldset>
         </form>
       )}
 
-      {canChangeRole ? (
+      {tab !== "access" ? null : canChangeRole ? (
         <form
-          className="my-0 mx-5 pt-5 gap-5 border-t border-t-border/50 grid [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0"
+          className="gap-5 grid border-t pt-8 [&_fieldset]:m-0 [&_fieldset]:p-0 [&_fieldset]:gap-5 [&_fieldset]:border-0 [&_fieldset]:grid [&_fieldset]:min-w-0 [&_legend]:mb-1 [&_legend]:text-[1.125rem] [&_legend]:font-semibold"
           data-form="member-role-form"
           onSubmit={submitRole}
           noValidate
@@ -1553,7 +1616,7 @@ function MemberEditor({
               className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
               data-slot="field"
             >
-              <span>Role</span>
+              <span>Change role to</span>
               <NativeSelect
                 value={selectedRole}
                 onChange={(event) =>
@@ -1574,7 +1637,7 @@ function MemberEditor({
                 value={roleReason}
                 onChange={(event) => setRoleReason(event.target.value)}
                 maxLength={500}
-                rows={3}
+                rows={2}
                 required
               />
             </label>
@@ -1595,7 +1658,6 @@ function MemberEditor({
               </span>
             </label>
             <Button
-              variant="outline"
               type="submit"
               disabled={
                 selectedRole === member.role ||
@@ -1615,7 +1677,11 @@ function MemberEditor({
             ) : null}
           </fieldset>
         </form>
-      ) : null}
+      ) : (
+        <FieldHelp>
+          Only administrators can change a member&apos;s role.
+        </FieldHelp>
+      )}
 
       {dirty ? (
         <FieldHelp role="status">You have unsaved changes.</FieldHelp>
@@ -1739,8 +1805,4 @@ function formatMemberName(
 
 function formatRole(role: ManageableMember["role"]) {
   return role[0].toUpperCase() + role.slice(1);
-}
-
-function formatTee(tee: NonNullable<ManageableMemberRosterRow["teeLocation"]>) {
-  return tee[0].toUpperCase() + tee.slice(1);
 }

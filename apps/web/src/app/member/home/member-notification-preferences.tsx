@@ -32,7 +32,7 @@ export function MemberNotificationPreferences({
       ) : (
         preferences.map((preference) => (
           <section
-            className="p-4 gap-6 border grid grid-cols-[minmax(0,1fr)_auto] bg-muted max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:font-bold [&_dl]:m-0 [&_dl]:gap-4 [&_dl]:flex [&_dl_div]:min-w-16 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase [&_h2]:m-0 [&_h2]:text-[1.125rem] [&_h2]:font-semibold [&_p]:mx-0 [&_p]:mt-[0.35rem] [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:text-[0.8125rem]"
+            className="p-4 gap-6 border grid grid-cols-[minmax(0,1fr)_auto] rounded-lg max-[720px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:font-bold [&_dl]:m-0 [&_dl]:gap-4 [&_dl]:flex [&_dl_div]:min-w-16 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase [&_h2]:m-0 [&_h2]:text-[1.125rem] [&_h2]:font-semibold [&_p]:mx-0 [&_p]:mt-[0.35rem] [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:text-[0.8125rem]"
             key={preference.category}
           >
             <div>

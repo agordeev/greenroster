@@ -69,7 +69,7 @@ export function MemberInboxList({
       <div className="mt-8 gap-4 grid">
         {items.map((item) => (
           <article
-            className={`p-5 gap-3 border grid bg-muted [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start${item.readAt ? "" : " border-primary!"}`}
+            className={`p-5 gap-3 border grid rounded-lg [&>p]:m-0 [&>p]:leading-[1.6] [&_[data-slot='button']]:justify-self-start${item.readAt ? "" : " border-primary!"}`}
             key={item.inboxItemId}
           >
             <div className="gap-4 flex items-start justify-between [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.25rem] [&_h2]:font-semibold [&_time]:text-muted-foreground [&_time]:text-[0.8125rem]">

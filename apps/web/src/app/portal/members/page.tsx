@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { ActionRow, Kicker, TextLink } from "@/components/blocks";
+import { ActionRow, portalPanelClass, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
@@ -23,7 +23,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 
 import { PortalShell } from "../portal-shell";
 import { MemberDetailSections } from "./member-detail-sections";
-import { MemberManagement } from "./member-management";
+import { MemberManagement, type MemberEditorTab } from "./member-management";
 import { MemberQuotaEditor } from "./member-quota-editor";
 
 const contextSchema = z
@@ -38,6 +38,28 @@ const contextSchema = z
 
 const groupSchema = z.object({ name: z.string(), time_zone: z.string() });
 
+type MemberTab = MemberEditorTab | "quota" | "history";
+
+const memberTabs: readonly Readonly<{ id: MemberTab; label: string }>[] = [
+  { id: "details", label: "Details" },
+  { id: "handicap", label: "Handicap" },
+  { id: "quota", label: "Quota" },
+  { id: "access", label: "Status and role" },
+  { id: "history", label: "History" },
+];
+
+const roleLabel = {
+  member: "Member",
+  coordinator: "Coordinator",
+  administrator: "Administrator",
+} as const;
+
+const statusLabel = {
+  pending: "Pending",
+  active: "Active",
+  inactive: "Inactive",
+} as const;
+
 type PortalContext = Readonly<{
   actorMembershipId: string;
   email: string;
@@ -51,6 +73,7 @@ export default async function MemberManagementPage({
 }: Readonly<{
   searchParams: Promise<{
     membership?: string | string[] | undefined;
+    tab?: string | string[] | undefined;
     search?: string | string[] | undefined;
     alphabet?: string | string[] | undefined;
     status?: string | string[] | undefined;
@@ -90,6 +113,12 @@ export default async function MemberManagementPage({
   }
 
   const selectedId = requestedMemberRosterSelection(query.membership);
+  const requestedTab = Array.isArray(query.tab) ? query.tab[0] : query.tab;
+  // Opening a member's contact details is logged, so only the tab that shows
+  // them loads them.
+  const loadContact = !memberTabs.some(
+    (tab) => tab.id === requestedTab && tab.id !== "details",
+  );
 
   let selectedMember = null;
   let privateContact = null;
@@ -100,11 +129,13 @@ export default async function MemberManagementPage({
       [selectedMember, privateContact, detailProjection, quotaContext] =
         await Promise.all([
           executeGetManageableMember(session.userId, selectedId),
-          executeGetMemberPrivateContactDetail(
-            session.userId,
-            selectedId,
-            crypto.randomUUID(),
-          ),
+          loadContact
+            ? executeGetMemberPrivateContactDetail(
+                session.userId,
+                selectedId,
+                crypto.randomUUID(),
+              )
+            : Promise.resolve(null),
           executeGetMemberDetailProjection(session.userId, selectedId),
           portalContext.role === "administrator"
             ? executeGetMemberQuotaBootstrapContext(session.userId, selectedId)
@@ -115,6 +146,15 @@ export default async function MemberManagementPage({
     }
   }
 
+  const memberTab: MemberTab =
+    memberTabs.find(
+      (tab) => tab.id === requestedTab && (tab.id !== "quota" || quotaContext),
+    )?.id ?? "details";
+  // The details form must never open without the saved contact details.
+  if (selectedId && memberTab === "details" && !loadContact) {
+    redirect(`/portal/members?membership=${selectedId}`);
+  }
+
   return (
     <PortalShell
       email={portalContext.email}
@@ -123,32 +163,61 @@ export default async function MemberManagementPage({
       timeZone={portalContext.timeZone}
       currentSection="members"
     >
-      <section
-        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
-        aria-labelledby="members-title"
-      >
-        <Kicker>Your group</Kicker>
-        <h1 id="members-title">Members</h1>
+      <section className={portalPanelClass} aria-labelledby="members-title">
         {selectedMember ? (
-          <p>
+          <>
             <TextLink href="/portal/members">← All members</TextLink>
-          </p>
+            <h1 id="members-title" className="mt-5!">
+              {selectedMember.firstName} {selectedMember.lastName}
+            </h1>
+            <p>
+              {roleLabel[selectedMember.role]} ·{" "}
+              {statusLabel[selectedMember.status]} ·{" "}
+              {selectedMember.duesPaid ? "Dues paid" : "Dues not set yet"}
+            </p>
+            <nav
+              className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-b [&_a]:-mb-px [&_a]:border-b-2 [&_a]:border-b-transparent [&_a]:py-2.5 [&_a]:text-[0.875rem] [&_a]:text-muted-foreground [&_a]:no-underline [&_a:hover]:text-foreground [&_a[aria-current=page]]:border-b-primary [&_a[aria-current=page]]:font-semibold [&_a[aria-current=page]]:text-foreground"
+              aria-label="Member"
+            >
+              {memberTabs
+                .filter((tab) => tab.id !== "quota" || quotaContext)
+                .map((tab) => (
+                  <Link
+                    key={tab.id}
+                    href={`/portal/members?membership=${selectedMember.membershipId}${tab.id === "details" ? "" : `&tab=${tab.id}`}`}
+                    aria-current={tab.id === memberTab ? "page" : undefined}
+                  >
+                    {tab.label}
+                  </Link>
+                ))}
+            </nav>
+          </>
         ) : (
           <>
+            <h1 id="members-title">Members</h1>
             {portalContext.role !== "member" ? (
               <ActionRow>
                 <Button asChild>
                   <Link href="/portal/members/new">Add member</Link>
                 </Button>
-                <TextLink href="/portal/members/import">
-                  Import from CSV
-                </TextLink>
-                <TextLink href="/api/portal/exports?kind=members">
-                  Download CSV
-                </TextLink>
-                <TextLink href="/api/portal/exports?kind=members&format=pdf">
-                  Download PDF
-                </TextLink>
+                <Button asChild variant="outline">
+                  <Link href="/portal/members/import">Import from CSV</Link>
+                </Button>
+                <span className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.875rem] text-muted-foreground max-[720px]:ml-0">
+                  Download
+                  <TextLink
+                    href="/api/portal/exports?kind=members"
+                    aria-label="Download members as CSV"
+                  >
+                    CSV
+                  </TextLink>
+                  <TextLink
+                    href="/api/portal/exports?kind=members&format=pdf"
+                    aria-label="Download members as PDF"
+                  >
+                    PDF
+                  </TextLink>
+                </span>
               </ActionRow>
             ) : null}
           </>
@@ -156,6 +225,9 @@ export default async function MemberManagementPage({
         <MemberManagement
           actorMembershipId={portalContext.actorMembershipId}
           activeCount={roster.activeCount}
+          editorTab={
+            memberTab === "quota" || memberTab === "history" ? null : memberTab
+          }
           members={roster.members}
           privateContact={privateContact}
           role={portalContext.role}
@@ -163,13 +235,13 @@ export default async function MemberManagementPage({
           selectedMember={selectedMember}
           totalCount={roster.totalCount}
         />
-        {quotaContext ? (
+        {quotaContext && memberTab === "quota" ? (
           <MemberQuotaEditor
             key={`${quotaContext.membershipId}:${quotaContext.projectionVersion}:${quotaContext.settingsVersion}`}
             context={quotaContext}
           />
         ) : null}
-        {detailProjection ? (
+        {detailProjection && memberTab === "history" ? (
           <MemberDetailSections
             projection={detailProjection}
             timeZone={portalContext.timeZone}
@@ -245,11 +317,7 @@ function renderError(error: unknown, context?: PortalContext) {
         : { roleStatus: "Access unavailable", timeZone: "" })}
       currentSection="members"
     >
-      <section
-        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
-        aria-labelledby="members-error"
-      >
-        <Kicker>Your group</Kicker>
+      <section className={portalPanelClass} aria-labelledby="members-error">
         <h1 id="members-error">
           {forbidden
             ? "You don't have access to members"

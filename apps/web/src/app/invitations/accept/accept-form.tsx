@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import {
-  acceptInvitationAction,
-  initialInvitationActionState,
-} from "@/app/actions/invitations";
+import { acceptInvitationAction } from "@/app/actions/invitations";
+import { initialInvitationActionState } from "@/app/actions/invitation-action-state";
 import { FormMessage, TextLink } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 

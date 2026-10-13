@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useId } from "react";
 
 import { signOutAction } from "@/app/actions/auth";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,9 +30,10 @@ export function AccountMenu({
       <form id={signOutFormId} action={signOutAction} hidden />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
             type="button"
-            className="group inline-flex min-h-11 cursor-pointer items-center gap-2 justify-self-end rounded-full border border-border py-1 pr-3 pl-[0.3125rem] text-[0.8125rem] font-bold text-foreground outline-none select-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring data-[state=open]:bg-muted"
+            variant="outline"
+            className="group gap-2 justify-self-end rounded-full pr-3 pl-[0.3125rem]"
           >
             <span
               className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground"
@@ -44,7 +46,7 @@ export function AccountMenu({
               className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none"
               aria-hidden="true"
             />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
@@ -58,7 +60,7 @@ export function AccountMenu({
             <strong className="text-sm text-foreground [overflow-wrap:anywhere]">
               {email}
             </strong>
-            <span className="text-[0.6875rem] font-bold tracking-widest text-primary uppercase">
+            <span className="font-mono text-[0.6875rem] font-bold tracking-widest text-primary uppercase">
               {role}
             </span>
           </DropdownMenuLabel>

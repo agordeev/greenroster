@@ -7,6 +7,7 @@ import { SkipLink } from "../apps/web/src/components/blocks";
 
 const routeFiles = [
   "../apps/web/src/app/information-shell.tsx",
+  "../apps/web/src/app/marketing-shell.tsx",
   "../apps/web/src/app/portal/portal-shell.tsx",
   "../apps/web/src/app/sign-in/page.tsx",
   "../apps/web/src/app/member/home/page.tsx",

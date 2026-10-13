@@ -308,7 +308,7 @@ export function QuotaSettingsForm({
       aria-busy={pending}
       noValidate
     >
-      <fieldset className="gap-3 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&>label>span]:border [&>label>span]:border-primary [&>label>span]:grid [&>label>span]:w-8 [&>label>span]:h-8 [&>label>span]:place-items-center [&>label>span]:rounded-full [&>label>span]:text-primary [&>label[data-selected='true']>span]:bg-primary [&>label[data-selected='true']>span]:text-card [&>label[data-selected='true']]:border-primary [&>label[data-selected='true']]:bg-card [&>label[data-selected='true']]:[box-shadow:inset_0_0_0_1px_var(--primary)] [&>label]:p-4 [&>label]:border [&>label]:grid [&>label]:grid-cols-[auto_1fr] [&>label]:content-start [&>label]:items-center [&>label]:gap-y-3 [&>label]:gap-x-2.5 [&>label]:min-h-30 [&>label]:bg-muted [&>label]:text-foreground [&>label]:cursor-pointer [&>label]:font-bold [&>label]:text-[0.875rem]! max-[720px]:[&>label]:min-h-auto! [&>legend]:col-span-full [&_label:focus-within]:outline-[3px] [&_label:focus-within]:outline-solid [&_label:focus-within]:outline-ring [&_label:focus-within]:outline-offset-[2px] [&_small]:col-span-full [&_small]:text-muted-foreground [&_small]:font-normal [&_small]:leading-[1.45]">
+      <fieldset className="gap-3 grid grid-cols-3 max-[720px]:grid-cols-[1fr] [&>label>span]:border [&>label>span]:border-primary [&>label>span]:grid [&>label>span]:w-8 [&>label>span]:h-8 [&>label>span]:place-items-center [&>label>span]:rounded-full [&>label>span]:text-primary [&>label[data-selected='true']>span]:bg-primary [&>label[data-selected='true']>span]:text-card [&>label[data-selected='true']]:border-primary [&>label[data-selected='true']]:bg-card [&>label[data-selected='true']]:[box-shadow:inset_0_0_0_1px_var(--primary)] [&>label]:p-4 [&>label]:border [&>label]:grid [&>label]:grid-cols-[auto_1fr] [&>label]:content-start [&>label]:items-center [&>label]:gap-y-3 [&>label]:gap-x-2.5 [&>label]:min-h-30 [&>label]:rounded-lg [&>label]:bg-card [&>label]:text-foreground [&>label]:cursor-pointer [&>label]:font-bold [&>label]:text-[0.875rem]! max-[720px]:[&>label]:min-h-auto! [&>legend]:col-span-full [&_label:focus-within]:outline-[3px] [&_label:focus-within]:outline-solid [&_label:focus-within]:outline-ring [&_label:focus-within]:outline-offset-[2px] [&_small]:col-span-full [&_small]:text-muted-foreground [&_small]:font-normal [&_small]:leading-[1.45]">
         <legend>Calculation method</legend>
         {(
           [
@@ -351,7 +351,7 @@ export function QuotaSettingsForm({
       <div className="py-5 px-0 gap-6 border-y border-t-border/50 border-b-border/50 grid grid-cols-[minmax(0,1fr)_minmax(16rem,1fr)] max-[720px]:grid-cols-[1fr]">
         {method === "moving_average" ? (
           <label
-            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            className="gap-2 grid content-start [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
             data-slot="field"
           >
             <span>Rounds to average</span>
@@ -408,10 +408,7 @@ export function QuotaSettingsForm({
       <section className="gap-5 grid" aria-labelledby="merit-settings-title">
         <div className="gap-4 flex flex-wrap items-end justify-between [&_:is(h3,h4)]:mx-0 [&_:is(h3,h4)]:mt-1.5 [&_:is(h3,h4)]:mb-0 [&_p:not([data-slot=kicker])]:mx-0 [&_p:not([data-slot=kicker])]:mt-2 [&_p:not([data-slot=kicker])]:mb-0 [&_p:not([data-slot=kicker])]:max-w-168 [&_p:not([data-slot=kicker])]:text-[0.875rem] [&_p]:text-muted-foreground [&_p]:leading-[1.55]">
           <div>
-            <Kicker>Merit and standings</Kicker>
-            <h3 id="merit-settings-title">
-              Set how Order of Merit points are awarded
-            </h3>
+            <h3 id="merit-settings-title">Order of Merit points</h3>
             <p>
               Every member who plays gets participation points. You can also
               award points by finishing place. Tied players each get the points
@@ -421,7 +418,7 @@ export function QuotaSettingsForm({
         </div>
         <div className="py-5 px-0 gap-6 border-y border-t-border/50 border-b-border/50 grid grid-cols-[minmax(0,1fr)_minmax(16rem,1fr)] max-[720px]:grid-cols-[1fr]">
           <label
-            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            className="gap-2 grid content-start [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
             data-slot="field"
           >
             <span>Participation merit</span>
@@ -449,7 +446,7 @@ export function QuotaSettingsForm({
             ) : null}
           </label>
           <label
-            className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
+            className="gap-2 grid content-start [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
             data-slot="field"
           >
             <span>Standings reset date</span>
@@ -508,7 +505,7 @@ export function QuotaSettingsForm({
         </div>
         {placementMerit.map((row, index) => (
           <fieldset
-            className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] bg-muted p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
+            className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] rounded-lg p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
             key={row.id}
           >
             <legend>Placement rank {index + 1}</legend>
@@ -607,7 +604,7 @@ export function QuotaSettingsForm({
           </div>
           {bands.map((band, index) => (
             <fieldset
-              className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] bg-muted p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
+              className="gap-3 grid grid-cols-[repeat(3,minmax(7rem,1fr))] rounded-lg p-4! border! border-border! max-[720px]:grid-cols-[1fr] [&>label:not([data-slot=bound-choice])]:gap-[0.35rem] [&>label:not([data-slot=bound-choice])]:grid [&>label:not([data-slot=bound-choice])]:text-muted-foreground [&>label:not([data-slot=bound-choice])]:text-[0.75rem] [&>label:not([data-slot=bound-choice])]:font-bold [&_legend]:px-[0.35rem] [&_legend]:text-[1rem]!"
               key={band.id}
             >
               <legend>Band {index + 1}</legend>
@@ -830,6 +827,12 @@ export function QuotaSettingsForm({
           Cancel changes
         </Button>
       </div>
+      {method === null || precision === null || reason.trim().length === 0 ? (
+        <p className="m-0 text-[0.8125rem] leading-[1.45] text-muted-foreground">
+          To save, choose a calculation method and decimal places, and give a
+          reason for the change.
+        </p>
+      ) : null}
     </form>
   );
 }

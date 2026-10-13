@@ -21,7 +21,14 @@ import {
   MemberNotificationPreferences,
   type MemberNotificationPreference,
 } from "./member-notification-preferences";
-import { Kicker, SkipLink, TextLink } from "@/components/blocks";
+import {
+  Kicker,
+  SkipLink,
+  standalonePageWideClass,
+  standalonePanelClass,
+  TextLink,
+} from "@/components/blocks";
+import { MemberNav } from "../member-nav";
 
 const firstRunSchema = z
   .array(z.object({ is_complete: z.boolean() }))
@@ -110,28 +117,14 @@ export default async function MemberHomePage() {
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className={standalonePanelClass}
           data-slot="auth-ledger"
           aria-labelledby="member-home-title"
         >
-          <nav
-            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
-            aria-label="Member navigation"
-          >
-            <TextLink href="/member/standings">Standings and history</TextLink>
-            <TextLink href="#notifications">Notification preferences</TextLink>
-            <TextLink href="/member/inbox">Inbox</TextLink>
-            <TextLink href="/member/profile">Profile</TextLink>
-            <TextLink href="/member/directory">Directory</TextLink>
-          </nav>
-          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
-            <Kicker>Home</Kicker>
+          <MemberNav current="home" />
+          <div className="max-w-168 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
             <h1 id="member-home-title">
               {groupResult.data?.name ?? "Your GreenRoster group"}
             </h1>
@@ -192,7 +185,7 @@ function MemberClubhouseSummary({
         <>
           {projection.news.slice(0, 3).map((item) => (
             <article
-              className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
+              className="p-5 gap-2 border grid rounded-lg [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
               key={item.id}
             >
               <h3>{item.title}</h3>
@@ -202,7 +195,7 @@ function MemberClubhouseSummary({
           ))}
           {projection.media.slice(0, 3).map((item) => (
             <article
-              className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
+              className="p-5 gap-2 border grid rounded-lg [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!"
               key={item.id}
             >
               <h3>{item.title}</h3>
@@ -251,11 +244,10 @@ function MemberHomeResultsSummary({
       aria-labelledby="member-home-summary-title"
     >
       <div className="[&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold">
-        <Kicker>Results and standings</Kicker>
         <h2 id="member-home-summary-title">Your results and standings</h2>
       </div>
       {recentResult ? (
-        <article className="p-5 gap-2 border grid bg-muted [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!">
+        <article className="p-5 gap-2 border grid rounded-lg [&_p:not([data-slot=kicker])]:m-0 [&_p:not([data-slot=kicker])]:text-muted-foreground [&_p:not([data-slot=kicker])]:leading-[1.55]!">
           <Kicker>Recent result</Kicker>
           <h3>{recentResult.history.round_description ?? "Completed round"}</h3>
           <p>
@@ -294,7 +286,7 @@ function MemberHomeResultsSummary({
         </p>
       )}
       <dl
-        className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:bg-muted [&_span]:text-muted-foreground [&_span]:text-[0.6875rem] [&_span]:tracking-[0.08em] [&_span]:uppercase [&_strong]:text-[1.5rem] [&_strong]:font-semibold"
+        className="mt-8 gap-3 grid grid-cols-4 max-[720px]:grid-cols-2 [&_div]:p-[0.9rem] [&_div]:gap-[0.35rem] [&_div]:border [&_div]:grid [&_div]:min-h-22 [&_div]:rounded-lg [&_dd]:m-0 [&_dd]:font-mono [&_dd]:text-[1.25rem] [&_div]:content-start [&_dd]:font-medium [&_dd]:tabular-nums [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
         data-slot="member-stats-summary"
         aria-label="Your standings summary"
       >
@@ -350,7 +342,7 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
         <h2 id="next-round-title">{round.description ?? "Golf round"}</h2>
       </div>
       <dl
-        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
         data-slot="invitation-summary"
         aria-label="Next round details"
       >
@@ -376,7 +368,7 @@ function NextRoundCard({ round }: Readonly<{ round: MemberNextRound }>) {
         ) : null}
       </dl>
       {round.notes ? (
-        <p className="mx-0 mt-6 mb-0 p-4 bg-muted text-muted-foreground leading-[1.55]">
+        <p className="mx-0 mt-6 mb-0 rounded-lg p-4 bg-muted text-muted-foreground leading-[1.55]">
           <strong>Notes for players:</strong> {round.notes}
         </p>
       ) : null}
@@ -413,15 +405,8 @@ function MemberHomeUnavailable() {
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
-        <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-          data-slot="auth-ledger"
-        >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
+        <section className={standalonePanelClass} data-slot="auth-ledger">
           <Kicker>Home</Kicker>
           <h1>We could not load your home page</h1>
           <p>Try again in a moment or ask a group coordinator for help.</p>

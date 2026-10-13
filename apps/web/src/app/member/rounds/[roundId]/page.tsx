@@ -6,7 +6,15 @@ import type { MemberRoundDetail } from "@/domain/member-round-detail";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberRoundDetail } from "@/lib/rounds/member-round-detail-data";
-import { FieldHelp, Kicker, SkipLink, TextLink } from "@/components/blocks";
+import {
+  FieldHelp,
+  Kicker,
+  SkipLink,
+  standalonePageWideClass,
+  standalonePanelClass,
+  TextLink,
+} from "@/components/blocks";
+import { MemberNav } from "../../member-nav";
 
 const roundIdSchema = z.uuid();
 
@@ -41,33 +49,20 @@ export default async function MemberRoundPage({
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className={standalonePanelClass}
           data-slot="auth-ledger"
           aria-labelledby="member-round-title"
         >
-          <nav
-            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
-            aria-label="Member navigation"
-          >
-            <TextLink href="/member/home">Home</TextLink>
-            <TextLink href="/member/standings">
-              Open standings and history
-            </TextLink>
-            <TextLink href="/member/profile">Profile</TextLink>
-          </nav>
+          <MemberNav current="home" />
           <Kicker>Your round</Kicker>
           <h1 id="member-round-title">{detail.description ?? "Golf round"}</h1>
           <p className="text-muted-foreground leading-[1.65]">
             {formatState(detail.state)} · {formatRound(detail.format)}
           </p>
           <dl
-            className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+            className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
             data-slot="invitation-summary"
             aria-label="Round details"
           >
@@ -97,7 +92,7 @@ export default async function MemberRoundPage({
             ) : null}
           </dl>
           {detail.notes ? (
-            <p className="mx-0 mt-6 mb-0 p-4 bg-muted text-muted-foreground leading-[1.55]">
+            <p className="mx-0 mt-6 mb-0 rounded-lg p-4 bg-muted text-muted-foreground leading-[1.55]">
               <strong>Notes for players:</strong> {detail.notes}
             </p>
           ) : null}
@@ -185,9 +180,9 @@ function formatDateTime(value: string | null, timeZone: string): string {
 
 function MemberRoundUnavailable() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
+    <main className={standalonePageWideClass}>
       <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        className={standalonePanelClass}
         data-slot="auth-ledger"
         aria-labelledby="member-round-error-title"
       >

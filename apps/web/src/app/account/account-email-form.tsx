@@ -24,7 +24,7 @@ export function AccountEmailForm({
 
   return (
     <form action={formAction} className="mt-6 gap-5 grid max-w-120" noValidate>
-      <dl className="m-0 p-4 border border-border/50 bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
+      <dl className="m-0 p-4 border border-border/50 rounded-lg [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase">
         <div>
           <dt>Current account e-mail</dt>
           <dd>{currentEmail}</dd>

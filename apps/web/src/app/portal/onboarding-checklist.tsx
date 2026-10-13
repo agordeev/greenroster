@@ -1,7 +1,15 @@
-import Link from "next/link";
+import { cn } from "cn";
+import { CircleCheckIcon, CircleDashedIcon } from "lucide-react";
 
 import type { OnboardingChecklistItem } from "@/lib/groups/onboarding-checklist";
-import { Kicker } from "@/components/blocks";
+import { TextLink } from "@/components/blocks";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const taskHref: Record<OnboardingChecklistItem["key"], string> = {
   "group-profile": "/portal/group",
@@ -12,45 +20,82 @@ const taskHref: Record<OnboardingChecklistItem["key"], string> = {
 
 export function OnboardingChecklist({
   items,
-}: Readonly<{ items: readonly OnboardingChecklistItem[] }>) {
+  className,
+}: Readonly<{
+  items: readonly OnboardingChecklistItem[];
+  className?: string;
+}>) {
   const completedCount = items.filter(
     (item) => item.status === "complete",
   ).length;
 
   return (
-    <section
-      className="mt-10 border-t [&_[data-slot='section-heading']]:px-0 [&_[data-slot='section-heading']]:pt-6 [&_[data-slot='section-heading']]:pb-4"
+    <Card
+      className={className}
+      role="region"
       aria-labelledby="onboarding-title"
     >
-      <div className="gap-4 flex items-end justify-between max-[720px]:items-start max-[720px]:flex-col [&>p]:mx-0 [&>p]:mb-0 [&>p]:text-muted-foreground [&>p]:whitespace-nowrap [&>p]:mt-0! [&>p]:text-[0.75rem]! [&_h2]:mx-0 [&_h2]:mt-1.5 [&_h2]:mb-0 [&_h2]:text-[1.5rem] [&_h2]:font-semibold [&_h3]:mx-0 [&_h3]:mt-1.5 [&_h3]:mb-0">
-        <div>
-          <Kicker>Getting started</Kicker>
+      <CardHeader>
+        <CardTitle>
           <h2 id="onboarding-title">Finish setting up the group</h2>
+        </CardTitle>
+        <CardDescription>
+          <span
+            aria-label={`${completedCount} of ${items.length} tasks complete`}
+          >
+            {completedCount}/{items.length} complete
+          </span>
+        </CardDescription>
+        {/* One segment per task, filled in the order the tasks are listed. */}
+        <div className="mt-2 flex gap-1" aria-hidden="true">
+          {items.map((item) => (
+            <span
+              key={item.key}
+              className={cn(
+                "h-1.5 flex-1 rounded-full",
+                item.status === "complete" ? "bg-flag" : "bg-foreground/10",
+              )}
+            />
+          ))}
         </div>
-        <p aria-label={`${completedCount} of ${items.length} tasks complete`}>
-          {completedCount}/{items.length} complete
-        </p>
-      </div>
-      <ol className="m-0 p-0 border-b grid list-none [&_a]:text-primary [&_a]:underline-offset-[0.2em] [&_em]:text-muted-foreground [&_em]:text-[0.6875rem] [&_em]:not-italic [&_em]:tracking-[0.06em] [&_em]:uppercase max-[480px]:[&_em]:col-[2] [&_li>span]:border [&_li>span]:grid [&_li>span]:w-5 [&_li>span]:h-5 [&_li>span]:place-items-center [&_li>span]:rounded-full [&_li>span]:text-muted-foreground [&_li>span]:text-[0.75rem] [&_li[data-status='complete']>span]:border-primary [&_li[data-status='complete']>span]:bg-primary [&_li[data-status='complete']>span]:text-card [&_li[data-status='complete']_em]:text-primary [&_li[data-status='complete']_em]:font-bold [&_li]:py-4 [&_li]:px-0 [&_li]:gap-3 [&_li]:border-t [&_li]:border-t-border/50 [&_li]:grid [&_li]:grid-cols-[1.5rem_minmax(0,1fr)_auto] [&_li]:items-start max-[480px]:[&_li]:grid-cols-[1.5rem_minmax(0,1fr)]! [&_p]:mx-0 [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:text-[0.8125rem] [&_p]:leading-[1.5] [&_strong]:text-[1rem]">
-        {items.map((item) => (
-          <li key={item.key} data-status={item.status}>
-            <span aria-hidden="true">
-              {item.status === "complete" ? "✓" : "—"}
-            </span>
-            <div>
-              <strong>
+      </CardHeader>
+      <CardContent>
+        <ol className="m-0 grid list-none divide-y p-0">
+          {items.map((item) => (
+            <li
+              key={item.key}
+              className="grid grid-cols-[1.25rem_minmax(0,1fr)] items-start gap-3 py-3 first:pt-0 last:pb-0"
+            >
+              {item.status === "complete" ? (
+                <CircleCheckIcon
+                  className="mt-px size-5 text-primary"
+                  aria-hidden="true"
+                />
+              ) : (
+                <CircleDashedIcon
+                  className="mt-px size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              )}
+              <div>
                 {item.status === "complete" ? (
-                  item.label
+                  <span className="font-medium text-muted-foreground">
+                    {item.label}
+                  </span>
                 ) : (
-                  <Link href={taskHref[item.key]}>{item.label}</Link>
+                  <TextLink href={taskHref[item.key]}>{item.label}</TextLink>
                 )}
-              </strong>
-              <p>{item.detail}</p>
-            </div>
-            <em>{item.status === "complete" ? "Complete" : "To do"}</em>
-          </li>
-        ))}
-      </ol>
-    </section>
+                <span className="sr-only">
+                  {item.status === "complete" ? " — Complete" : " — To do"}
+                </span>
+                <p className="m-0 mt-1 text-[0.8125rem] leading-normal text-muted-foreground">
+                  {item.detail}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </CardContent>
+    </Card>
   );
 }

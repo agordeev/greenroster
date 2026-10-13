@@ -7,7 +7,12 @@ import { webRuntimeEnv } from "@/lib/runtime-env";
 import { buildPrivacyRequestMailto } from "@/lib/privacy/privacy-request-links";
 import { hasRecentPrivacyAuthentication } from "@/lib/privacy/privacy-request-auth";
 import { Button } from "@/components/ui/button";
-import { Kicker, TextLink } from "@/components/blocks";
+import {
+  Kicker,
+  standalonePageClass,
+  standalonePanelClass,
+  TextLink,
+} from "@/components/blocks";
 
 export default async function PrivacyRequestsPage() {
   const session = await resolveAccountPageSession();
@@ -34,9 +39,9 @@ export default async function PrivacyRequestsPage() {
   );
 
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:max-w-176 max-[480px]:[&_[data-slot=auth-ledger]]:border-0!">
+    <main className={standalonePageClass}>
       <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        className={standalonePanelClass}
         data-slot="auth-ledger"
         aria-labelledby="privacy-requests-title"
       >
@@ -68,11 +73,8 @@ export default async function PrivacyRequestsPage() {
 
 function RecoverySessionRestricted() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:max-w-176 max-[480px]:[&_[data-slot=auth-ledger]]:border-0!">
-      <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-        data-slot="auth-ledger"
-      >
+    <main className={standalonePageClass}>
+      <section className={standalonePanelClass} data-slot="auth-ledger">
         <Kicker>One more step</Kicker>
         <h1>Sign in again to make a privacy request</h1>
         <p>Sign out, then sign in with your password.</p>
@@ -88,11 +90,8 @@ function RecoverySessionRestricted() {
 
 function PrivacyUnavailable() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:max-w-176 max-[480px]:[&_[data-slot=auth-ledger]]:border-0!">
-      <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-        data-slot="auth-ledger"
-      >
+    <main className={standalonePageClass}>
+      <section className={standalonePanelClass} data-slot="auth-ledger">
         <Kicker>Privacy</Kicker>
         <h1>Privacy requests are temporarily unavailable</h1>
         <p>Try again in a moment or contact GreenRoster support.</p>
@@ -103,11 +102,8 @@ function PrivacyUnavailable() {
 
 function RecentAuthenticationRequired() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:max-w-176 max-[480px]:[&_[data-slot=auth-ledger]]:border-0!">
-      <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-        data-slot="auth-ledger"
-      >
+    <main className={standalonePageClass}>
+      <section className={standalonePanelClass} data-slot="auth-ledger">
         <Kicker>One more step</Kicker>
         <h1>Sign in again to make a privacy request</h1>
         <p>Sign out, then sign in again to send one.</p>

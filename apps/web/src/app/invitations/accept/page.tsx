@@ -18,7 +18,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { Button } from "@/components/ui/button";
 
 import { InvitationAcceptForm } from "./accept-form";
-import { Kicker, TextLink } from "@/components/blocks";
+import { AuthPanel, Kicker, TextLink } from "@/components/blocks";
 
 type InvitationAcceptPageProps = Readonly<{
   searchParams: Promise<{ status?: string }>;
@@ -54,31 +54,7 @@ function errorCopy(error: InvitationAcceptanceDataError): string {
 function InvitationFrame({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
-      <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
-        data-slot="auth-ledger"
-        aria-labelledby="invitation-title"
-      >
-        <div className="mb-[clamp(3rem,9vh,6.5rem)] gap-3.5 flex items-center max-[800px]:mb-12">
-          <span
-            className="border border-primary grid w-12 h-12 place-items-center rounded-full text-primary text-[0.875rem] font-bold tracking-[0.08em]"
-            aria-hidden="true"
-          >
-            GR
-          </span>
-          <div>
-            <p className="m-0 text-[1.125rem] font-bold">GreenRoster</p>
-            <p className="mx-0 mt-0.5 mb-0 text-muted-foreground text-[0.8125rem]">
-              Your group. Your rounds. One roster.
-            </p>
-          </div>
-        </div>
-        {children}
-      </section>
-    </main>
-  );
+  return <AuthPanel titleId="invitation-title">{children}</AuthPanel>;
 }
 
 function StatusState({
@@ -274,7 +250,7 @@ export default async function InvitationAcceptPage({
       </div>
 
       <dl
-        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
+        className="mx-0 mt-9 mb-0 pt-6 border-t grid grid-cols-2 gap-y-4 gap-x-6 max-[480px]:grid-cols-[1fr] [&_dd]:mx-0 [&_dd]:mt-[0.3rem] [&_dd]:mb-0 [&_dd]:text-foreground [&_dd]:wrap-anywhere [&_div]:min-w-0 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.1em] [&_dt]:uppercase"
         data-slot="invitation-summary"
       >
         <div>

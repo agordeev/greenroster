@@ -7,7 +7,7 @@ import { createServerComponentSupabaseClient } from "@/lib/supabase/server-compo
 import { PortalShell } from "../portal-shell";
 import { BillingActions } from "./billing-actions";
 import { BillingEntitlementForm } from "./entitlement-form";
-import { Kicker, TextLink } from "@/components/blocks";
+import { Kicker, portalPanelClass, TextLink } from "@/components/blocks";
 
 const contextSchema = z
   .array(
@@ -40,7 +40,7 @@ export default async function BillingPage() {
         currentSection="billing"
       >
         <section
-          className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_[data-slot='action-row']]:mt-8! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
+          className={portalPanelClass}
           aria-labelledby="billing-denied-title"
         >
           <Kicker>Billing</Kicker>
@@ -73,21 +73,17 @@ export default async function BillingPage() {
       timeZone={groupResult.data.time_zone}
       currentSection="billing"
     >
-      <section
-        className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
-        aria-labelledby="billing-title"
-      >
-        <Kicker>Billing</Kicker>
+      <section className={portalPanelClass} aria-labelledby="billing-title">
         <h1 id="billing-title">Billing</h1>
         <p>See your trial, payment status, member access, and invoices.</p>
 
         <div className="mt-8 gap-3 grid grid-cols-4 max-[800px]:grid-cols-2 max-[480px]:grid-cols-[1fr]">
-          <div className="p-5 gap-[0.4rem] border grid content-start min-h-34 bg-muted [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
+          <div className="p-5 gap-[0.4rem] border grid content-start rounded-lg [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:font-mono [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
             <span>Plan</span>
             <strong>{snapshot.planName ?? "Trial"}</strong>
             <small>{snapshot.planInterval ?? "Group trial"}</small>
           </div>
-          <div className="p-5 gap-[0.4rem] border grid content-start min-h-34 bg-muted [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
+          <div className="p-5 gap-[0.4rem] border grid content-start rounded-lg [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:font-mono [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
             <span>Subscription</span>
             <strong>{formatStatus(snapshot.subscriptionStatus)}</strong>
             <small>
@@ -96,14 +92,14 @@ export default async function BillingPage() {
                 : "Nothing to pay right now."}
             </small>
           </div>
-          <div className="p-5 gap-[0.4rem] border grid content-start min-h-34 bg-muted [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
+          <div className="p-5 gap-[0.4rem] border grid content-start rounded-lg [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:font-mono [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
             <span>Members with access</span>
             <strong>
               {snapshot.activeEntitlementCount} / {snapshot.billableMemberCount}
             </strong>
             <small>{snapshot.expiringMemberCount} expire within 10 days</small>
           </div>
-          <div className="p-5 gap-[0.4rem] border grid content-start min-h-34 bg-muted [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
+          <div className="p-5 gap-[0.4rem] border grid content-start rounded-lg [&>small]:text-muted-foreground [&>small]:leading-[1.45] [&>small]:wrap-anywhere [&>span]:text-muted-foreground [&>span]:font-mono [&>span]:text-[0.6875rem] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[1.5rem] [&>strong]:font-semibold [&>strong]:wrap-anywhere">
             <span>Trial ends</span>
             <strong>{formatDay(snapshot.trialEndsAt, timeZone)}</strong>
             <small>
@@ -127,7 +123,7 @@ export default async function BillingPage() {
         {billing.members.length === 0 ? (
           <p>No active members yet.</p>
         ) : (
-          <div className="mt-5 border relative overflow-x-auto bg-muted max-[720px]:[&_:is(th,td)]:block max-[720px]:[&_:is(th,td)]:min-w-0 max-[720px]:[&_:is(th,td)]:py-1! max-[720px]:[&_:is(th,td)]:px-0! max-[720px]:[&_:is(th,td)]:border-b-0! max-[720px]:[&_:is(th,td)]:w-auto! [&_table]:w-full [&_table]:min-w-192 [&_table]:border-collapse [&_table]:table-fixed [&_table]:text-left max-[720px]:[&_table]:block max-[720px]:[&_table]:w-auto! max-[720px]:[&_table]:min-w-0! max-[720px]:[&_tbody]:block max-[720px]:[&_tbody]:min-w-0 max-[720px]:[&_tbody]:w-auto! [&_tbody_th]:font-semibold [&_tbody_th]:text-[1rem]! max-[720px]:[&_tbody_tr:last-child]:border-b-0 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 max-[720px]:[&_td:last-child]:pt-3! [&_td:nth-child(1)]:w-[18%] [&_td:nth-child(2)]:w-[12%] [&_td:nth-child(3)]:w-[18%] [&_td:nth-child(4)]:w-[12%] [&_td:nth-child(5)]:w-[40%] max-[720px]:[&_td[data-label]::before]:inline-block max-[720px]:[&_td[data-label]::before]:min-w-20 max-[720px]:[&_td[data-label]::before]:text-muted-foreground max-[720px]:[&_td[data-label]::before]:[content:attr(data-label)] max-[720px]:[&_td[data-label]::before]:text-[0.6875rem] max-[720px]:[&_td[data-label]::before]:tracking-[0.08em] max-[720px]:[&_td[data-label]::before]:uppercase [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_td]:wrap-anywhere [&_th:nth-child(1)]:w-[18%] [&_th:nth-child(2)]:w-[12%] [&_th:nth-child(3)]:w-[18%] [&_th:nth-child(4)]:w-[12%] [&_th:nth-child(5)]:w-[40%] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_th]:wrap-anywhere max-[720px]:[&_thead]:hidden [&_thead_th]:text-muted-foreground [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase max-[720px]:[&_tr]:p-4 max-[720px]:[&_tr]:border-b max-[720px]:[&_tr]:border-b-border/50 max-[720px]:[&_tr]:block max-[720px]:[&_tr]:min-w-0 max-[720px]:[&_tr]:w-auto!">
+          <div className="mt-5 border relative overflow-x-auto rounded-lg max-[720px]:[&_:is(th,td)]:block max-[720px]:[&_:is(th,td)]:min-w-0 max-[720px]:[&_:is(th,td)]:py-1! max-[720px]:[&_:is(th,td)]:px-0! max-[720px]:[&_:is(th,td)]:border-b-0! max-[720px]:[&_:is(th,td)]:w-auto! [&_table]:w-full [&_table]:min-w-192 [&_table]:border-collapse [&_table]:table-fixed [&_table]:text-left max-[720px]:[&_table]:block max-[720px]:[&_table]:w-auto! max-[720px]:[&_table]:min-w-0! max-[720px]:[&_tbody]:block max-[720px]:[&_tbody]:min-w-0 max-[720px]:[&_tbody]:w-auto! [&_tbody_th]:font-semibold [&_tbody_th]:text-[1rem]! max-[720px]:[&_tbody_tr:last-child]:border-b-0 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0 max-[720px]:[&_td:last-child]:pt-3! [&_td:nth-child(1)]:w-[18%] [&_td:nth-child(2)]:w-[12%] [&_td:nth-child(3)]:w-[18%] [&_td:nth-child(4)]:w-[12%] [&_td:nth-child(5)]:w-[40%] max-[720px]:[&_td[data-label]::before]:inline-block max-[720px]:[&_td[data-label]::before]:min-w-20 max-[720px]:[&_td[data-label]::before]:text-muted-foreground max-[720px]:[&_td[data-label]::before]:[content:attr(data-label)] max-[720px]:[&_td[data-label]::before]:font-mono max-[720px]:[&_td[data-label]::before]:text-[0.6875rem] max-[720px]:[&_td[data-label]::before]:tracking-[0.08em] max-[720px]:[&_td[data-label]::before]:uppercase [&_td]:py-[0.9rem] [&_td]:px-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:align-top [&_td]:text-[0.8125rem] [&_td]:wrap-anywhere [&_th:nth-child(1)]:w-[18%] [&_th:nth-child(2)]:w-[12%] [&_th:nth-child(3)]:w-[18%] [&_th:nth-child(4)]:w-[12%] [&_th:nth-child(5)]:w-[40%] [&_th]:py-[0.9rem] [&_th]:px-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:align-top [&_th]:text-[0.8125rem] [&_th]:wrap-anywhere max-[720px]:[&_thead]:hidden [&_thead_th]:text-muted-foreground [&_thead_th]:font-mono [&_thead_th]:text-[0.6875rem] [&_thead_th]:tracking-[0.08em] [&_thead_th]:uppercase max-[720px]:[&_tr]:p-4 max-[720px]:[&_tr]:border-b max-[720px]:[&_tr]:border-b-border/50 max-[720px]:[&_tr]:block max-[720px]:[&_tr]:min-w-0 max-[720px]:[&_tr]:w-auto!">
             <table>
               <thead>
                 <tr>
@@ -204,10 +200,7 @@ function formatIn(
 
 function BillingError() {
   return (
-    <section
-      className="mx-auto mt-6 mb-0 p-[clamp(1.5rem,4vw,3rem)] border max-w-288 bg-card max-[480px]:m-0 max-[480px]:border-0 max-[480px]:min-h-[calc(100vh_-_10rem)] [&>h2+p]:m-0 [&>h2+p]:text-muted-foreground [&>h2+p]:leading-[1.55] [&>h2]:mx-0 [&>h2]:mb-3 [&>h2]:pt-8 [&>h2]:border-t [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-12! [&>p:not([data-slot=kicker])]:max-w-168 [&>p:not([data-slot=kicker])]:text-muted-foreground [&>p:not([data-slot=kicker])]:leading-[1.65] [&>p[role='alert']]:mx-0 [&>p[role='alert']]:mt-6 [&>p[role='alert']]:mb-0 [&>p[role='alert']]:p-4 [&>p[role='alert']]:border-l-[0.25rem] [&>p[role='alert']]:border-l-destructive [&>p[role='alert']]:bg-border [&>p[role='alert']]:text-foreground! [&>p[role='alert']]:leading-[1.5]! [&_form:where([data-slot=form-stack],[data-slot=quota-settings-form])]:max-w-184 [&_h1]:mx-0 [&_h1]:mt-2.5 [&_h1]:mb-4 [&_h1]:text-[length:clamp(1.75rem,3vw,2.5rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1]"
-      aria-labelledby="billing-error-title"
-    >
+    <section className={portalPanelClass} aria-labelledby="billing-error-title">
       <Kicker>Billing</Kicker>
       <h1 id="billing-error-title">We couldn&apos;t load billing</h1>
       <p>Try again in a moment.</p>

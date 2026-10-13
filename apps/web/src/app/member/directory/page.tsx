@@ -4,9 +4,16 @@ import Link from "next/link";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { executeReadMemberDirectory } from "@/lib/member/member-directory-data";
-import { Kicker, SkipLink, TextLink } from "@/components/blocks";
+import {
+  Kicker,
+  SkipLink,
+  standalonePageWideClass,
+  standalonePanelClass,
+  TextLink,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MemberNav } from "../member-nav";
 
 type MemberDirectoryPageProps = Readonly<{
   searchParams: Promise<{
@@ -50,26 +57,16 @@ export default async function MemberDirectoryPage({
   return (
     <>
       <SkipLink />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!"
-      >
+      <main id="main-content" tabIndex={-1} className={standalonePageWideClass}>
         <section
-          className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+          className={standalonePanelClass}
           data-slot="auth-ledger"
           aria-labelledby="member-directory-title"
         >
-          <nav
-            className="mb-10 pb-4 border-b border-b-border/50 flex flex-wrap gap-y-3 gap-x-5"
-            aria-label="Member navigation"
-          >
-            <TextLink href="/member/home">Home</TextLink>
-            <TextLink href="/member/profile">Profile</TextLink>
-          </nav>
-          <div className="max-w-136 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
-            <Kicker>Your group directory</Kicker>
-            <h1 id="member-directory-title">{directory.group.name}</h1>
+          <MemberNav current="directory" />
+          <div className="max-w-168 [&>p:last-child]:text-muted-foreground [&>p:last-child]:leading-[1.65] [&_h1]:mx-0 [&_h1]:mt-2 [&_h1]:mb-3.5 [&_h1]:text-[length:clamp(2rem,4vw,3rem)] [&_h1]:font-semibold [&_h1]:tracking-[-0.02em] [&_h1]:leading-[1.1] [&_p]:m-0">
+            <Kicker>{directory.group.name}</Kicker>
+            <h1 id="member-directory-title">Member directory</h1>
             <form
               className="mt-5 gap-3 flex items-end max-[720px]:flex-col max-[720px]:items-stretch [&_:is([data-slot=field],[data-slot='field'])]:flex-1"
               method="get"
@@ -120,11 +117,10 @@ export default async function MemberDirectoryPage({
               <div className="mt-6 gap-3 grid">
                 {directory.members.map((member) => (
                   <article
-                    className="p-5 gap-5 border grid grid-cols-[minmax(12rem,0.8fr)_minmax(0,1.2fr)] bg-muted max-[720px]:grid-cols-[1fr] [&_a]:text-primary! [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-y-[0.85rem] [&_dl]:gap-x-4 max-[720px]:[&_dl]:grid-cols-[1fr]! [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:text-[1.25rem] [&_h2]:font-semibold"
+                    className="p-5 gap-5 border grid grid-cols-[minmax(12rem,0.8fr)_minmax(0,1.2fr)] rounded-lg max-[720px]:grid-cols-[1fr] [&_a]:text-primary! [&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[0.8125rem] [&_dd]:wrap-anywhere [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-y-[0.85rem] [&_dl]:gap-x-4 max-[720px]:[&_dl]:grid-cols-[1fr]! [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.08em] [&_dt]:uppercase [&_h2]:mx-0 [&_h2]:mt-[0.35rem] [&_h2]:mb-0 [&_h2]:text-[1.25rem] [&_h2]:font-semibold"
                     key={member.membershipId}
                   >
                     <div>
-                      <Kicker>Member</Kicker>
                       <h2>{displayName(member.firstName, member.lastName)}</h2>
                       <p className="mx-0 mt-[0.4rem] mb-0 text-muted-foreground text-[0.8125rem]">
                         {member.teeLocation
@@ -200,9 +196,9 @@ function formatAddress(
 
 function MemberDirectoryUnavailable() {
   return (
-    <main className="p-8 min-h-screen grid grid-cols-[minmax(20rem,38rem)] place-content-center max-[800px]:grid-cols-[1fr] max-[480px]:p-0 [&_[data-slot=auth-ledger]]:border [&_[data-slot=auth-ledger]]:min-h-auto [&_[data-slot=auth-ledger]]:w-[min(100%,52rem)] max-[480px]:[&_[data-slot=auth-ledger]]:border-0! max-[480px]:[&_[data-slot=auth-ledger]]:w-full!">
+    <main className={standalonePageWideClass}>
       <section
-        className="p-[clamp(2rem,7vw,6rem)] border-r flex min-h-screen flex-col justify-center bg-card max-[800px]:border-r-0 max-[800px]:min-h-auto max-[480px]:p-6 [&>[data-slot=text-link]]:mt-5 [&>[data-slot=text-link]]:inline-block"
+        className={standalonePanelClass}
         data-slot="auth-ledger"
         aria-labelledby="member-directory-error-title"
       >

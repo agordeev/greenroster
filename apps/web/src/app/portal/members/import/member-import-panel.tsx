@@ -397,7 +397,7 @@ function formatJobState(state: JobProjection["state"]): string {
 
 function JobProgress({ job }: Readonly<{ job: JobProjection }>) {
   return (
-    <div className="[&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-[1.5rem] [&_dl>div]:p-3 [&_dl>div]:border-t [&_dl]:my-4 [&_dl]:mx-0 [&_dl]:gap-3 [&_dl]:grid [&_dl]:grid-cols-4 [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.06em] [&_dt]:uppercase">
+    <div className="[&_dd]:mx-0 [&_dd]:mt-1 [&_dd]:mb-0 [&_dd]:text-[1.5rem] [&_dl>div]:p-3 [&_dl>div]:border-t [&_dl]:my-4 [&_dl]:mx-0 [&_dl]:gap-3 [&_dl]:grid [&_dl]:grid-cols-4 [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.06em] [&_dt]:uppercase">
       <dl>
         <div>
           <dt>Valid</dt>

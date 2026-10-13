@@ -122,7 +122,7 @@ export function RoundGuestPanel({
 
       {guests.length > 0 ? (
         <div
-          className="max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
+          className="max-w-full overflow-x-auto [overscroll-behavior-inline:contain] [&_table]:min-w-184 [&_table]:border-collapse [&_td]:p-3 [&_td]:border-b [&_td]:border-b-border/50 [&_td]:text-left [&_td]:whitespace-nowrap [&_td]:text-muted-foreground [&_td]:text-[0.8125rem] [&_th]:p-3 [&_th]:border-b [&_th]:border-b-border/50 [&_th]:text-left [&_th]:whitespace-nowrap [&_th]:text-muted-foreground [&_th]:font-mono [&_th]:text-[0.6875rem] [&_th]:tracking-[0.05em] [&_th]:uppercase"
           data-slot="round-detail-table-wrap"
         >
           <table>

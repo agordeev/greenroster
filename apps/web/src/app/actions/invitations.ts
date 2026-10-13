@@ -20,15 +20,7 @@ import {
 } from "@/lib/invitations/invitation-acceptance-state";
 import { webRuntimeEnv } from "@/lib/runtime-env";
 
-export type InvitationActionState = Readonly<{
-  status: "idle" | "error" | "success";
-  message: string;
-}>;
-
-export const initialInvitationActionState: InvitationActionState = {
-  status: "idle",
-  message: "",
-};
+import type { InvitationActionState } from "./invitation-action-state";
 
 function invitationErrorMessage(error: InvitationAcceptanceDataError): string {
   switch (error.code) {

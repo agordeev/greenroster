@@ -16,15 +16,7 @@ import { runVerifiedMutation } from "@/lib/mutations/run-verified-mutation";
 import { createServerActionSupabaseClient } from "@/lib/supabase/server-action-client";
 import { webFirstRunInputSchema } from "@/lib/profile/web-first-run";
 
-export type MemberFirstRunActionState = Readonly<{
-  status: "idle" | "error" | "success";
-  message: string;
-}>;
-
-export const initialMemberFirstRunActionState: MemberFirstRunActionState = {
-  status: "idle",
-  message: "",
-};
+import type { MemberFirstRunActionState } from "./member-first-run-action-state";
 
 export async function completeMemberFirstRunAction(
   _previousState: MemberFirstRunActionState,

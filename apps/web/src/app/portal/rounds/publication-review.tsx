@@ -7,7 +7,12 @@ import {
   previewRoundPublicationAction,
   publishRoundAction,
 } from "@/app/actions/rounds";
-import { ActionRow, FormMessage, SectionHeading } from "@/components/blocks";
+import {
+  ActionRow,
+  FieldHelp,
+  FormMessage,
+  SectionHeading,
+} from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -155,7 +160,7 @@ export function PublicationReviewPanel({
       <p>Everyone on this list is invited when you publish.</p>
 
       <dl
-        className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:bg-muted [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase"
+        className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:rounded-lg [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase"
         aria-label="Player summary"
       >
         <SummaryItem
@@ -212,6 +217,13 @@ export function PublicationReviewPanel({
           {pending ? "Working…" : "Publish round"}
         </Button>
       </ActionRow>
+      {draftDirty || review.summary.missingQuotaCount > 0 ? (
+        <FieldHelp role="status">
+          {draftDirty
+            ? "Save the round details before you publish."
+            : `${review.summary.missingQuotaCount} included ${review.summary.missingQuotaCount === 1 ? "player needs" : "players need"} a quota before you can publish. Set a starting quota on their member page, or exclude them.`}
+        </FieldHelp>
+      ) : null}
     </section>
   );
 }
@@ -231,7 +243,7 @@ function PublicationMemberRow({
   const explicitlyExcluded = member.eligibilityState === "excluded";
   const missingQuota = format === "individual_net" && !member.projectionReady;
   return (
-    <li className="p-4 gap-4 border border-border/50 flex items-center justify-between bg-muted max-[720px]:items-start max-[720px]:flex-col [&_[data-slot=bound-choice]]:m-0 [&_[data-slot=bound-choice]_strong]:text-foreground max-[720px]:[&_[data-slot=row-meta]]:text-left [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!">
+    <li className="p-4 gap-4 border border-border/50 flex items-center justify-between rounded-lg max-[720px]:items-start max-[720px]:flex-col [&_[data-slot=bound-choice]]:m-0 [&_[data-slot=bound-choice]_strong]:text-foreground max-[720px]:[&_[data-slot=row-meta]]:text-left [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!">
       <div>
         <label
           className="gap-[0.4rem] flex items-center text-[0.8125rem]"
@@ -252,7 +264,7 @@ function PublicationMemberRow({
         </label>
         <p>
           {ineligible
-            ? `Not eligible: ${member.eligibilityReason ?? "no reason given"}`
+            ? `Can’t play yet: ${ineligibleReason(member.eligibilityReason)}`
             : explicitlyExcluded
               ? "Excluded"
               : member.included
@@ -286,4 +298,19 @@ function SummaryItem({
       <dd>{value}</dd>
     </div>
   );
+}
+
+function ineligibleReason(reason: string | null | undefined) {
+  switch (reason) {
+    case "profile_missing":
+      return "their profile isn’t filled in";
+    case "identity_not_eligible":
+      return "they haven’t confirmed their account e-mail";
+    case "format_required":
+      return "choose a format for this round first";
+    case "quota_not_ready":
+      return "they have no quota. Set a starting quota on their member page";
+    default:
+      return "ask support for help";
+  }
 }
