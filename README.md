@@ -19,6 +19,7 @@ GreenRoster has one application environment backed by one hosted Supabase projec
 3. Copy `apps/web/.env.example` to `apps/web/.env.local`. Set `NEXT_PUBLIC_SUPABASE_URL` to the local `API_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the local `ANON_KEY`, and `SUPABASE_SECRET_KEY` to the local `SERVICE_ROLE_KEY` printed by `pnpm db:status`; the current local PostgREST stack expects JWT keys for these clients. Replace every other `replace-with-...` value; startup rejects copied placeholders.
 4. Run `pnpm db:local-legal` when you want to exercise organizer signup locally. This writes the checked-in legal document versions to the local database; it does not publish hosted legal documents.
 5. Run `pnpm dev:web` for the web app.
+6. Run `pnpm db:demo` when you want a group with members, rounds, results and standings to look at. It is local only; the sign-ins are listed at the top of `scripts/seed-local-demo.sql`. To rebuild it, run `pnpm db:reset` and then `pnpm db:demo` again. If sign-in then reports a connection problem, run `docker restart supabase_kong_GreenRoster`. `pnpm db:test` counts whole tables, so run `pnpm db:reset` before it when the demo group is loaded.
 
 The local Supabase status output provides the local API URL plus JWT keys for the example environment files. Never copy hosted secrets or production user data into this workspace.
 
@@ -36,5 +37,6 @@ The local Supabase status output provides the local API URL plus JWT keys for th
 | `pnpm db:status` | Print local API, JWT, Studio, and mail-catcher connection details    |
 | `pnpm db:reset`  | Rebuild the local database and apply the phase-appropriate seed file |
 | `pnpm db:test`   | Run the pgTAP database contract suite against local Supabase         |
+| `pnpm db:demo`   | Load the local demo group and its sign-ins                           |
 
 Product requirements live in [`docs/master-spec.md`](./docs/master-spec.md).

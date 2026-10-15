@@ -28,6 +28,18 @@ RUN_ID=organizer-$(date -u +%Y%m%dT%H%M%SZ) \
 rtk scripts/e2e/agent-browser/organizer-smoke.sh
 ```
 
+Look at pages as one of the demo accounts (after `pnpm db:demo`). The first
+argument is `organizer`, `coordinator`, `member`, `newmember`, `neworganizer`
+or `guest`; the rest are paths:
+
+```bash
+rtk scripts/e2e/agent-browser/view.sh organizer /portal/rounds /portal/standings
+VIEWPORT=390x844 COLOR_SCHEME=dark rtk scripts/e2e/agent-browser/view.sh member /member/home
+```
+
+It saves a full-page screenshot and a text snapshot per page under
+`artifacts/view-<who>/`.
+
 `E2E_PASSWORD` must be at least 8 characters and should be supplied through the
 shell environment or CI secret store. Do not commit it or print it in logs.
 
