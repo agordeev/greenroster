@@ -9,6 +9,10 @@ import {
   createOrganizerSignupCookieValue,
   readOrganizerSignupCookieValue,
 } from "../apps/web/src/lib/auth/organizer-signup-state";
+import {
+  parseSignupSource,
+  signupSources,
+} from "../apps/web/src/lib/auth/signup-source";
 
 const secret = "organizer-signup-test-secret-with-enough-bytes";
 const input = {
@@ -94,6 +98,42 @@ describe("organizer signup contract", () => {
     expect(
       readOrganizerSignupCookieValue(cookie, secret, 100 + 24 * 60 * 60),
     ).toBeNull();
+  });
+
+  it("carries the page the organizer came from through the handoff", () => {
+    const tagged = createOrganizerSignupCookieValue(
+      {
+        termsVersion: "terms-v1",
+        privacyVersion: "privacy-v1",
+        source: "quota-calculator",
+        now: 100,
+      },
+      secret,
+    );
+    const direct = createOrganizerSignupCookieValue(
+      { termsVersion: "terms-v1", privacyVersion: "privacy-v1", now: 100 },
+      secret,
+    );
+
+    expect(readOrganizerSignupCookieValue(tagged, secret, 101)?.source).toBe(
+      "quota-calculator",
+    );
+    expect(
+      readOrganizerSignupCookieValue(direct, secret, 101)?.source,
+    ).toBeUndefined();
+  });
+
+  it("accepts only the calculator and guide pages as a sign-up source", () => {
+    expect(signupSources).toEqual([
+      "quota-calculator",
+      "quota-game-rules",
+      "how-to-calculate-a-golf-quota",
+      "how-to-run-a-golf-points-game",
+    ]);
+    expect(parseSignupSource("quota-calculator")).toBe("quota-calculator");
+    expect(parseSignupSource("newsletter")).toBeNull();
+    expect(parseSignupSource(["quota-calculator"])).toBeNull();
+    expect(parseSignupSource(undefined)).toBeNull();
   });
 
   it("binds organizer bootstrap to the verified session", async () => {

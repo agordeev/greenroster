@@ -33,6 +33,7 @@ import {
   resolvePasswordRecoveryOperation,
 } from "@/lib/auth/password-recovery-registry";
 import { resolveSafeReturnPath } from "@/lib/auth/safe-return-path";
+import { parseSignupSource } from "@/lib/auth/signup-source";
 import { verifyMutationSession } from "@/lib/auth/verify-mutation-session";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { MutationError } from "@/lib/mutations/result";
@@ -139,6 +140,7 @@ export async function registerOrganizerAction(
         {
           termsVersion: legal.termsVersion,
           privacyVersion: legal.privacyVersion,
+          source: parseSignupSource(formData.get("source")),
         },
         webRuntimeEnv.invitationTokenSecret,
       ),
@@ -200,19 +202,24 @@ export async function registerOrganizerAction(
 export async function bootstrapOrganizerAction(input: unknown) {
   const requestHeaders = await headers();
   const correlationCandidate = requestHeaders.get("x-correlation-id");
+  const handoff = readOrganizerSignupCookieValue(
+    (await cookies()).get(ORGANIZER_SIGNUP_COOKIE)?.value,
+    webRuntimeEnv.invitationTokenSecret,
+  );
 
   const result = await runOrganizerBootstrapMutation(
     input,
     correlationCandidate,
     {
-      executeBootstrap: executeOrganizerBootstrap,
+      executeBootstrap: (actorUserId, bootstrapInput, correlationId) =>
+        executeOrganizerBootstrap(
+          actorUserId,
+          bootstrapInput,
+          correlationId,
+          parseSignupSource(handoff?.source),
+        ),
       verifySession: verifyMutationSession,
       verifyLegalHandoff: async () => {
-        const cookieStore = await cookies();
-        const handoff = readOrganizerSignupCookieValue(
-          cookieStore.get(ORGANIZER_SIGNUP_COOKIE)?.value,
-          webRuntimeEnv.invitationTokenSecret,
-        );
         const legal = await resolveCurrentLegalDocuments();
 
         if (!legal) throw new MutationError("transient");

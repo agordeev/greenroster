@@ -11,6 +11,7 @@ const payloadSchema = z
   .object({
     termsVersion: z.string().min(1).max(100),
     privacyVersion: z.string().min(1).max(100),
+    source: z.string().min(1).max(64).optional(),
     expiresAt: z.number().int().positive(),
   })
   .strict();
@@ -36,6 +37,7 @@ export function createOrganizerSignupCookieValue(
   input: Readonly<{
     termsVersion: string;
     privacyVersion: string;
+    source?: string | null;
     now?: number;
   }>,
   secret: string,
@@ -44,6 +46,7 @@ export function createOrganizerSignupCookieValue(
   const payload = payloadSchema.parse({
     termsVersion: input.termsVersion,
     privacyVersion: input.privacyVersion,
+    source: input.source ?? undefined,
     expiresAt: now + ORGANIZER_SIGNUP_COOKIE_MAX_AGE_SECONDS,
   });
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString(

@@ -1,16 +1,17 @@
 import Link from "next/link";
 
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
+import { parseSignupSource } from "@/lib/auth/signup-source";
 
 import { OrganizerSignupForm } from "./signup-form";
 import { AuthPanel, FormMessage, Kicker, TextLink } from "@/components/blocks";
 
 type SignupPageProps = {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; from?: string }>;
 };
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
-  const { status } = await searchParams;
+  const { status, from } = await searchParams;
   const legal = await resolveCurrentLegalDocuments();
 
   return (
@@ -32,7 +33,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       ) : null}
 
       {legal ? (
-        <OrganizerSignupForm />
+        <OrganizerSignupForm source={parseSignupSource(from)} />
       ) : (
         <FormMessage role="alert">
           <p>

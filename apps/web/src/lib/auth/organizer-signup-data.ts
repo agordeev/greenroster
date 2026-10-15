@@ -75,6 +75,7 @@ export async function executeOrganizerBootstrap(
   actorUserId: string,
   input: OrganizerBootstrapInput,
   correlationId: string,
+  signupSource: string | null = null,
 ): Promise<OrganizerBootstrapResult> {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase.rpc("bootstrap_organizer", {
@@ -85,6 +86,7 @@ export async function executeOrganizerBootstrap(
     p_group_time_zone: input.groupTimeZone,
     p_correlation_id: correlationId,
     p_operation_id: input.operationId,
+    p_signup_source: signupSource,
   });
 
   if (error) throw mapBootstrapError(error);

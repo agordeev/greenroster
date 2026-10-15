@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MINIMUM_PASSWORD_LENGTH } from "@/lib/auth/auth-validation";
 
-export function OrganizerSignupForm() {
+export function OrganizerSignupForm({
+  source,
+}: Readonly<{ source: string | null }>) {
   const [state, formAction, pending] = useActionState(
     registerOrganizerAction,
     initialAuthFormState,
@@ -43,6 +45,7 @@ export function OrganizerSignupForm() {
 
   return (
     <form action={formAction} className="mt-9 gap-5 grid max-w-120" noValidate>
+      {source ? <input type="hidden" name="source" value={source} /> : null}
       <div
         className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
         data-slot="field"

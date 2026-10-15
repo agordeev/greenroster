@@ -184,6 +184,8 @@ Done when:
 1. Read `from` on `/sign-up` and keep it through the verification e-mail to
    `/sign-up/finish`, then store it in a new nullable text column on
    `public.groups`. This is a migration and needs a pgTAP test.
+   Done 2026-10-15: `groups.signup_source` holds `quota-calculator` or the
+   guide's slug; the guides' "Start a group" buttons are tagged too.
 2. Verify the site in Google Search Console once the domain is settled, and
    submit the sitemap.
 3. Review after four weeks of search data: which guide brings visitors, how many

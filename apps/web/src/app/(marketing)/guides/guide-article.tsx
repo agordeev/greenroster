@@ -5,6 +5,8 @@ import { PageHeader, Prose, SectionHeading } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+import { signupSourceFor } from "@/lib/auth/signup-source";
+
 import { GuideLinks } from "./guide-links";
 import { calculatorPath, guides, type GuidePath } from "./guides";
 
@@ -38,7 +40,9 @@ export function GuideArticle({
               and standings update when you complete the round.
             </p>
             <Button asChild className="w-full">
-              <Link href="/sign-up">Start a group</Link>
+              <Link href={`/sign-up?from=${signupSourceFor(path)}`}>
+                Start a group
+              </Link>
             </Button>
           </div>
           <div className="grid gap-3 border-t p-4">
