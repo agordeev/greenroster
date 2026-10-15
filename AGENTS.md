@@ -29,13 +29,13 @@ how the software is built, rewrite it.
 
 ### Before / after (real strings from this repo)
 
-| Don't | Do |
-| --- | --- |
-| Sign in with your person-specific account to load member-safe Home data. | Sign in to see your rounds and standings. |
-| This identity cannot access or create a group until its account e-mail is verified. | Confirm your e-mail address to join or create a group. |
-| Confirmed member-safe rounds, official results, and your current quota and standings summary in priority order. | Your next round, recent results, and where you stand. |
-| Enter your account e-mail. The response never reveals whether an account exists. | Enter your account e-mail and we'll send you a recovery link. |
-| Invitation delivery health | Invitations |
+| Don't                                                                                                           | Do                                                            |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Sign in with your person-specific account to load member-safe Home data.                                        | Sign in to see your rounds and standings.                     |
+| This identity cannot access or create a group until its account e-mail is verified.                             | Confirm your e-mail address to join or create a group.        |
+| Confirmed member-safe rounds, official results, and your current quota and standings summary in priority order. | Your next round, recent results, and where you stand.         |
+| Enter your account e-mail. The response never reveals whether an account exists.                                | Enter your account e-mail and we'll send you a recovery link. |
+| Invitation delivery health                                                                                      | Invitations                                                   |
 
 ### Vocabulary
 

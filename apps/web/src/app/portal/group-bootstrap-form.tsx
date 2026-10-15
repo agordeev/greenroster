@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { FormEvent, useRef, useState, useTransition } from "react";
 
 import { FieldError, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { bootstrapGroupAction } from "@/app/actions/groups";
 import { resolveBootstrapOperationId } from "@/lib/groups/bootstrap-operation";
-import { resolveLocalTimeZone } from "@/lib/local-time-zone";
+import { useLocalTimeZone } from "@/lib/local-time-zone";
 
 type FormErrors = Readonly<{
   groupName?: string;
@@ -24,14 +24,12 @@ export function GroupBootstrapForm({
   const nameRef = useRef<HTMLInputElement>(null);
   const timeZoneRef = useRef<HTMLInputElement>(null);
   const [groupName, setGroupName] = useState("");
-  const [groupTimeZone, setGroupTimeZone] = useState("");
+  const localTimeZone = useLocalTimeZone();
+  const [editedTimeZone, setGroupTimeZone] = useState<string | null>(null);
+  const groupTimeZone = editedTimeZone ?? localTimeZone;
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    setGroupTimeZone((current) => current || resolveLocalTimeZone());
-  }, []);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
