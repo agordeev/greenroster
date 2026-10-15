@@ -17,7 +17,6 @@ import type { RoundCompletionPreview } from "@/domain/round-completion";
 import { PublicationReviewPanel } from "./publication-review";
 import { RoundCancellationPanel } from "./round-cancellation-panel";
 import { RoundDraftForm } from "./round-draft-form";
-import { RoundScoreFieldsPanel } from "./round-score-fields-panel";
 import { RoundReadOnlyDetail } from "./round-read-only-detail";
 import { PublishedRoundEditPanel } from "./published-round-edit-panel";
 import { RoundScoringPanel } from "./round-scoring-panel";
@@ -38,8 +37,6 @@ export function RoundWorkspace({
   initialValue,
   roundId,
   format,
-  enableGrossScore,
-  enableNetScore,
   description,
   state,
   version,
@@ -61,8 +58,6 @@ export function RoundWorkspace({
   initialValue: RoundDraftFormValue;
   roundId: string | null;
   format: RoundFormat | null;
-  enableGrossScore?: boolean;
-  enableNetScore?: boolean;
   description: string;
   state: RoundDraftFormValue["state"];
   version: number;
@@ -224,47 +219,47 @@ export function RoundWorkspace({
     );
   }
 
+  const reviewable = Boolean(roundId && format);
+
   return (
     <>
-      <RoundDraftForm
-        identityKey={identityKey}
-        initialValue={initialValue}
-        onDirtyChange={setDraftDirty}
-      />
-
-      {roundId && format ? (
-        <RoundScoreFieldsPanel
-          roundId={roundId}
-          format={format}
-          enableGrossScore={enableGrossScore}
-          enableNetScore={enableNetScore}
-          version={version}
+      <div
+        className={
+          reviewable
+            ? "mt-8 grid items-start gap-x-10 gap-y-10 min-[880px]:grid-cols-[minmax(0,1fr)_19rem]"
+            : undefined
+        }
+      >
+        <RoundDraftForm
+          identityKey={identityKey}
+          initialValue={initialValue}
+          scoreOptions={reviewable}
+          onDirtyChange={setDraftDirty}
         />
-      ) : null}
 
-      {roundId && format ? (
-        publicationReviewUnavailable || !publicationReview ? (
-          <section
-            className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
-            aria-labelledby="publication-review-unavailable-title"
-          >
-            <Kicker>Before you publish</Kicker>
-            <h2 id="publication-review-unavailable-title">
-              We couldn&apos;t check the player list
-            </h2>
-            <p>Refresh the page before you publish.</p>
-          </section>
-        ) : (
-          <PublicationReviewPanel
-            roundId={roundId}
-            initialReview={publicationReview}
-            draftDirty={draftDirty}
-          />
-        )
-      ) : null}
+        {roundId && format ? (
+          publicationReviewUnavailable || !publicationReview ? (
+            <section
+              className="border-t pt-8 [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
+              aria-labelledby="publication-review-unavailable-title"
+            >
+              <Kicker>Before you publish</Kicker>
+              <h2 id="publication-review-unavailable-title">
+                We couldn&apos;t check the player list
+              </h2>
+              <p>Refresh the page before you publish.</p>
+            </section>
+          ) : (
+            <PublicationReviewPanel
+              roundId={roundId}
+              initialReview={publicationReview}
+              draftDirty={draftDirty}
+            />
+          )
+        ) : null}
+      </div>
 
-      {roundId &&
-      (state === "draft" || state === "published" || state === "live") ? (
+      {roundId ? (
         <RoundCancellationPanel
           roundId={roundId}
           description={description}

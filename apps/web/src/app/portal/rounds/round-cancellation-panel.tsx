@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
 import { cancelRoundAction } from "@/app/actions/rounds";
-import { FormMessage, SectionHeading } from "@/components/blocks";
+import { ChevronDownIcon } from "lucide-react";
+
+import { Field, FormMessage } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { roundCancellationBlockedByDraftChanges } from "@/domain/round-cancellation";
@@ -40,7 +42,7 @@ export function RoundCancellationPanel({
       return;
     }
     if (roundCancellationBlockedByDraftChanges(state, draftDirty)) {
-      setMessage("Save or discard your draft changes before you cancel.");
+      setMessage("Save or discard your changes before you cancel.");
       setMessageTone("error");
       return;
     }
@@ -94,72 +96,65 @@ export function RoundCancellationPanel({
   }
 
   return (
-    <section
-      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
-      aria-labelledby="cancel-round-title"
-    >
-      <SectionHeading
-        kicker="Cancellation"
-        title={<>Cancel this {state} round</>}
-        titleId="cancel-round-title"
-        meta={
-          state === "draft" ? "Draft" : state === "live" ? "Live" : "Published"
-        }
-      />
-      <p>
-        Cancelling keeps the round and its history, turns off RSVP and scoring,
-        and{" "}
-        {state === "draft"
-          ? "sends no e-mails."
-          : "e-mails every player in the round."}
-      </p>
-      {roundCancellationBlockedByDraftChanges(state, draftDirty) ? (
-        <FormMessage role="status">
-          Save or discard your draft changes before you cancel.
-        </FormMessage>
-      ) : null}
-      <form
-        className="mt-5 gap-5 grid [:where(&)>*]:my-0"
-        data-slot="form-stack"
-        onSubmit={submit}
-        aria-busy={pending}
-        noValidate
-      >
-        <label
-          className="gap-2 grid [&>label]:text-[0.8125rem] [&>label]:font-bold [&>label]:tracking-[0.015em] [&>span]:text-[0.8125rem] [&>span]:font-bold [&>span]:tracking-[0.015em]"
-          data-slot="field"
-          htmlFor="round-cancellation-reason"
-        >
-          <span>Reason</span>
-          <Textarea
-            id="round-cancellation-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            maxLength={500}
-            rows={3}
-            disabled={pending}
-            aria-describedby="round-cancellation-help"
-          />
-          <small id="round-cancellation-help">Required.</small>
-        </label>
-        {message ? (
-          <FormMessage
-            tone={messageTone === "success" ? "success" : "error"}
-            role="status"
-          >
-            {message}
+    <details className="group/cancel mt-10 border-y [&>summary]:flex [&>summary]:min-h-11 [&>summary]:cursor-pointer [&>summary]:list-none [&>summary]:items-center [&>summary]:justify-between [&>summary]:gap-3 [&>summary]:py-3 [&>summary]:text-[1rem] [&>summary]:font-semibold [&>summary::-webkit-details-marker]:hidden">
+      <summary>
+        Cancel this round
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="size-4 text-muted-foreground transition-transform group-open/cancel:rotate-180"
+        />
+      </summary>
+      <div className="max-w-184 pb-6">
+        <p className="m-0 leading-[1.55] text-muted-foreground">
+          Cancelling keeps the round and its history, turns off RSVP and
+          scoring, and{" "}
+          {state === "draft"
+            ? "sends no e-mails."
+            : "e-mails every player in the round."}
+        </p>
+        {roundCancellationBlockedByDraftChanges(state, draftDirty) ? (
+          <FormMessage role="status" className="mt-4">
+            Save or discard your changes before you cancel.
           </FormMessage>
         ) : null}
-        <Button
-          variant="destructive"
-          type="submit"
-          disabled={
-            pending || roundCancellationBlockedByDraftChanges(state, draftDirty)
-          }
+        <form
+          className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+          data-slot="form-stack"
+          onSubmit={submit}
+          aria-busy={pending}
+          noValidate
         >
-          {pending ? "Cancelling…" : "Cancel round"}
-        </Button>
-      </form>
-    </section>
+          <Field id="round-cancellation-reason" label="Reason for cancelling">
+            <Textarea
+              id="round-cancellation-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              maxLength={500}
+              rows={3}
+              disabled={pending}
+              required
+            />
+          </Field>
+          {message ? (
+            <FormMessage
+              tone={messageTone === "success" ? "success" : "error"}
+              role="status"
+            >
+              {message}
+            </FormMessage>
+          ) : null}
+          <Button
+            variant="destructive"
+            type="submit"
+            disabled={
+              pending ||
+              roundCancellationBlockedByDraftChanges(state, draftDirty)
+            }
+          >
+            {pending ? "Cancelling…" : "Cancel round"}
+          </Button>
+        </form>
+      </div>
+    </details>
   );
 }

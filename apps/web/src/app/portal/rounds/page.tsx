@@ -31,6 +31,7 @@ import {
   SectionHeading,
   TextLink,
 } from "@/components/blocks";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { PortalShell } from "../portal-shell";
@@ -255,9 +256,16 @@ export default async function RoundsPage({
         {selectedRound || creating ? (
           <>
             <TextLink href="/portal/rounds">← All rounds</TextLink>
-            <h1 id="rounds-title" className="mt-5!">
-              {selectedRound?.description || "New round"}
-            </h1>
+            <div className="mt-5 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <h1 id="rounds-title" className="m-0!">
+                {selectedRound?.description || "New round"}
+              </h1>
+              {selectedRound ? (
+                <Badge variant="outline">
+                  {formatRoundState(selectedRound.state)}
+                </Badge>
+              ) : null}
+            </div>
           </>
         ) : (
           <>
@@ -277,16 +285,6 @@ export default async function RoundsPage({
             initialValue={roundDraftFormValue(selectedRound ?? newRound)}
             roundId={selectedRound?.roundId ?? null}
             format={selectedRound?.format ?? null}
-            enableGrossScore={
-              selectedRound?.state === "draft"
-                ? selectedRound.enableGrossScore
-                : undefined
-            }
-            enableNetScore={
-              selectedRound?.state === "draft"
-                ? selectedRound.enableNetScore
-                : undefined
-            }
             description={selectedRound?.description ?? "this round"}
             state={selectedRound?.state ?? "draft"}
             version={selectedRound?.version ?? 1}

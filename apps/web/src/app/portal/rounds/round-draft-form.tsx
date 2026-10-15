@@ -11,11 +11,13 @@ import {
 
 import {
   createRoundDraftAction,
+  setRoundScoreFieldsAction,
   updateRoundDraftAction,
 } from "@/app/actions/rounds";
 import {
   ActionRow,
   Field,
+  FieldHelp,
   FormMessage,
   SectionHeading,
 } from "@/components/blocks";
@@ -63,15 +65,29 @@ const blankForm: RoundDraftFormValue = {
 export function RoundDraftForm({
   identityKey,
   initialValue,
+  scoreOptions = false,
   onDirtyChange,
 }: Readonly<{
   identityKey: string;
   initialValue?: RoundDraftFormValue;
+  scoreOptions?: boolean;
   onDirtyChange?: (dirty: boolean) => void;
 }>) {
   const router = useRouter();
   const isEdit = Boolean(initialValue?.roundId);
-  const value = initialValue ?? blankForm;
+  // The last saved values. Kept in state so a save that only half succeeds
+  // leaves the unsaved half marked as changed.
+  const [value, setValue] = useState(initialValue ?? blankForm);
+  const [savedScores, setSavedScores] = useState({
+    gross: value.enableGrossScore ?? false,
+    net:
+      value.format === "individual_gross"
+        ? false
+        : (value.enableNetScore ?? false),
+  });
+  const scoreOperationId = useRef<string | null>(null);
+  const [grossScore, setGrossScore] = useState(savedScores.gross);
+  const [netScore, setNetScore] = useState(savedScores.net);
   const storageKey = `greenroster:round-draft:${identityKey}`;
   const operationId = useRef<string | null>(null);
   const operationPayload = useRef<string | null>(null);
@@ -103,7 +119,11 @@ export function RoundDraftForm({
   const formatRef = useRef<HTMLSelectElement>(null);
   const expectedRoundVersionRef = useRef<HTMLInputElement>(null);
 
-  const dirty = isEdit
+  const effectiveNetScore = format === "individual_gross" ? false : netScore;
+  const scoresDirty =
+    scoreOptions &&
+    (grossScore !== savedScores.gross || effectiveNetScore !== savedScores.net);
+  const detailsDirty = isEdit
     ? description.trim() !== value.description ||
       scheduledLocal.trim() !== value.scheduledLocal ||
       venue.trim() !== value.venue ||
@@ -120,6 +140,7 @@ export function RoundDraftForm({
       !notesVisibleToPlayers ||
       rsvpDeadlineLocal.trim() !== "" ||
       format !== "individual_net";
+  const dirty = detailsDirty || scoresDirty;
 
   useEffect(() => {
     onDirtyChange?.(dirty);
@@ -212,7 +233,10 @@ export function RoundDraftForm({
         }
       : basePayload;
     const serializedPayload = JSON.stringify(payload);
-    if (operationPayload.current !== serializedPayload) {
+    if (
+      (!isEdit || detailsDirty) &&
+      operationPayload.current !== serializedPayload
+    ) {
       const stored = readStoredOperation(storageKey);
       operationId.current =
         stored?.payload === serializedPayload && isUuid(stored.operationId)
@@ -226,46 +250,62 @@ export function RoundDraftForm({
     }
 
     startTransition(async () => {
-      let result: Awaited<ReturnType<typeof createRoundDraftAction>>;
-      try {
-        result = isEdit
-          ? await updateRoundDraftAction({
-              ...payload,
-              operationId: operationId.current,
-            })
-          : await createRoundDraftAction({
-              ...payload,
-              operationId: operationId.current,
-            });
-      } catch {
-        setMessage("We couldn't save your round. Try again.");
-        setMessageTone("error");
-        return;
-      }
-
-      if (!result.ok) {
-        setMessage(result.error.message);
-        setMessageTone("error");
-        const nextErrors = fieldErrorsFromResult(result.error.fieldErrors);
-        setFieldErrors(nextErrors);
-        const firstField = firstFieldWithError(nextErrors);
-        if (firstField) requestFocus(firstField);
-        if (result.error.code === "stale_version") {
-          operationId.current = null;
-          operationPayload.current = null;
-          router.refresh();
+      let savedVersion = version;
+      if (!isEdit || detailsDirty) {
+        let result: Awaited<ReturnType<typeof createRoundDraftAction>>;
+        try {
+          result = isEdit
+            ? await updateRoundDraftAction({
+                ...payload,
+                operationId: operationId.current,
+              })
+            : await createRoundDraftAction({
+                ...payload,
+                operationId: operationId.current,
+              });
+        } catch {
+          setMessage("We couldn't save your round. Try again.");
+          setMessageTone("error");
+          return;
         }
-        return;
-      }
 
-      operationId.current = null;
-      operationPayload.current = null;
-      removeStoredOperation(storageKey);
-      setFieldErrors({});
-      setMessage(isEdit ? "Draft saved." : "Draft created.");
-      setMessageTone("success");
-      if (isEdit) {
+        if (!result.ok) {
+          setMessage(result.error.message);
+          setMessageTone("error");
+          const nextErrors = fieldErrorsFromResult(result.error.fieldErrors);
+          setFieldErrors(nextErrors);
+          const firstField = firstFieldWithError(nextErrors);
+          if (firstField) requestFocus(firstField);
+          if (result.error.code === "stale_version") {
+            operationId.current = null;
+            operationPayload.current = null;
+            router.refresh();
+          }
+          return;
+        }
+
+        operationId.current = null;
+        operationPayload.current = null;
+        removeStoredOperation(storageKey);
+        setFieldErrors({});
+        if (!isEdit) {
+          setMessage("Draft created.");
+          setMessageTone("success");
+          setDescription("");
+          setScheduledLocal("");
+          setVenue("");
+          setRoundUrl("");
+          setNotes("");
+          setNotesVisibleToPlayers(true);
+          setRsvpDeadlineLocal("");
+          setFormat("individual_net");
+          router.push(
+            `/portal/rounds?round=${encodeURIComponent(result.data.roundId)}`,
+          );
+          return;
+        }
         const next = roundDraftFormValue(result.data);
+        setValue(next);
         setDescription(next.description);
         setScheduledLocal(next.scheduledLocal);
         setVenue(next.venue);
@@ -275,20 +315,42 @@ export function RoundDraftForm({
         setRsvpDeadlineLocal(next.rsvpDeadlineLocal);
         setFormat(next.format);
         setVersion(next.version);
-      } else {
-        setDescription("");
-        setScheduledLocal("");
-        setVenue("");
-        setRoundUrl("");
-        setNotes("");
-        setNotesVisibleToPlayers(true);
-        setRsvpDeadlineLocal("");
-        setFormat("individual_net");
-        router.push(
-          `/portal/rounds?round=${encodeURIComponent(result.data.roundId)}`,
-        );
-        return;
+        savedVersion = next.version;
       }
+
+      if (scoresDirty) {
+        scoreOperationId.current ??= crypto.randomUUID();
+        let result: Awaited<ReturnType<typeof setRoundScoreFieldsAction>>;
+        try {
+          result = await setRoundScoreFieldsAction({
+            roundId: value.roundId,
+            enableGrossScore: grossScore,
+            enableNetScore: effectiveNetScore,
+            expectedRoundVersion: savedVersion,
+            operationId: scoreOperationId.current,
+          });
+        } catch {
+          setMessage("We couldn't save which scores to enter. Try again.");
+          setMessageTone("error");
+          return;
+        }
+        if (!result.ok) {
+          setMessage(result.error.message);
+          setMessageTone("error");
+          if (result.error.code === "stale_version") {
+            scoreOperationId.current = null;
+            router.refresh();
+          }
+          return;
+        }
+        scoreOperationId.current = null;
+        setSavedScores({ gross: grossScore, net: effectiveNetScore });
+        setNetScore(effectiveNetScore);
+        setVersion(result.data.version);
+      }
+
+      setMessage("Draft saved.");
+      setMessageTone("success");
       router.refresh();
     });
   }
@@ -305,7 +367,8 @@ export function RoundDraftForm({
     setNotesVisibleToPlayers(value.notesVisibleToPlayers);
     setRsvpDeadlineLocal(value.rsvpDeadlineLocal);
     setFormat(value.format);
-    setVersion(value.version);
+    setGrossScore(savedScores.gross);
+    setNetScore(savedScores.net);
     setMessage("");
     setMessageTone("");
     setFieldErrors({});
@@ -319,13 +382,13 @@ export function RoundDraftForm({
 
   return (
     <form
-      className="mt-5 gap-5 grid [:where(&)>*]:my-0"
+      className={`${isEdit ? "" : "mt-5 "}gap-5 grid [:where(&)>*]:my-0`}
       data-slot="form-stack"
       onSubmit={submit}
       aria-busy={pending}
       noValidate
     >
-      {isEdit ? <SectionHeading title="Round details" meta="Draft" /> : null}
+      {isEdit ? <SectionHeading title="Round details" /> : null}
       <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
         <Field
           id={`${prefix}-description`}
@@ -380,36 +443,80 @@ export function RoundDraftForm({
           />
         </Field>
       </div>
-      <Field
-        id={`${prefix}-url`}
-        label="Round link"
-        error={fieldErrors.roundUrl}
-      >
-        <Input
-          id={`${prefix}-url`}
-          ref={roundUrlRef}
-          type="url"
-          placeholder="https://..."
-          value={roundUrl}
-          onChange={(event) => setRoundUrl(event.target.value)}
-          disabled={disabled}
-        />
-      </Field>
-      <Field id={`${prefix}-format`} label="Format" error={fieldErrors.format}>
-        <NativeSelect
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4 max-[720px]:grid-cols-[1fr]">
+        <Field
           id={`${prefix}-format`}
-          ref={formatRef}
-          value={format}
-          onChange={(event) => setFormat(event.target.value as RoundFormat)}
-          disabled={disabled}
+          label="Format"
+          error={fieldErrors.format}
         >
-          {roundFormats.map((option) => (
-            <option key={option} value={option}>
-              {formatRoundFormat(option)}
-            </option>
-          ))}
-        </NativeSelect>
-      </Field>
+          <NativeSelect
+            id={`${prefix}-format`}
+            ref={formatRef}
+            value={format}
+            onChange={(event) => setFormat(event.target.value as RoundFormat)}
+            disabled={disabled}
+          >
+            {roundFormats.map((option) => (
+              <option key={option} value={option}>
+                {formatRoundFormat(option)}
+              </option>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field
+          id={`${prefix}-url`}
+          label="Round link"
+          error={fieldErrors.roundUrl}
+        >
+          <Input
+            id={`${prefix}-url`}
+            ref={roundUrlRef}
+            type="url"
+            placeholder="https://..."
+            value={roundUrl}
+            onChange={(event) => setRoundUrl(event.target.value)}
+            disabled={disabled}
+          />
+        </Field>
+      </div>
+      {scoreOptions ? (
+        <fieldset className="m-0 grid min-w-0 gap-2 border-0 p-0">
+          <legend className="mb-2 p-0">Scores to enter</legend>
+          <div className="flex min-h-11 flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border px-3.5 py-2">
+            <label
+              className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+              data-slot="bound-choice"
+              htmlFor={`${prefix}-gross-score`}
+            >
+              <Checkbox
+                id={`${prefix}-gross-score`}
+                checked={grossScore}
+                onCheckedChange={(checked) => setGrossScore(checked === true)}
+                disabled={disabled}
+              />
+              Gross scores
+            </label>
+            <label
+              className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+              data-slot="bound-choice"
+              htmlFor={`${prefix}-net-score`}
+            >
+              <Checkbox
+                id={`${prefix}-net-score`}
+                checked={effectiveNetScore}
+                onCheckedChange={(checked) => setNetScore(checked === true)}
+                disabled={disabled || format === "individual_gross"}
+              />
+              Net scores
+            </label>
+          </div>
+          {format === "individual_gross" ? (
+            <FieldHelp>
+              Net scores aren&apos;t used in Individual Gross rounds.
+            </FieldHelp>
+          ) : null}
+        </fieldset>
+      ) : null}
       <Field id={`${prefix}-notes`} label="Notes" error={fieldErrors.notes}>
         <Textarea
           id={`${prefix}-notes`}
@@ -453,7 +560,7 @@ export function RoundDraftForm({
           onClick={cancel}
           disabled={disabled || !dirty}
         >
-          Cancel
+          Discard changes
         </Button>
       </ActionRow>
     </form>

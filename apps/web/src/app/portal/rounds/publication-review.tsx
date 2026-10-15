@@ -7,12 +7,7 @@ import {
   previewRoundPublicationAction,
   publishRoundAction,
 } from "@/app/actions/rounds";
-import {
-  ActionRow,
-  FieldHelp,
-  FormMessage,
-  SectionHeading,
-} from "@/components/blocks";
+import { FieldHelp, FormMessage, SectionHeading } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -79,20 +74,19 @@ export function PublicationReviewPanel({
   async function publish(): Promise<void> {
     if (pending) return;
     if (draftDirty) {
-      setMessage("Save or cancel your draft changes before you publish.");
+      setMessage("Save your changes before you publish.");
       setMessageTone("error");
       return;
     }
-    const { summary } = review;
     if (summary.missingQuotaCount > 0) {
       setMessage(
-        "Some players have no quota. Give them one or exclude them before you publish.",
+        "Some players have no quota. Give them one or leave them out before you publish.",
       );
       setMessageTone("error");
       return;
     }
     if (summary.includedMemberCount === 0) {
-      setMessage("Include at least one eligible member before you publish.");
+      setMessage("Invite at least one player before you publish.");
       setMessageTone("error");
       return;
     }
@@ -144,49 +138,31 @@ export function PublicationReviewPanel({
     }
   }
 
+  const { summary } = review;
+  const blocker = draftDirty
+    ? "Save your changes before you publish."
+    : summary.missingQuotaCount > 0
+      ? `${summary.missingQuotaCount} invited ${summary.missingQuotaCount === 1 ? "player needs" : "players need"} a quota before you can publish. Set a starting quota on their member page, or leave them out.`
+      : summary.includedMemberCount === 0
+        ? "Invite at least one player before you publish."
+        : null;
+
   return (
-    <section
-      className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! publication-review"
-      aria-labelledby="publication-review-title"
-    >
-      <SectionHeading
-        kicker="Before you publish"
-        title="Player list"
-        titleId="publication-review-title"
-        meta={
-          format === "individual_net" ? "Individual Net" : "Individual Gross"
-        }
-      />
-      <p>Everyone on this list is invited when you publish.</p>
-
-      <dl
-        className="mx-0 mt-6 mb-0 gap-3 grid grid-cols-6 max-[720px]:grid-cols-2 [&>div[data-warning='true']]:border-destructive [&>div[data-warning='true']_dd]:text-destructive [&>div]:p-3.5 [&>div]:border [&>div]:border-border/50 [&>div]:min-w-0 [&>div]:rounded-lg [&_dd]:mx-0 [&_dd]:mt-[0.35rem] [&_dd]:mb-0 [&_dd]:text-muted-foreground [&_dd]:text-[1.5rem] [&_dd]:wrap-anywhere [&_dt]:text-muted-foreground [&_dt]:font-mono [&_dt]:text-[0.6875rem] [&_dt]:tracking-[0.07em] [&_dt]:uppercase"
-        aria-label="Player summary"
+    <>
+      <section
+        className="border-t pt-8"
+        aria-labelledby="publication-review-title"
       >
-        <SummaryItem
-          label="Active members"
-          value={review.summary.activeMemberCount}
+        <SectionHeading
+          title="Player list"
+          titleId="publication-review-title"
+          meta={`${summary.activeMemberCount} ${summary.activeMemberCount === 1 ? "member" : "members"}`}
         />
-        <SummaryItem label="Included" value={review.summary.noResponseCount} />
-        <SummaryItem
-          label="Ineligible"
-          value={review.summary.ineligibleCount}
-        />
-        <SummaryItem label="Excluded" value={review.summary.excludedCount} />
-        <SummaryItem
-          label="Missing quota"
-          value={review.summary.missingQuotaCount}
-          warning={review.summary.missingQuotaCount > 0}
-        />
-        <SummaryItem
-          label="E-mails to send"
-          value={review.summary.notificationRecipientCount}
-        />
-      </dl>
-
-      <div className="mt-8 [&_h3]:m-0 [&_h3]:text-[1.125rem] [&_h3]:font-semibold">
-        <h3>Members to review</h3>
-        <ul className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
+        <p className="mx-0 mt-2 mb-0 text-sm leading-[1.55] text-muted-foreground">
+          Tick the members you want to invite. They can RSVP as soon as you
+          publish.
+        </p>
+        <ul className="mx-0 mt-5 mb-0 list-none divide-y border-y p-0">
           {review.members.map((member) => (
             <PublicationMemberRow
               key={member.membershipId}
@@ -197,34 +173,56 @@ export function PublicationReviewPanel({
             />
           ))}
         </ul>
-      </div>
+      </section>
 
-      <FormMessage
-        tone={messageTone === "success" ? "success" : "error"}
-        aria-live="polite"
-        data-status={messageTone || undefined}
+      <aside
+        className="grid gap-4 rounded-lg border p-5 min-[880px]:sticky min-[880px]:top-6 min-[880px]:col-start-2 min-[880px]:row-span-2 min-[880px]:row-start-1"
+        aria-labelledby="publish-round-title"
       >
-        {message}
-      </FormMessage>
-      <ActionRow>
+        <h2 id="publish-round-title" className="m-0 text-xl">
+          Publish
+        </h2>
+        <dl className="m-0 divide-y border-y text-sm">
+          <SummaryItem label="Invited" value={summary.includedMemberCount} />
+          {summary.missingQuotaCount > 0 ? (
+            <SummaryItem
+              label="Need a quota"
+              value={summary.missingQuotaCount}
+              warning
+            />
+          ) : null}
+          {summary.ineligibleCount > 0 ? (
+            <SummaryItem
+              label="Can’t play yet"
+              value={summary.ineligibleCount}
+            />
+          ) : null}
+          {summary.excludedCount > 0 ? (
+            <SummaryItem label="Left out" value={summary.excludedCount} />
+          ) : null}
+          <SummaryItem
+            label="E-mails to send"
+            value={summary.notificationRecipientCount}
+          />
+        </dl>
+        <FormMessage
+          tone={messageTone === "success" ? "success" : "error"}
+          aria-live="polite"
+          data-status={messageTone || undefined}
+        >
+          {message}
+        </FormMessage>
         <Button
           type="button"
+          className="w-full justify-self-stretch"
           onClick={() => void publish()}
-          disabled={
-            pending || draftDirty || review.summary.missingQuotaCount > 0
-          }
+          disabled={pending || blocker !== null}
         >
           {pending ? "Working…" : "Publish round"}
         </Button>
-      </ActionRow>
-      {draftDirty || review.summary.missingQuotaCount > 0 ? (
-        <FieldHelp role="status">
-          {draftDirty
-            ? "Save the round details before you publish."
-            : `${review.summary.missingQuotaCount} included ${review.summary.missingQuotaCount === 1 ? "player needs" : "players need"} a quota before you can publish. Set a starting quota on their member page, or exclude them.`}
-        </FieldHelp>
-      ) : null}
-    </section>
+        {blocker ? <FieldHelp role="status">{blocker}</FieldHelp> : null}
+      </aside>
+    </>
   );
 }
 
@@ -240,49 +238,58 @@ function PublicationMemberRow({
   onToggle: (membershipId: string, excluded: boolean) => Promise<void>;
 }>) {
   const ineligible = member.eligibilityState === "ineligible";
-  const explicitlyExcluded = member.eligibilityState === "excluded";
-  const missingQuota = format === "individual_net" && !member.projectionReady;
+  const invited = member.eligibilityState === "eligible" && member.included;
+  const missingQuota =
+    invited && format === "individual_net" && !member.projectionReady;
+  const name = publicationMemberName(member);
   return (
-    <li className="p-4 gap-4 border border-border/50 flex items-center justify-between rounded-lg max-[720px]:items-start max-[720px]:flex-col [&_[data-slot=bound-choice]]:m-0 [&_[data-slot=bound-choice]_strong]:text-foreground max-[720px]:[&_[data-slot=row-meta]]:text-left [&_p]:mx-0 [&_p]:mb-0 [&_p]:text-muted-foreground [&_p]:mt-[0.35rem]! [&_p]:text-[0.8125rem]!">
-      <div>
+    <li className="flex items-start justify-between gap-4 py-2 max-[480px]:flex-col max-[480px]:gap-1">
+      <div className="min-w-0">
         <label
-          className="gap-[0.4rem] flex items-center text-[0.8125rem]"
+          className="flex min-h-11 items-center gap-3 text-[0.9375rem] font-semibold"
           data-slot="bound-choice"
         >
           <Checkbox
-            aria-label={`Exclude ${publicationMemberName(member)}`}
-            checked={
-              explicitlyExcluded ||
-              (member.eligibilityState === "eligible" && !member.included)
-            }
-            disabled={disabled}
+            aria-label={`Invite ${name}`}
+            checked={invited}
+            disabled={disabled || ineligible}
             onCheckedChange={(checked) =>
-              void onToggle(member.membershipId, checked === true)
+              void onToggle(member.membershipId, checked !== true)
             }
           />
-          <span>Exclude</span> <strong>{publicationMemberName(member)}</strong>
+          <span
+            className={
+              invited ? "wrap-anywhere" : "wrap-anywhere text-muted-foreground"
+            }
+          >
+            {name}
+          </span>
         </label>
-        <p>
-          {ineligible
-            ? `Can’t play yet: ${ineligibleReason(member.eligibilityReason)}`
-            : explicitlyExcluded
-              ? "Excluded"
-              : member.included
-                ? missingQuota
-                  ? "Included · quota missing"
-                  : "Included"
-                : "Excluded"}
-        </p>
-      </div>
-      <div
-        className="gap-1 grid text-muted-foreground text-[0.75rem] text-right max-[720px]:text-left [&_time]:text-muted-foreground [&_time]:text-[0.6875rem]"
-        data-slot="row-meta"
-      >
-        <span>{member.emailReady ? "Gets e-mail" : "Won't get e-mail"}</span>
-        {member.projectedQuota ? (
-          <span>Quota {member.projectedQuota}</span>
+        {ineligible || missingQuota || !invited ? (
+          <p
+            className={`mx-0 -mt-1 mb-1.5 pl-7 text-[0.8125rem] leading-[1.45] ${missingQuota ? "text-destructive" : "text-muted-foreground"}`}
+          >
+            {ineligible
+              ? `Can’t play yet: ${ineligibleReason(member.eligibilityReason)}`
+              : missingQuota
+                ? "Needs a quota before you can publish"
+                : "Not invited"}
+          </p>
         ) : null}
       </div>
+      {invited ? (
+        <div
+          className="grid shrink-0 gap-0.5 pt-3 text-right text-xs text-muted-foreground max-[480px]:pt-0 max-[480px]:pb-2 max-[480px]:pl-7 max-[480px]:text-left"
+          data-slot="row-meta"
+        >
+          {member.projectedQuota ? (
+            <span className="font-mono text-foreground">
+              Quota {member.projectedQuota}
+            </span>
+          ) : null}
+          <span>{member.emailReady ? "Gets e-mail" : "Won’t get e-mail"}</span>
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -293,9 +300,13 @@ function SummaryItem({
   warning = false,
 }: Readonly<{ label: string; value: number; warning?: boolean }>) {
   return (
-    <div data-warning={warning || undefined}>
-      <dt>{label}</dt>
-      <dd>{value}</dd>
+    <div className="flex items-baseline justify-between gap-4 py-2.5">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd
+        className={`m-0 font-mono text-base font-medium tabular-nums ${warning ? "text-destructive" : value === 0 ? "text-muted-foreground" : "text-foreground"}`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
