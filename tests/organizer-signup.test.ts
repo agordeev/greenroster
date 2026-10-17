@@ -123,13 +123,15 @@ describe("organizer signup contract", () => {
     ).toBeUndefined();
   });
 
-  it("accepts only the calculator and guide pages as a sign-up source", () => {
+  it("accepts only the landing, calculator and guide pages as a sign-up source", () => {
     expect(signupSources).toEqual([
+      "home",
       "quota-calculator",
       "quota-game-rules",
       "how-to-calculate-a-golf-quota",
       "how-to-run-a-golf-points-game",
     ]);
+    expect(parseSignupSource("home")).toBe("home");
     expect(parseSignupSource("quota-calculator")).toBe("quota-calculator");
     expect(parseSignupSource("newsletter")).toBeNull();
     expect(parseSignupSource(["quota-calculator"])).toBeNull();

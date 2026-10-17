@@ -40,21 +40,21 @@ App, behind sign-in                      (exists)
   /scoreboard/...             clubhouse screen
 ```
 
-| Address                                    | What it is                                | Who it is for                   | Status                                 |
-| ------------------------------------------ | ----------------------------------------- | ------------------------------- | -------------------------------------- |
-| `/`                                        | Landing page                              | Organizers                      | New (replaces the redirect to sign-in) |
-| `/pricing`                                 | Pricing                                   | Organizers                      | New                                    |
-| `/tools/quota-calculator`                  | Free quota calculator, no sign-in         | Organizers arriving from search | New                                    |
-| `/tools/points-calculator`                 | Second calculator                         | Organizers arriving from search | Later, if the first earns traffic      |
-| `/guides/quota-game-rules`                 | Guide                                     | Organizers arriving from search | New                                    |
-| `/guides/how-to-calculate-a-golf-quota`    | Guide                                     | Organizers arriving from search | New                                    |
-| `/guides/how-to-run-a-golf-points-game`    | Guide                                     | Organizers arriving from search | New                                    |
-| `/compare/golfdogfight`                    | Comparison page                           | Groups looking to switch        | New                                    |
-| `/help`, `/support`, `/privacy`, `/terms`  | Help and legal pages                      | Everyone                        | Exists                                 |
-| `/sign-in`, `/sign-up`, `/invitations/...` | Sign-in, sign-up, accepting an invitation | Organizers and members          | Exists                                 |
-| `/portal/...`                              | Organizer app                             | Organizers                      | Exists                                 |
-| `/member/...`                              | Member app                                | Members                         | Exists                                 |
-| `/scoreboard/...`                          | Clubhouse screen                          | The group, on a shared screen   | Exists                                 |
+| Address                                    | What it is                                | Who it is for                   | Status                            |
+| ------------------------------------------ | ----------------------------------------- | ------------------------------- | --------------------------------- |
+| `/`                                        | Landing page                              | Organizers                      | Built 2026-10-18                  |
+| `/pricing`                                 | Pricing                                   | Organizers                      | New                               |
+| `/tools/quota-calculator`                  | Free quota calculator, no sign-in         | Organizers arriving from search | New                               |
+| `/tools/points-calculator`                 | Second calculator                         | Organizers arriving from search | Later, if the first earns traffic |
+| `/guides/quota-game-rules`                 | Guide                                     | Organizers arriving from search | New                               |
+| `/guides/how-to-calculate-a-golf-quota`    | Guide                                     | Organizers arriving from search | New                               |
+| `/guides/how-to-run-a-golf-points-game`    | Guide                                     | Organizers arriving from search | New                               |
+| `/compare/golfdogfight`                    | Comparison page                           | Groups looking to switch        | New                               |
+| `/help`, `/support`, `/privacy`, `/terms`  | Help and legal pages                      | Everyone                        | Exists                            |
+| `/sign-in`, `/sign-up`, `/invitations/...` | Sign-in, sign-up, accepting an invitation | Organizers and members          | Exists                            |
+| `/portal/...`                              | Organizer app                             | Organizers                      | Exists                            |
+| `/member/...`                              | Member app                                | Members                         | Exists                            |
+| `/scoreboard/...`                          | Clubhouse screen                          | The group, on a shared screen   | Exists                            |
 
 ## How the pieces connect
 

@@ -6,6 +6,7 @@ import { webRuntimeEnv } from "@/lib/runtime-env";
 // Only pages a visitor can read without an account. Nothing behind sign-in is
 // listed here.
 const publicPaths = [
+  "/",
   calculatorPath,
   "/guides",
   ...guides.map((guide) => guide.path),
