@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { z } from "zod";
@@ -8,13 +7,7 @@ import { resolvePasswordRecoveryState } from "@/lib/auth/password-recovery-regis
 import { signInPath } from "@/lib/auth/safe-return-path";
 import { resolveVerifiedSessionClaims } from "@/lib/auth/verified-session-claims";
 import { buildOnboardingChecklist } from "@/lib/groups/onboarding-checklist";
-import {
-  ActionRow,
-  PageHeader,
-  PagePanel,
-  TextLink,
-} from "@/components/blocks";
-import { Button } from "@/components/ui/button";
+import { PageHeader, PagePanel } from "@/components/blocks";
 import type { PortalDashboardSummary } from "@/domain/portal-dashboard";
 import { executePortalDashboardData } from "@/lib/portal/dashboard-data";
 import { createServerComponentSupabaseClient } from "@/lib/supabase/server-component-client";
@@ -208,32 +201,8 @@ export default async function PortalPage() {
       ? groupResult.data.time_zone
       : "";
 
-  if (context.role === "member") {
-    return (
-      <PortalShell
-        email={userData.user.email ?? "Signed-in account"}
-        groupName={groupName}
-        role={context.role}
-        timeZone={timeZone}
-      >
-        <PagePanel>
-          <PageHeader
-            kicker="Access limited"
-            title="This page is for coordinators and administrators"
-          >
-            You&apos;re signed in as a member, so this page isn&apos;t available
-            to you.
-          </PageHeader>
-          <ActionRow>
-            <Button asChild>
-              <Link href="/home">Home</Link>
-            </Button>
-            <TextLink href="/support">Contact support</TextLink>
-          </ActionRow>
-        </PagePanel>
-      </PortalShell>
-    );
-  }
+  // Members have their own pages; the portal is for running the group.
+  if (context.role === "member") redirect("/member/home");
 
   const onboardingResult = await supabase.rpc("resolve_group_onboarding");
   const parsedOnboarding = onboardingSchema.safeParse(onboardingResult.data);

@@ -26,7 +26,6 @@ import { executeReadRoundMessages } from "@/lib/clubhouse/clubhouse-content-data
 import {
   ActionRow,
   EmptyState,
-  Kicker,
   portalPanelClass,
   SectionHeading,
   TextLink,
@@ -82,31 +81,8 @@ export default async function RoundsPage({
     return renderRoundError(error);
   }
 
-  if (portalContext.role === "member") {
-    return (
-      <PortalShell
-        email={portalContext.email}
-        groupName={portalContext.groupName}
-        role={portalContext.role}
-        timeZone={portalContext.timeZone}
-        currentSection="rounds"
-      >
-        <section
-          className={portalPanelClass}
-          aria-labelledby="rounds-denied-title"
-        >
-          <Kicker>Coordinator access</Kicker>
-          <h1 id="rounds-denied-title">
-            Only coordinators and administrators manage rounds
-          </h1>
-          <p>You can respond to published rounds in the app.</p>
-          <ActionRow>
-            <TextLink href="/portal">Return to portal home</TextLink>
-          </ActionRow>
-        </section>
-      </PortalShell>
-    );
-  }
+  // Members answer and score their rounds from their own home.
+  if (portalContext.role === "member") redirect("/member/home");
 
   let rounds: readonly RoundDraft[];
   try {
@@ -454,7 +430,7 @@ function renderRoundError(error: unknown, context?: PortalContext) {
         </h1>
         <p>
           {forbidden
-            ? "You can respond to published rounds in the app."
+            ? "Ask your coordinator for any changes to the group’s rounds."
             : "Refresh the page and try again."}
         </p>
       </section>

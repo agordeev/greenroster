@@ -1,27 +1,15 @@
+import { redirect } from "next/navigation";
+
 import { ClubhouseAdminPanel } from "./clubhouse-admin-panel";
 import { PortalShell } from "../portal-shell";
 import { resolveClubhousePortalContext } from "@/lib/portal/portal-context";
 import { executeReadClubhouseContent } from "@/lib/clubhouse/clubhouse-content-data";
-import { portalPanelClass, TextLink } from "@/components/blocks";
+import { portalPanelClass } from "@/components/blocks";
 
 export default async function ClubhouseContentPage() {
   const context = await resolveClubhousePortalContext("/portal/content");
-  if (context.role === "member")
-    return (
-      <PortalShell
-        email={context.email}
-        groupName={context.groupName}
-        role={context.role}
-        timeZone={context.timeZone}
-        currentSection="content"
-      >
-        <section className={portalPanelClass}>
-          <h1>You can’t manage clubhouse news.</h1>
-          <p>You can read clubhouse news from your member home.</p>
-          <TextLink href="/portal">Return to portal home</TextLink>
-        </section>
-      </PortalShell>
-    );
+  // Members read clubhouse news on their own home.
+  if (context.role === "member") redirect("/member/home");
   const initial = await executeReadClubhouseContent(context.userId).catch(
     () => ({
       groupId: context.groupId,

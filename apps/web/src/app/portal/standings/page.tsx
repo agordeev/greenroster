@@ -60,30 +60,8 @@ export default async function PortalStandingsPage() {
     return renderStandingsError(error);
   }
 
-  if (portalContext.role === "member") {
-    return (
-      <PortalShell
-        email={portalContext.email}
-        groupName={portalContext.groupName}
-        role={portalContext.role}
-        timeZone={portalContext.timeZone}
-        currentSection="standings"
-      >
-        <section
-          className={portalPanelClass}
-          aria-labelledby="standings-denied-title"
-        >
-          <Kicker>Order of Merit</Kicker>
-          <h1 id="standings-denied-title">You can&apos;t open this page</h1>
-          <p>
-            You can see standings from your member home. Only coordinators and
-            administrators can open this page.
-          </p>
-          <TextLink href="/portal">Return to portal home</TextLink>
-        </section>
-      </PortalShell>
-    );
-  }
+  // Members follow the standings on their own pages.
+  if (portalContext.role === "member") redirect("/member/standings");
 
   let standings;
   try {

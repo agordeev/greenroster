@@ -74,31 +74,8 @@ export default async function GroupRolesActivityPage({
     return renderGroupError(error);
   }
 
-  if (portalContext.role === "member") {
-    return (
-      <PortalShell
-        email={portalContext.email}
-        groupName={portalContext.groupName}
-        role={portalContext.role}
-        timeZone={portalContext.timeZone}
-        currentSection="group"
-      >
-        <section
-          className={portalPanelClass}
-          aria-labelledby="group-denied-title"
-        >
-          <h1 id="group-denied-title">You can&apos;t open this page</h1>
-          <p>
-            You can see the group directory in the app. Only coordinators and
-            administrators can see who runs the group and what changed.
-          </p>
-          <ActionRow>
-            <TextLink href="/portal">Return to portal home</TextLink>
-          </ActionRow>
-        </section>
-      </PortalShell>
-    );
-  }
+  // Members see the directory on their own pages.
+  if (portalContext.role === "member") redirect("/member/directory");
 
   const query = parseGroupRolesActivityQuery(await searchParams);
   if (query.filterError) {

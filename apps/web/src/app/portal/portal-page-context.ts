@@ -36,7 +36,7 @@ export async function requirePortalPageContext(
   const contextResult = await supabase.rpc("resolve_identity_context");
   const context = contextSchema.safeParse(contextResult.data).data?.[0];
   if (contextResult.error || !context) redirect("/portal");
-  if (context.role === "member") redirect("/home");
+  if (context.role === "member") redirect("/member/home");
 
   const [userResult, groupResult] = await Promise.all([
     supabase.auth.getUser(),
