@@ -103,8 +103,11 @@ for now.
   `/sign-in` in `apps/web/src/app/page.tsx`.
 - **Name clash to avoid.** The app already has a `/home` route. The landing page
   lives at `/`, and no public "home" address is added.
-- **Domain.** The exact-match .com is listed for sale and not yet bought.
-  `greenrostergolf.com` is the fallback until it is.
+- **Domain.** `greenrostergolf.com`, registered with Alibaba Cloud. The whole site, public pages and app, stays on Vercel under
+  this one domain. DNS is hosted by Vercel (nameservers
+  `ns1/ns2.vercel-dns.com`); `www` redirects to the bare domain.
+  Astro on Cloudflare Pages was considered and rejected: it would split the
+  domain across two hosts and duplicate the public layout for no search gain.
 
 ## Build order
 
