@@ -34,17 +34,16 @@ const firstRunSchema = z
   .array(z.object({ is_complete: z.boolean() }))
   .length(1);
 
+// The read also returns push and bookkeeping columns; only what the e-mail
+// choices need is kept.
 const preferenceRowsSchema = z.array(
-  z
-    .object({
-      category: z.string().min(1),
-      mandatory: z.boolean(),
-      email_enabled: z.boolean(),
-      push_enabled: z.boolean(),
-      email_allowed: z.boolean(),
-      push_allowed: z.boolean(),
-    })
-    .strict(),
+  z.object({
+    category: z.string().min(1),
+    mandatory: z.boolean(),
+    email_enabled: z.boolean(),
+    email_allowed: z.boolean(),
+    version: z.union([z.number().int().nonnegative(), z.string()]),
+  }),
 );
 
 export default async function MemberHomePage() {
@@ -92,7 +91,10 @@ export default async function MemberHomePage() {
   const preferences: readonly MemberNotificationPreference[] | null =
     preferencesResult.error || !parsedPreferences.success
       ? null
-      : parsedPreferences.data;
+      : parsedPreferences.data.map((row) => ({
+          ...row,
+          version: Number(row.version),
+        }));
   const standings =
     standingsResult.status === "fulfilled" ? standingsResult.value : null;
   const history =

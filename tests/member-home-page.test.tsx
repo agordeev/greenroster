@@ -26,18 +26,25 @@ vi.mock("../apps/web/src/lib/clubhouse/clubhouse-content-data", () => ({
 vi.mock("../apps/web/src/app/member/home/member-next-round-rsvp", () => ({
   MemberNextRoundRsvp: () => null,
 }));
+vi.mock("../apps/web/src/app/actions/notifications", () => ({
+  setEmailPreferenceAction: vi.fn(),
+}));
 
+import { MemberNotificationPreferences } from "../apps/web/src/app/member/home/member-notification-preferences";
 import MemberHomePage from "../apps/web/src/app/member/home/page";
 
 const userId = "10000000-0000-4000-8000-000000000001";
 const groupId = "50000000-0000-4000-8000-000000000001";
 const roundId = "60000000-0000-4000-8000-000000000001";
 
-function readyAccess() {
-  const rpc = vi.fn().mockResolvedValue({
-    data: [{ is_complete: true }],
-    error: null,
-  });
+function readyAccess(preferencesData: unknown = []) {
+  const rpc = vi.fn((name: string) =>
+    Promise.resolve(
+      name === "resolve_mobile_member_notification_preferences"
+        ? { data: preferencesData, error: null }
+        : { data: [{ is_complete: true }], error: null },
+    ),
+  );
   const single = vi.fn().mockResolvedValue({
     data: { name: "North Hills" },
     error: null,
@@ -86,4 +93,58 @@ describe("member home page", () => {
     expect(pageText).toContain("Meet by the first tee.");
     expect(mocks.readNextRound).toHaveBeenCalledWith(userId);
   });
+
+  it("passes e-mail preferences with a numeric version when the RPC returns extra columns", async () => {
+    mocks.resolveSession.mockResolvedValueOnce(
+      readyAccess([
+        {
+          category: "round_published",
+          mandatory: false,
+          email_enabled: true,
+          email_allowed: true,
+          version: "3",
+          membership_id: "70000000-0000-4000-8000-000000000001",
+          group_id: groupId,
+          push_enabled: false,
+          push_allowed: false,
+          updated_at: "2026-08-03T12:00:00.000Z",
+        },
+      ]),
+    );
+    mocks.readNextRound.mockResolvedValueOnce(null);
+
+    const page = await MemberHomePage();
+    const element = findElement(page, MemberNotificationPreferences);
+
+    expect(element).not.toBeNull();
+    expect(element?.props.preferences).toEqual([
+      {
+        category: "round_published",
+        mandatory: false,
+        email_enabled: true,
+        email_allowed: true,
+        version: 3,
+      },
+    ]);
+  });
 });
+
+// Walks the rendered element tree looking for a component by type.
+function findElement(
+  node: unknown,
+  type: unknown,
+): { props: Record<string, unknown> } | null {
+  if (node === null || typeof node !== "object") return null;
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findElement(child, type);
+      if (found) return found;
+    }
+    return null;
+  }
+  const element = node as { type?: unknown; props?: Record<string, unknown> };
+  if (element.type === type && element.props) {
+    return { props: element.props };
+  }
+  return findElement(element.props?.children, type);
+}

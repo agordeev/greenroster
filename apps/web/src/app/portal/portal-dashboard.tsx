@@ -170,7 +170,9 @@ export function PortalDashboard({
               <h2 id="dashboard-notification-health-title">Notifications</h2>
             </CardTitle>
           </CardHeader>
-          <StatStrip className="grid-cols-2 sm:grid-cols-4">
+          {/* Push needs the phone app, which members no longer have, so only
+              e-mail delivery is shown. */}
+          <StatStrip className="grid-cols-2">
             <Stat
               label="Waiting to send"
               value={health.queueDepth}
@@ -185,12 +187,6 @@ export function PortalDashboard({
               value={health.emailFailures}
               note={`${formatHealthRate(health.emailBounceRate)} bounced · ${formatHealthRate(health.emailComplaintRate)} marked as spam`}
             />
-            <Stat
-              label="Push not delivered"
-              value={health.pushFailures}
-              note={`${formatHealthRate(health.pushInvalidTokenRate)} of phones no longer reachable`}
-            />
-            <Stat label="Confirmations failed" value={health.receiptFailures} />
           </StatStrip>
         </Card>
       ) : null}
