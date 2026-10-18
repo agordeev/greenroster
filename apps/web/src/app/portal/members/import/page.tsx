@@ -41,6 +41,7 @@ export default async function MemberImportPage() {
   if (contextResult.error || !context) {
     redirect("/portal");
   }
+  if (context.role === "member") redirect("/member/home");
   const groupResult = await supabase
     .from("groups")
     .select("name,time_zone")
@@ -63,20 +64,11 @@ export default async function MemberImportPage() {
       >
         <Kicker>Add many members at once</Kicker>
         <h1 id="member-import-title">Import members</h1>
-        {context.role === "member" ? (
-          <div className="[&_h2]:mx-0 [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-semibold">
-            <h2>Coordinator access needed</h2>
-            <p>Only coordinators and administrators can import members.</p>
-          </div>
-        ) : (
-          <>
-            <p>
-              Download the template, fill it in, and upload it as a CSV file. We
-              skip rows for people who are already members or already invited.
-            </p>
-            <MemberImportPanel />
-          </>
-        )}
+        <p>
+          Download the template, fill it in, and upload it as a CSV file. We
+          skip rows for people who are already members or already invited.
+        </p>
+        <MemberImportPanel />
       </section>
     </PortalShell>
   );

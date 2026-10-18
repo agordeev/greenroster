@@ -30,6 +30,7 @@ export default async function BillingPage() {
   const context = contextSchema.safeParse(contextResult.data).success
     ? contextSchema.parse(contextResult.data)[0]
     : undefined;
+  if (context?.role === "member") redirect("/member/home");
   if (!context || context.role !== "administrator") {
     return (
       <PortalShell

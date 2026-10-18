@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { BrandingForm } from "./branding-form";
 import { PortalShell } from "../portal-shell";
 import { executeReadBrandingAssetsForActor } from "@/lib/clubhouse/clubhouse-content-data";
@@ -6,6 +8,7 @@ import { portalPanelClass, TextLink } from "@/components/blocks";
 
 export default async function BrandingPage() {
   const context = await resolveClubhousePortalContext("/portal/branding");
+  if (context.role === "member") redirect("/member/home");
   if (context.role !== "administrator")
     return (
       <PortalShell

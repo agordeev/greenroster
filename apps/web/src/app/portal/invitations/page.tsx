@@ -49,6 +49,7 @@ export default async function InvitationManagementPage({
   } catch (error) {
     return renderLifecycleError(error);
   }
+  if (portalContext.role === "member") redirect("/member/home");
 
   let invitations;
   try {

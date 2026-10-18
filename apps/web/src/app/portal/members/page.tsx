@@ -98,6 +98,8 @@ export default async function MemberManagementPage({
   } catch (error) {
     return renderError(error);
   }
+  // Members see the group list in their own directory.
+  if (portalContext.role === "member") redirect("/member/directory");
 
   const query = await searchParams;
   const rosterQuery = parseMemberRosterQuery(query);
@@ -195,31 +197,29 @@ export default async function MemberManagementPage({
         ) : (
           <>
             <h1 id="members-title">Members</h1>
-            {portalContext.role !== "member" ? (
-              <ActionRow>
-                <Button asChild>
-                  <Link href="/portal/members/new">Add member</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/portal/members/import">Import from CSV</Link>
-                </Button>
-                <span className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.875rem] text-muted-foreground max-[720px]:ml-0">
-                  Download
-                  <TextLink
-                    href="/api/portal/exports?kind=members"
-                    aria-label="Download members as CSV"
-                  >
-                    CSV
-                  </TextLink>
-                  <TextLink
-                    href="/api/portal/exports?kind=members&format=pdf"
-                    aria-label="Download members as PDF"
-                  >
-                    PDF
-                  </TextLink>
-                </span>
-              </ActionRow>
-            ) : null}
+            <ActionRow>
+              <Button asChild>
+                <Link href="/portal/members/new">Add member</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/portal/members/import">Import from CSV</Link>
+              </Button>
+              <span className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.875rem] text-muted-foreground max-[720px]:ml-0">
+                Download
+                <TextLink
+                  href="/api/portal/exports?kind=members"
+                  aria-label="Download members as CSV"
+                >
+                  CSV
+                </TextLink>
+                <TextLink
+                  href="/api/portal/exports?kind=members&format=pdf"
+                  aria-label="Download members as PDF"
+                >
+                  PDF
+                </TextLink>
+              </span>
+            </ActionRow>
           </>
         )}
         <MemberManagement
