@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   resolveSession: vi.fn(),
   readRound: vi.fn(),
+  readGuests: vi.fn(),
+  readScores: vi.fn(),
   rsvp: vi.fn(() => null),
+  guests: vi.fn(() => null),
+  scorePanel: vi.fn(() => null),
 }));
 
 vi.mock("../apps/web/src/lib/auth/member-page-session", () => ({
@@ -11,22 +15,50 @@ vi.mock("../apps/web/src/lib/auth/member-page-session", () => ({
 }));
 vi.mock("../apps/web/src/lib/rounds/member-round-detail-data", () => ({
   executeReadMemberRoundDetail: mocks.readRound,
+  executeReadMemberRoundGuestContext: mocks.readGuests,
+}));
+vi.mock("../apps/web/src/lib/rounds/live-round-score-data", () => ({
+  executeReadLiveRoundScores: mocks.readScores,
 }));
 vi.mock("../apps/web/src/app/member/home/member-next-round-rsvp", () => ({
   MemberNextRoundRsvp: mocks.rsvp,
 }));
+vi.mock(
+  "../apps/web/src/app/member/rounds/[roundId]/member-round-guests",
+  () => ({
+    MemberRoundGuests: mocks.guests,
+  }),
+);
+vi.mock(
+  "../apps/web/src/app/portal/rounds/live-round-score-entry-panel",
+  () => ({
+    LiveRoundScoreEntryPanel: mocks.scorePanel,
+  }),
+);
 
 import MemberRoundPage from "../apps/web/src/app/member/rounds/[roundId]/page";
 
 const roundId = "60000000-0000-4000-8000-000000000001";
 const groupId = "50000000-0000-4000-8000-000000000001";
+const userId = "10000000-0000-4000-8000-000000000001";
 
 function readyAccess() {
   return {
     state: "ready" as const,
     client: {},
     groupId,
-    userId: "10000000-0000-4000-8000-000000000001",
+    userId,
+  };
+}
+
+function guestContext(canManage: boolean) {
+  return {
+    roundId,
+    groupId,
+    format: "individual_net" as const,
+    state: "published" as const,
+    canManage,
+    guests: [],
   };
 }
 
@@ -72,10 +104,13 @@ describe("member round page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.resolveSession.mockResolvedValue(readyAccess());
+    mocks.readGuests.mockResolvedValue(guestContext(false));
+    mocks.readScores.mockResolvedValue([]);
   });
 
   it("renders the authenticated round detail and RSVP without round-day mutations", async () => {
     mocks.readRound.mockResolvedValue(round());
+    mocks.readGuests.mockResolvedValue(guestContext(false));
 
     const page = await MemberRoundPage({
       params: Promise.resolve({ roundId }),
@@ -90,21 +125,49 @@ describe("member round page", () => {
     expect(rendered).not.toContain("Withdraw");
   });
 
-  it("keeps a live round read-only in the browser", async () => {
+  it("lets a member enter their own and their guests' points in a live round", async () => {
     mocks.readRound.mockResolvedValue(round("live"));
+    mocks.readScores.mockResolvedValue([
+      { participantId: "p-member", canEdit: true },
+      { participantId: "p-other", canEdit: false },
+    ]);
 
     const page = await MemberRoundPage({
       params: Promise.resolve({ roundId }),
     });
     const rendered = pageText(page);
 
-    expect(rendered).toContain("Your round is live");
-    expect(rendered).toContain(
-      "Open the GreenRoster app to enter scores and manage guests.",
-    );
+    expect(mocks.readScores).toHaveBeenCalledWith(userId, roundId);
+    expect(rendered).toContain('"audience":"member"');
+    expect(rendered).toContain("p-member");
+    expect(rendered).not.toContain("p-other");
+    expect(rendered).not.toContain("Open the GreenRoster app");
     expect(mocks.rsvp).not.toHaveBeenCalled();
     expect(rendered).not.toContain("Save score");
     expect(rendered).not.toContain("Add guest");
+  });
+
+  it("shows a retry note when live scores can't be read", async () => {
+    mocks.readRound.mockResolvedValue(round("live"));
+    mocks.readScores.mockRejectedValue(new Error("boom"));
+
+    const page = await MemberRoundPage({
+      params: Promise.resolve({ roundId }),
+    });
+
+    expect(pageText(page)).toContain("We couldn't load your scores");
+  });
+
+  it("offers guests on a published round the member is playing in", async () => {
+    mocks.readRound.mockResolvedValue(round("published"));
+    mocks.readGuests.mockResolvedValue(guestContext(true));
+
+    const page = await MemberRoundPage({
+      params: Promise.resolve({ roundId }),
+    });
+
+    expect(mocks.readGuests).toHaveBeenCalledWith(userId, roundId);
+    expect(pageText(page)).toContain('"canManage":true');
   });
 
   it("does not render an RSVP action without a member participant", async () => {

@@ -2,10 +2,19 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { MemberNextRoundRsvp } from "@/app/member/home/member-next-round-rsvp";
-import type { MemberRoundDetail } from "@/domain/member-round-detail";
+import { LiveRoundScoreEntryPanel } from "@/app/portal/rounds/live-round-score-entry-panel";
+import type {
+  MemberRoundDetail,
+  MemberRoundGuestContext,
+} from "@/domain/member-round-detail";
+import type { LiveRoundScoreParticipant } from "@/domain/round-score";
 import { resolveMemberPageSession } from "@/lib/auth/member-page-session";
 import { signInPath } from "@/lib/auth/safe-return-path";
-import { executeReadMemberRoundDetail } from "@/lib/rounds/member-round-detail-data";
+import { executeReadLiveRoundScores } from "@/lib/rounds/live-round-score-data";
+import {
+  executeReadMemberRoundDetail,
+  executeReadMemberRoundGuestContext,
+} from "@/lib/rounds/member-round-detail-data";
 import {
   FieldHelp,
   Kicker,
@@ -15,6 +24,7 @@ import {
   TextLink,
 } from "@/components/blocks";
 import { MemberNav } from "../../member-nav";
+import { MemberRoundGuests } from "./member-round-guests";
 
 const roundIdSchema = z.uuid();
 
@@ -44,6 +54,30 @@ export default async function MemberRoundPage({
   }
   if (detail.state === "completed") {
     redirect(`/member/results?round_id=${encodeURIComponent(detail.roundId)}`);
+  }
+
+  // Guests are added before the round; points are entered once it is live.
+  // Either read can fail on its own without hiding the rest of the round.
+  let guestContext: MemberRoundGuestContext | null = null;
+  if (detail.state === "published" && detail.participantStatus === "playing") {
+    try {
+      guestContext = await executeReadMemberRoundGuestContext(
+        access.userId,
+        detail.roundId,
+      );
+    } catch {
+      guestContext = null;
+    }
+  }
+  let scores: readonly LiveRoundScoreParticipant[] | null = null;
+  if (detail.state === "live") {
+    try {
+      scores = (
+        await executeReadLiveRoundScores(access.userId, detail.roundId)
+      ).filter((participant) => participant.canEdit);
+    } catch {
+      scores = null;
+    }
   }
 
   return (
@@ -131,7 +165,19 @@ export default async function MemberRoundPage({
             </section>
           ) : null}
 
-          {detail.state === "live" ? (
+          {guestContext ? (
+            <MemberRoundGuests
+              roundId={detail.roundId}
+              format={guestContext.format}
+              canManage={guestContext.canManage}
+              guests={guestContext.guests}
+            />
+          ) : null}
+
+          {detail.state === "live" && scores ? (
+            <LiveRoundScoreEntryPanel participants={scores} audience="member" />
+          ) : null}
+          {detail.state === "live" && !scores ? (
             <section
               className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0!"
               aria-labelledby="round-day-access-title"
@@ -139,7 +185,8 @@ export default async function MemberRoundPage({
               <Kicker>Round day</Kicker>
               <h2 id="round-day-access-title">Your round is live</h2>
               <FieldHelp>
-                Open the GreenRoster app to enter scores and manage guests.
+                We couldn&apos;t load your scores. Refresh the page to try
+                again.
               </FieldHelp>
             </section>
           ) : null}

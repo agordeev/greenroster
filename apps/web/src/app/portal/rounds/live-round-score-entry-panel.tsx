@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 
-import { setRoundParticipantScoreAction } from "@/app/actions/rounds";
+import {
+  setMemberRoundParticipantScoreAction,
+  setRoundParticipantScoreAction,
+} from "@/app/actions/rounds";
 import { EmptyState, FormMessage, SectionHeading } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,11 +48,36 @@ const fieldConstraints: Readonly<
   manual_merit: { min: -1000, max: 1000, step: "0.01" },
 };
 
+// The portal shows every player in the round. A member sees only their own
+// score and their guests' scores, and saves through the member action.
+type ScoreAudience = "portal" | "member";
+
+const panelCopy: Readonly<
+  Record<ScoreAudience, { title: string; intro: string; empty: string }>
+> = {
+  portal: {
+    title: "Enter live scores",
+    intro:
+      "Enter each player's totals. A blank score shows as Missing and doesn't count as zero.",
+    empty: "No players are available to score yet.",
+  },
+  member: {
+    title: "Enter your points",
+    intro:
+      "Enter your totals after the round, and your guest's if you brought one. A blank score shows as Missing and doesn't count as zero.",
+    empty:
+      "You aren't down as playing in this round, so there's nothing to enter.",
+  },
+};
+
 export function LiveRoundScoreEntryPanel({
   participants,
+  audience = "portal",
 }: Readonly<{
   participants: readonly LiveRoundScoreParticipant[];
+  audience?: ScoreAudience;
 }>) {
+  const copy = panelCopy[audience];
   return (
     <section
       className="mt-10 pt-8 border-t [&>h2]:mx-0 [&>h2]:text-[1.5rem] [&>h2]:font-semibold [&>h2]:mt-1.5! [&>h2]:mb-0! live-score-entry"
@@ -57,7 +85,7 @@ export function LiveRoundScoreEntryPanel({
     >
       <SectionHeading
         kicker="Round day"
-        title="Enter live scores"
+        title={copy.title}
         titleId="live-score-entry-title"
         meta={
           <>
@@ -65,18 +93,16 @@ export function LiveRoundScoreEntryPanel({
           </>
         }
       />
-      <p>
-        Enter each player&apos;s totals. A blank score shows as Missing and
-        doesn&apos;t count as zero.
-      </p>
+      <p>{copy.intro}</p>
       {participants.length === 0 ? (
-        <EmptyState>No players are available to score yet.</EmptyState>
+        <EmptyState>{copy.empty}</EmptyState>
       ) : (
         <div className="mx-0 mt-6 mb-0 p-0 gap-3 grid list-none">
           {participants.map((participant) => (
             <ParticipantScoreEditor
               key={participantSyncKey(participant)}
               participant={participant}
+              audience={audience}
             />
           ))}
         </div>
@@ -87,7 +113,11 @@ export function LiveRoundScoreEntryPanel({
 
 function ParticipantScoreEditor({
   participant,
-}: Readonly<{ participant: LiveRoundScoreParticipant }>) {
+  audience,
+}: Readonly<{
+  participant: LiveRoundScoreParticipant;
+  audience: ScoreAudience;
+}>) {
   const router = useRouter();
   const [score, setScore] = useState<RoundScoreCurrentState>(participant.score);
   const [draft, setDraft] = useState<LiveRoundScoreDraft>(() =>
@@ -186,7 +216,10 @@ function ParticipantScoreEditor({
     startTransition(async () => {
       let result: Awaited<ReturnType<typeof setRoundParticipantScoreAction>>;
       try {
-        result = await setRoundParticipantScoreAction(parsed.data);
+        result =
+          audience === "member"
+            ? await setMemberRoundParticipantScoreAction(parsed.data)
+            : await setRoundParticipantScoreAction(parsed.data);
       } catch {
         setMessage("We couldn't save the score. Try again.");
         setMessageTone("error");
