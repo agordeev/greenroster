@@ -47,13 +47,13 @@ function Hero() {
         <Kicker>For golf group organizers</Kicker>
         <h1
           id="landing-title"
-          className="mt-4 mb-0 max-w-[14ch] text-[length:clamp(2.5rem,6vw,4.5rem)] leading-[1.02] font-semibold tracking-[-0.025em]"
+          className="mt-4 mb-0 max-w-[15ch] text-[length:clamp(2.5rem,6vw,4.5rem)] leading-[1.02] font-semibold tracking-[-0.025em]"
         >
-          Run your group’s quota game without the spreadsheet.
+          Run your golf group’s quota game without the spreadsheet.
         </h1>
         <p className="mt-6 mb-0 max-w-136 text-[1.0625rem] leading-[1.65] text-foreground/85">
-          You post the round and enter the points. You get the results in order,
-          a new quota for every player, and the latest Order of Merit.
+          You post the round and enter the points. You get ranked results, a new
+          quota for every player, and an up-to-date Order of Merit.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3 max-[480px]:[&>a]:w-full">
           <Button asChild>

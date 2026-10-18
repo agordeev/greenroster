@@ -8,7 +8,7 @@ import { LandingPage } from "./landing";
 export const metadata: Metadata = {
   title: "GreenRoster · Run your golf group’s quota game",
   description:
-    "Post your rounds, enter each player’s points, and get results, quotas and Order of Merit standings worked out for you.",
+    "Run your golf group’s quota game: post rounds, enter points, and get ranked results, new quotas and Order of Merit standings. Members RSVP on the web.",
   alternates: { canonical: "/" },
 };
 
