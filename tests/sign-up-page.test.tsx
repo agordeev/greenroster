@@ -28,7 +28,7 @@ function pageText(value: unknown): string {
 }
 
 describe("organizer signup page", () => {
-  it("explains the deployment-owned legal gate when versions are absent", async () => {
+  it("asks the organizer to try again when legal versions are absent", async () => {
     mocks.resolveLegal.mockResolvedValueOnce(null);
 
     const page = await SignupPage({
@@ -37,11 +37,21 @@ describe("organizer signup page", () => {
 
     const rendered = pageText(page);
     expect(rendered).toContain(
-      "Our Terms of Use and Privacy Policy aren't published",
+      "start a group right now. Try again in a moment.",
     );
-    expect(rendered).toContain("The sign-up form will appear");
-    expect(rendered).toContain('"/terms"');
-    expect(rendered).toContain('"/privacy"');
+  });
+
+  it("asks the organizer to try again when the database is unreachable", async () => {
+    mocks.resolveLegal.mockRejectedValueOnce(new Error("fetch failed"));
+
+    const page = await SignupPage({
+      searchParams: Promise.resolve({}),
+    });
+
+    const rendered = pageText(page);
+    expect(rendered).toContain(
+      "start a group right now. Try again in a moment.",
+    );
   });
 
   it("renders the registration form only after legal versions resolve", async () => {
@@ -54,7 +64,6 @@ describe("organizer signup page", () => {
       searchParams: Promise.resolve({}),
     });
 
-    expect(pageText(page)).not.toContain("aren't published");
-    expect(pageText(page)).not.toContain("The sign-up form will appear");
+    expect(pageText(page)).not.toContain("Try again in a moment.");
   });
 });

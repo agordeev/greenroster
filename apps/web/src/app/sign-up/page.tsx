@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
 import { parseSignupSource } from "@/lib/auth/signup-source";
 
@@ -12,7 +10,7 @@ type SignupPageProps = {
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { status, from } = await searchParams;
-  const legal = await resolveCurrentLegalDocuments();
+  const legal = await resolveCurrentLegalDocuments().catch(() => null);
 
   return (
     <AuthPanel titleId="sign-up-title">
@@ -35,16 +33,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       {legal ? (
         <OrganizerSignupForm source={parseSignupSource(from)} />
       ) : (
-        <FormMessage role="alert">
-          <p>
-            You can&apos;t create a group yet. Our Terms of Use and Privacy
-            Policy aren&apos;t published.
-          </p>
-          <p>
-            The sign-up form will appear here once the{" "}
-            <Link href="/terms">Terms of Use</Link> and{" "}
-            <Link href="/privacy">Privacy Policy</Link> are published.
-          </p>
+        <FormMessage className="mt-6 max-w-[30rem]" role="alert">
+          You can&apos;t start a group right now. Try again in a moment.
         </FormMessage>
       )}
 
