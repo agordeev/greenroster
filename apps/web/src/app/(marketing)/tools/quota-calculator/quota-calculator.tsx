@@ -310,7 +310,7 @@ function QuotaResult({
           {outcome.usedStartingQuota
             ? `This is your starting quota. You keep it until you have ${roundsNeeded} rounds; you have added ${roundsEntered}.`
             : roundsEntered < roundsNeeded
-              ? `${roundsEntered === 1 ? "Your points from the one round you added" : `The average of all ${roundsEntered} rounds you added`}. Once you have more than ${roundsNeeded}, ${method === "moving_average" ? `only your latest ${roundsNeeded} count` : "only your ten highest count"}.`
+              ? `${roundsEntered === 1 ? "Your points from the one round you added" : roundsEntered === 2 ? "The average of both rounds you added" : `The average of all ${roundsEntered} rounds you added`}. Once you have more than ${roundsNeeded}, ${method === "moving_average" ? `only your latest ${roundsNeeded} count` : "only your ten highest count"}.`
               : method === "moving_average"
                 ? `The average of your latest ${roundsNeeded} rounds.`
                 : `The average of your ten highest totals from your latest ${Math.min(roundsEntered, 20)} rounds.`}
