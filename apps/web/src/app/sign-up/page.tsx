@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { resolveCurrentLegalDocuments } from "@/lib/auth/organizer-signup-data";
 import { parseSignupSource } from "@/lib/auth/signup-source";
 
@@ -33,8 +35,19 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       {legal ? (
         <OrganizerSignupForm source={parseSignupSource(from)} />
       ) : (
-        <FormMessage className="mt-6 max-w-[30rem]" role="alert">
-          You can&apos;t start a group right now. Try again in a moment.
+        <FormMessage className="mt-6 max-w-[30rem]" tone="info" role="status">
+          <p>You can&apos;t start a new group right now.</p>
+          <p>
+            If you already belong to a group, sign in to see your rounds. If
+            this keeps happening,{" "}
+            <Link
+              href="/support"
+              className="font-bold text-primary underline underline-offset-[0.2em]"
+            >
+              contact support
+            </Link>
+            .
+          </p>
         </FormMessage>
       )}
 

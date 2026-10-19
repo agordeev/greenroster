@@ -28,7 +28,7 @@ function pageText(value: unknown): string {
 }
 
 describe("organizer signup page", () => {
-  it("asks the organizer to try again when legal versions are absent", async () => {
+  it("tells the organizer they can't start a group when legal versions are absent", async () => {
     mocks.resolveLegal.mockResolvedValueOnce(null);
 
     const page = await SignupPage({
@@ -36,12 +36,14 @@ describe("organizer signup page", () => {
     });
 
     const rendered = pageText(page);
-    expect(rendered).toContain(
-      "start a group right now. Try again in a moment.",
-    );
+    expect(rendered).toContain("start a new group right now.");
+    expect(rendered).toContain("sign in to see your rounds");
+    expect(rendered).toContain('"/support"');
+    expect(rendered).not.toContain("published");
+    expect(rendered).not.toContain("Try again in a moment.");
   });
 
-  it("asks the organizer to try again when the database is unreachable", async () => {
+  it("shows the same message when the database is unreachable", async () => {
     mocks.resolveLegal.mockRejectedValueOnce(new Error("fetch failed"));
 
     const page = await SignupPage({
@@ -49,9 +51,11 @@ describe("organizer signup page", () => {
     });
 
     const rendered = pageText(page);
-    expect(rendered).toContain(
-      "start a group right now. Try again in a moment.",
-    );
+    expect(rendered).toContain("start a new group right now.");
+    expect(rendered).toContain("sign in to see your rounds");
+    expect(rendered).toContain('"/support"');
+    expect(rendered).not.toContain("published");
+    expect(rendered).not.toContain("Try again in a moment.");
   });
 
   it("renders the registration form only after legal versions resolve", async () => {
@@ -64,6 +68,8 @@ describe("organizer signup page", () => {
       searchParams: Promise.resolve({}),
     });
 
-    expect(pageText(page)).not.toContain("Try again in a moment.");
+    const rendered = pageText(page);
+    expect(rendered).toContain('"source":null');
+    expect(rendered).not.toContain("start a new group right now.");
   });
 });
