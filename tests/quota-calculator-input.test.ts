@@ -115,6 +115,90 @@ describe("quota calculator input", () => {
     });
   });
 
+  describe("with fewer rounds than the method counts", () => {
+    it("averages every moving-average round when there is no starting quota", () => {
+      expect(
+        calculateFromForm(form({ points: ["30", "32"], roundsCounted: "10" })),
+      ).toEqual({
+        status: "ready",
+        countedPoints: ["30", "32"],
+        latestRound: { plusMinus: "+1", points: "32" },
+        quota: "31.0",
+        roundsEntered: 2,
+        roundsNeeded: 10,
+        usedStartingQuota: false,
+      });
+    });
+
+    it("holds the moving-average starting quota until the window fills", () => {
+      expect(
+        calculateFromForm(
+          form({
+            points: ["30", "32"],
+            roundsCounted: "10",
+            startingQuota: "28",
+          }),
+        ),
+      ).toMatchObject({
+        status: "ready",
+        countedPoints: [],
+        quota: "28.0",
+        roundsEntered: 2,
+        roundsNeeded: 10,
+        usedStartingQuota: true,
+      });
+      const nine = Array.from({ length: 9 }, () => "30");
+      expect(
+        calculateFromForm(form({ points: nine, startingQuota: "28" })),
+      ).toMatchObject({ quota: "28.0", usedStartingQuota: true });
+      expect(
+        calculateFromForm(
+          form({ points: [...nine, "40"], startingQuota: "28" }),
+        ),
+      ).toMatchObject({ quota: "31.0", usedStartingQuota: false });
+    });
+
+    it("averages every Best 10 of 20 round when there is no starting quota", () => {
+      expect(
+        calculateFromForm(
+          form({ method: "best_10_of_20", points: ["30", "32", "25"] }),
+        ),
+      ).toMatchObject({
+        status: "ready",
+        countedPoints: ["30", "32", "25"],
+        quota: "29.0",
+        roundsEntered: 3,
+        roundsNeeded: 10,
+        usedStartingQuota: false,
+      });
+    });
+
+    it("holds the Best 10 of 20 starting quota until there are 10 rounds", () => {
+      expect(
+        calculateFromForm(
+          form({
+            method: "best_10_of_20",
+            points: ["30", "32"],
+            startingQuota: "28",
+          }),
+        ),
+      ).toMatchObject({
+        status: "ready",
+        countedPoints: [],
+        quota: "28.0",
+        roundsEntered: 2,
+        roundsNeeded: 10,
+        usedStartingQuota: true,
+      });
+      const ten = Array.from({ length: 10 }, (_, index) => String(20 + index));
+      expect(
+        calculateFromForm(
+          form({ method: "best_10_of_20", points: ten, startingQuota: "28" }),
+        ),
+      ).toMatchObject({ quota: "24.5", usedStartingQuota: false });
+    });
+  });
+
   it("asks for a starting quota when nothing is entered", () => {
     expect(calculateFromForm(form({ points: ["", ""] }))).toEqual({
       status: "starting_quota_needed",

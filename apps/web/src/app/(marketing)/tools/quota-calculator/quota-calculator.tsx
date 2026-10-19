@@ -47,6 +47,22 @@ function rowsFor(points: readonly string[]): Row[] {
 
 const subscribeToNothing = () => () => {};
 
+// The same threshold the quota rules use: a starting quota stands until the
+// member has as many rounds as the method counts (10 for Best 10 of 20).
+function startingQuotaHelp(
+  method: QuotaCalculatorMethod,
+  roundsCounted: string,
+): string {
+  const blank = "Leave it blank to average the rounds you add.";
+  if (method === "best_10_of_20") {
+    return `You keep this quota until you have 10 rounds. ${blank}`;
+  }
+  const count = Number(roundsCounted.trim());
+  return Number.isInteger(count) && count >= 4 && count <= 20
+    ? `You keep this quota until you have ${count} rounds. ${blank}`
+    : `You keep this quota until you have as many rounds as you count. ${blank}`;
+}
+
 // A shared address carries the numbers. The page itself is static, so they are
 // read here, in the browser, once it has loaded; the form then starts again
 // from them.
@@ -138,7 +154,7 @@ function QuotaCalculatorForm({
               <Field
                 id="quota-rounds-counted"
                 label="Rounds counted"
-                help="From 4 to 20. Your latest rounds count."
+                help="How many of your latest rounds count toward your quota, from 4 to 20."
               >
                 <Input
                   id="quota-rounds-counted"
@@ -227,11 +243,7 @@ function QuotaCalculatorForm({
             <Field
               id="quota-starting"
               label="Starting quota (optional)"
-              help={
-                method === "moving_average"
-                  ? "You keep this quota until you have enough rounds to count."
-                  : "You keep this quota until you have 10 rounds."
-              }
+              help={startingQuotaHelp(method, roundsCounted)}
             >
               <Input
                 id="quota-starting"
@@ -298,7 +310,7 @@ function QuotaResult({
           {outcome.usedStartingQuota
             ? `This is your starting quota. You keep it until you have ${roundsNeeded} rounds; you have added ${roundsEntered}.`
             : roundsEntered < roundsNeeded
-              ? `The average of the ${roundsEntered === 1 ? "one round" : `${roundsEntered} rounds`} you added. Once you have ${roundsNeeded}, ${method === "moving_average" ? `only your latest ${roundsNeeded} count` : "your ten highest count"}.`
+              ? `${roundsEntered === 1 ? "Your points from the one round you added" : `The average of all ${roundsEntered} rounds you added`}. Once you have more than ${roundsNeeded}, ${method === "moving_average" ? `only your latest ${roundsNeeded} count` : "only your ten highest count"}.`
               : method === "moving_average"
                 ? `The average of your latest ${roundsNeeded} rounds.`
                 : `The average of your ten highest totals from your latest ${Math.min(roundsEntered, 20)} rounds.`}
