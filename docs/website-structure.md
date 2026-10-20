@@ -43,7 +43,7 @@ App, behind sign-in                      (exists)
 | Address                                    | What it is                                | Who it is for                   | Status                            |
 | ------------------------------------------ | ----------------------------------------- | ------------------------------- | --------------------------------- |
 | `/`                                        | Landing page                              | Organizers                      | Built 2026-10-18                  |
-| `/pricing`                                 | Pricing                                   | Organizers                      | New                               |
+| `/pricing`                                 | Pricing                                   | Organizers                      | Built 2026-10-20                  |
 | `/tools/quota-calculator`                  | Free quota calculator, no sign-in         | Organizers arriving from search | New                               |
 | `/tools/points-calculator`                 | Second calculator                         | Organizers arriving from search | Later, if the first earns traffic |
 | `/guides/quota-game-rules`                 | Guide                                     | Organizers arriving from search | New                               |

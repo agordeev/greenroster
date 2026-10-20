@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const navLinkClass =
   "rounded-sm py-3 text-sm font-semibold text-foreground no-underline decoration-flag decoration-2 underline-offset-[0.5em] outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring";
 
-// The layout for the calculator and the guides: pages a visitor reads without
+// The layout for the landing page, pricing, the calculator and the guides: pages a visitor reads without
 // an account. It never checks who is signed in, so these pages stay static.
 export function MarketingShell({
   children,
@@ -31,13 +31,16 @@ export function MarketingShell({
         </Link>
         <nav
           className="flex flex-wrap items-center gap-x-6 max-[720px]:order-last max-[720px]:w-full"
-          aria-label="Calculator and guides"
+          aria-label="GreenRoster"
         >
           <Link className={navLinkClass} href="/tools/quota-calculator">
             Quota calculator
           </Link>
           <Link className={navLinkClass} href="/guides">
             Guides
+          </Link>
+          <Link className={navLinkClass} href="/pricing">
+            Pricing
           </Link>
           <Link className={navLinkClass} href="/sign-in">
             Sign in

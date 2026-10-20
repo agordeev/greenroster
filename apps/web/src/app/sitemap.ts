@@ -7,6 +7,7 @@ import { webRuntimeEnv } from "@/lib/runtime-env";
 // listed here.
 const publicPaths = [
   "/",
+  "/pricing",
   calculatorPath,
   "/guides",
   ...guides.map((guide) => guide.path),

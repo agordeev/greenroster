@@ -13,13 +13,16 @@ export function InformationFooter() {
     >
       <nav
         className="flex flex-wrap justify-center gap-x-6"
-        aria-label="Calculator and guides"
+        aria-label="GreenRoster"
       >
         <Link className={linkClass} href="/tools/quota-calculator">
           Quota calculator
         </Link>
         <Link className={linkClass} href="/guides">
           Guides
+        </Link>
+        <Link className={linkClass} href="/pricing">
+          Pricing
         </Link>
       </nav>
       <nav
